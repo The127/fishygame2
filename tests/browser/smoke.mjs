@@ -172,8 +172,10 @@ async function main() {
     await act(page, "start");
     await waitState(page, "racing", (s) => s.flow === "RACING" || s.flow === "COUNTDOWN");
     await page.waitForTimeout(3000);
+    log(`racing at ${(await state(page)).fps} fps`);
     await shot(page, "02-race");
-    const podium = await waitState(page, "podium", (s) => s.podiums >= 1);
+    // A race is ~30s of game time, but software rendering on a CI runner can be much slower.
+    const podium = await waitState(page, "podium", (s) => s.podiums >= 1, 300000);
     await page.waitForTimeout(500);
     await shot(page, "03-podium");
     if (podium.podium.length < 1) fail("podium was empty");

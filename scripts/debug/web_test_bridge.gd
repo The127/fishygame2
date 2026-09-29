@@ -45,6 +45,7 @@ func _snapshot() -> Dictionary:
 		balances[user_id] = _betting.points.get_balance(user_id)
 	return {
 		"flow": GameFlow.State.keys()[_flow.state],
+		"fps": Engine.get_frames_per_second(),
 		"players": _flow.get_contestants().size(),
 		"podiums": _podiums,
 		"podium": _last_podium,
