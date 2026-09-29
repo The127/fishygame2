@@ -39,3 +39,9 @@ func test_reset_restores_chat_toggles() -> void:
 	settings.reply_shop = false
 	settings.reset_to_defaults()
 	assert_true(settings.reply_shop)
+
+
+func test_every_chat_toggle_key_is_a_bool_property() -> void:
+	var settings := GameSettings.new()
+	for toggle: Dictionary in GameSettings.CHAT_TOGGLES:
+		assert_typeof(settings.get(toggle["key"]), TYPE_BOOL, toggle["key"])

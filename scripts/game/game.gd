@@ -146,6 +146,7 @@ func _ready() -> void:
 	add_child(_photo)
 	_race.photo_finish.connect(_on_photo_finish)
 	_photo.ended.connect(_camera.release_hold)
+	# After Betting.on_podium_ready, which settles the payouts this handler reports.
 	_flow.podium_ready.connect(_on_podium_ready)
 	_rng.randomize()
 	if OS.has_feature("web") and DebugMode.is_enabled():
