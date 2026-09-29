@@ -1,6 +1,6 @@
 extends Node
 ## Autoload "Chat": owns the active chat source and republishes its messages
-## and parsed commands. Falls back to the debug source without Twitch config.
+## and parsed commands. Without Twitch config it falls back to the debug source, only in debug mode.
 
 signal message_received(msg: ChatMessage)
 signal command_received(msg: ChatMessage, command: String, args: PackedStringArray)
@@ -15,7 +15,8 @@ func _ready() -> void:
 	if source == null:
 		var cfg: Dictionary = load_twitch_config()
 		if cfg.is_empty():
-			set_source(DebugChatSource.new())
+			if DebugMode.is_enabled():
+				set_source(DebugChatSource.new())
 		else:
 			set_source(
 				TwitchEventSubSource.new(
@@ -48,6 +49,7 @@ func send_message(text: String) -> void:
 func load_twitch_config() -> Dictionary:
 	var cfg: Dictionary = {}
 	if OS.has_feature("web"):
+		DebugMode.is_enabled()  # cache it before the query string is wiped below
 		for key: String in ["client_id", "token", "broadcaster_id", "user_id"]:
 			var value: Variant = JavaScriptBridge.eval(
 				"new URLSearchParams(window.location.search).get('%s')" % key

@@ -43,6 +43,12 @@ over a colorful scene: empty areas should show the scene underneath, not black.
 Serve `build/web/` with any static file server and add the URL as an OBS browser source
 (1920x1080). Serving over HTTP is required; opening the file directly will not work.
 
+## Debug mode
+
+The +1/+5 fake player buttons and the fake chat fallback only exist in debug mode, so they never
+show up on stream. On the web build add `?debug=1` to the URL. Desktop editor and debug builds
+have it on automatically.
+
 ## Development commands
 
 Install the dev tools once: `pip install -r requirements-dev.txt` (gdtoolkit, pinned) and
