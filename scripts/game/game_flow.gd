@@ -133,7 +133,7 @@ func add_debug_players(count: int) -> int:
 	while added < count and state == State.LOBBY and _contestants.size() < max_players:
 		_debug_count += 1
 		var user_id: String = "debug_%d" % _debug_count
-		var msg := ChatMessage.create(user_id, user_id, "Debug %d" % _debug_count, "#join")
+		var msg := ChatMessage.create(user_id, user_id, "Debug%d" % _debug_count, "#join")
 		if join(msg):
 			added += 1
 	return added

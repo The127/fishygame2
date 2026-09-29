@@ -217,6 +217,7 @@ func _build_notice() -> void:
 	_notice = _make_label("", 32, 700, UiStyle.TEXT)
 	_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_notice_panel.add_child(_notice)
+	_notice_panel.visible = false
 	# A full-width strip at the top whose only child is centered, so the pill hugs its text.
 	var strip := HBoxContainer.new()
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
