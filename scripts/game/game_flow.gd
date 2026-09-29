@@ -112,6 +112,7 @@ func report_race_finished(results: Array[Dictionary]) -> void:
 			podium
 			. append(
 				{
+					"id": int(r["id"]),
 					"place": int(r["place"]),
 					"user_id": contestant.user_id,
 					"name": contestant.display_name,

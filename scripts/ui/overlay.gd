@@ -7,7 +7,6 @@ extends CanvasLayer
 
 const MARGIN: int = 48
 const LOBBY_COLUMNS: int = 2
-const PODIUM_COLUMN_THRESHOLD: int = 10
 
 var _lobby_panel: PanelContainer
 var _lobby_header: Label
@@ -17,7 +16,7 @@ var _lobby_key: String = ""
 var _big: Label
 var _results_column: VBoxContainer
 var _podium_panel: PanelContainer
-var _podium_rows: GridContainer
+var _podium_view: PodiumView
 var _payouts_panel: PanelContainer
 var _payouts_box: VBoxContainer
 var _bets_panel: PanelContainer
@@ -87,21 +86,7 @@ func show_racing() -> void:
 
 func show_podium(podium: Array[Dictionary]) -> void:
 	clear()
-	for child: Node in _podium_rows.get_children():
-		_podium_rows.remove_child(child)
-		child.queue_free()
-	_podium_rows.columns = 2 if podium.size() > PODIUM_COLUMN_THRESHOLD else 1
-	for entry: Dictionary in podium:
-		var place: int = int(entry["place"])
-		var time_text: String = "%.1fs" % entry["time"] if entry["finished"] else "did not finish"
-		var size: int = 40 if place <= 3 else 28
-		var color: Color = UiStyle.TEXT if place <= 3 else UiStyle.MUTED
-		var weight: int = 800 if place <= 3 else 600
-		var row: Label = _make_label(
-			"%d.  %s   %s" % [place, entry["name"], time_text], size, weight, color
-		)
-		row.custom_minimum_size = Vector2(440, 0)
-		_podium_rows.add_child(row)
+	_podium_view.set_podium(podium)
 	_podium_panel.visible = not podium.is_empty()
 
 
@@ -203,10 +188,8 @@ func _build_results() -> void:
 	title.material = UiStyle.gradient_material()
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	podium_box.add_child(title)
-	_podium_rows = GridContainer.new()
-	_podium_rows.add_theme_constant_override("h_separation", 48)
-	_podium_rows.add_theme_constant_override("v_separation", 4)
-	podium_box.add_child(_podium_rows)
+	_podium_view = PodiumView.new()
+	podium_box.add_child(_podium_view)
 	_results_column.add_child(_podium_panel)
 	_payouts_panel = _make_panel(false)
 	_payouts_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
