@@ -21,6 +21,11 @@ const MAPS: Array[Dictionary] = [
 		"name": "Shipwreck",
 		"scene": preload("res://scenes/tracks/wreck_track.tscn"),
 	},
+	{
+		"id": "whirlpool",
+		"name": "Whirlpool",
+		"scene": preload("res://scenes/tracks/whirlpool_track.tscn"),
+	},
 ]
 
 
