@@ -59,6 +59,15 @@ Install the dev tools once: `pip install -r requirements-dev.txt` (gdtoolkit, pi
 Tests live in `tests/` as `test_*.gd` files extending `GutTest` (config: `.gutconfig.json`).
 `addons/` (including the vendored GUT 9.7.1) is excluded from lint and format. `gdlint` allows lines up to 240 columns (gdformat wraps code at 100) so long literals such as recorded JSON do not need suppression; prefer JSON fixture files under `tests/` when data is large.
 
+Maps live in `scenes/tracks/` and are registered in `scripts/tracks/track_catalog.gd`. The
+control panel's Map picker chooses one for the next race (default Random, never the same map
+twice in a row). To check a map for jams, run full races headless over many seeds:
+
+```sh
+tests/run_race_seeds.sh godot 1 100                  # both maps, 10 marbles, seeds 1..100
+MARBLES=20 tests/run_race_seeds.sh godot 1 100 pachinko
+```
+
 Basic sanity checks:
 
 ```sh
