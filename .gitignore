@@ -1,2 +1,36 @@
+# Godot 4 editor cache and imported assets
 .godot/
+# Godot 3 import cache (in case old assets get copied in)
+.import/
+
+# Export output and per-machine export secrets
 build/
+export_credentials.cfg
+*.pck
+*.zip
+/android/
+
+# Local Twitch credentials used by the desktop build
+twitch.cfg
+.env
+.env.*
+
+# Translations are generated from .csv/.po sources
+*.translation
+
+# Python tooling (gdtoolkit)
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
