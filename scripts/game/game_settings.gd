@@ -52,7 +52,7 @@ func set_number(key: String, value: float) -> bool:
 	var field: Dictionary = field_of(key)
 	if field.is_empty() or not is_finite(value):
 		return false
-	set(key, clampi(roundi(value), int(field["min"]), int(field["max"])))
+	set(key, roundi(clampf(value, float(field["min"]), float(field["max"]))))
 	return true
 
 

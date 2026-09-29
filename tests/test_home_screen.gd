@@ -54,6 +54,7 @@ func test_settings_button_opens_the_settings_screen() -> void:
 	add_child_autofree(home)
 	var button: Button = home.get_node("Center/Box/Settings")
 	assert_eq(button.text, "SETTINGS")
+	assert_true(button.pressed.is_connected(home._on_settings_pressed), "button is wired")
 	assert_true(load(HomeScreen.SETTINGS_SCENE) is PackedScene)
 
 

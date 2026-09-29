@@ -50,7 +50,8 @@ func _build() -> void:
 		var spinner := SpinBox.new()
 		spinner.min_value = float(field["min"])
 		spinner.max_value = float(field["max"])
-		spinner.step = float(field["step"])
+		spinner.step = 1.0
+		spinner.custom_arrow_step = float(field["step"])
 		spinner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		spinner.value_changed.connect(_on_number_changed.bind(String(field["key"])))
 		_spinners[String(field["key"])] = spinner
@@ -106,17 +107,20 @@ func _row_label(text: String) -> Label:
 ## Copies the settings into the controls without triggering their change handlers.
 func _refresh() -> void:
 	for key: String in _spinners:
-		_spinners[key].set_value_no_signal(float(settings.get(key)))
+		var wanted: float = float(settings.get(key))
+		# Leave the control alone when it already shows the value, so typing is not interrupted.
+		if _spinners[key].value != wanted:
+			_spinners[key].set_value_no_signal(wanted)
 	for i: int in _map_picker.item_count:
 		if String(_map_picker.get_item_metadata(i)) == settings.default_map:
 			_map_picker.select(i)
 	_chat_replies.set_pressed_no_signal(settings.chat_replies)
 
 
-func _commit() -> void:
+func _commit(saved_text: String = "Saved") -> void:
 	settings.sanitize()
 	_refresh()
-	_status.text = "Saved" if settings.save() else "Could not save in this browser"
+	_status.text = saved_text if settings.save() else "Could not save in this browser"
 
 
 func _on_number_changed(value: float, key: String) -> void:
@@ -136,8 +140,7 @@ func _on_chat_replies_toggled(pressed: bool) -> void:
 
 func reset_pressed() -> void:
 	settings.reset_to_defaults()
-	_commit()
-	_status.text = "Defaults restored"
+	_commit("Defaults restored")
 
 
 func _on_back_pressed() -> void:

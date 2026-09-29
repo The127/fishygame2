@@ -64,6 +64,12 @@ func test_set_number_clamps_to_the_range() -> void:
 	assert_eq(settings.min_bet, 1)
 
 
+func test_set_number_clamps_huge_values_to_the_max() -> void:
+	var settings := GameSettings.new()
+	settings.set_number("boost_cost", 1e30)
+	assert_eq(settings.boost_cost, 1000000)
+
+
 func test_set_number_rejects_unknown_keys_and_non_finite_values() -> void:
 	var settings := GameSettings.new()
 	assert_false(settings.set_number("nope", 1.0))

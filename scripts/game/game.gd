@@ -54,7 +54,6 @@ func _ready() -> void:
 	Chat.command_received.connect(_betting.handle_command)
 	Chat.command_received.connect(_chaos.handle_command)
 	_chaos.points = _betting.points
-	_betting.points.starting_balance = settings.starting_balance
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
 	_flow.join_rejected.connect(_on_join_rejected)
@@ -99,6 +98,7 @@ func _apply_settings() -> void:
 	_flow.max_players = settings.max_players
 	_flow.countdown_seconds = settings.countdown_seconds
 	_betting.starting_balance = settings.starting_balance
+	_betting.points.starting_balance = settings.starting_balance
 	_betting.min_bet = settings.min_bet
 	_betting.max_bet = settings.max_bet
 	_chaos.boost_cost = settings.boost_cost

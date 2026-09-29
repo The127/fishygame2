@@ -52,6 +52,23 @@ func test_bets_outside_the_limits_are_rejected() -> void:
 	assert_eq(_balance("0"), 200)
 
 
+func test_bet_all_is_capped_at_the_max_bet() -> void:
+	_join(2)
+	_say("0", "#bet User1 all")
+	assert_eq(_balance("0"), 200, "400 balance, 200 max bet")
+
+
+func test_bet_all_below_the_minimum_reads_as_not_enough_points() -> void:
+	_join(2)
+	_betting.points.set_balance("0", 20)
+	var rejected: Array[String] = []
+	_betting.bet_rejected.connect(
+		func(_m: ChatMessage, reason: String) -> void: rejected.append(reason)
+	)
+	_say("0", "#bet User1 all")
+	assert_eq(rejected, ["insufficient"])
+
+
 func test_chat_replies_can_be_turned_off() -> void:
 	_join(4)
 	_say("9", "#join")
