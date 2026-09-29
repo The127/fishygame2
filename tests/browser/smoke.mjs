@@ -84,9 +84,16 @@ async function waitState(page, what, predicate, timeout = stepTimeout) {
 async function openLobby(page, url) {
   await page.goto(url);
   await page.waitForSelector("canvas", { timeout: stepTimeout });
-  await page.waitForTimeout(1500);
-  await page.keyboard.press("Enter");
-  return waitState(page, "lobby after Open lobby", (s) => s.flow === "LOBBY");
+  // The canvas shows up before the engine is running, so keep pressing Enter until the
+  // race scene (and with it the test bridge) is there.
+  const deadline = Date.now() + stepTimeout;
+  while (Date.now() < deadline) {
+    await page.waitForTimeout(1000);
+    await page.keyboard.press("Enter");
+    const s = await state(page);
+    if (s?.flow === "LOBBY") return s;
+  }
+  throw new Error("timed out waiting for lobby after Open lobby");
 }
 
 // Contents of the saved points file as Godot's IDBFS holds it, or null.
@@ -172,8 +179,10 @@ async function main() {
     if (podium.podium.length < 1) fail("podium was empty");
     log(`podium: ${podium.podium.join(", ")}`);
     const settled = podium.balances.alice;
-    if (settled === 1000 || (settled !== 900 && settled !== 1400)) {
-      fail(`unexpected settled balance for alice: ${settled} (expected 900 or 1400)`);
+    // 5 racers pay 5x: bob winning gives 900 + 500, anything else leaves 900.
+    const expected = podium.podium[0] === "bob" ? 1400 : 900;
+    if (settled !== expected) {
+      fail(`alice ended with ${settled}, expected ${expected} (winner: ${podium.podium[0]})`);
     }
 
     if (process.env.STRICT_RELOAD) {
