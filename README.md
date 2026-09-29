@@ -43,6 +43,21 @@ over a colorful scene: empty areas should show the scene underneath, not black.
 Serve `build/web/` with any static file server and add the URL as an OBS browser source
 (1920x1080). Serving over HTTP is required; opening the file directly will not work.
 
+## Hosted build (GitHub Pages)
+
+Every push to `main` that passes CI is deployed to GitHub Pages by the `deploy-pages` job in
+`.github/workflows/ci.yml`:
+
+**<https://the127.github.io/fishygame2/>**
+
+Add that URL as an OBS browser source (1920x1080), then follow "Twitch login" below. The game is
+served from the `/fishygame2/` subpath; all asset paths are relative and the Twitch login redirect is
+built from the page's own origin and path, so nothing needs configuring for the subpath.
+
+One-time repo setup (owner): **Settings > Pages > Build and deployment > Source: GitHub Actions**.
+Without it the deploy job fails with "Pages not enabled". Forks get their own URL,
+`https://<owner>.github.io/<repo>/`.
+
 ## Browser smoke test
 
 CI loads the Web export in headless Chromium (Playwright), plays a whole round with fake players and a
@@ -81,7 +96,8 @@ One-time setup, done by whoever hosts the game (once, not per streamer):
 
 1. Register an app at <https://dev.twitch.tv/console/apps>.
 2. Add an **OAuth Redirect URL** that is exactly the address the game is opened at, without query
-   or fragment (for example `https://fish.example.com/`, or `http://localhost:8000/` for testing;
+   or fragment. For the hosted build that is `https://the127.github.io/fishygame2/` (keep the
+   trailing slash). For your own host or testing, e.g. `https://fish.example.com/` or `http://localhost:8000/`;
    if you open `.../index.html`, register that). It must match what the browser shows, or Twitch
    refuses the login.
 3. Category: Game Integration, client type: Public. Copy the **Client ID** (it is not a secret;
@@ -99,6 +115,8 @@ Notes:
 - The token is stored only in that browser source's `localStorage`, next to the game. Anyone who
   can open the OBS browser source's Interact window or its profile can use it; **Log out** on the
   home screen revokes it at Twitch and deletes it. Do not screen-share that window while logged in.
+- On GitHub Pages the origin is `the127.github.io`, shared by every Pages site of that account, so
+  they can read the same `localStorage`. Only host code you trust there.
 - Implicit tokens expire (Twitch decides when, typically hours) and cannot be refreshed. When it
   runs out, or Twitch rejects it, the home screen says so and the streamer logs in again.
 - Login uses the account's own channel: the token owner is the broadcaster and the chat sender.
@@ -148,7 +166,8 @@ godot --headless --quit     # loads the project and exits; must be clean
 ## CI
 
 `.github/workflows/ci.yml` runs on pushes to `main` and on all pull requests: lint/format,
-headless GUT tests, and a Web export uploaded as the `web-build` artifact. The Godot version
+headless GUT tests, a Web export uploaded as the `web-build` artifact, and the browser smoke test.
+On `main`, the export is then deployed to GitHub Pages. The Godot version
 is set once in the `GODOT_VERSION` env var at the top of the workflow.
 
 ## Layout

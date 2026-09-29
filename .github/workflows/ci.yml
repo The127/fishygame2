@@ -132,3 +132,30 @@ jobs:
           path: tests/browser/results
           if-no-files-found: warn
           retention-days: 7
+
+  deploy-pages:
+    # Publish the tested export from main. Only this job gets the Pages permissions.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [lint, test, browser-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: build/web
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+      - id: deployment
+        uses: actions/deploy-pages@v4
