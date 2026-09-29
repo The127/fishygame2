@@ -1,15 +1,15 @@
 class_name RaceDebug
 extends Node2D
-## Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7
-
-const MARBLE_COUNT: int = 10
+### Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7 --map=pachinko --count=20
 
 @export var seed_value: int = 1
+@export var marble_count: int = 10
+@export var map_id: String = "zigzag"
 
 var _autorun: bool = false
+var _track: Track
 
 @onready var _race: Race = $Race
-@onready var _track: Track = $Track
 
 
 func _ready() -> void:
@@ -20,6 +20,17 @@ func _ready() -> void:
 			_autorun = true
 		elif arg.begins_with("--seed="):
 			seed_value = int(arg.substr(7))
+		elif arg.begins_with("--count="):
+			marble_count = maxi(1, int(arg.substr(8)))
+		elif arg.begins_with("--map="):
+			map_id = arg.substr(6)
+	if not TrackCatalog.has_map(map_id):
+		push_error("Unknown map '%s' (known: %s)" % [map_id, ", ".join(TrackCatalog.ids())])
+		get_tree().quit(2)
+		return
+	_track = TrackCatalog.instantiate(map_id)
+	add_child(_track)
+	move_child(_track, 0)
 	if _autorun:
 		_start_race()
 	else:
@@ -37,8 +48,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _start_race() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed_value
-	print("Race start: seed %d, %d marbles" % [seed_value, MARBLE_COUNT])
-	_race.start(_track, MARBLE_COUNT, rng)
+	print("Race start: map %s, seed %d, %d marbles" % [map_id, seed_value, marble_count])
+	_race.start(_track, marble_count, rng)
 
 
 func _on_marble_finished(id: int, place: int) -> void:
@@ -56,8 +67,8 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 		)
 		print(
 			(
-				"RESULT seed=%d time=%.2f unfinished=%d order=%s"
-				% [seed_value, _race.elapsed, unfinished, ",".join(order)]
+				"RESULT map=%s seed=%d time=%.2f unfinished=%d order=%s"
+				% [map_id, seed_value, _race.elapsed, unfinished, ",".join(order)]
 			)
 		)
 		get_tree().quit(1 if unfinished > 0 else 0)

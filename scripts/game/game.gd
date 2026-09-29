@@ -2,9 +2,13 @@ class_name Game
 extends Node2D
 ## Wires chat commands, the round state machine, the race and the UI together.
 
+var _map_choice: String = TrackCatalog.RANDOM_ID
+var _map_id: String = ""
+var _track: Track
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+
 @onready var _flow: GameFlow = $GameFlow
 @onready var _race: Race = $Race
-@onready var _track: Track = $Track
 @onready var _overlay: Overlay = $Overlay
 @onready var _panel: ControlPanel = $ControlPanel
 
@@ -20,6 +24,8 @@ func _ready() -> void:
 	_panel.open_lobby_pressed.connect(_flow.open_lobby)
 	_panel.start_pressed.connect(_flow.start_race)
 	_panel.stop_pressed.connect(_flow.stop)
+	_panel.map_selected.connect(_on_map_selected)
+	_rng.randomize()
 	_flow.open_lobby()
 
 
@@ -36,6 +42,7 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 			_overlay.show_idle()
 		GameFlow.State.LOBBY:
 			_race.clear()
+			_load_map()
 			_refresh_lobby()
 		GameFlow.State.RACING:
 			_overlay.show_racing()
@@ -43,6 +50,27 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 
 func _on_player_joined(_contestant: Contestant) -> void:
 	_refresh_lobby()
+
+
+func _on_map_selected(choice: String) -> void:
+	_map_choice = choice
+	# Applies to the next lobby, or right away while one is open (the roster is unaffected).
+	if _flow.state == GameFlow.State.LOBBY:
+		_load_map()
+
+
+## Swaps in the track for the coming race. Only called with no marbles on the field.
+func _load_map() -> void:
+	var id: String = TrackCatalog.resolve(_map_choice, _rng, _map_id)
+	if _track != null and id == _map_id:
+		return
+	if _track != null:
+		remove_child(_track)
+		_track.queue_free()
+	_map_id = id
+	_track = TrackCatalog.instantiate(id)
+	add_child(_track)
+	move_child(_track, 0)
 
 
 func _on_race_started(contestants: Array[Contestant]) -> void:
@@ -64,4 +92,7 @@ func _refresh_lobby() -> void:
 
 func _status_text() -> String:
 	var state_name: String = GameFlow.State.keys()[_flow.state]
-	return "%s, %d players" % [state_name, _flow.get_contestants().size()]
+	return (
+		"%s, %d players, map: %s"
+		% [state_name, _flow.get_contestants().size(), TrackCatalog.get_name_of(_map_id)]
+	)
