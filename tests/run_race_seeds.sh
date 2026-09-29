@@ -13,6 +13,7 @@ for map in $MAPS; do
 	for seed in $(seq "$FIRST" "$LAST"); do
 		"$GODOT" --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed="$seed" --map="$map" --count="$MARBLES" > "$OUT" 2>&1 || status=1
 		grep -E "RESULT|ERROR" "$OUT" || { echo "no result for map=$map seed=$seed"; status=1; }
+		! grep -q "ERROR" "$OUT" || status=1
 	done
 done
 rm -f "$OUT"

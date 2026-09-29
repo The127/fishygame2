@@ -78,6 +78,8 @@ func _on_player_joined(_contestant: Contestant) -> void:
 
 
 func _on_map_selected(choice: String) -> void:
+	if choice == _map_choice:
+		return
 	_map_choice = choice
 	# Applies to the next lobby, or right away while one is open (the roster is unaffected).
 	if _flow.state == GameFlow.State.LOBBY:

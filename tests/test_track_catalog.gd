@@ -110,10 +110,10 @@ func test_panel_choice_swaps_the_track_during_the_lobby() -> void:
 		panel.map_selected.emit(id)
 		var expected: String = autofree(TrackCatalog.instantiate(id)).scene_file_path
 		assert_eq(_map_scene_path(game), expected, id)
+		await get_tree().process_frame
 		var tracks: int = (
 			game.get_children().filter(func(n: Node) -> bool: return n is Track).size()
 		)
-		await get_tree().process_frame
 		assert_eq(tracks, 1, "old track left behind")
 
 

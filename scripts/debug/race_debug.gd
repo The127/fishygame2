@@ -1,6 +1,6 @@
 class_name RaceDebug
 extends Node2D
-### Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7 --map=pachinko --count=20
+## Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7 --map=pachinko --count=20
 
 @export var seed_value: int = 1
 @export var marble_count: int = 10
