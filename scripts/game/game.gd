@@ -5,9 +5,19 @@ extends Node2D
 ## Milliseconds before the same viewer gets another rejection reply.
 const REPLY_COOLDOWN_MSEC: int = 15000
 
+const BET_REJECTIONS: Dictionary = {
+	"closed": "betting is closed",
+	"usage": "use #bet <name> <amount>",
+	"already_bet": "you already bet this round",
+	"unknown_fish": "no such racer",
+	"invalid_amount": "invalid amount",
+	"insufficient": "not enough points",
+}
+
 var _last_reply_msec: Dictionary[String, int] = {}
 
 @onready var _flow: GameFlow = $GameFlow
+@onready var _betting: Betting = $Betting
 @onready var _race: Race = $Race
 @onready var _track: Track = $Track
 @onready var _overlay: Overlay = $Overlay
@@ -16,12 +26,21 @@ var _last_reply_msec: Dictionary[String, int] = {}
 
 func _ready() -> void:
 	Chat.command_received.connect(_flow.handle_command)
+	Chat.command_received.connect(_betting.handle_command)
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
 	_flow.join_rejected.connect(_on_join_rejected)
 	_flow.countdown_tick.connect(_overlay.show_countdown)
 	_flow.race_started.connect(_on_race_started)
+	_flow.player_joined.connect(_betting.add_contestant)
+	_flow.state_changed.connect(_betting.on_state_changed)
 	_flow.podium_ready.connect(_overlay.show_podium)
+	_flow.podium_ready.connect(_betting.on_podium_ready)
+	_betting.bets_changed.connect(_overlay.show_bets)
+	_betting.payouts_settled.connect(_overlay.show_payouts)
+	_betting.bet_placed.connect(_on_bet_placed)
+	_betting.bet_rejected.connect(_on_bet_rejected)
+	_betting.balance_reported.connect(_on_balance_reported)
 	_race.race_finished.connect(_flow.report_race_finished)
 	_panel.open_lobby_pressed.connect(_flow.open_lobby)
 	_panel.start_pressed.connect(_flow.start_race)
@@ -65,6 +84,23 @@ func _on_join_rejected(msg: ChatMessage, reason: String) -> void:
 		return
 	_last_reply_msec[msg.user_id] = now
 	Chat.send_message(text)
+
+
+func _on_bet_placed(msg: ChatMessage, target: Contestant, amount: int) -> void:
+	_overlay.show_notice("%s bet %d on %s" % [_viewer_name(msg), amount, target.display_name])
+
+
+func _on_bet_rejected(msg: ChatMessage, reason: String) -> void:
+	var text: String = BET_REJECTIONS.get(reason, "bet not accepted")
+	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
+
+
+func _on_balance_reported(msg: ChatMessage, balance: int) -> void:
+	_overlay.show_notice("%s has %d points" % [_viewer_name(msg), balance])
+
+
+func _viewer_name(msg: ChatMessage) -> String:
+	return msg.display_name if msg.display_name != "" else msg.login
 
 
 func _on_race_started(contestants: Array[Contestant]) -> void:
