@@ -44,7 +44,7 @@ jobs:
       - name: Import project
         run: godot --headless --import
       - name: Run GUT tests
-        run: godot --headless -s addons/gut/gut_cmdln.gd
+        run: tools/run_tests.sh
 
   export-web:
     runs-on: ubuntu-latest

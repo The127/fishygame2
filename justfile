@@ -7,7 +7,7 @@ default:
 # Import the project, then run the GUT test suite headless (fails on any test failure).
 test:
     {{godot}} --headless --import
-    {{godot}} --headless -s addons/gut/gut_cmdln.gd
+    GODOT={{godot}} tools/run_tests.sh
 
 # gdformat --check and gdlint over scripts/ and tests/.
 lint:
