@@ -45,6 +45,10 @@ var _radius: float = 260.0
 var _spin: float = 1.0
 var _surge: float = 0.0
 var _turn: float = 0.0
+## Seconds each marble in the basin must stay before it may leave, by marble.
+var _needed: Dictionary[int, float] = {}
+## Varies with the race seed so that different marbles are slow in different races.
+var _salt: float = 0.0
 var _dwell: Dictionary[int, float] = {}
 var _cooldown: Dictionary[int, float] = {}
 
@@ -78,6 +82,11 @@ func get_exit_direction(index: int) -> Vector2:
 	return Vector2.from_angle(deg_to_rad(exit_degrees[index]))
 
 
+func arm(seed_value: int, frequency: int) -> void:
+	super(seed_value, frequency)
+	_salt = float(seed_value % 9973) * 0.381966
+
+
 func _physics_process(delta: float) -> void:
 	super(delta)
 	_turn += delta * _spin * (0.8 + 1.4 * get_strength())
@@ -108,15 +117,19 @@ func _stir(delta: float) -> void:
 		if _cooldown.has(key):
 			continue
 		inside[key] = true
+		if not _dwell.has(key):
+			_needed[key] = _dwell_needed(marble)
 		_dwell[key] = _dwell.get(key, 0.0) + delta
-		if _try_release(marble, _dwell[key]):
+		if _try_release(marble, _dwell[key], _needed[key]):
 			_dwell.erase(key)
+			_needed.erase(key)
 			_cooldown[key] = EJECT_COOLDOWN
 			continue
 		_pull(marble, strength)
 	for key: int in _dwell.keys():
 		if not inside.has(key):
 			_dwell.erase(key)
+			_needed.erase(key)
 
 
 func _pull(marble: Marble, strength: float) -> void:
@@ -133,32 +146,37 @@ func _pull(marble: Marble, strength: float) -> void:
 	marble.apply_central_force(accel * marble.mass)
 
 
+## How long a marble that has just come into the basin stays. Mixes the marble, the race seed
+## and how it arrived, so it differs between marbles and between races but replays exactly.
+func _dwell_needed(marble: Marble) -> float:
+	var arrival: float = (
+		marble.global_position.y * 0.0137 + marble.linear_velocity.length() * 0.0071
+	)
+	var mix: float = float(marble.id) * 0.618034 + _salt + arrival
+	return MIN_DWELL + fposmod(mix, 1.0) * DWELL_SPREAD
+
+
 ## Flings the marble out of an exit if it has been in the basin long enough and is at one.
-func _try_release(marble: Marble, dwell: float) -> bool:
-	if exit_degrees.is_empty():
-		return false
-	var spread: float = fposmod(float(marble.id) * 0.618034, 1.0) * DWELL_SPREAD
-	if dwell < MIN_DWELL + spread:
+func _try_release(marble: Marble, dwell: float, needed: float) -> bool:
+	if exit_degrees.is_empty() or dwell < needed:
 		return false
 	var offset: Vector2 = marble.global_position - _zone.global_position
 	var distance: float = offset.length()
-	var angle: float = rad_to_deg(offset.angle())
 	var best: int = -1
 	var best_gap: float = 360.0
 	for i: int in exit_degrees.size():
-		var gap: float = absf(angle_difference(deg_to_rad(angle), deg_to_rad(exit_degrees[i])))
-		gap = rad_to_deg(gap)
+		var gap: float = rad_to_deg(
+			absf(angle_difference(offset.angle(), deg_to_rad(exit_degrees[i])))
+		)
 		if gap < best_gap:
 			best_gap = gap
 			best = i
 	var forced: bool = dwell >= MAX_DWELL
 	if not forced and (best_gap > EXIT_WINDOW_DEGREES or distance < _radius * EXIT_MIN_RADIUS):
 		return false
-	var heading: Vector2 = get_exit_direction(best)
-	if forced:
-		# Head for the mouth of the exit, a chord across the basin that stays inside it.
-		var mouth: Vector2 = _zone.global_position + heading * _radius
-		heading = (mouth - marble.global_position).normalized()
+	# Head for the mouth of the exit, a chord across the basin that stays inside it.
+	var mouth: Vector2 = _zone.global_position + get_exit_direction(best) * _radius
+	var heading: Vector2 = (mouth - marble.global_position).normalized()
 	var change: Vector2 = heading * EJECT_SPEED - marble.linear_velocity
 	marble.apply_central_impulse(change * marble.mass)
 	return true

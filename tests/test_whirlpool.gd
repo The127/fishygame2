@@ -50,7 +50,8 @@ func test_marble_at_an_exit_is_flung_out_of_it_after_a_while() -> void:
 	var marble: Marble = _marble(center + exit * whirlpool.get_radius() * 0.8)
 	marble.id = 0
 	await wait_physics_frames(3)
-	whirlpool._dwell[marble.get_instance_id()] = Whirlpool.MIN_DWELL + Whirlpool.DWELL_SPREAD
+	whirlpool._needed[marble.get_instance_id()] = 0.0
+	whirlpool._dwell[marble.get_instance_id()] = Whirlpool.MIN_DWELL
 	await wait_physics_frames(2)
 	assert_gt(marble.linear_velocity.dot(exit), Whirlpool.EJECT_SPEED * 0.8, "flung outward")
 
@@ -102,3 +103,21 @@ func test_the_vortex_runs_without_hazards_armed() -> void:
 	var marble: Marble = _marble(whirlpool.get_center() + Vector2(100.0, 0.0))
 	await wait_physics_frames(10)
 	assert_gt(marble.linear_velocity.length(), 50.0)
+
+
+func test_time_in_the_basin_differs_between_marbles_and_between_races() -> void:
+	var first: Whirlpool = _whirlpool()
+	var second: Whirlpool = _whirlpool()
+	first.arm(1, 3)
+	second.arm(2, 3)
+	var spot: Vector2 = first.get_center()
+	var a: Marble = _marble(spot)
+	var b: Marble = _marble(spot)
+	a.id = 1
+	b.id = 2
+	assert_ne(first._dwell_needed(a), first._dwell_needed(b), "marbles differ")
+	assert_ne(first._dwell_needed(a), second._dwell_needed(a), "seeds differ")
+	assert_eq(first._dwell_needed(a), first._dwell_needed(a), "replays exactly")
+	var needed: float = first._dwell_needed(a)
+	assert_gte(needed, Whirlpool.MIN_DWELL)
+	assert_lte(needed, Whirlpool.MIN_DWELL + Whirlpool.DWELL_SPREAD)
