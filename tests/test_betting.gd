@@ -194,3 +194,33 @@ func test_settled_balances_persist() -> void:
 	reloaded.load_from_disk()
 	assert_eq(reloaded.get_balance("v1"), 1100)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func test_open_bet_is_refunded_after_reload() -> void:
+	var path: String = "user://test_betting_reload.json"
+	var live := Betting.new()
+	live.points = PointsStore.new(path, 1000)
+	add_child_autofree(live)
+	live.on_state_changed(GameFlow.State.LOBBY, GameFlow.State.IDLE)
+	live.add_contestant(_alice)
+	var msg := ChatMessage.new()
+	msg.user_id = "v1"
+	msg.login = "viewer"
+	assert_true(live.place_bet(msg, PackedStringArray(["alice", "300"])))
+	assert_eq(live.points.get_balance("v1"), 700)
+	# Simulate a browser refresh: a fresh Betting loads the same file.
+	var reloaded := Betting.new()
+	reloaded.points_path = path
+	add_child_autofree(reloaded)
+	assert_eq(reloaded.points.get_balance("v1"), 1000)
+	assert_eq(reloaded.points.stake_of("v1"), 0)
+	for name_text: String in DirAccess.open("user://").get_files():
+		if name_text.begins_with("test_betting_reload.json"):
+			DirAccess.open("user://").remove(name_text)
+
+
+func test_settled_bets_leave_no_stake() -> void:
+	_bet("v1", "V1", "#bet alice 100")
+	_betting.on_podium_ready(_podium(_alice))
+	assert_eq(_betting.points.stake_of("v1"), 0)
+	assert_eq(_balance("v1"), 1100)
