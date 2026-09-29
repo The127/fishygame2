@@ -42,3 +42,10 @@ func test_podium_shows_the_bought_species() -> void:
 func test_settings_prices_reach_the_shop() -> void:
 	assert_eq(_shop.species_price, _game.settings.species_price)
 	assert_eq(_shop.color_price, _game.settings.color_price)
+
+
+func test_joining_and_shopping_remember_the_viewer_name() -> void:
+	_say("7", "#join")
+	assert_eq(_betting.points.get_name("7"), "User7")
+	_say("8", "#shop")
+	assert_eq(_betting.points.get_name("8"), "User8")

@@ -37,7 +37,9 @@ const CHAOS_REJECTIONS: Dictionary = {
 const TOP_COOLDOWN_MSEC: int = 30000
 
 ## Commands that put a viewer on the leaderboard, so their name is remembered.
-const NAMED_COMMANDS: PackedStringArray = ["join", "bet", "boost", "curse", "points", "fish", "color", "shop"]
+const NAMED_COMMANDS: PackedStringArray = [
+	"join", "bet", "boost", "curse", "points", "fish", "color", "shop"
+]
 
 ## The streamer's rules. Loaded from storage in _ready unless a caller sets it first.
 var settings: GameSettings = null
