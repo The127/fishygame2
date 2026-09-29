@@ -29,6 +29,11 @@ var _target_center: Vector2 = Vector2(960.0, 540.0)
 var _target_zoom: float = MIN_ZOOM
 var _followed_count: int = 0
 var _handover_left: float = 0.0
+var _focus_size: Vector2 = Vector2(1920.0, 1080.0)
+## Where the camera looks (the middle of the play area), before the padding shift.
+var _center: Vector2 = Vector2(960.0, 540.0)
+## Part of the screen the track may use, as fractions of the viewport (streamer padding).
+var _play_fraction: Rect2 = Rect2(0.0, 0.0, 1.0, 1.0)
 
 
 func _ready() -> void:
@@ -49,12 +54,12 @@ func _process(delta: float) -> void:
 		zoom_step = clampf(zoom_step, -MAX_ZOOM_SPEED * delta, MAX_ZOOM_SPEED * delta)
 	var new_zoom: float = zoom.x + zoom_step
 	zoom = Vector2(new_zoom, new_zoom)
-	var current: Vector2 = get_screen_center_position()
+	var current: Vector2 = _center
 	var step: Vector2 = (_target_center - current) * t_position
 	if _handover_left > 0.0:
 		step = step.limit_length(MAX_PAN_SPEED * delta)
-	var center: Vector2 = current + step
-	global_position = CameraFraming.clamp_center(center, new_zoom, _viewport_size(), _bounds)
+	_center = CameraFraming.clamp_center(current + step, new_zoom, _play_size(), _bounds)
+	_place(new_zoom)
 
 
 ## World rect the camera never looks outside of (the track's view bounds).
@@ -62,12 +67,24 @@ func set_bounds(bounds: Rect2) -> void:
 	_bounds = bounds
 
 
+## Part of the screen the track may use, as fractions of the viewport. The rest is
+## left empty for the streamer's own overlays (chat, webcam).
+func set_play_fraction(fraction: Rect2) -> void:
+	_play_fraction = fraction
+	if _following:
+		_target_zoom = CameraFraming.fit_zoom(
+			_focus_size, _play_size(), _min_zoom(MIN_ZOOM), MAX_ZOOM
+		)
+	else:
+		show_overview(true)
+
+
 ## Frame the whole track. With `snap` the view jumps there (new map), otherwise it glides.
 func show_overview(snap: bool = false) -> void:
 	_following = false
 	_followed_count = 0
 	_target_zoom = CameraFraming.fit_zoom(
-		_bounds.size, _viewport_size(), OVERVIEW_MIN_ZOOM, MAX_ZOOM
+		_bounds.size, _play_size(), _min_zoom(OVERVIEW_MIN_ZOOM), MAX_ZOOM
 	)
 	_target_center = _bounds.get_center()
 	if snap:
@@ -86,16 +103,35 @@ func follow(positions: Dictionary, progress: Dictionary) -> void:
 		return
 	var rect: Rect2 = CameraFraming.focus_rect(group, MARGIN, MIN_FRAME)
 	_following = true
-	_target_zoom = CameraFraming.fit_zoom(rect.size, _viewport_size(), MIN_ZOOM, MAX_ZOOM)
+	_focus_size = rect.size
+	_target_zoom = CameraFraming.fit_zoom(rect.size, _play_size(), _min_zoom(MIN_ZOOM), MAX_ZOOM)
 	_target_center = rect.get_center()
 
 
 func _snap() -> void:
 	_handover_left = 0.0
-	zoom = Vector2(_target_zoom, _target_zoom)
-	global_position = CameraFraming.clamp_center(
-		_target_center, _target_zoom, _viewport_size(), _bounds
-	)
+	_center = CameraFraming.clamp_center(_target_center, _target_zoom, _play_size(), _bounds)
+	_place(_target_zoom)
+
+
+## Applies zoom and position so `_center` shows in the middle of the play area.
+func _place(new_zoom: float) -> void:
+	zoom = Vector2(new_zoom, new_zoom)
+	global_position = _center - CameraFraming.play_shift(_play_rect(), _viewport_size()) / new_zoom
+
+
+func _play_rect() -> Rect2:
+	var size: Vector2 = _viewport_size()
+	return Rect2(_play_fraction.position * size, _play_fraction.size * size)
+
+
+## `lowest` scaled down with the padding, so the whole track still fits the play area.
+func _min_zoom(lowest: float) -> float:
+	return lowest * minf(_play_fraction.size.x, _play_fraction.size.y)
+
+
+func _play_size() -> Vector2:
+	return _play_rect().size
 
 
 func _viewport_size() -> Vector2:

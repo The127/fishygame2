@@ -13,6 +13,8 @@ func _configure(settings: GameSettings) -> void:
 	settings.viewer_cooldown = 9
 	settings.fish_lockout = 2
 	settings.default_map = "pachinko"
+	settings.pad_left = 25
+	settings.pad_top = 10
 
 
 func test_flow_reads_the_settings() -> void:
@@ -76,3 +78,13 @@ func test_chat_replies_can_be_turned_off() -> void:
 	_game.settings.chat_replies = false
 	_say("8", "#join")
 	assert_eq(_source.sent.size(), 1, "no reply while replies are off")
+
+
+func test_padding_shrinks_the_camera_and_overlay_area() -> void:
+	var camera: RaceCamera = _game.get_node("RaceCamera") as RaceCamera
+	assert_eq(camera._play_fraction, Rect2(0.25, 0.1, 0.75, 0.9))
+	var overlay: Overlay = _game.get_node("Overlay") as Overlay
+	assert_almost_eq(overlay._frame.anchor_left, 0.25, 0.0001)
+	assert_almost_eq(overlay._frame.anchor_top, 0.1, 0.0001)
+	assert_almost_eq(overlay._frame.anchor_right, 1.0, 0.0001)
+	assert_almost_eq(overlay._frame.anchor_bottom, 1.0, 0.0001)

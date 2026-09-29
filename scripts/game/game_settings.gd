@@ -22,6 +22,10 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "curse_cost", "label": "Curse cost", "min": 0, "max": 1000000, "step": 10},
 	{"key": "viewer_cooldown", "label": "Viewer cooldown (s)", "min": 0, "max": 600, "step": 1},
 	{"key": "fish_lockout", "label": "Fish lockout (s)", "min": 0, "max": 60, "step": 1},
+	{"key": "pad_left", "label": "Blocked left (%)", "min": 0, "max": 40, "step": 1},
+	{"key": "pad_right", "label": "Blocked right (%)", "min": 0, "max": 40, "step": 1},
+	{"key": "pad_top", "label": "Blocked top (%)", "min": 0, "max": 40, "step": 1},
+	{"key": "pad_bottom", "label": "Blocked bottom (%)", "min": 0, "max": 40, "step": 1},
 ]
 
 var min_players: int = 1
@@ -34,6 +38,11 @@ var boost_cost: int = 100
 var curse_cost: int = 150
 var viewer_cooldown: int = 20
 var fish_lockout: int = 5
+## Screen edges kept free for the streamer's own overlays, in percent of the screen.
+var pad_left: int = 0
+var pad_right: int = 0
+var pad_top: int = 0
+var pad_bottom: int = 0
 ## A TrackCatalog id, or RANDOM_MAP.
 var default_map: String = RANDOM_MAP
 ## Whether the game answers in chat (join rejections).
@@ -54,6 +63,17 @@ func set_number(key: String, value: float) -> bool:
 		return false
 	set(key, roundi(clampf(value, float(field["min"]), float(field["max"]))))
 	return true
+
+
+## The part of the screen the game may use, as fractions of the screen size. Opposite
+## paddings add up to at most 80%, so at least a fifth of each axis stays.
+func play_fraction() -> Rect2:
+	return Rect2(
+		float(pad_left) / 100.0,
+		float(pad_top) / 100.0,
+		1.0 - float(pad_left + pad_right) / 100.0,
+		1.0 - float(pad_top + pad_bottom) / 100.0
+	)
 
 
 ## Enforces the rules between settings: min_players <= max_players, and min_bet <= max_bet

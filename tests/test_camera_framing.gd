@@ -126,3 +126,13 @@ func test_per_frame_pan_is_capped_during_handover() -> void:
 	var before: Vector2 = cam.global_position
 	cam._process(1.0)
 	assert_lte(cam.global_position.distance_to(before), RaceCamera.MAX_PAN_SPEED + 0.01)
+
+
+func test_play_shift_is_zero_for_the_whole_screen() -> void:
+	assert_eq(CameraFraming.play_shift(Rect2(Vector2.ZERO, VIEWPORT), VIEWPORT), Vector2.ZERO)
+
+
+func test_play_shift_points_towards_the_free_area() -> void:
+	# Left quarter blocked: the play area's middle sits right of the screen's middle.
+	var play := Rect2(480.0, 0.0, 1440.0, 1080.0)
+	assert_eq(CameraFraming.play_shift(play, VIEWPORT), Vector2(240.0, 0.0))

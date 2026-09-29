@@ -110,6 +110,8 @@ func _apply_settings() -> void:
 	_chaos.viewer_cooldown = float(settings.viewer_cooldown)
 	_chaos.fish_lockout = float(settings.fish_lockout)
 	_map_choice = settings.default_map
+	_camera.set_play_fraction(settings.play_fraction())
+	_overlay.set_play_fraction(settings.play_fraction())
 
 
 func _process(_delta: float) -> void:

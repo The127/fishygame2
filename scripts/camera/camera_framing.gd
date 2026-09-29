@@ -55,6 +55,12 @@ static func clamp_center(center: Vector2, zoom: float, viewport: Vector2, bounds
 	return result
 
 
+## Screen offset of the middle of `play` from the middle of the viewport, in pixels. The
+## camera sits this far (scaled by the zoom) from the point it should show in the play area.
+static func play_shift(play: Rect2, viewport: Vector2) -> Vector2:
+	return play.get_center() - viewport / 2.0
+
+
 ## Frame-rate independent smoothing factor for lerp: 0 at once, approaching 1 as delta grows.
 static func damping(rate: float, delta: float) -> float:
 	return 1.0 - exp(-rate * delta)
