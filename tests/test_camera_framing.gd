@@ -136,3 +136,8 @@ func test_play_shift_points_towards_the_free_area() -> void:
 	# Left quarter blocked: the play area's middle sits right of the screen's middle.
 	var play := Rect2(480.0, 0.0, 1440.0, 1080.0)
 	assert_eq(CameraFraming.play_shift(play, VIEWPORT), Vector2(240.0, 0.0))
+
+
+func test_is_jump_tells_a_teleport_from_a_chase() -> void:
+	assert_false(CameraFraming.is_jump(Vector2(100, 100), Vector2(160, 130), 450.0))
+	assert_true(CameraFraming.is_jump(Vector2(1700, 400), Vector2(170, 430), 450.0))

@@ -63,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        map: [zigzag, pachinko, wreck, whirlpool, jelly]
+        map: [zigzag, pachinko, wreck, whirlpool, jelly, abyss]
     env:
       LAST_SEED: ${{ github.event_name == 'pull_request' && '8' || '20' }}
       MAP: ${{ matrix.map }}

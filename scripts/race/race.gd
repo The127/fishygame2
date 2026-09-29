@@ -36,6 +36,7 @@ func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequenc
 			rng.randf_range(-SPAWN_JITTER, SPAWN_JITTER),
 			rng.randf_range(-SPAWN_JITTER, SPAWN_JITTER)
 		)
+		marble.glow_boost = _track.fish_glow
 		add_child(marble)
 		marble.global_position = _track.get_spawn_position(i) + jitter
 		_marbles[i] = marble
