@@ -10,7 +10,7 @@ script = ExtResource("1_panel")
 offset_left = 1560.0
 offset_top = 20.0
 offset_right = 1900.0
-offset_bottom = 170.0
+offset_bottom = 200.0
 
 [node name="Box" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
@@ -49,6 +49,18 @@ text = "+1 player"
 layout_mode = 2
 focus_mode = 0
 text = "+5 players"
+
+[node name="MapRow" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="MapLabel" type="Label" parent="Panel/Box/MapRow"]
+layout_mode = 2
+text = "Map"
+
+[node name="MapPicker" type="OptionButton" parent="Panel/Box/MapRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
 
 [node name="Hint" type="Label" parent="Panel/Box"]
 layout_mode = 2

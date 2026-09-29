@@ -3,7 +3,6 @@
 [ext_resource type="Script" path="res://scripts/game/game.gd" id="1_game"]
 [ext_resource type="Script" path="res://scripts/game/game_flow.gd" id="2_flow"]
 [ext_resource type="Script" path="res://scripts/game/betting.gd" id="8_betting"]
-[ext_resource type="PackedScene" path="res://scenes/tracks/test_track.tscn" id="3_track"]
 [ext_resource type="Script" path="res://scripts/race/race.gd" id="4_race"]
 [ext_resource type="PackedScene" path="res://scenes/marble.tscn" id="5_marble"]
 [ext_resource type="Script" path="res://scripts/ui/overlay.gd" id="6_overlay"]
@@ -17,8 +16,6 @@ script = ExtResource("2_flow")
 
 [node name="Betting" type="Node" parent="."]
 script = ExtResource("8_betting")
-
-[node name="Track" parent="." instance=ExtResource("3_track")]
 
 [node name="Race" type="Node2D" parent="."]
 script = ExtResource("4_race")

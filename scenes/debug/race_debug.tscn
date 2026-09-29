@@ -1,14 +1,11 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/debug/race_debug.gd" id="1_debug"]
-[ext_resource type="PackedScene" path="res://scenes/tracks/test_track.tscn" id="2_track"]
 [ext_resource type="Script" path="res://scripts/race/race.gd" id="3_race"]
 [ext_resource type="PackedScene" path="res://scenes/marble.tscn" id="4_marble"]
 
 [node name="RaceDebug" type="Node2D"]
 script = ExtResource("1_debug")
-
-[node name="Track" parent="." instance=ExtResource("2_track")]
 
 [node name="Race" type="Node2D" parent="."]
 script = ExtResource("3_race")
