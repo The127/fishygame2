@@ -17,7 +17,7 @@ const OVERVIEW_RATE: float = 2.0
 const HANDOVER_TIME: float = 2.5
 ## Fraction of the normal easing rate right after a finish.
 const HANDOVER_MIN_SCALE: float = 0.25
-## Caps on how fast the view may move, so no single frame can lurch.
+## Caps on how fast the view may move during a hand-over, so no single frame can lurch.
 const MAX_PAN_SPEED: float = 900.0
 const MAX_ZOOM_SPEED: float = 0.6
 
@@ -42,13 +42,16 @@ func _process(delta: float) -> void:
 	var zoom_rate: float = (FOLLOW_ZOOM_RATE if _following else OVERVIEW_RATE) * ease_scale
 	var t_position: float = CameraFraming.damping(position_rate, delta)
 	var t_zoom: float = CameraFraming.damping(zoom_rate, delta)
-	var new_zoom: float = zoom.x + clampf(
-		(_target_zoom - zoom.x) * t_zoom, -MAX_ZOOM_SPEED * delta, MAX_ZOOM_SPEED * delta
-	)
+	var zoom_step: float = (_target_zoom - zoom.x) * t_zoom
+	if _handover_left > 0.0:
+		zoom_step = clampf(zoom_step, -MAX_ZOOM_SPEED * delta, MAX_ZOOM_SPEED * delta)
+	var new_zoom: float = zoom.x + zoom_step
 	zoom = Vector2(new_zoom, new_zoom)
 	var current: Vector2 = get_screen_center_position()
 	var step: Vector2 = (_target_center - current) * t_position
-	var center: Vector2 = current + step.limit_length(MAX_PAN_SPEED * delta)
+	if _handover_left > 0.0:
+		step = step.limit_length(MAX_PAN_SPEED * delta)
+	var center: Vector2 = current + step
 	global_position = CameraFraming.clamp_center(center, new_zoom, _viewport_size(), _bounds)
 
 

@@ -117,11 +117,12 @@ func test_finish_hands_over_slower_than_normal_follow() -> void:
 	)
 
 
-func test_per_frame_pan_is_capped() -> void:
+func test_per_frame_pan_is_capped_during_handover() -> void:
 	var cam: RaceCamera = RaceCamera.new()
 	add_child_autofree(cam)
 	cam.show_overview(true)
 	cam._target_center = Vector2(1900, 1000)
+	cam._handover_left = RaceCamera.HANDOVER_TIME
 	var before: Vector2 = cam.global_position
 	cam._process(1.0)
 	assert_lte(cam.global_position.distance_to(before), RaceCamera.MAX_PAN_SPEED + 0.01)
