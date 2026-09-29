@@ -31,17 +31,11 @@ func _on_login_pressed() -> void:
 
 
 func _refresh_login() -> void:
-	var logged_in: bool = Chat.login_status == "logged_in"
+	var logged_in: bool = Chat.login_status == TwitchAuth.LoginStatus.LOGGED_IN
 	var web: bool = OS.has_feature("web")
-	match Chat.login_status:
-		"logged_in":
-			_login_status.text = "Logged in as %s" % Chat.session.get("login", "?")
-		"validating":
-			_login_status.text = "Checking Twitch login..."
-		"error":
-			_login_status.text = Chat.login_error
-		_:
-			_login_status.text = "Not logged in" if web else "Twitch login needs the web build"
+	_login_status.text = TwitchAuth.status_text(
+		Chat.login_status, str(Chat.session.get("login", "?")), Chat.login_error, web
+	)
 	_client_id.visible = not logged_in
 	_login.visible = not logged_in
 	_login.disabled = not web
