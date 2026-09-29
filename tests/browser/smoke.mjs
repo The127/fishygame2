@@ -110,6 +110,8 @@ async function main() {
   });
   // One persistent context so IndexedDB (user://) survives the reload like it does for a streamer.
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+  // Pretend the first-run onboarding was already completed, so the home screen stays put.
+  await context.addInitScript(() => localStorage.setItem("fishygame2.onboarding_done", "1"));
   const page = await context.newPage();
   watch(page);
 

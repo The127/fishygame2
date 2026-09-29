@@ -4,6 +4,7 @@ extends Control
 ## Also lets the streamer log in with Twitch (web only) so chat works without hand-made URLs.
 
 const SETTINGS_SCENE: String = "res://scenes/ui/settings_screen.tscn"
+const ONBOARDING_SCENE: String = "res://scenes/ui/onboarding_screen.tscn"
 const RACE_SCENE: String = "res://scenes/main.tscn"
 ## The menu box never exceeds this width, and shrinks with the window.
 const MAX_BOX_WIDTH: float = 1200.0
@@ -42,6 +43,9 @@ func _ready() -> void:
 	_fit_to_window()
 	_open_lobby.grab_focus()
 	_refresh_login()
+	# Only when this is the running scene, so tests that instantiate the screen stay put.
+	if get_tree().current_scene == self and not OnboardingStore.new().is_done():
+		get_tree().change_scene_to_file.call_deferred(ONBOARDING_SCENE)
 
 
 ## Fills the all-time board from [param store]; hidden while nobody is ranked.

@@ -15,6 +15,14 @@ const SCOPES: PackedStringArray = ["user:read:chat", "user:write:chat"]
 const EXPIRY_MARGIN_SECONDS: int = 60
 
 
+## The address Twitch must be told to send the streamer back to: this page without query or
+## fragment. Empty outside the web build, where there is no page.
+static func current_redirect_url() -> String:
+	if not OS.has_feature("web"):
+		return ""
+	return str(JavaScriptBridge.eval("window.location.origin + window.location.pathname"))
+
+
 static func build_authorize_url(client_id: String, redirect_uri: String, state: String) -> String:
 	return (
 		"%s?response_type=token&client_id=%s&redirect_uri=%s&scope=%s&state=%s&force_verify=true"

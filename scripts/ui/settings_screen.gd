@@ -3,6 +3,7 @@ extends Control
 ## Streamer settings: edits a [GameSettings], saving after every change.
 
 const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
+const ONBOARDING_SCENE: String = "res://scenes/ui/onboarding_screen.tscn"
 const RANDOM_LABEL: String = "Random"
 
 var settings: GameSettings = null
@@ -104,6 +105,12 @@ func _build() -> void:
 	reset.pressed.connect(reset_pressed)
 	UiStyle.style_button(reset, 20)
 	buttons.add_child(reset)
+	var guide := Button.new()
+	guide.name = "SetupGuide"
+	guide.text = "SETUP GUIDE"
+	guide.pressed.connect(_on_guide_pressed)
+	UiStyle.style_button(guide, 20)
+	buttons.add_child(guide)
 	var back := Button.new()
 	back.name = "Back"
 	back.text = "BACK"
@@ -168,3 +175,7 @@ func reset_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file(HOME_SCENE)
+
+
+func _on_guide_pressed() -> void:
+	get_tree().change_scene_to_file(ONBOARDING_SCENE)
