@@ -4,24 +4,61 @@ extends Node
 
 signal message_received(msg: ChatMessage)
 signal command_received(msg: ChatMessage, command: String, args: PackedStringArray)
+## Emitted whenever the streamer login state (`login_status`, `session`, `login_error`) changes.
+signal login_changed
 
 const CONFIG_PATH: String = "user://twitch.cfg"
 
 var parser: CommandParser = CommandParser.new()
 var source: ChatSource = null
+var store: TwitchSessionStore = TwitchSessionStore.new()
+## Logged in streamer: {client_id, token, user_id, login, expires_at}, or {} when logged out.
+var session: Dictionary = {}
+## One of "logged_out", "validating", "logged_in", "error".
+var login_status: String = "logged_out"
+var login_error: String = ""
 
 
 func _ready() -> void:
-	if source == null:
-		var cfg: Dictionary = load_twitch_config()
-		if cfg.is_empty():
-			set_source(DebugChatSource.new())
-		else:
-			set_source(
-				TwitchEventSubSource.new(
-					cfg["client_id"], cfg["token"], cfg["broadcaster_id"], cfg.get("user_id", "")
-				)
-			)
+	if source != null:
+		return
+	var fragment: String = _take_redirect_fragment()
+	var cfg: Dictionary = load_twitch_config()
+	if cfg.is_empty():
+		cfg = _config_from_stored_session()
+	if cfg.is_empty():
+		set_source(DebugChatSource.new())
+	else:
+		_use_config(cfg)
+	if not fragment.is_empty():
+		_finish_login(fragment)
+
+
+## Sends the browser to Twitch to authorize this game. Web only; the page comes back with
+## the token in the URL fragment, which `_ready` picks up.
+func begin_login(client_id: String) -> void:
+	client_id = client_id.strip_edges()
+	if client_id.is_empty() or not OS.has_feature("web"):
+		return
+	var state: String = TwitchAuth.generate_state()
+	store.save_pending_login(state, client_id)
+	var redirect: String = str(
+		JavaScriptBridge.eval("window.location.origin + window.location.pathname")
+	)
+	var url: String = TwitchAuth.build_authorize_url(client_id, redirect, state)
+	JavaScriptBridge.eval("window.location.href = %s" % JSON.stringify(url))
+
+
+## Forgets the stored login, revokes the token at Twitch and falls back to the debug source.
+func logout() -> void:
+	if not session.is_empty():
+		_revoke(str(session["client_id"]), str(session["token"]))
+	store.clear_session()
+	session = {}
+	login_error = ""
+	_set_login_status("logged_out")
+	if source is TwitchEventSubSource:
+		set_source(DebugChatSource.new())
 
 
 func set_source(new_source: ChatSource) -> void:
@@ -69,6 +106,140 @@ func load_twitch_config() -> Dictionary:
 				push_warning("Twitch config incomplete, missing: %s" % required)
 			return {}
 	return cfg
+
+
+func _use_config(cfg: Dictionary) -> void:
+	var twitch := TwitchEventSubSource.new(
+		cfg["client_id"], cfg["token"], cfg["broadcaster_id"], cfg.get("user_id", "")
+	)
+	twitch.failed.connect(_on_source_failed.bind(twitch))
+	set_source(twitch)
+
+
+## A stored login that is still valid, in the same shape as `load_twitch_config`.
+func _config_from_stored_session() -> Dictionary:
+	var saved: Dictionary = store.load_session()
+	if saved.is_empty():
+		return {}
+	if TwitchAuth.is_expired(saved, int(Time.get_unix_time_from_system())):
+		store.clear_session()
+		login_error = "Twitch login expired, please log in again"
+		_set_login_status("error")
+		return {}
+	session = saved
+	login_status = "logged_in"
+	return {
+		"client_id": saved["client_id"],
+		"token": saved["token"],
+		"broadcaster_id": saved["user_id"],
+		"user_id": saved["user_id"],
+	}
+
+
+## Returns the URL fragment (if any) and removes it from the address bar and history.
+func _take_redirect_fragment() -> String:
+	if not OS.has_feature("web"):
+		return ""
+	var fragment: String = str(JavaScriptBridge.eval("window.location.hash"))
+	if fragment.length() > 1:
+		JavaScriptBridge.eval("history.replaceState(null, '', window.location.pathname)")
+		return fragment
+	return ""
+
+
+func _finish_login(fragment: String) -> void:
+	var params: Dictionary = TwitchAuth.parse_fragment(fragment)
+	if params.has("error"):
+		store.take_pending_state()
+		_login_failed("Twitch login was cancelled or denied")
+		return
+	if not params.has("access_token"):
+		return  # Some other fragment, not ours.
+	var expected_state: String = store.take_pending_state()
+	var client_id: String = store.load_client_id()
+	if expected_state.is_empty() or str(params.get("state", "")) != expected_state:
+		_login_failed("Twitch login state did not match, please try again")
+		return
+	if client_id.is_empty():
+		_login_failed("Twitch client id is missing, please try again")
+		return
+	_set_login_status("validating")
+	var token: String = str(params["access_token"])
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(_on_validate_completed.bind(req, token, client_id))
+	var headers: PackedStringArray = ["Authorization: OAuth %s" % token]
+	if req.request(TwitchAuth.VALIDATE_URL, headers) != OK:
+		req.queue_free()
+		_login_failed("Could not reach Twitch to validate the login")
+
+
+func _on_validate_completed(
+	_result: int,
+	code: int,
+	_headers: PackedStringArray,
+	body: PackedByteArray,
+	req: HTTPRequest,
+	token: String,
+	client_id: String
+) -> void:
+	req.queue_free()
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if code != 200 or not parsed is Dictionary:
+		_login_failed("Twitch rejected the login (HTTP %d)" % code)
+		return
+	var checked: Dictionary = TwitchAuth.session_from_validation(
+		token, client_id, parsed, int(Time.get_unix_time_from_system())
+	)
+	if checked.has("error"):
+		_revoke(client_id, token)
+		_login_failed(str(checked["error"]))
+		return
+	session = checked["session"]
+	store.save_session(session)
+	login_error = ""
+	_use_config(
+		{
+			"client_id": session["client_id"],
+			"token": session["token"],
+			"broadcaster_id": session["user_id"],
+			"user_id": session["user_id"],
+		}
+	)
+	_set_login_status("logged_in")
+
+
+func _revoke(client_id: String, token: String) -> void:
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(
+		func(_r: int, _c: int, _h: PackedStringArray, _b: PackedByteArray) -> void: req.queue_free()
+	)
+	var body: String = "client_id=%s&token=%s" % [client_id.uri_encode(), token.uri_encode()]
+	var headers: PackedStringArray = ["Content-Type: application/x-www-form-urlencoded"]
+	if req.request(TwitchAuth.REVOKE_URL, headers, HTTPClient.METHOD_POST, body) != OK:
+		req.queue_free()
+
+
+func _on_source_failed(reason: String, failed_source: ChatSource) -> void:
+	if failed_source != source or session.is_empty():
+		return
+	# The stored login no longer works (revoked or expired): forget it.
+	store.clear_session()
+	session = {}
+	login_error = "Twitch login no longer works: %s" % reason
+	_set_login_status("error")
+
+
+func _login_failed(reason: String) -> void:
+	push_warning(reason)
+	login_error = reason
+	_set_login_status("error")
+
+
+func _set_login_status(status: String) -> void:
+	login_status = status
+	login_changed.emit()
 
 
 func _on_message(msg: ChatMessage) -> void:
