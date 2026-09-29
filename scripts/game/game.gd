@@ -57,6 +57,8 @@ func _ready() -> void:
 	_chaos.effect_applied.connect(_on_effect_applied)
 	_chaos.effect_rejected.connect(_on_effect_rejected)
 	_race.marble_finished.connect(_chaos.on_marble_finished)
+	# Before the flow's connection below, so chaos closes before the state changes.
+	_race.race_finished.connect(_chaos.on_race_finished)
 	_flow.podium_ready.connect(_overlay.show_podium)
 	_flow.podium_ready.connect(_betting.on_podium_ready)
 	_betting.bets_changed.connect(_overlay.show_bets)
