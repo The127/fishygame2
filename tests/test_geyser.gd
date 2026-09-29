@@ -50,8 +50,8 @@ func test_unarmed_geysers_stay_quiet() -> void:
 func test_same_seed_replays_the_same_eruptions() -> void:
 	var first: Track = _vents()
 	var second: Track = _vents()
-	first.arm_gimmicks(7)
-	second.arm_gimmicks(7)
+	first.seed_gimmicks(_rng(7))
+	second.seed_gimmicks(_rng(7))
 	assert_eq(_timeline(first, 60), _timeline(second, 60))
 	for i: int in first.get_geysers().size():
 		assert_eq(first.get_geysers()[i].get_cycle(), second.get_geysers()[i].get_cycle())
@@ -60,14 +60,14 @@ func test_same_seed_replays_the_same_eruptions() -> void:
 func test_different_seeds_time_the_vents_differently() -> void:
 	var first: Track = _vents()
 	var second: Track = _vents()
-	first.arm_gimmicks(1)
-	second.arm_gimmicks(2)
+	first.seed_gimmicks(_rng(1))
+	second.seed_gimmicks(_rng(2))
 	assert_ne(_timeline(first, 60), _timeline(second, 60))
 
 
 func test_vents_do_not_all_erupt_together() -> void:
 	var track: Track = _vents()
-	track.arm_gimmicks(5)
+	track.seed_gimmicks(_rng(5))
 	var offsets: Dictionary = {}
 	for geyser: Geyser in track.get_geysers():
 		var pattern: Array[int] = []
@@ -79,7 +79,7 @@ func test_vents_do_not_all_erupt_together() -> void:
 
 func test_each_cycle_warns_before_it_erupts() -> void:
 	var track: Track = _vents()
-	track.arm_gimmicks(3)
+	track.seed_gimmicks(_rng(3))
 	for geyser: Geyser in track.get_geysers():
 		var previous: int = geyser.phase_at(0.0)
 		var t: float = 0.0
@@ -97,15 +97,15 @@ func test_each_cycle_warns_before_it_erupts() -> void:
 func test_vents_erupt_whatever_the_hazard_setting() -> void:
 	var track: Track = _vents()
 	track.arm_hazards(_rng(1), 0)
-	track.arm_gimmicks(1)
+	track.seed_gimmicks(_rng(1))
 	assert_false(track.get_hazards()[0].is_armed())
 	for geyser: Geyser in track.get_geysers():
 		assert_true(geyser.is_armed())
 
 
-func test_stopping_the_gimmicks_quiets_the_vents() -> void:
+func test_stopping_the_vents_quiets_the_vents() -> void:
 	var track: Track = _vents()
-	track.arm_gimmicks(1)
+	track.seed_gimmicks(_rng(1))
 	track.stop_gimmicks()
 	for geyser: Geyser in track.get_geysers():
 		assert_false(geyser.is_armed())
@@ -128,7 +128,7 @@ func test_race_start_arms_the_vents_and_clear_stops_them() -> void:
 func test_eruption_throws_a_marble_along_the_vent() -> void:
 	var track: Track = _vents()
 	var geyser: Geyser = track.get_geysers()[0]
-	geyser.arm(3)
+	geyser.reseed(3)
 	var marble: Marble = (load(MARBLE_SCENE) as PackedScene).instantiate() as Marble
 	marble.gravity_scale = 0.0
 	add_child_autofree(marble)

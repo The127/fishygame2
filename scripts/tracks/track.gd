@@ -56,14 +56,7 @@ func stop_hazards() -> void:
 		hazard.disarm()
 
 
-## Plans the map's timed gimmicks (geysers) for a race. Unlike hazards they belong to the map
-## itself, so they run whatever the hazard setting is. Each one draws its own seed from `seed_value`.
-func arm_gimmicks(seed_value: int) -> void:
-	for geyser: Geyser in get_geysers():
-		geyser.arm(seed_value + 7919 * (geyser.get_index() + 1))
-
-
-## Puts the map's timed gimmicks back to sleep.
+## Puts the map's geysers back to sleep.
 func stop_gimmicks() -> void:
 	for geyser: Geyser in get_geysers():
 		geyser.disarm()

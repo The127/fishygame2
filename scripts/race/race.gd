@@ -43,7 +43,6 @@ func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequenc
 	_ranking = RaceRanking.new(ids)
 	_track.seed_gimmicks(rng)
 	_track.arm_hazards(rng, hazard_frequency)
-	_track.arm_gimmicks(rng.seed)
 	elapsed = 0.0
 	running = true
 

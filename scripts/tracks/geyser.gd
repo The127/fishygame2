@@ -39,8 +39,9 @@ func _ready() -> void:
 	_cycle = period
 
 
-## Picks this vent's phase and period for a race and starts its clock.
-func arm(seed_value: int) -> void:
+## Picks this vent's phase and period for a race and starts its clock. Called by
+## [method Track.seed_gimmicks], so it runs whatever the hazard setting is.
+func reseed(seed_value: int) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed_value
 	_cycle = period * rng.randf_range(1.0 - PERIOD_SPREAD, 1.0 + PERIOD_SPREAD)
