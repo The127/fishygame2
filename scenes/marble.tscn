@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/marble.gd" id="1_marble"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_marble"]
+friction = 0.6
+bounce = 0.35
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_marble"]
+radius = 14.0
+
+[node name="Marble" type="RigidBody2D"]
+physics_material_override = SubResource("PhysicsMaterial_marble")
+continuous_cd = 1
+script = ExtResource("1_marble")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_marble")
