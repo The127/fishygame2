@@ -13,26 +13,16 @@ const GOLDEN_RATIO_CONJUGATE: float = 0.618034
 
 var _marbles: Array[Dictionary] = []
 var _time: float = 0.0
-
-
-func _ready() -> void:
-	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-	rng.randomize()
-	var area: Vector2 = _wrap_area()
-	for i: int in MARBLE_COUNT:
-		var speed: float = rng.randf_range(50.0, 130.0)
-		var angle: float = rng.randf() * TAU
-		var marble: Dictionary = {
-			"pos": Vector2(rng.randf() * area.x, rng.randf() * area.y) - _margin(),
-			"vel": Vector2.from_angle(angle) * speed,
-			"color": Color.from_hsv(fmod(float(i) * GOLDEN_RATIO_CONJUGATE, 1.0), 0.8, 0.95),
-			"heading": angle,
-			"spin": rng.randf() * TAU,
-		}
-		_marbles.append(marble)
+var _area: Vector2 = Vector2.ZERO
 
 
 func _process(delta: float) -> void:
+	if _marbles.is_empty():
+		# Wait for the layout to give us a real size, or everything spawns clustered.
+		if size.x <= 0.0 or size.y <= 0.0:
+			return
+		_spawn()
+	_area = size + _margin() * 2.0
 	_time += delta
 	_resolve_collisions()
 	for marble: Dictionary in _marbles:
@@ -46,29 +36,31 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
+func _spawn() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.randomize()
+	_area = size + _margin() * 2.0
+	for i: int in MARBLE_COUNT:
+		var speed: float = rng.randf_range(50.0, 130.0)
+		var angle: float = rng.randf() * TAU
+		var marble: Dictionary = {
+			"pos": Vector2(rng.randf() * _area.x, rng.randf() * _area.y) - _margin(),
+			"vel": Vector2.from_angle(angle) * speed,
+			"color": Color.from_hsv(fmod(float(i) * GOLDEN_RATIO_CONJUGATE, 1.0), 0.8, 0.95),
+			"heading": angle,
+			"spin": rng.randf() * TAU,
+		}
+		_marbles.append(marble)
+
+
 func _margin() -> Vector2:
 	return Vector2(WRAP_MARGIN, WRAP_MARGIN)
 
 
-## The looping area: the visible rect plus a margin on every side.
-func _wrap_area() -> Vector2:
-	return size + _margin() * 2.0
-
-
+## Maps a position into the looping area: the visible rect plus a margin on every side.
 func _wrap(pos: Vector2) -> Vector2:
-	var area: Vector2 = _wrap_area()
 	var shifted: Vector2 = pos + _margin()
-	return Vector2(fposmod(shifted.x, area.x), fposmod(shifted.y, area.y)) - _margin()
-
-
-## Shortest offset from a to b on the looping area, so marbles collide across the seam.
-func _wrapped_offset(from: Vector2, to: Vector2) -> Vector2:
-	var area: Vector2 = _wrap_area()
-	var delta: Vector2 = to - from
-	return Vector2(
-		fposmod(delta.x + area.x * 0.5, area.x) - area.x * 0.5,
-		fposmod(delta.y + area.y * 0.5, area.y) - area.y * 0.5
-	)
+	return Vector2(fposmod(shifted.x, _area.x), fposmod(shifted.y, _area.y)) - _margin()
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -84,13 +76,15 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 
+## Plain (non-wrapped) distances: a marble only ever bounces off what is on screen
+## beside it, never off one that is about to reappear on the far side.
 func _resolve_collisions() -> void:
 	var diameter: float = RADIUS * 2.0
 	for i: int in _marbles.size():
 		for j: int in range(i + 1, _marbles.size()):
 			var a: Dictionary = _marbles[i]
 			var b: Dictionary = _marbles[j]
-			var offset: Vector2 = _wrapped_offset(a["pos"], b["pos"])
+			var offset: Vector2 = Vector2(b["pos"]) - Vector2(a["pos"])
 			var dist: float = offset.length()
 			if dist >= diameter or dist < 0.0001:
 				continue
