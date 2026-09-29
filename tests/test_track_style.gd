@@ -34,3 +34,14 @@ func test_unknown_style_falls_back_to_default() -> void:
 	track.style_id = "does_not_exist"
 	add_child_autofree(track)
 	assert_eq(track.find_children("*", "TrackStyle", false, false).size(), 1)
+
+
+func test_mist_follows_the_view() -> void:
+	var track: Track = TrackCatalog.instantiate("wreck")
+	add_child_autofree(track)
+	var style: TrackStyle = track.find_children("*", "TrackStyle", false, false)[0]
+	var fog: ColorRect = style.find_children("*", "ColorRect", false, false)[0]
+	get_viewport().canvas_transform = Transform2D(0.0, Vector2(-300.0, -100.0))
+	style._process(0.016)
+	assert_eq(fog.global_position, Vector2(300.0, 100.0))
+	get_viewport().canvas_transform = Transform2D.IDENTITY
