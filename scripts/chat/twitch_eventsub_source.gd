@@ -9,6 +9,7 @@ signal failed(reason: String)
 
 const EVENTSUB_URL: String = "wss://eventsub.wss.twitch.tv/ws"
 const SUBSCRIPTIONS_URL: String = "https://api.twitch.tv/helix/eventsub/subscriptions"
+const SEND_URL: String = "https://api.twitch.tv/helix/chat/messages"
 const MAX_BACKOFF: float = 30.0
 ## Seconds to wait for a session_welcome before retrying the connection.
 const WELCOME_TIMEOUT: float = 10.0
@@ -243,6 +244,35 @@ func _handle_frame(raw: String, from_pending: bool) -> void:
 			_fail("EventSub subscription revoked (token invalid or scope missing?)")
 		_:
 			pass  # session_keepalive and unknown types
+
+
+## Posts to chat via Helix. Needs the user:write:chat scope; failures only warn.
+func send_message(text: String) -> void:
+	if access_token.is_empty():
+		return
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(_on_send_completed.bind(req))
+	var headers: PackedStringArray = [
+		"Authorization: Bearer %s" % access_token,
+		"Client-Id: %s" % client_id,
+		"Content-Type: application/json",
+	]
+	var body: String = JSON.stringify(
+		{"broadcaster_id": broadcaster_id, "sender_id": user_id, "message": text}
+	)
+	var err: Error = req.request(SEND_URL, headers, HTTPClient.METHOD_POST, body)
+	if err != OK:
+		push_warning("Chat send request failed: %s" % error_string(err))
+		req.queue_free()
+
+
+func _on_send_completed(
+	_result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, req: HTTPRequest
+) -> void:
+	req.queue_free()
+	if code < 200 or code >= 300:
+		push_warning("Chat send returned HTTP %d: %s" % [code, body.get_string_from_utf8()])
 
 
 func _subscribe(session_id: String) -> void:
