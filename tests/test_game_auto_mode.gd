@@ -65,3 +65,19 @@ func test_manual_start_still_works_in_auto_mode() -> void:
 
 func test_panel_shows_the_setting() -> void:
 	assert_true((_panel.get_node("Panel/Box/Auto") as CheckBox).button_pressed)
+
+
+func test_toggle_on_restarts_a_partly_elapsed_window() -> void:
+	_panel.auto_mode_toggled.emit(false)
+	_panel.auto_mode_toggled.emit(true)
+	_flow.tick(15.0)
+	_panel.auto_mode_toggled.emit(true)
+	assert_eq(_flow.timer, 20.0)
+
+
+func test_idle_after_stop_until_lobby_reopens() -> void:
+	_flow.stop()
+	_flow.tick(10000.0)
+	assert_eq(_flow.state, GameFlow.State.IDLE)
+	_flow.open_lobby()
+	assert_eq(_flow.timer, 20.0)
