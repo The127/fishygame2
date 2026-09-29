@@ -40,6 +40,7 @@ func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequenc
 		marble.global_position = _track.get_spawn_position(i) + jitter
 		_marbles[i] = marble
 	_ranking = RaceRanking.new(ids)
+	_track.seed_gimmicks(rng)
 	_track.arm_hazards(rng, hazard_frequency)
 	elapsed = 0.0
 	running = true

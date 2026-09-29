@@ -161,7 +161,10 @@ MARBLES=20 tests/run_race_seeds.sh godot 1 100 pachinko
 ```
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
-collapsing planks on Shipwreck and a surge that spins up the vortex on Whirlpool. Events are planned from the race seed, so a seed replays the same
+collapsing planks on Shipwreck and a surge that spins up the vortex on Whirlpool. The Jellyfish
+Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
+and kick marbles away like very bouncy bumpers, and its hazard is a surge that speeds them up.
+Events are planned from the race seed, so a seed replays the same
 ones, and the seed runs above have them on (frequency 3). Pass `--hazards=0` to
 `scenes/debug/race_debug.tscn` to run without them. Streamers turn them off or change how often
 they strike in Settings > Race.

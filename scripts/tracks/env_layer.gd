@@ -3,7 +3,7 @@ extends Node2D
 ## One procedurally drawn silhouette layer of a track's environment (rock spires,
 ## kelp, crystal shards). Deterministic for a given seed, so a map always looks the same.
 
-enum Kind { SPIRES, KELP, SHARDS, MASTS }
+enum Kind { SPIRES, KELP, SHARDS, MASTS, BLOOMS }
 
 const WIDTH: float = 2400.0
 const FLOOR_Y: float = 1080.0
@@ -57,6 +57,8 @@ func _draw() -> void:
 				_draw_shard(Vector2(x, base_y), h * flip, w)
 			Kind.MASTS:
 				_draw_mast(Vector2(x, base_y), h * flip, i)
+			Kind.BLOOMS:
+				_draw_bloom(Vector2(x, base_y), h * flip)
 
 
 func _draw_spire(base: Vector2, height: float, width_scale: float) -> void:
@@ -160,3 +162,35 @@ func _draw_mast(base: Vector2, height: float, index: int) -> void:
 	draw_colored_polygon(sail, color)
 	if highlight.a > 0.0:
 		draw_line(yard_at + Vector2(-yard, -tilt), yard_at + Vector2(yard, tilt), highlight, 2.0)
+
+
+## A giant jellyfish silhouette drifting in the murk: a dome with tentacles trailing below.
+func _draw_bloom(base: Vector2, height: float) -> void:
+	var radius: float = 26.0 + absf(height) * 0.16
+	var center: Vector2 = base + Vector2(0.0, -height)
+	var dome: PackedVector2Array = PackedVector2Array()
+	for s: int in 13:
+		var a: float = PI + PI * float(s) / 12.0
+		dome.append(center + Vector2(cos(a) * radius, sin(a) * radius * 0.8))
+	dome.append(center + Vector2(radius * 0.85, radius * 0.14))
+	dome.append(center + Vector2(-radius * 0.85, radius * 0.14))
+	draw_colored_polygon(dome, color)
+	if highlight.a > 0.0:
+		draw_polyline(dome.slice(0, 13), highlight, 2.0)
+	var strands: int = 6
+	for i: int in strands:
+		var x: float = lerpf(-radius * 0.7, radius * 0.7, float(i) / float(strands - 1))
+		var length: float = radius * _rng.randf_range(1.6, 2.8)
+		var phase: float = _rng.randf_range(0.0, TAU)
+		var points: PackedVector2Array = PackedVector2Array()
+		for s: int in 9:
+			var t: float = float(s) / 8.0
+			points.append(
+				(
+					center
+					+ Vector2(
+						x + sin(t * 4.0 + phase) * radius * 0.18 * t, radius * 0.1 + length * t
+					)
+				)
+			)
+		draw_polyline(points, color, maxf(3.0, radius * 0.06), true)

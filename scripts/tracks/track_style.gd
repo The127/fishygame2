@@ -41,6 +41,24 @@ const PALETTES: Dictionary = {
 		"far_kind": EnvLayer.Kind.SHARDS,
 		"sway_scale": 1.0,
 	},
+	"jelly":
+	{
+		"sky_top": Color(0.03, 0.09, 0.25),
+		"sky_bottom": Color(0.005, 0.01, 0.06),
+		"far": Color(0.05, 0.12, 0.3),
+		"mid": Color(0.04, 0.09, 0.24),
+		"near": Color(0.006, 0.012, 0.05),
+		"plant": Color(0.1, 0.08, 0.3),
+		"stone_dark": Color(0.05, 0.05, 0.14),
+		"stone_light": Color(0.16, 0.14, 0.34),
+		"rim": Color(1.0, 0.45, 0.85),
+		"ray": Color(0.4, 0.8, 1.0),
+		"fog": Color(0.1, 0.2, 0.5),
+		"mote": Color(0.6, 0.9, 1.0),
+		"layer_kind": EnvLayer.Kind.BLOOMS,
+		"far_kind": EnvLayer.Kind.SPIRES,
+		"sway_scale": 0.8,
+	},
 	"wreck":
 	{
 		"sky_top": Color(0.05, 0.13, 0.13),
