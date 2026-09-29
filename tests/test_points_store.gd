@@ -171,6 +171,16 @@ func test_stakes_persist_and_refund() -> void:
 	_cleanup_extras()
 
 
+func test_release_stake_keeps_other_holds() -> void:
+	var store := PointsStore.new("", 100)
+	store.add_stake("1", 60)
+	store.add_stake("1", 30)
+	store.release_stake("1", 60)
+	assert_eq(store.stake_of("1"), 30)
+	store.release_stake("1", 30)
+	assert_eq(store.stake_of("1"), 0)
+
+
 func test_interrupted_save_recovers_from_finished_temp_file() -> void:
 	var store := PointsStore.new(PATH, 100)
 	store.add("1", 1)
