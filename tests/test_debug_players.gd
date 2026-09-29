@@ -31,3 +31,10 @@ func test_add_debug_players_distinct_and_capped() -> void:
 
 func test_add_debug_players_only_in_lobby() -> void:
 	assert_eq(_flow.add_debug_players(1), 0)
+
+
+func test_debug_names_have_no_spaces() -> void:
+	_flow.open_lobby()
+	_flow.add_debug_players(2)
+	for c: Contestant in _flow.get_contestants():
+		assert_false(c.display_name.contains(" "), c.display_name)
