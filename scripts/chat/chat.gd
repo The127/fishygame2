@@ -105,7 +105,9 @@ func send_message(text: String) -> void:
 func load_twitch_config() -> Dictionary:
 	var cfg: Dictionary = {}
 	if OS.has_feature("web"):
-		DebugMode.is_enabled()  # cache it before the query string is wiped below
+		# Cache these before the query string is wiped below.
+		DebugMode.is_enabled()
+		RenderMode.is_3d()
 		for key: String in ["client_id", "token", "broadcaster_id", "user_id"]:
 			var value: Variant = JavaScriptBridge.eval(
 				"new URLSearchParams(window.location.search).get('%s')" % key

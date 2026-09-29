@@ -17,6 +17,8 @@ const VOLUME_ROWS: Dictionary = {
 	AudioSettings.BUS_MUSIC: "Music",
 	AudioSettings.BUS_SFX: "Effects",
 }
+## F2: switch between the flat 2D look and the underwater 3D stage.
+signal render_3d_toggled
 
 @onready var _panel: PanelContainer = $Panel
 @onready var _status: Label = $Panel/Box/Status
@@ -58,6 +60,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if key.keycode == KEY_F1:
 		_panel.visible = not _panel.visible
+	elif key.keycode == KEY_F2:
+		render_3d_toggled.emit()
 	elif key.keycode == KEY_SPACE:
 		start_pressed.emit()
 

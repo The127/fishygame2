@@ -77,6 +77,19 @@ func is_cursed() -> bool:
 	return _curse_left > 0.0
 
 
+## The fish color right now: the viewer's color, tinted while cursed.
+func display_color() -> Color:
+	return color.lerp(CURSE_TINT, 0.6) if is_cursed() else color
+
+
+## Shows or hides the flat 2D fish (hidden while the 3D stage draws the fish instead).
+func set_fish_visible(value: bool) -> void:
+	if _fish == null:
+		return
+	_fish.visible = value
+	_fish.set_process(value)
+
+
 func _physics_process(delta: float) -> void:
 	if _curse_left <= 0.0:
 		return

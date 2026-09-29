@@ -20,6 +20,14 @@ func _ready() -> void:
 	_finish.body_entered.connect(_on_finish_body_entered)
 
 
+## Shows or hides the flat 2D artwork (backdrop, rocks, pegs, guide lines). Colliders are
+## untouched, so the race behaves the same either way.
+func set_visuals_visible(value: bool) -> void:
+	for node: Node in find_children("*", "CanvasItem", true, false):
+		if node is Polygon2D or node is Line2D:
+			(node as CanvasItem).visible = value
+
+
 ## Global position of the nth start slot (grid of spawn_columns per row, rows stack upward).
 func get_spawn_position(index: int) -> Vector2:
 	var col: int = index % spawn_columns

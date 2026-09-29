@@ -37,6 +37,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 @onready var _race: Race = $Race
 @onready var _overlay: Overlay = $Overlay
 @onready var _panel: ControlPanel = $ControlPanel
+@onready var _stage: Stage3D = $Stage3D
 
 
 func _ready() -> void:
@@ -78,6 +79,8 @@ func _ready() -> void:
 	_flow.countdown_tick.connect(_on_countdown_tick)
 	_race.marble_finished.connect(_on_marble_finished)
 	_flow.podium_ready.connect(_on_podium_ready)
+	_panel.render_3d_toggled.connect(_on_render_3d_toggled)
+	_stage.enabled = RenderMode.is_3d()
 	_rng.randomize()
 	_flow.open_lobby()
 
@@ -92,9 +95,11 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 	match new_state:
 		GameFlow.State.IDLE:
 			_race.clear()
+			_stage.clear_fish()
 			_overlay.show_idle()
 		GameFlow.State.LOBBY:
 			_race.clear()
+			_stage.clear_fish()
 			_load_map()
 			_refresh_lobby()
 		GameFlow.State.RACING:
@@ -140,6 +145,23 @@ func _load_map() -> void:
 	_track = TrackCatalog.instantiate(id)
 	add_child(_track)
 	move_child(_track, 0)
+	_stage.set_track(_track)
+	_apply_render_mode()
+
+
+func _on_render_3d_toggled() -> void:
+	RenderMode.set_3d(not RenderMode.is_3d())
+	_stage.enabled = RenderMode.is_3d()
+	_apply_render_mode()
+
+
+## Hides the flat 2D artwork while the 3D stage is drawing the same scene.
+func _apply_render_mode() -> void:
+	var flat: bool = not _stage.enabled
+	if _track != null:
+		_track.set_visuals_visible(flat)
+	for marble: Marble in _race.get_marbles():
+		marble.set_fish_visible(flat)
 
 
 func _on_join_rejected(msg: ChatMessage, reason: String) -> void:
@@ -205,6 +227,8 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 			continue
 		marble.color = contestants[marble.id].color
 		marble.label_text = contestants[marble.id].display_name
+	_stage.attach_marbles(_race.get_marbles())
+	_apply_render_mode()
 
 
 func _refresh_lobby() -> void:
@@ -216,7 +240,10 @@ func _refresh_lobby() -> void:
 
 func _status_text() -> String:
 	var state_name: String = GameFlow.State.keys()[_flow.state]
-	return (
+	var text: String = (
 		"%s, %d players, map: %s"
 		% [state_name, _flow.get_contestants().size(), TrackCatalog.get_name_of(_map_id)]
 	)
+	if DebugMode.is_enabled():
+		text += ", %s, %d fps" % ["3D" if _stage.enabled else "2D", Engine.get_frames_per_second()]
+	return text

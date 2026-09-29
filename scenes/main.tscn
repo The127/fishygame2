@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/race/race.gd" id="4_race"]
 [ext_resource type="PackedScene" path="res://scenes/marble.tscn" id="5_marble"]
 [ext_resource type="Script" path="res://scripts/ui/overlay.gd" id="6_overlay"]
+[ext_resource type="Script" path="res://scripts/render/stage_3d.gd" id="10_stage"]
 [ext_resource type="PackedScene" path="res://scenes/ui/control_panel.tscn" id="7_panel"]
 
 [node name="Main" type="Node2D"]
@@ -24,6 +25,10 @@ script = ExtResource("9_chaos")
 [node name="Race" type="Node2D" parent="."]
 script = ExtResource("4_race")
 marble_scene = ExtResource("5_marble")
+
+[node name="Stage3D" type="CanvasLayer" parent="."]
+layer = -1
+script = ExtResource("10_stage")
 
 [node name="Overlay" type="CanvasLayer" parent="."]
 script = ExtResource("6_overlay")
