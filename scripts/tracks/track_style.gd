@@ -322,7 +322,12 @@ func _dress_finish(track: Track) -> void:
 	gate.material = material
 	var fill: Polygon2D = Polygon2D.new()
 	fill.polygon = PackedVector2Array(
-		[rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]
+		[
+			rect.position,
+			Vector2(rect.end.x, rect.position.y),
+			rect.end,
+			Vector2(rect.position.x, rect.end.y)
+		]
 	)
 	var faint: Color = Color(FINISH_COLOR, 0.0)
 	var strong: Color = Color(FINISH_COLOR, 0.4)
