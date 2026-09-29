@@ -4,10 +4,57 @@ extends Control
 
 const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
 const RANDOM_LABEL: String = "Random"
+const PANEL_WIDTH: float = 640.0
+const PREVIEW_KEY: String = "preview"
+## Tab layout: each item is a setting key (or [constant PREVIEW_KEY]).
+const TABS: Array[Dictionary] = [
+	{
+		"title": "Race",
+		"items":
+		[
+			"min_players",
+			"max_players",
+			"countdown_seconds",
+			"default_map",
+			"auto_mode",
+			"auto_join_seconds",
+		],
+	},
+	{
+		"title": "Betting & Chaos",
+		"items":
+		[
+			"starting_balance",
+			"min_bet",
+			"max_bet",
+			"boost_cost",
+			"curse_cost",
+			"viewer_cooldown",
+			"fish_lockout",
+		],
+	},
+	{"title": "Shop", "items": ["species_price", "color_price"]},
+	{
+		"title": "Chat",
+		"items":
+		[
+			"chat_replies",
+			"cheer_strength",
+			"cheer_viewer_cooldown",
+			"cheer_fish_cooldown",
+			"cheer_max_emotes",
+		],
+	},
+	{
+		"title": "Stream layout",
+		"items": ["pad_left", "pad_right", "pad_top", "pad_bottom", "preview"],
+	},
+]
 
 var settings: GameSettings = null
 
 var _spinners: Dictionary[String, SpinBox] = {}
+var _captions: Dictionary[String, String] = {}
 var _map_picker: OptionButton
 var _auto_mode: CheckBox
 var _chat_replies: CheckBox
@@ -28,68 +75,42 @@ func _build() -> void:
 	background.color = Color(0.012, 0.047, 0.102)
 	background.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(center)
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for side: String in ["left", "top", "right", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 16)
+	add_child(margin)
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", UiStyle.panel_box())
-	center.add_child(panel)
+	panel.custom_minimum_size.x = PANEL_WIDTH
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(panel)
 	var box := VBoxContainer.new()
-	box.custom_minimum_size.x = 640.0
 	box.add_theme_constant_override("separation", 10)
 	panel.add_child(box)
 	var title := Label.new()
 	title.text = "SETTINGS"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiStyle.style_label(title, 44, 900, UiStyle.CYAN, 6)
+	UiStyle.style_label(title, 36, 900, UiStyle.CYAN, 6)
 	box.add_child(title)
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 24)
-	grid.add_theme_constant_override("v_separation", 6)
-	box.add_child(grid)
-	for field: Dictionary in GameSettings.FIELDS:
-		var spinner := SpinBox.new()
-		spinner.min_value = float(field["min"])
-		spinner.max_value = float(field["max"])
-		spinner.step = 1.0
-		spinner.custom_arrow_step = float(field["step"])
-		spinner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		spinner.value_changed.connect(_on_number_changed.bind(String(field["key"])))
-		_spinners[String(field["key"])] = spinner
-		grid.add_child(_row_label(String(field["label"])))
-		grid.add_child(spinner)
-	_preview = PaddingPreview.new()
-	_preview.custom_minimum_size = Vector2(256.0, 144.0)
-	_preview.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var preview_label := _row_label("Game area")
-	preview_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	grid.add_child(preview_label)
-	grid.add_child(_preview)
-	_map_picker = OptionButton.new()
-	_map_picker.add_item(RANDOM_LABEL)
-	_map_picker.set_item_metadata(0, GameSettings.RANDOM_MAP)
-	for id: String in TrackCatalog.ids():
-		_map_picker.add_item(TrackCatalog.get_name_of(id))
-		_map_picker.set_item_metadata(_map_picker.item_count - 1, id)
-	_map_picker.item_selected.connect(_on_map_picked)
-	UiStyle.style_button(_map_picker, 20)
-	grid.add_child(_row_label("Default map"))
-	grid.add_child(_map_picker)
-	_auto_mode = CheckBox.new()
-	_auto_mode.text = "Auto mode (rounds run on their own)"
-	_auto_mode.add_theme_font_override("font", UiStyle.font(600))
-	_auto_mode.add_theme_font_size_override("font_size", 22)
-	_auto_mode.add_theme_color_override("font_color", UiStyle.TEXT)
-	_auto_mode.toggled.connect(_on_auto_mode_toggled)
-	box.add_child(_auto_mode)
-	_chat_replies = CheckBox.new()
-	_chat_replies.text = "Reply in chat"
-	_chat_replies.add_theme_font_override("font", UiStyle.font(600))
-	_chat_replies.add_theme_font_size_override("font_size", 22)
-	_chat_replies.add_theme_color_override("font_color", UiStyle.TEXT)
-	_chat_replies.toggled.connect(_on_chat_replies_toggled)
-	box.add_child(_chat_replies)
+	var controls: Dictionary[String, Control] = _build_controls()
+	var tabs := TabContainer.new()
+	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tabs.add_theme_font_override("font_selected", UiStyle.font(700))
+	tabs.add_theme_font_override("font_unselected", UiStyle.font(600))
+	tabs.add_theme_font_size_override("font_size", 20)
+	box.add_child(tabs)
+	var placed: Dictionary[String, bool] = {}
+	for tab: Dictionary in TABS:
+		_add_tab(tabs, String(tab["title"]), tab["items"], controls, placed)
+	# Settings no tab lists yet still show up, so a new field is never unreachable.
+	var leftover: Array[String] = []
+	for key: String in controls:
+		if not placed.has(key):
+			leftover.append(key)
+	if not leftover.is_empty():
+		_add_tab(tabs, "More", leftover, controls, placed)
 	_status = Label.new()
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiStyle.style_label(_status, 18, 600, UiStyle.MUTED)
@@ -110,6 +131,89 @@ func _build() -> void:
 	back.pressed.connect(_on_back_pressed)
 	UiStyle.style_button(back, 20)
 	buttons.add_child(back)
+
+
+## Creates every control, keyed by the setting it edits (plus [constant PREVIEW_KEY]).
+func _build_controls() -> Dictionary[String, Control]:
+	var controls: Dictionary[String, Control] = {}
+	for field: Dictionary in GameSettings.FIELDS:
+		var spinner := SpinBox.new()
+		spinner.min_value = float(field["min"])
+		spinner.max_value = float(field["max"])
+		spinner.step = 1.0
+		spinner.custom_arrow_step = float(field["step"])
+		spinner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		spinner.value_changed.connect(_on_number_changed.bind(String(field["key"])))
+		_spinners[String(field["key"])] = spinner
+		_captions[String(field["key"])] = String(field["label"])
+		controls[String(field["key"])] = spinner
+	_preview = PaddingPreview.new()
+	_preview.custom_minimum_size = Vector2(256.0, 144.0)
+	_preview.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_captions[PREVIEW_KEY] = "Game area"
+	controls[PREVIEW_KEY] = _preview
+	_map_picker = OptionButton.new()
+	_map_picker.add_item(RANDOM_LABEL)
+	_map_picker.set_item_metadata(0, GameSettings.RANDOM_MAP)
+	for id: String in TrackCatalog.ids():
+		_map_picker.add_item(TrackCatalog.get_name_of(id))
+		_map_picker.set_item_metadata(_map_picker.item_count - 1, id)
+	_map_picker.item_selected.connect(_on_map_picked)
+	UiStyle.style_button(_map_picker, 20)
+	_captions["default_map"] = "Default map"
+	controls["default_map"] = _map_picker
+	_auto_mode = _make_check("On")
+	_auto_mode.toggled.connect(_on_auto_mode_toggled)
+	_captions["auto_mode"] = "Auto mode (rounds run on their own)"
+	controls["auto_mode"] = _auto_mode
+	_chat_replies = _make_check("On")
+	_chat_replies.toggled.connect(_on_chat_replies_toggled)
+	_captions["chat_replies"] = "Reply in chat"
+	controls["chat_replies"] = _chat_replies
+	return controls
+
+
+func _make_check(text: String) -> CheckBox:
+	var check := CheckBox.new()
+	check.text = text
+	check.add_theme_font_override("font", UiStyle.font(600))
+	check.add_theme_font_size_override("font_size", 22)
+	check.add_theme_color_override("font_color", UiStyle.TEXT)
+	return check
+
+
+## Adds a scrollable tab holding the listed controls as caption/control rows.
+func _add_tab(
+	tabs: TabContainer,
+	title: String,
+	items: Array,
+	controls: Dictionary[String, Control],
+	placed: Dictionary[String, bool]
+) -> void:
+	var scroll := ScrollContainer.new()
+	scroll.name = title
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tabs.add_child(scroll)
+	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	scroll.add_child(margin)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 24)
+	grid.add_theme_constant_override("v_separation", 6)
+	margin.add_child(grid)
+	for item: Variant in items:
+		var key := String(item)
+		if not controls.has(key):
+			continue
+		placed[key] = true
+		var caption := _row_label(String(_captions[key]))
+		if key == PREVIEW_KEY:
+			caption.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		grid.add_child(caption)
+		grid.add_child(controls[key])
 
 
 func _row_label(text: String) -> Label:
