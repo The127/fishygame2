@@ -96,7 +96,7 @@ func load_from_disk() -> bool:
 	var ok: bool = _load_files()
 	# The mirror can hold a save the browser had not flushed to IndexedDB yet.
 	var mirrored: Dictionary = _parse(_mirror_read())
-	if not mirrored.is_empty() and float(mirrored.get("saved_at", 0.0)) > _loaded_at:
+	if not mirrored.is_empty() and _saved_at(mirrored) > _loaded_at:
 		_apply(mirrored)
 		return true
 	return ok
@@ -127,13 +127,16 @@ func save_to_disk() -> bool:
 	if file == null:
 		push_warning("Could not write %s" % tmp)
 		return false
-	var text: String = JSON.stringify(
-		{
-			"version": FORMAT_VERSION,
-			"saved_at": Time.get_unix_time_from_system(),
-			"balances": _balances,
-			"stakes": _stakes,
-		}
+	var text: String = (
+		JSON
+		. stringify(
+			{
+				"version": FORMAT_VERSION,
+				"saved_at": Time.get_unix_time_from_system(),
+				"balances": _balances,
+				"stakes": _stakes,
+			}
+		)
 	)
 	_mirror_write(text)
 	file.store_string(text)
@@ -179,10 +182,13 @@ func _mirror_write(text: String) -> void:
 func _mirror_read() -> String:
 	if not _mirror_enabled():
 		return ""
-	var value: Variant = JavaScriptBridge.eval(
-		(
-			"(function () { try { return window.localStorage.getItem(%s) || ''; } catch (e) { return ''; } })()"
-			% JSON.stringify(_mirror_key())
+	var value: Variant = (
+		JavaScriptBridge
+		. eval(
+			(
+				"(function () { try { return window.localStorage.getItem(%s) || ''; } catch (e) { return ''; } })()"
+				% JSON.stringify(_mirror_key())
+			)
 		)
 	)
 	return value if value is String else ""
@@ -204,10 +210,15 @@ func _load_file(path: String) -> bool:
 	return true
 
 
+func _saved_at(data: Dictionary) -> float:
+	var value: Variant = data.get("saved_at", 0.0)
+	return float(value) if value is float or value is int else 0.0
+
+
 func _apply(data: Dictionary) -> void:
 	_balances = _clean(data["balances"])
 	_stakes = _clean(data.get("stakes", {}))
-	_loaded_at = float(data.get("saved_at", 0.0))
+	_loaded_at = _saved_at(data)
 
 
 ## Returns the parsed save data, or an empty dictionary if the file is missing or invalid.

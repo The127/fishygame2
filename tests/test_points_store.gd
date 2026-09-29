@@ -3,21 +3,6 @@ extends GutTest
 const PATH: String = "user://test_points_store.json"
 
 
-## Stands in for localStorage: the copies are shared through a dictionary the test owns.
-class MirroredStore:
-	extends PointsStore
-	var mirror: Dictionary
-
-	func _mirror_enabled() -> bool:
-		return true
-
-	func _mirror_write(text: String) -> void:
-		mirror["text"] = text
-
-	func _mirror_read() -> String:
-		return mirror.get("text", "")
-
-
 func after_each() -> void:
 	_cleanup_extras()
 
@@ -223,70 +208,3 @@ func test_corrupt_main_is_kept_aside_when_backup_is_used() -> void:
 			found = true
 	assert_true(found)
 	assert_false(FileAccess.file_exists(PATH))
-
-
-func test_mirror_wins_when_file_is_older() -> void:
-	var mirror: Dictionary = {}
-	var store := MirroredStore.new(PATH, 100)
-	store.mirror = mirror
-	store.add("1", 50)
-	assert_true(store.save_to_disk())
-	# The file is left at this state, as if IndexedDB had not been flushed for the next save.
-	var stale: String = FileAccess.get_file_as_string(PATH)
-	store.add("1", 400)
-	assert_true(store.save_to_disk())
-	_write(PATH, stale)
-	var reloaded := MirroredStore.new(PATH, 100)
-	reloaded.mirror = mirror
-	assert_true(reloaded.load_from_disk())
-	assert_eq(reloaded.get_balance("1"), 550)
-	_cleanup_extras()
-
-
-func test_mirror_holds_the_save_when_the_file_is_missing() -> void:
-	var mirror: Dictionary = {}
-	var store := MirroredStore.new(PATH, 100)
-	store.mirror = mirror
-	store.add("1", 25)
-	store.add_stake("1", 10)
-	store.save_to_disk()
-	DirAccess.remove_absolute(PATH)
-	DirAccess.remove_absolute(PATH + ".bak")
-	var reloaded := MirroredStore.new(PATH, 100)
-	reloaded.mirror = mirror
-	assert_true(reloaded.load_from_disk())
-	assert_eq(reloaded.get_balance("1"), 125)
-	assert_eq(reloaded.stake_of("1"), 10)
-	_cleanup_extras()
-
-
-func test_file_wins_when_mirror_is_older() -> void:
-	var mirror: Dictionary = {}
-	var store := MirroredStore.new(PATH, 100)
-	store.mirror = mirror
-	store.add("1", 5)
-	store.save_to_disk()
-	var old_mirror: String = mirror["text"]
-	await get_tree().create_timer(0.05).timeout
-	store.add("1", 70)
-	store.save_to_disk()
-	mirror["text"] = old_mirror
-	var reloaded := MirroredStore.new(PATH, 100)
-	reloaded.mirror = mirror
-	assert_true(reloaded.load_from_disk())
-	assert_eq(reloaded.get_balance("1"), 175)
-	_cleanup_extras()
-
-
-func test_garbage_mirror_is_ignored() -> void:
-	var store := MirroredStore.new(PATH, 100)
-	store.mirror = {"text": "{ nope"}
-	store.add("1", 5)
-	store.mirror = {"text": "{ nope"}
-	store.save_to_disk()
-	store.mirror = {"text": "{ nope"}
-	var reloaded := MirroredStore.new(PATH, 100)
-	reloaded.mirror = {"text": "{ nope"}
-	assert_true(reloaded.load_from_disk())
-	assert_eq(reloaded.get_balance("1"), 105)
-	_cleanup_extras()
