@@ -20,6 +20,8 @@ const PALETTES: Dictionary = {
 		"fog": Color(0.1, 0.4, 0.42),
 		"mote": Color(0.6, 1.0, 0.9),
 		"layer_kind": EnvLayer.Kind.KELP,
+		"far_kind": EnvLayer.Kind.SPIRES,
+		"sway_scale": 1.0,
 	},
 	"crystal":
 	{
@@ -36,6 +38,26 @@ const PALETTES: Dictionary = {
 		"fog": Color(0.22, 0.18, 0.5),
 		"mote": Color(0.8, 0.85, 1.0),
 		"layer_kind": EnvLayer.Kind.SHARDS,
+		"far_kind": EnvLayer.Kind.SHARDS,
+		"sway_scale": 1.0,
+	},
+	"wreck":
+	{
+		"sky_top": Color(0.05, 0.13, 0.13),
+		"sky_bottom": Color(0.008, 0.02, 0.025),
+		"far": Color(0.05, 0.1, 0.1),
+		"mid": Color(0.04, 0.085, 0.08),
+		"near": Color(0.012, 0.02, 0.02),
+		"plant": Color(0.08, 0.075, 0.06),
+		"stone_dark": Color(0.1, 0.07, 0.05),
+		"stone_light": Color(0.32, 0.21, 0.11),
+		"rim": Color(1.0, 0.72, 0.32),
+		"ray": Color(0.85, 0.9, 0.65),
+		"fog": Color(0.2, 0.32, 0.25),
+		"mote": Color(1.0, 0.88, 0.6),
+		"layer_kind": EnvLayer.Kind.MASTS,
+		"far_kind": EnvLayer.Kind.SPIRES,
+		"sway_scale": 0.25,
 	},
 }
 const DEFAULT_STYLE: String = "kelp"
@@ -51,6 +73,8 @@ var _palette: Dictionary = {}
 var _time: float = 0.0
 var _pegs: Array[Dictionary] = []
 var _rays: Array[Polygon2D] = []
+var _fogs: Array[ColorRect] = []
+var _motes: CPUParticles2D
 
 
 func dress(track: Track, style_id: String) -> void:
@@ -73,6 +97,22 @@ func _process(delta: float) -> void:
 		(peg["glow"] as Sprite2D).modulate.a = pulse
 	for i: int in _rays.size():
 		_rays[i].modulate.a = 0.7 + 0.3 * sin(_time * 0.5 + float(i) * 1.9)
+	_follow_view()
+
+
+## Mist, vignette and motes belong to the screen, not the map: keep them covering whatever
+## part of the world the camera currently shows.
+func _follow_view() -> void:
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return
+	var view: Rect2 = get_canvas_transform().affine_inverse() * viewport.get_visible_rect()
+	for fog: ColorRect in _fogs:
+		fog.global_position = view.position
+		fog.size = view.size
+	if _motes != null:
+		_motes.global_position = Vector2(view.get_center().x, view.end.y + 30.0)
+		_motes.emission_rect_extents = Vector2(view.size.x * 0.5 + 40.0, 10.0)
 
 
 func _hide_flat_artwork(track: Track) -> void:
@@ -137,9 +177,7 @@ func _add_rays() -> void:
 
 func _add_layers() -> void:
 	var kind: EnvLayer.Kind = _palette["layer_kind"]
-	var far_kind: EnvLayer.Kind = (
-		EnvLayer.Kind.SPIRES if kind == EnvLayer.Kind.KELP else EnvLayer.Kind.SHARDS
-	)
+	var far_kind: EnvLayer.Kind = _palette["far_kind"]
 	# Far: big soft shapes, barely moving. Ceiling shapes hang from the top.
 	_add_layer(_parallax(0.25, -50), far_kind, _palette["far"], 3, 9, 260.0, 520.0, false, 0.0)
 	_add_layer(_parallax(0.25, -50), far_kind, _palette["far"], 4, 7, 160.0, 340.0, true, 0.0)
@@ -172,7 +210,7 @@ func _add_layer(
 	layer.min_height = min_height
 	layer.max_height = max_height
 	layer.from_top = from_top
-	layer.sway = sway
+	layer.sway = sway * float(_palette["sway_scale"])
 	parent.add_child(layer)
 
 
@@ -189,6 +227,7 @@ func _add_fog() -> void:
 		material.set_shader_parameter("vignette", float(spec[2]))
 		fog.material = material
 		add_child(fog)
+		_fogs.append(fog)
 
 
 func _add_motes() -> void:
@@ -213,6 +252,7 @@ func _add_motes() -> void:
 	motes.material = material
 	motes.z_index = 3
 	add_child(motes)
+	_motes = motes
 
 
 func _dress_body(body: StaticBody2D) -> void:

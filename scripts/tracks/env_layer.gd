@@ -3,7 +3,7 @@ extends Node2D
 ## One procedurally drawn silhouette layer of a track's environment (rock spires,
 ## kelp, crystal shards). Deterministic for a given seed, so a map always looks the same.
 
-enum Kind { SPIRES, KELP, SHARDS }
+enum Kind { SPIRES, KELP, SHARDS, MASTS }
 
 const WIDTH: float = 2400.0
 const FLOOR_Y: float = 1080.0
@@ -49,6 +49,8 @@ func _draw() -> void:
 				_draw_kelp(Vector2(x, base_y), h * flip, float(i))
 			Kind.SHARDS:
 				_draw_shard(Vector2(x, base_y), h * flip, w)
+			Kind.MASTS:
+				_draw_mast(Vector2(x, base_y), h * flip, i)
 
 
 func _draw_spire(base: Vector2, height: float, width_scale: float) -> void:
@@ -109,3 +111,46 @@ func _draw_shard(base: Vector2, height: float, width_scale: float) -> void:
 	draw_colored_polygon(PackedVector2Array([left, tip, right]), color)
 	if highlight.a > 0.0:
 		draw_colored_polygon(PackedVector2Array([mid, tip, right]), highlight)
+
+
+## A broken mast with a yard and a torn sail, or every third one a curved hull rib.
+func _draw_mast(base: Vector2, height: float, index: int) -> void:
+	var lean: float = _rng.randf_range(-0.12, 0.12)
+	var tip: Vector2 = base + Vector2(height * lean, -height)
+	if index % 3 == 2:
+		var rib: PackedVector2Array = PackedVector2Array()
+		for s: int in 9:
+			var t: float = float(s) / 8.0
+			rib.append(base + Vector2(sin(t * 1.9) * height * 0.45, -height * t * 0.8))
+		draw_polyline(rib, color, 14.0)
+		return
+	var half: float = 7.0 + absf(height) * 0.012
+	draw_colored_polygon(
+		PackedVector2Array(
+			[
+				base + Vector2(-half * 1.6, 0.0),
+				base + Vector2(half * 1.6, 0.0),
+				tip + Vector2(half * 0.5, 0.0),
+				tip + Vector2(-half * 0.5, 0.0)
+			]
+		),
+		color
+	)
+	var yard_at: Vector2 = base.lerp(tip, 0.72)
+	var yard: float = 40.0 + absf(height) * 0.18
+	var tilt: float = _rng.randf_range(-0.2, 0.2) * yard
+	draw_line(yard_at + Vector2(-yard, -tilt), yard_at + Vector2(yard, tilt), color, 8.0)
+	# The sail hangs from the yard, away from the top (toward the floor for floor layers).
+	var down: float = signf(height)
+	var sail: PackedVector2Array = PackedVector2Array(
+		[
+			yard_at + Vector2(-yard * 0.9, -tilt),
+			yard_at + Vector2(yard * 0.9, tilt),
+			yard_at + Vector2(yard * 0.6, tilt + down * yard * 0.9),
+			yard_at + Vector2(yard * 0.1, down * yard * 0.5),
+			yard_at + Vector2(-yard * 0.5, -tilt + down * yard * 1.1),
+		]
+	)
+	draw_colored_polygon(sail, color)
+	if highlight.a > 0.0:
+		draw_line(yard_at + Vector2(-yard, -tilt), yard_at + Vector2(yard, tilt), highlight, 2.0)

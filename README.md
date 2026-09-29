@@ -134,7 +134,7 @@ control panel's Map picker chooses one for the next race (default Random, never 
 twice in a row). To check a map for jams, run full races headless over many seeds:
 
 ```sh
-tests/run_race_seeds.sh godot 1 100                  # both maps, 10 marbles, seeds 1..100
+tests/run_race_seeds.sh godot 1 100                  # every map, 10 marbles, seeds 1..100
 MARBLES=20 tests/run_race_seeds.sh godot 1 100 pachinko
 ```
 

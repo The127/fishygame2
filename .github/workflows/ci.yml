@@ -58,7 +58,7 @@ jobs:
       - name: Race seeds (every map, no jams)
         run: |
           tests/run_race_seeds.sh godot 1 20
-          MARBLES=20 tests/run_race_seeds.sh godot 1 20 "zigzag pachinko"
+          MARBLES=20 tests/run_race_seeds.sh godot 1 20 "zigzag pachinko wreck"
 
   export-web:
     runs-on: ubuntu-latest
