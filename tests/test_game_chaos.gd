@@ -13,6 +13,19 @@ func test_boost_during_race_charges_and_pushes_marble() -> void:
 	assert_gt(marble.get_child_count(), before, "boost adds a burst")
 
 
+func test_bet_and_chaos_stakes_add_up_and_refund_on_reload() -> void:
+	_join(2)
+	_say("100", "#bet user0 100")
+	_flow.start_race()
+	_flow.tick(3.0)
+	_say("100", "#boost user1")
+	assert_eq(_chaos.points.stake_of("100"), 100 + _chaos.boost_cost)
+	var reloaded := PointsStore.new(_chaos.points.save_path, 1000)
+	assert_true(reloaded.load_from_disk())
+	assert_eq(reloaded.refund_stakes(), 1)
+	assert_eq(reloaded.get_balance("100"), 1000)
+
+
 func test_curse_during_race_charges_and_curses_marble() -> void:
 	_start_race(2)
 	_say("100", "#curse user1")

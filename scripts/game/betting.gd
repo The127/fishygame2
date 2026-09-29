@@ -157,7 +157,7 @@ func _refund_all() -> void:
 
 func _clear_bets() -> void:
 	for user_id: String in _bets:
-		points.clear_stake(user_id)
+		points.release_stake(user_id, int(_bets[user_id]["amount"]))
 	_bets.clear()
 
 

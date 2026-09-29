@@ -129,6 +129,32 @@ func test_abort_mid_race_refunds_spend() -> void:
 	assert_eq(_balance("v"), 1000)
 
 
+func test_spend_is_held_as_stake_until_race_ends() -> void:
+	_say("v", "#boost bob")
+	assert_eq(_chaos.points.stake_of("v"), _chaos.boost_cost)
+	_chaos.on_state_changed(GameFlow.State.PODIUM, GameFlow.State.RACING)
+	assert_eq(_chaos.points.stake_of("v"), 0)
+
+
+func test_abort_releases_stake() -> void:
+	_say("v", "#boost bob")
+	_chaos.on_state_changed(GameFlow.State.IDLE, GameFlow.State.RACING)
+	assert_eq(_chaos.points.stake_of("v"), 0)
+
+
+func test_reload_mid_race_refunds_spend() -> void:
+	var path: String = "user://test_chaos_reload.json"
+	_chaos.points = PointsStore.new(path, 1000)
+	_say("v", "#boost bob")
+	assert_eq(_balance("v"), 1000 - _chaos.boost_cost)
+	var reloaded := PointsStore.new(path, 1000)
+	reloaded.load_from_disk()
+	assert_eq(reloaded.refund_stakes(), 1)
+	assert_eq(reloaded.get_balance("v"), 1000)
+	for suffix: String in ["", ".bak", ".tmp"]:
+		DirAccess.remove_absolute(path + suffix)
+
+
 func test_finished_race_keeps_spend() -> void:
 	_say("v", "#boost bob")
 	_chaos.on_state_changed(GameFlow.State.PODIUM, GameFlow.State.RACING)

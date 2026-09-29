@@ -5,7 +5,7 @@ extends RefCounted
 ## this class later; callers only use the methods below.
 ##
 ## Saves are atomic (temp file, then rename) and keep the previous file as a backup.
-## Stakes are points a viewer has bet but not yet settled: they are saved in the same
+## Stakes are points a viewer has bet or spent on chaos this round but not yet settled: they are saved in the same
 ## write as the balances so a crash or refresh mid-round can refund them.
 
 const FORMAT_VERSION: int = 1
@@ -54,9 +54,14 @@ func add_stake(user_id: String, amount: int) -> void:
 	_stakes[user_id] = int(_stakes.get(user_id, 0)) + amount
 
 
-## Forgets the viewer's stake (the bet was settled or refunded by the caller).
-func clear_stake(user_id: String) -> void:
-	_stakes.erase(user_id)
+## Releases [param amount] of the viewer's stake (it was settled or refunded by the caller).
+## Bets and chaos spend both add to the same stake, so each releases only its own part.
+func release_stake(user_id: String, amount: int) -> void:
+	var left: int = stake_of(user_id) - amount
+	if left > 0:
+		_stakes[user_id] = left
+	else:
+		_stakes.erase(user_id)
 
 
 func stake_of(user_id: String) -> int:

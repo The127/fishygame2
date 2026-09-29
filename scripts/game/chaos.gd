@@ -33,7 +33,8 @@ var _finished: Dictionary = {}
 var _viewer_ready: Dictionary = {}
 ## marble id -> clock time when the fish may be hit again
 var _fish_ready: Dictionary = {}
-## user_id -> points spent on effects this race, refunded if the round is aborted
+## user_id -> points spent on effects this race, refunded if the round is aborted.
+## Also held as stakes in the points store so a reload mid-race refunds them.
 var _spent: Dictionary = {}
 
 
@@ -75,6 +76,7 @@ func use_effect(msg: ChatMessage, args: PackedStringArray, kind: Kind) -> bool:
 		effect_rejected.emit(msg, reason)
 		return false
 	_spent[msg.user_id] = int(_spent.get(msg.user_id, 0)) + cost_of(kind)
+	points.add_stake(msg.user_id, cost_of(kind))
 	points.save_to_disk()
 	_viewer_ready[msg.user_id] = _clock + viewer_cooldown
 	_fish_ready[target_id] = _clock + fish_lockout
@@ -104,7 +106,7 @@ func on_state_changed(new_state: GameFlow.State, old_state: GameFlow.State) -> v
 	if new_state == GameFlow.State.IDLE and old_state == GameFlow.State.RACING:
 		_refund_all()
 	if new_state != GameFlow.State.RACING:
-		_spent.clear()
+		_release_spent()
 	if new_state == GameFlow.State.LOBBY or new_state == GameFlow.State.IDLE:
 		_roster.clear()
 	if new_state == GameFlow.State.RACING:
@@ -112,7 +114,7 @@ func on_state_changed(new_state: GameFlow.State, old_state: GameFlow.State) -> v
 		_finished.clear()
 		_viewer_ready.clear()
 		_fish_ready.clear()
-		_spent.clear()
+		_release_spent()
 
 
 ## Returns the rejection reason, or "" if the command is acceptable (before charging).
@@ -137,10 +139,17 @@ func _check(msg: ChatMessage, args: PackedStringArray, kind: Kind) -> String:
 
 
 func _refund_all() -> void:
+	for user_id: String in _spent:
+		points.add(user_id, int(_spent[user_id]))
+	_release_spent()
+
+
+## The spend is final (or was just refunded): stop holding it as a stake.
+func _release_spent() -> void:
 	if _spent.is_empty():
 		return
 	for user_id: String in _spent:
-		points.add(user_id, int(_spent[user_id]))
+		points.release_stake(user_id, int(_spent[user_id]))
 	_spent.clear()
 	points.save_to_disk()
 
