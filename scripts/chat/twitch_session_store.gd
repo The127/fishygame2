@@ -41,9 +41,11 @@ func clear_session() -> void:
 
 
 ## Remembers the OAuth state and client id while the browser is away on twitch.tv.
-func save_pending_login(state: String, client_id: String) -> void:
-	_write(STATE_KEY, state)
-	_write(CLIENT_ID_KEY, client_id)
+## Returns false when it could not be stored (e.g. blocked localStorage), so callers must not
+## send the browser away: the login could never be completed.
+func save_pending_login(state: String, client_id: String) -> bool:
+	var ok: bool = _write(STATE_KEY, state)
+	return _write(CLIENT_ID_KEY, client_id) and ok
 
 
 ## Returns the pending state and forgets it, so a state can only be used once.
@@ -70,16 +72,20 @@ func _read(key: String) -> String:
 	return str(file.get_value("store", key, ""))
 
 
-func _write(key: String, value: String) -> void:
+## Returns true only if the value was stored. On web it is read back, because setItem can be
+## blocked or over quota and the bridge cannot catch that.
+func _write(key: String, value: String) -> bool:
 	if OS.has_feature("web"):
 		var storage: JavaScriptObject = JavaScriptBridge.get_interface("localStorage")
-		if storage != null:
-			storage.setItem(key, value)
-		return
+		if storage == null:
+			return false
+		storage.setItem(key, value)
+		var stored: Variant = storage.getItem(key)
+		return stored != null and str(stored) == value
 	var file := ConfigFile.new()
 	file.load(_path)
 	file.set_value("store", key, value)
-	file.save(_path)
+	return file.save(_path) == OK
 
 
 func _remove(key: String) -> void:

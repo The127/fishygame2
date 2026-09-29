@@ -3,6 +3,9 @@ extends RefCounted
 ## Pure helpers for the Twitch OAuth implicit grant (no backend needed in the browser).
 ## Nothing here logs or prints a token.
 
+## Where the streamer login stands.
+enum LoginStatus { LOGGED_OUT, VALIDATING, LOGGED_IN, ERROR }
+
 const AUTHORIZE_URL: String = "https://id.twitch.tv/oauth2/authorize"
 const VALIDATE_URL: String = "https://id.twitch.tv/oauth2/validate"
 const REVOKE_URL: String = "https://id.twitch.tv/oauth2/revoke"
@@ -73,3 +76,17 @@ static func session_from_validation(
 
 static func is_expired(session: Dictionary, now: int) -> bool:
 	return int(session.get("expires_at", 0)) <= now + EXPIRY_MARGIN_SECONDS
+
+
+## Text for the streamer about a login status. `login` is the Twitch user, `error` the reason
+## for LoginStatus.ERROR, `web` whether this is the web build (login only works there).
+static func status_text(status: LoginStatus, login: String, error: String, web: bool) -> String:
+	match status:
+		LoginStatus.LOGGED_IN:
+			return "Logged in as %s" % login
+		LoginStatus.VALIDATING:
+			return "Checking Twitch login..."
+		LoginStatus.ERROR:
+			return error
+		_:
+			return "Not logged in" if web else "Twitch login needs the web build"
