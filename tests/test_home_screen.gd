@@ -170,3 +170,22 @@ func _tab_titles(screen: SettingsScreen) -> Array[String]:
 	for i: int in tabs.get_tab_count():
 		titles.append(tabs.get_tab_title(i))
 	return titles
+
+
+func test_settings_screen_has_a_home_button_and_escape_returns_home() -> void:
+	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
+	screen.settings = GameSettings.new()
+	var host := Control.new()
+	host.size = Vector2(1280.0, 720.0)
+	add_child_autofree(host)
+	host.add_child(screen)
+	await wait_process_frames(2)
+	var home: Button = screen.find_child("Home", true, false)
+	assert_not_null(home, "a Home button sits at the top")
+	assert_true(Rect2(Vector2.ZERO, host.size).encloses(home.get_global_rect()))
+	var wired: bool = false
+	for connection: Dictionary in home.pressed.get_connections():
+		wired = wired or (connection["callable"] as Callable).get_method() == "_on_back_pressed"
+	assert_true(wired, "Home leaves the settings screen")
+	assert_true(screen.has_method("_unhandled_input"), "Esc is handled")
+	assert_true(InputMap.has_action("ui_cancel"))

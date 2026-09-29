@@ -84,3 +84,9 @@ func test_starts_at_login_step_when_returning_from_twitch() -> void:
 	var screen := _make_screen()
 	Chat.login_status = previous
 	assert_eq(screen._step, 1)
+
+
+func test_escape_is_handled_like_skip() -> void:
+	var screen := _make_screen()
+	assert_true(screen.has_method("_unhandled_input"))
+	assert_true(InputMap.has_action("ui_cancel"))
