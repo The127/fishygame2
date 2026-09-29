@@ -51,6 +51,7 @@ var _map_choice: String = TrackCatalog.RANDOM_ID
 var _map_id: String = ""
 var _track: Track
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _photo: PhotoFinish = PhotoFinish.new()
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
@@ -122,6 +123,9 @@ func _ready() -> void:
 	_panel.set_audio_state(Sound.settings.get_volumes(), Sound.settings.muted)
 	_flow.countdown_tick.connect(_on_countdown_tick)
 	_race.marble_finished.connect(_on_marble_finished)
+	add_child(_photo)
+	_race.photo_finish.connect(_on_photo_finish)
+	_photo.ended.connect(_camera.release_hold)
 	_flow.podium_ready.connect(_on_podium_ready)
 	_rng.randomize()
 	if OS.has_feature("web") and DebugMode.is_enabled():
@@ -165,6 +169,7 @@ func _process(_delta: float) -> void:
 
 
 func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> void:
+	_photo.stop()
 	match new_state:
 		GameFlow.State.IDLE:
 			_race.clear()
@@ -215,6 +220,13 @@ func _on_countdown_tick(_seconds_left: int) -> void:
 
 func _on_marble_finished(_id: int, _place: int) -> void:
 	Sound.play(Sound.Sfx.SPLASH)
+
+
+func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:
+	if _flow.state != GameFlow.State.RACING or _track == null:
+		return
+	_camera.hold_on(_track.get_finish_position())
+	_photo.start()
 
 
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
