@@ -34,6 +34,7 @@ var _trail: CPUParticles2D
 func _ready() -> void:
 	_fish = FishVisual.new()
 	_fish.color = color
+	_fish.species = id
 	add_child(_fish)
 	# Top level so the name stays upright and unscaled while the marble rolls.
 	_label = Label.new()
