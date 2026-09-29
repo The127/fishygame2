@@ -189,15 +189,3 @@ func test_padding_survives_save_and_load() -> void:
 	loaded.load_settings()
 	assert_eq(loaded.pad_left, 30)
 	assert_eq(loaded.pad_bottom, 15)
-
-
-func test_auto_join_window_is_clamped_and_reset() -> void:
-	var settings := GameSettings.new()
-	settings.set_number("auto_join_seconds", 1.0)
-	assert_eq(settings.auto_join_seconds, 5)
-	settings.set_number("auto_join_seconds", 9999.0)
-	assert_eq(settings.auto_join_seconds, 600)
-	settings.auto_mode = true
-	settings.reset_to_defaults()
-	assert_false(settings.auto_mode)
-	assert_eq(settings.auto_join_seconds, 60)

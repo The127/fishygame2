@@ -81,3 +81,15 @@ func test_idle_after_stop_until_lobby_reopens() -> void:
 	assert_eq(_flow.state, GameFlow.State.IDLE)
 	_flow.open_lobby()
 	assert_eq(_flow.timer, 20.0)
+
+
+func test_auto_join_window_is_clamped_and_reset() -> void:
+	var settings := GameSettings.new()
+	settings.set_number("auto_join_seconds", 1.0)
+	assert_eq(settings.auto_join_seconds, 5)
+	settings.set_number("auto_join_seconds", 9999.0)
+	assert_eq(settings.auto_join_seconds, 600)
+	settings.auto_mode = true
+	settings.reset_to_defaults()
+	assert_false(settings.auto_mode)
+	assert_eq(settings.auto_join_seconds, 60)
