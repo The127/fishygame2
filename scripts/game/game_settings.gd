@@ -9,6 +9,16 @@ const SECTION: String = "game"
 ## Value of [member default_map] for a random map.
 const RANDOM_MAP: String = TrackCatalog.RANDOM_ID
 
+## Yes/no settings for which confirmations the game posts in chat, in the order the
+## settings screen shows them. Each only applies while [member chat_replies] is on.
+const CHAT_TOGGLES: Array[Dictionary] = [
+	{"key": "reply_joins", "label": "Confirm #join"},
+	{"key": "reply_bets", "label": "Confirm #bet"},
+	{"key": "reply_chaos", "label": "Confirm #boost and #curse"},
+	{"key": "reply_shop", "label": "Confirm #fish and #color"},
+	{"key": "reply_results", "label": "Announce race results"},
+]
+
 ## Numeric settings, in the order the settings screen shows them. "max" of max_players is
 ## what the maps are tested with. max_bet 0 means no limit.
 const FIELDS: Array[Dictionary] = [
@@ -94,8 +104,14 @@ var cheer_max_emotes: int = 5
 var default_map: String = RANDOM_MAP
 ## Whether the game cycles lobby, race and podium on its own. Off by default.
 var auto_mode: bool = false
-## Whether the game answers in chat (join rejections).
+## Whether the game answers in chat at all (rejections, #help, #top, and the confirmations
+## below).
 var chat_replies: bool = true
+var reply_joins: bool = true
+var reply_bets: bool = true
+var reply_chaos: bool = true
+var reply_shop: bool = true
+var reply_results: bool = true
 ## Whether fish wear the colorblind palette and a marking each (see [FishPalette]).
 var colorblind: bool = false
 ## Whether maps run their hazard events (currents, eels, collapsing planks).
@@ -147,6 +163,9 @@ func reset_to_defaults() -> void:
 		set(key, fresh.get(key))
 	default_map = fresh.default_map
 	chat_replies = fresh.chat_replies
+	for toggle: Dictionary in CHAT_TOGGLES:
+		var key: String = toggle["key"]
+		set(key, fresh.get(key))
 	auto_mode = fresh.auto_mode
 	colorblind = fresh.colorblind
 	hazards_enabled = fresh.hazards_enabled
@@ -170,6 +189,11 @@ func load_settings() -> void:
 	var replies: Variant = file.get_value(SECTION, "chat_replies", chat_replies)
 	if replies is bool:
 		chat_replies = replies
+	for toggle: Dictionary in CHAT_TOGGLES:
+		var key: String = toggle["key"]
+		var value: Variant = file.get_value(SECTION, key, get(key))
+		if value is bool:
+			set(key, value)
 	var auto: Variant = file.get_value(SECTION, "auto_mode", auto_mode)
 	if auto is bool:
 		auto_mode = auto
@@ -192,6 +216,9 @@ func save() -> bool:
 		file.set_value(SECTION, key, get(key))
 	file.set_value(SECTION, "default_map", default_map)
 	file.set_value(SECTION, "chat_replies", chat_replies)
+	for toggle: Dictionary in CHAT_TOGGLES:
+		var key: String = toggle["key"]
+		file.set_value(SECTION, key, get(key))
 	file.set_value(SECTION, "auto_mode", auto_mode)
 	file.set_value(SECTION, "colorblind", colorblind)
 	file.set_value(SECTION, "hazards_enabled", hazards_enabled)
@@ -201,6 +228,12 @@ func save() -> bool:
 ## The frequency to hand to a race: 0 when hazards are off.
 func hazard_level() -> int:
 	return hazard_frequency if hazards_enabled else 0
+
+
+## Whether the confirmation toggled by [param key] (one of [constant CHAT_TOGGLES]) should
+## be posted: needs both the master switch and its own toggle.
+func replies_enabled(key: String) -> bool:
+	return chat_replies and bool(get(key))
 
 
 static func field_of(key: String) -> Dictionary:

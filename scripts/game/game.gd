@@ -44,6 +44,9 @@ const NAMED_COMMANDS: PackedStringArray = [
 	"join", "bet", "boost", "curse", "points", "fish", "color", "shop"
 ]
 
+## Most payouts named in the race result line.
+const RESULT_PAYOUTS: int = 3
+
 const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
 
 ## Scene opened by the Home button. Tests set it to "" to stay in place.
@@ -61,6 +64,8 @@ var _map_id: String = ""
 var _track: Track
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _photo: PhotoFinish = PhotoFinish.new()
+var _batcher: ChatBatcher = ChatBatcher.new()
+var _payouts: Array[Dictionary] = []
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
@@ -91,6 +96,8 @@ func _ready() -> void:
 	_shop.equipped.connect(_on_shop_equipped)
 	_shop.rejected.connect(_on_shop_rejected)
 	_shop.catalog_requested.connect(_on_shop_catalog_requested)
+	add_child(_batcher)
+	_batcher.line_ready.connect(_on_batched_line)
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
 	_flow.join_rejected.connect(_on_join_rejected)
@@ -116,6 +123,7 @@ func _ready() -> void:
 	_flow.podium_ready.connect(_betting.on_podium_ready)
 	_betting.bets_changed.connect(_overlay.show_bets)
 	_betting.payouts_settled.connect(_overlay.show_payouts)
+	_betting.payouts_settled.connect(_on_payouts_settled)
 	_betting.bet_placed.connect(_on_bet_placed)
 	_betting.bet_rejected.connect(_on_bet_rejected)
 	_betting.balance_reported.connect(_on_balance_reported)
@@ -247,8 +255,9 @@ func _show_leaderboard() -> void:
 	)
 
 
-func _on_player_joined(_contestant: Contestant) -> void:
+func _on_player_joined(contestant: Contestant) -> void:
 	Sound.play(Sound.Sfx.JOIN)
+	_confirm("reply_joins", "joins", "Joined:", "@" + contestant.display_name)
 	_refresh_lobby()
 
 
@@ -268,8 +277,14 @@ func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:
 
 
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
-	if not podium.is_empty() and podium[0]["finished"]:
-		Sound.play(Sound.Sfx.WIN)
+	var payouts: Array[Dictionary] = _payouts
+	_payouts = []
+	if podium.is_empty() or not podium[0]["finished"]:
+		return
+	Sound.play(Sound.Sfx.WIN)
+	_confirm(
+		"reply_results", "results", "Race over:", _result_text(str(podium[0]["name"]), payouts)
+	)
 
 
 ## Leaves right away between rounds; mid-round the streamer has to confirm first.
@@ -337,6 +352,12 @@ func _on_join_rejected(msg: ChatMessage, reason: String) -> void:
 
 
 func _on_bet_placed(msg: ChatMessage, target: Contestant, amount: int) -> void:
+	_confirm(
+		"reply_bets",
+		"bets",
+		"Bets:",
+		"@%s %d on %s" % [_viewer_name(msg), amount, target.display_name]
+	)
 	_overlay.show_notice("%s bet %d on %s" % [_viewer_name(msg), amount, target.display_name])
 
 
@@ -355,6 +376,13 @@ func _on_effect_requested(marble_id: int, kind: Chaos.Kind) -> void:
 func _on_effect_applied(msg: ChatMessage, target: Contestant, kind: Chaos.Kind, _cost: int) -> void:
 	Sound.play(Sound.Sfx.BOOST if kind == Chaos.Kind.BOOST else Sound.Sfx.CURSE)
 	var verb: String = "boosted" if kind == Chaos.Kind.BOOST else "cursed"
+	var label: String = "Boosted:" if kind == Chaos.Kind.BOOST else "Cursed:"
+	_confirm(
+		"reply_chaos",
+		"boost" if kind == Chaos.Kind.BOOST else "curse",
+		label,
+		"@%s on %s" % [_viewer_name(msg), target.display_name]
+	)
 	_overlay.show_notice("%s %s %s!" % [_viewer_name(msg), verb, target.display_name])
 
 
@@ -363,7 +391,8 @@ func _on_effect_rejected(msg: ChatMessage, reason: String) -> void:
 	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
 
 
-func _on_shop_equipped(msg: ChatMessage, _kind: String, item: String, price: int) -> void:
+func _on_shop_equipped(msg: ChatMessage, kind: String, item: String, price: int) -> void:
+	_confirm("reply_shop", "shop", "Shop:", "@%s %s %s" % [_viewer_name(msg), kind, item])
 	if price > 0:
 		_overlay.show_notice("%s bought %s for %d" % [_viewer_name(msg), item, price])
 	else:
@@ -383,6 +412,36 @@ func _on_shop_catalog_requested(_msg: ChatMessage) -> void:
 
 func _on_balance_reported(msg: ChatMessage, balance: int) -> void:
 	_overlay.show_notice("%s has %d points" % [_viewer_name(msg), balance])
+
+
+func _on_payouts_settled(results: Array[Dictionary]) -> void:
+	_payouts = results
+
+
+## "Bubbles won. Payouts: @a +300, @b +200", with at most three payouts, biggest first.
+func _result_text(winner: String, payouts: Array[Dictionary]) -> String:
+	var paid: Array[Dictionary] = payouts.filter(
+		func(r: Dictionary) -> bool: return r["payout"] > 0
+	)
+	paid.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["payout"] > b["payout"])
+	var parts: PackedStringArray = []
+	for r: Dictionary in paid.slice(0, RESULT_PAYOUTS):
+		parts.append("@%s +%d" % [r["name"], r["payout"]])
+	var text: String = "%s won." % winner
+	if not parts.is_empty():
+		text += " Payouts: " + ", ".join(parts)
+	return text
+
+
+## Queues a chat confirmation when replies and the kind's own toggle are on.
+func _confirm(toggle: String, kind: String, prefix: String, item: String) -> void:
+	if settings.replies_enabled(toggle):
+		_batcher.add(kind, prefix, item)
+
+
+func _on_batched_line(text: String) -> void:
+	if settings.chat_replies:
+		Chat.send_message(text)
 
 
 func _viewer_name(msg: ChatMessage) -> String:
