@@ -36,6 +36,9 @@ const CHAOS_REJECTIONS: Dictionary = {
 ## Milliseconds between "#top" replies in chat, shared by everyone.
 const TOP_COOLDOWN_MSEC: int = 30000
 
+## Milliseconds between "#help" replies in chat, shared by everyone.
+const HELP_COOLDOWN_MSEC: int = 30000
+
 ## Commands that put a viewer on the leaderboard, so their name is remembered.
 const NAMED_COMMANDS: PackedStringArray = [
 	"join", "bet", "boost", "curse", "points", "fish", "color", "shop"
@@ -46,6 +49,7 @@ var settings: GameSettings = null
 
 var _last_reply_msec: Dictionary[String, int] = {}
 var _last_top_msec: int = -TOP_COOLDOWN_MSEC
+var _last_help_msec: int = -HELP_COOLDOWN_MSEC
 
 var _map_choice: String = TrackCatalog.RANDOM_ID
 var _map_id: String = ""
@@ -188,6 +192,9 @@ func _remember_name(msg: ChatMessage, command: String, _args: PackedStringArray)
 
 
 func _on_command(_msg: ChatMessage, command: String, _args: PackedStringArray) -> void:
+	if command == "help":
+		_reply_help()
+		return
 	if command != "top":
 		return
 	var now: int = Time.get_ticks_msec()
@@ -195,6 +202,16 @@ func _on_command(_msg: ChatMessage, command: String, _args: PackedStringArray) -
 		return
 	_last_top_msec = now
 	Chat.send_message(Leaderboard.chat_text(_betting.points.top_by_points(Leaderboard.CHAT_ROWS)))
+
+
+func _reply_help() -> void:
+	if not settings.chat_replies:
+		return
+	var now: int = Time.get_ticks_msec()
+	if now - _last_help_msec < HELP_COOLDOWN_MSEC:
+		return
+	_last_help_msec = now
+	Chat.send_message(HelpText.CHAT_REPLY)
 
 
 func _show_leaderboard() -> void:

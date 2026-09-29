@@ -17,6 +17,7 @@ var _lobby_key: String = ""
 var _board_panel: PanelContainer
 var _board: LeaderboardPanel
 var _board_has_rows: bool = false
+var _help_panel: PanelContainer
 var _big: Label
 var _results_column: VBoxContainer
 var _podium_panel: PanelContainer
@@ -38,6 +39,7 @@ func _ready() -> void:
 	add_child(_frame)
 	_build_lobby()
 	_build_board()
+	_build_help()
 	_build_countdown()
 	_build_results()
 	_build_bets()
@@ -103,6 +105,7 @@ func show_lobby(names: PackedStringArray, max_players: int, seconds_left: float)
 	_lobby_names.visible = not names.is_empty()
 	_lobby_panel.visible = true
 	_board_panel.visible = _board_has_rows
+	_help_panel.visible = true
 
 
 func show_countdown(seconds_left: int) -> void:
@@ -165,6 +168,7 @@ func _clear_lobby() -> void:
 	_lobby_key = ""
 	_lobby_panel.visible = false
 	_board_panel.visible = false
+	_help_panel.visible = false
 
 
 func _set_bets_text(text: String) -> void:
@@ -200,6 +204,23 @@ func _build_board() -> void:
 	_board_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_board_panel.offset_top = MARGIN
 	_board_panel.offset_right = -MARGIN
+
+
+func _build_help() -> void:
+	_help_panel = _make_panel(false)
+	_frame.add_child(_help_panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	_help_panel.add_child(box)
+	box.add_child(_make_label(HelpText.TITLE, 24, 800, UiStyle.CYAN, 3))
+	for line: String in HelpText.LINES:
+		box.add_child(_make_label(line, 22, 600, UiStyle.MUTED))
+	# Bottom-right, growing up and to the left; the bets panel owns the bottom-left.
+	_help_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	_help_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_help_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_help_panel.offset_right = -MARGIN
+	_help_panel.offset_bottom = -MARGIN
 
 
 func _build_countdown() -> void:
