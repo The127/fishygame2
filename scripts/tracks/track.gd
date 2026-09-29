@@ -12,6 +12,8 @@ const FORWARD_SAMPLE: float = 30.0
 @export var spawn_spacing: float = 34.0
 ## World area the race camera may look at. Grow it if a map extends beyond the default frame.
 @export var view_bounds: Rect2 = Rect2(0.0, 0.0, 1920.0, 1080.0)
+## Look of the map, a key of TrackStyle.PALETTES.
+@export var style_id: String = TrackStyle.DEFAULT_STYLE
 
 @onready var _finish: Area2D = $Finish
 @onready var _centerline: Path2D = $Centerline
@@ -20,6 +22,9 @@ const FORWARD_SAMPLE: float = 30.0
 
 func _ready() -> void:
 	_finish.body_entered.connect(_on_finish_body_entered)
+	var style: TrackStyle = TrackStyle.new()
+	add_child(style)
+	style.dress(self, style_id)
 
 
 ## Global position of the nth start slot (grid of spawn_columns per row, rows stack upward).
