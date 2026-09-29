@@ -15,6 +15,7 @@ signal map_selected(choice: String)
 
 
 func _ready() -> void:
+	_apply_style()
 	($Panel/Box/Buttons/Open as Button).pressed.connect(open_lobby_pressed.emit)
 	($Panel/Box/Buttons/Start as Button).pressed.connect(start_pressed.emit)
 	($Panel/Box/Buttons/Stop as Button).pressed.connect(stop_pressed.emit)
@@ -45,6 +46,31 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func set_status(text: String) -> void:
 	_status.text = text
+
+
+func _apply_style() -> void:
+	_panel.add_theme_stylebox_override("panel", UiStyle.panel_box())
+	UiStyle.style_label(_status, 22, 700, UiStyle.CYAN)
+	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiStyle.style_label($Panel/Box/MapRow/MapLabel as Label, 22, 600, UiStyle.MUTED)
+	UiStyle.style_label($Panel/Box/Hint as Label, 18, 600, UiStyle.MUTED)
+	for button: Button in [
+		$Panel/Box/Buttons/Open,
+		$Panel/Box/Buttons/Start,
+		$Panel/Box/Buttons/Stop,
+		$Panel/Box/DebugButtons/AddOne,
+		$Panel/Box/DebugButtons/AddFive,
+		_map_picker,
+	]:
+		UiStyle.style_button(button, 20)
+	# Popup menu of the map picker: dark panel and the same font.
+	var popup: PopupMenu = _map_picker.get_popup()
+	popup.add_theme_font_override("font", UiStyle.font(600))
+	popup.add_theme_font_size_override("font_size", 22)
+	popup.add_theme_stylebox_override("panel", UiStyle.panel_box())
+	popup.add_theme_color_override("font_color", UiStyle.TEXT)
+	popup.add_theme_color_override("font_hover_color", Color.WHITE)
+	popup.add_theme_stylebox_override("hover", UiStyle.button_box(true))
 
 
 func _on_map_picked(index: int) -> void:
