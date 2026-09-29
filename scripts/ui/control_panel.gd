@@ -13,6 +13,10 @@ signal volume_changed(bus: String, value: float)
 ## Streamer switched auto mode (unattended rounds) on or off.
 signal auto_mode_toggled(enabled: bool)
 signal mute_toggled(muted: bool)
+## Streamer wants to leave for the home screen (button or Esc).
+signal home_pressed
+## Streamer confirmed leaving after [method ask_leave].
+signal leave_confirmed
 
 const VOLUME_ROWS: Dictionary = {
 	AudioSettings.BUS_MASTER: "Master",
@@ -23,6 +27,7 @@ const VOLUME_ROWS: Dictionary = {
 @onready var _panel: PanelContainer = $Panel
 @onready var _status: Label = $Panel/Box/Status
 @onready var _map_picker: OptionButton = $Panel/Box/MapRow/MapPicker
+@onready var _confirm: Control = $Panel/Box/LeaveConfirm
 @onready var _auto: CheckBox = $Panel/Box/Auto
 @onready var _mute: CheckBox = $Panel/Box/Mute
 @onready var _volume_sliders: Dictionary = {
@@ -37,6 +42,9 @@ func _ready() -> void:
 	($Panel/Box/Buttons/Open as Button).pressed.connect(open_lobby_pressed.emit)
 	($Panel/Box/Buttons/Start as Button).pressed.connect(start_pressed.emit)
 	($Panel/Box/Buttons/Stop as Button).pressed.connect(stop_pressed.emit)
+	($Panel/Box/Home as Button).pressed.connect(home_pressed.emit)
+	($Panel/Box/LeaveConfirm/Answers/Leave as Button).pressed.connect(_on_leave_pressed)
+	($Panel/Box/LeaveConfirm/Answers/Stay as Button).pressed.connect(cancel_leave)
 	($Panel/Box/DebugButtons as Control).visible = DebugMode.is_enabled()
 	($Panel/Box/DebugButtons/AddOne as Button).pressed.connect(
 		add_debug_players_pressed.emit.bind(1)
@@ -64,6 +72,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		_panel.visible = not _panel.visible
 	elif key.keycode == KEY_SPACE:
 		start_pressed.emit()
+	elif key.keycode == KEY_ESCAPE:
+		if _confirm.visible:
+			cancel_leave()
+		else:
+			home_pressed.emit()
+
+
+## Shows the "leave the round?" question. Reveals the panel so it can be answered.
+func ask_leave() -> void:
+	_panel.visible = true
+	_confirm.visible = true
+
+
+## Hides the leave question without leaving.
+func cancel_leave() -> void:
+	_confirm.visible = false
 
 
 func set_status(text: String) -> void:
@@ -88,6 +112,8 @@ func _apply_style() -> void:
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiStyle.style_label($Panel/Box/MapRow/MapLabel as Label, 22, 600, UiStyle.MUTED)
 	UiStyle.style_label($Panel/Box/Hint as Label, 18, 600, UiStyle.MUTED)
+	UiStyle.style_label($Panel/Box/LeaveConfirm/Question as Label, 20, 600, UiStyle.TEXT)
+	($Panel/Box/LeaveConfirm/Question as Label).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	for box: CheckBox in [_auto, _mute]:
 		box.add_theme_font_override("font", UiStyle.font(600))
 		box.add_theme_font_size_override("font_size", 22)
@@ -98,6 +124,9 @@ func _apply_style() -> void:
 		$Panel/Box/Buttons/Open,
 		$Panel/Box/Buttons/Start,
 		$Panel/Box/Buttons/Stop,
+		$Panel/Box/Home,
+		$Panel/Box/LeaveConfirm/Answers/Leave,
+		$Panel/Box/LeaveConfirm/Answers/Stay,
 		$Panel/Box/DebugButtons/AddOne,
 		$Panel/Box/DebugButtons/AddFive,
 		_map_picker,
@@ -123,3 +152,8 @@ func select_map(choice: String) -> void:
 
 func _on_map_picked(index: int) -> void:
 	map_selected.emit(String(_map_picker.get_item_metadata(index)))
+
+
+func _on_leave_pressed() -> void:
+	_confirm.visible = false
+	leave_confirmed.emit()

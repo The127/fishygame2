@@ -44,6 +44,11 @@ const NAMED_COMMANDS: PackedStringArray = [
 	"join", "bet", "boost", "curse", "points", "fish", "color", "shop"
 ]
 
+const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
+
+## Scene opened by the Home button. Tests set it to "" to stay in place.
+var home_scene: String = HOME_SCENE
+
 ## The streamer's rules. Loaded from storage in _ready unless a caller sets it first.
 var settings: GameSettings = null
 
@@ -119,6 +124,8 @@ func _ready() -> void:
 	_panel.start_pressed.connect(_flow.start_race)
 	_panel.stop_pressed.connect(_flow.stop)
 	_panel.add_debug_players_pressed.connect(_flow.add_debug_players)
+	_panel.home_pressed.connect(_on_home_pressed)
+	_panel.leave_confirmed.connect(_leave_to_home)
 	_panel.map_selected.connect(_on_map_selected)
 	_panel.auto_mode_toggled.connect(_on_auto_mode_toggled)
 	_panel.volume_changed.connect(Sound.set_volume)
@@ -260,6 +267,23 @@ func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	if not podium.is_empty() and podium[0]["finished"]:
 		Sound.play(Sound.Sfx.WIN)
+
+
+## Leaves right away between rounds; mid-round the streamer has to confirm first.
+func _on_home_pressed() -> void:
+	if _flow.state == GameFlow.State.COUNTDOWN or _flow.state == GameFlow.State.RACING:
+		_panel.ask_leave()
+	else:
+		_leave_to_home()
+
+
+## Aborts the round (bets and chaos stakes are refunded), stops auto mode for this session
+## (the saved setting stays as it is) and opens the home screen.
+func _leave_to_home() -> void:
+	_flow.set_auto_mode(false)
+	_flow.stop()
+	if not home_scene.is_empty():
+		get_tree().change_scene_to_file(home_scene)
 
 
 func _on_auto_mode_toggled(enabled: bool) -> void:
