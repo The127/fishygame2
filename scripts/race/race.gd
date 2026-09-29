@@ -80,6 +80,17 @@ func curse_marble(id: int) -> bool:
 	return true
 
 
+## Current global position of every marble still racing, id -> Vector2.
+func get_position_map() -> Dictionary:
+	var positions: Dictionary = {}
+	for id: int in _marbles:
+		if _ranking != null and _ranking.is_finished(id):
+			continue
+		var marble: Marble = _marbles[id]
+		positions[id] = marble.global_position
+	return positions
+
+
 func get_progress_map() -> Dictionary:
 	var progress: Dictionary = {}
 	for id: int in _marbles:
@@ -115,6 +126,8 @@ func _on_marble_reached_finish(body: Node2D) -> void:
 	if place == 0:
 		return
 	marble.splash()
+	if place == 1:
+		marble.celebrate()
 	marble_finished.emit(marble.id, place)
 	if _ranking.all_finished():
 		_finish_race()
@@ -125,13 +138,4 @@ func _finish_race() -> void:
 	for marble: Marble in _marbles.values():
 		marble.set_deferred("freeze", true)
 	var results: Array[Dictionary] = _ranking.get_results(get_progress_map())
-	_celebrate_winner(results)
 	race_finished.emit(results)
-
-
-func _celebrate_winner(results: Array[Dictionary]) -> void:
-	if results.is_empty() or not results[0].get("finished", false):
-		return
-	var winner: Marble = _marbles.get(results[0].get("id", -1)) as Marble
-	if winner != null:
-		winner.celebrate()

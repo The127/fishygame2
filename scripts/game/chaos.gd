@@ -33,6 +33,8 @@ var _finished: Dictionary = {}
 var _viewer_ready: Dictionary = {}
 ## marble id -> clock time when the fish may be hit again
 var _fish_ready: Dictionary = {}
+## user_id -> points spent on effects this race, refunded if the round is aborted
+var _spent: Dictionary = {}
 
 
 func _ready() -> void:
@@ -72,6 +74,7 @@ func use_effect(msg: ChatMessage, args: PackedStringArray, kind: Kind) -> bool:
 	if not reason.is_empty():
 		effect_rejected.emit(msg, reason)
 		return false
+	_spent[msg.user_id] = int(_spent.get(msg.user_id, 0)) + cost_of(kind)
 	points.save_to_disk()
 	_viewer_ready[msg.user_id] = _clock + viewer_cooldown
 	_fish_ready[target_id] = _clock + fish_lockout
@@ -89,9 +92,19 @@ func on_marble_finished(id: int, _place: int) -> void:
 	_finished[id] = true
 
 
+## Feed it Race.race_finished. Closes chaos at once, so a command arriving in the same
+## frame the race ends is rejected instead of charging for an effect that cannot land.
+func on_race_finished(_results: Array[Dictionary]) -> void:
+	_racing = false
+
+
 ## Feed it GameFlow.state_changed.
-func on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> void:
+func on_state_changed(new_state: GameFlow.State, old_state: GameFlow.State) -> void:
 	_racing = new_state == GameFlow.State.RACING
+	if new_state == GameFlow.State.IDLE and old_state == GameFlow.State.RACING:
+		_refund_all()
+	if new_state != GameFlow.State.RACING:
+		_spent.clear()
 	if new_state == GameFlow.State.LOBBY or new_state == GameFlow.State.IDLE:
 		_roster.clear()
 	if new_state == GameFlow.State.RACING:
@@ -99,6 +112,7 @@ func on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> 
 		_finished.clear()
 		_viewer_ready.clear()
 		_fish_ready.clear()
+		_spent.clear()
 
 
 ## Returns the rejection reason, or "" if the command is acceptable (before charging).
@@ -120,6 +134,15 @@ func _check(msg: ChatMessage, args: PackedStringArray, kind: Kind) -> String:
 	elif points.get_balance(msg.user_id) < cost_of(kind):
 		reason = "insufficient"
 	return reason
+
+
+func _refund_all() -> void:
+	if _spent.is_empty():
+		return
+	for user_id: String in _spent:
+		points.add(user_id, int(_spent[user_id]))
+	_spent.clear()
+	points.save_to_disk()
 
 
 func _find_contestant_index(text: String) -> int:

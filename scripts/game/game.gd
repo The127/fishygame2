@@ -35,6 +35,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 @onready var _betting: Betting = $Betting
 @onready var _chaos: Chaos = $Chaos
 @onready var _race: Race = $Race
+@onready var _camera: RaceCamera = $RaceCamera
 @onready var _overlay: Overlay = $Overlay
 @onready var _panel: ControlPanel = $ControlPanel
 
@@ -57,6 +58,8 @@ func _ready() -> void:
 	_chaos.effect_applied.connect(_on_effect_applied)
 	_chaos.effect_rejected.connect(_on_effect_rejected)
 	_race.marble_finished.connect(_chaos.on_marble_finished)
+	# Before the flow's connection below, so chaos closes before the state changes.
+	_race.race_finished.connect(_chaos.on_race_finished)
 	_flow.podium_ready.connect(_overlay.show_podium)
 	_flow.podium_ready.connect(_betting.on_podium_ready)
 	_betting.bets_changed.connect(_overlay.show_bets)
@@ -70,6 +73,12 @@ func _ready() -> void:
 	_panel.stop_pressed.connect(_flow.stop)
 	_panel.add_debug_players_pressed.connect(_flow.add_debug_players)
 	_panel.map_selected.connect(_on_map_selected)
+	_panel.volume_changed.connect(Sound.set_volume)
+	_panel.mute_toggled.connect(Sound.set_muted)
+	_panel.set_audio_state(Sound.settings.get_volumes(), Sound.settings.muted)
+	_flow.countdown_tick.connect(_on_countdown_tick)
+	_race.marble_finished.connect(_on_marble_finished)
+	_flow.podium_ready.connect(_on_podium_ready)
 	_rng.randomize()
 	if OS.has_feature("web") and DebugMode.is_enabled():
 		var bridge := WebTestBridge.new()
@@ -81,6 +90,8 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if _flow.state == GameFlow.State.LOBBY:
 		_refresh_lobby()
+	if _flow.state == GameFlow.State.RACING and _race.running:
+		_camera.follow(_race.get_position_map(), _race.get_progress_map())
 	_panel.set_status(_status_text())
 
 
@@ -89,16 +100,34 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 		GameFlow.State.IDLE:
 			_race.clear()
 			_overlay.show_idle()
+			_camera.show_overview()
 		GameFlow.State.LOBBY:
 			_race.clear()
 			_load_map()
 			_refresh_lobby()
+			_camera.show_overview(true)
+		GameFlow.State.COUNTDOWN, GameFlow.State.PODIUM:
+			_camera.show_overview()
 		GameFlow.State.RACING:
 			_overlay.show_racing()
 
 
 func _on_player_joined(_contestant: Contestant) -> void:
+	Sound.play(Sound.Sfx.JOIN)
 	_refresh_lobby()
+
+
+func _on_countdown_tick(_seconds_left: int) -> void:
+	Sound.play(Sound.Sfx.TICK)
+
+
+func _on_marble_finished(_id: int, _place: int) -> void:
+	Sound.play(Sound.Sfx.SPLASH)
+
+
+func _on_podium_ready(podium: Array[Dictionary]) -> void:
+	if not podium.is_empty() and podium[0]["finished"]:
+		Sound.play(Sound.Sfx.WIN)
 
 
 func _on_map_selected(choice: String) -> void:
@@ -122,6 +151,8 @@ func _load_map() -> void:
 	_track = TrackCatalog.instantiate(id)
 	add_child(_track)
 	move_child(_track, 0)
+	_camera.set_bounds(_track.view_bounds)
+	_camera.show_overview(true)
 
 
 func _on_join_rejected(msg: ChatMessage, reason: String) -> void:
@@ -157,6 +188,7 @@ func _on_effect_requested(marble_id: int, kind: Chaos.Kind) -> void:
 
 
 func _on_effect_applied(msg: ChatMessage, target: Contestant, kind: Chaos.Kind, _cost: int) -> void:
+	Sound.play(Sound.Sfx.BOOST if kind == Chaos.Kind.BOOST else Sound.Sfx.CURSE)
 	var verb: String = "boosted" if kind == Chaos.Kind.BOOST else "cursed"
 	_overlay.show_notice("%s %s %s!" % [_viewer_name(msg), verb, target.display_name])
 
@@ -175,6 +207,7 @@ func _viewer_name(msg: ChatMessage) -> String:
 
 
 func _on_race_started(contestants: Array[Contestant]) -> void:
+	Sound.play(Sound.Sfx.GO)
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_race.start(_track, contestants.size(), rng)

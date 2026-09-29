@@ -48,6 +48,7 @@ static func make_trail() -> CPUParticles2D:
 	trail.local_coords = false
 	trail.emitting = false
 	trail.texture = glow_texture()
+	trail.material = additive_material()
 	trail.direction = Vector2.UP
 	trail.spread = 50.0
 	trail.gravity = Vector2(0, -25)

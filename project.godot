@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.7")
 [autoload]
 
 Chat="*res://scripts/chat/chat.gd"
+Sound="*res://scripts/audio/sound.gd"
 
 [editor_plugins]
 

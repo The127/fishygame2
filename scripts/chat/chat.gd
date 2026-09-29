@@ -14,8 +14,7 @@ var source: ChatSource = null
 var store: TwitchSessionStore = TwitchSessionStore.new()
 ## Logged in streamer: {client_id, token, user_id, login, expires_at}, or {} when logged out.
 var session: Dictionary = {}
-## One of "logged_out", "validating", "logged_in", "error".
-var login_status: String = "logged_out"
+var login_status: TwitchAuth.LoginStatus = TwitchAuth.LoginStatus.LOGGED_OUT
 var login_error: String = ""
 
 
@@ -40,13 +39,22 @@ func begin_login(client_id: String) -> void:
 	client_id = client_id.strip_edges()
 	if client_id.is_empty() or not OS.has_feature("web"):
 		return
-	var state: String = TwitchAuth.generate_state()
-	store.save_pending_login(state, client_id)
 	var redirect: String = str(
 		JavaScriptBridge.eval("window.location.origin + window.location.pathname")
 	)
+	_redirect_to_twitch(client_id, redirect)
+
+
+## Redirects to Twitch, unless the pending login could not be stored: then the streamer would
+## come back unable to finish, so show an error instead. Returns whether it redirected.
+func _redirect_to_twitch(client_id: String, redirect: String) -> bool:
+	var state: String = TwitchAuth.generate_state()
+	if not store.save_pending_login(state, client_id):
+		_login_failed("Could not save the login in this browser (is site storage blocked?)")
+		return false
 	var url: String = TwitchAuth.build_authorize_url(client_id, redirect, state)
 	JavaScriptBridge.eval("window.location.href = %s" % JSON.stringify(url))
+	return true
 
 
 ## Forgets the stored login, revokes the token at Twitch and falls back to the debug source.
@@ -56,7 +64,7 @@ func logout() -> void:
 	store.clear_session()
 	session = {}
 	login_error = ""
-	_set_login_status("logged_out")
+	_set_login_status(TwitchAuth.LoginStatus.LOGGED_OUT)
 	if source is TwitchEventSubSource:
 		if DebugMode.is_enabled():
 			set_source(DebugChatSource.new())
@@ -137,10 +145,10 @@ func _config_from_stored_session() -> Dictionary:
 	if TwitchAuth.is_expired(saved, int(Time.get_unix_time_from_system())):
 		store.clear_session()
 		login_error = "Twitch login expired, please log in again"
-		_set_login_status("error")
+		_set_login_status(TwitchAuth.LoginStatus.ERROR)
 		return {}
 	session = saved
-	login_status = "logged_in"
+	login_status = TwitchAuth.LoginStatus.LOGGED_IN
 	return {
 		"client_id": saved["client_id"],
 		"token": saved["token"],
@@ -180,7 +188,7 @@ func _finish_login(fragment: String) -> void:
 	if client_id.is_empty():
 		_login_failed("Twitch client id is missing, please try again")
 		return
-	_set_login_status("validating")
+	_set_login_status(TwitchAuth.LoginStatus.VALIDATING)
 	var token: String = str(params["access_token"])
 	var req := HTTPRequest.new()
 	add_child(req)
@@ -226,7 +234,7 @@ func _on_validate_completed(
 			"user_id": session["user_id"],
 		}
 	)
-	_set_login_status("logged_in")
+	_set_login_status(TwitchAuth.LoginStatus.LOGGED_IN)
 
 
 func _revoke(client_id: String, token: String) -> void:
@@ -248,16 +256,16 @@ func _on_source_failed(reason: String, failed_source: ChatSource) -> void:
 	store.clear_session()
 	session = {}
 	login_error = "Twitch login no longer works: %s" % reason
-	_set_login_status("error")
+	_set_login_status(TwitchAuth.LoginStatus.ERROR)
 
 
 func _login_failed(reason: String) -> void:
 	push_warning(reason)
 	login_error = reason
-	_set_login_status("error")
+	_set_login_status(TwitchAuth.LoginStatus.ERROR)
 
 
-func _set_login_status(status: String) -> void:
+func _set_login_status(status: TwitchAuth.LoginStatus) -> void:
 	login_status = status
 	login_changed.emit()
 
