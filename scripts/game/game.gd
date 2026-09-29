@@ -26,10 +26,17 @@ const CHAOS_REJECTIONS: Dictionary = {
 	"insufficient": "not enough points",
 }
 
+## Milliseconds between "#top" replies in chat, shared by everyone.
+const TOP_COOLDOWN_MSEC: int = 30000
+
+## Commands that put a viewer on the leaderboard, so their name is remembered.
+const NAMED_COMMANDS: PackedStringArray = ["bet", "boost", "curse", "points"]
+
 ## The streamer's rules. Loaded from storage in _ready unless a caller sets it first.
 var settings: GameSettings = null
 
 var _last_reply_msec: Dictionary[String, int] = {}
+var _last_top_msec: int = -TOP_COOLDOWN_MSEC
 
 var _map_choice: String = TrackCatalog.RANDOM_ID
 var _map_id: String = ""
@@ -50,9 +57,12 @@ func _ready() -> void:
 		settings = GameSettings.new(GameSettings.DEFAULT_PATH)
 		settings.load_settings()
 	_apply_settings()
+	# First, so the name is stored before a bet or effect saves the points.
+	Chat.command_received.connect(_remember_name)
 	Chat.command_received.connect(_flow.handle_command)
 	Chat.command_received.connect(_betting.handle_command)
 	Chat.command_received.connect(_chaos.handle_command)
+	Chat.command_received.connect(_on_command)
 	_chaos.points = _betting.points
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
@@ -131,12 +141,35 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 		GameFlow.State.LOBBY:
 			_race.clear()
 			_load_map()
+			_show_leaderboard()
 			_refresh_lobby()
 			_camera.show_overview(true)
 		GameFlow.State.COUNTDOWN, GameFlow.State.PODIUM:
 			_camera.show_overview()
 		GameFlow.State.RACING:
 			_overlay.show_racing()
+
+
+func _remember_name(msg: ChatMessage, command: String, _args: PackedStringArray) -> void:
+	if NAMED_COMMANDS.has(command):
+		_betting.points.set_name(msg.user_id, _viewer_name(msg))
+
+
+func _on_command(_msg: ChatMessage, command: String, _args: PackedStringArray) -> void:
+	if command != "top":
+		return
+	var now: int = Time.get_ticks_msec()
+	if now - _last_top_msec < TOP_COOLDOWN_MSEC:
+		return
+	_last_top_msec = now
+	Chat.send_message(Leaderboard.chat_text(_betting.points.top_by_points(Leaderboard.CHAT_ROWS)))
+
+
+func _show_leaderboard() -> void:
+	_overlay.set_leaderboard(
+		_betting.points.top_by_points(LeaderboardPanel.ROWS),
+		_betting.points.top_by_wins(LeaderboardPanel.ROWS)
+	)
 
 
 func _on_player_joined(_contestant: Contestant) -> void:
