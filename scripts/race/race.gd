@@ -43,6 +43,7 @@ func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequenc
 	_ranking = RaceRanking.new(ids)
 	_track.seed_gimmicks(rng)
 	_track.arm_hazards(rng, hazard_frequency)
+	_track.arm_gimmicks(rng.seed)
 	elapsed = 0.0
 	running = true
 
@@ -51,6 +52,7 @@ func clear() -> void:
 	running = false
 	if _track != null:
 		_track.stop_hazards()
+		_track.stop_gimmicks()
 	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
 		_track.marble_reached_finish.disconnect(_on_marble_reached_finish)
 	_track = null

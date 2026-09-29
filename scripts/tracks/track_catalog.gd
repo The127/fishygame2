@@ -36,6 +36,11 @@ const MAPS: Array[Dictionary] = [
 		"name": "Abyss",
 		"scene": preload("res://scenes/tracks/abyss_track.tscn"),
 	},
+	{
+		"id": "vents",
+		"name": "Volcanic Vents",
+		"scene": preload("res://scenes/tracks/vents_track.tscn"),
+	},
 ]
 
 
