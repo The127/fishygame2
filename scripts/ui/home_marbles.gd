@@ -4,22 +4,47 @@ extends Control
 ## the edges, bounce off each other and get a kick when clicked.
 
 const RADIUS: float = 48.0
+## Marbles wrap once fully outside the visible area (rim and outline included),
+## so they slide off one edge and in from the opposite one without popping.
+const WRAP_MARGIN: float = RADIUS + 4.0
 const CLICK_IMPULSE: float = 240.0
 const MARBLE_COUNT: int = 12
 const GOLDEN_RATIO_CONJUGATE: float = 0.618034
 
 var _marbles: Array[Dictionary] = []
 var _time: float = 0.0
+var _area: Vector2 = Vector2.ZERO
 
 
-func _ready() -> void:
+func _process(delta: float) -> void:
+	if _marbles.is_empty():
+		# Wait for the layout to give us a real size, or everything spawns clustered.
+		if size.x <= 0.0 or size.y <= 0.0:
+			return
+		_spawn()
+	_area = size + _margin() * 2.0
+	_time += delta
+	_resolve_collisions()
+	for marble: Dictionary in _marbles:
+		var pos: Vector2 = marble["pos"]
+		var vel: Vector2 = marble["vel"]
+		pos += vel * delta
+		marble["pos"] = _wrap(pos)
+		marble["spin"] = float(marble["spin"]) + vel.length() / RADIUS * delta
+		if vel.length() > 1.0:
+			marble["heading"] = lerp_angle(float(marble["heading"]), vel.angle(), delta * 4.0)
+	queue_redraw()
+
+
+func _spawn() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
+	_area = size + _margin() * 2.0
 	for i: int in MARBLE_COUNT:
 		var speed: float = rng.randf_range(50.0, 130.0)
 		var angle: float = rng.randf() * TAU
 		var marble: Dictionary = {
-			"pos": Vector2(rng.randf() * size.x, rng.randf() * size.y),
+			"pos": Vector2(rng.randf() * _area.x, rng.randf() * _area.y) - _margin(),
 			"vel": Vector2.from_angle(angle) * speed,
 			"color": Color.from_hsv(fmod(float(i) * GOLDEN_RATIO_CONJUGATE, 1.0), 0.8, 0.95),
 			"heading": angle,
@@ -28,22 +53,14 @@ func _ready() -> void:
 		_marbles.append(marble)
 
 
-func _process(delta: float) -> void:
-	_time += delta
-	_resolve_collisions()
-	var pad: float = RADIUS
-	var wrap: Vector2 = size + Vector2(pad, pad) * 2.0
-	for marble: Dictionary in _marbles:
-		var pos: Vector2 = marble["pos"]
-		var vel: Vector2 = marble["vel"]
-		pos += vel * delta
-		pos.x = fposmod(pos.x + pad, wrap.x) - pad
-		pos.y = fposmod(pos.y + pad, wrap.y) - pad
-		marble["pos"] = pos
-		marble["spin"] = float(marble["spin"]) + vel.length() / RADIUS * delta
-		if vel.length() > 1.0:
-			marble["heading"] = lerp_angle(float(marble["heading"]), vel.angle(), delta * 4.0)
-	queue_redraw()
+func _margin() -> Vector2:
+	return Vector2(WRAP_MARGIN, WRAP_MARGIN)
+
+
+## Maps a position into the looping area: the visible rect plus a margin on every side.
+func _wrap(pos: Vector2) -> Vector2:
+	var shifted: Vector2 = pos + _margin()
+	return Vector2(fposmod(shifted.x, _area.x), fposmod(shifted.y, _area.y)) - _margin()
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -59,6 +76,8 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 
+## Plain (non-wrapped) distances: a marble only ever bounces off what is on screen
+## beside it, never off one that is about to reappear on the far side.
 func _resolve_collisions() -> void:
 	var diameter: float = RADIUS * 2.0
 	for i: int in _marbles.size():

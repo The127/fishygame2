@@ -7,13 +7,18 @@ layer = 10
 script = ExtResource("1_panel")
 
 [node name="Panel" type="PanelContainer" parent="."]
-offset_left = 1560.0
-offset_top = 20.0
-offset_right = 1900.0
-offset_bottom = 200.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -420.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 420.0
+grow_horizontal = 0
 
 [node name="Box" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
+theme_override_constants/separation = 10
 
 [node name="Status" type="Label" parent="Panel/Box"]
 layout_mode = 2
@@ -61,6 +66,62 @@ text = "Map"
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
+
+[node name="MasterRow" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/Box/MasterRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Master"
+
+[node name="Slider" type="HSlider" parent="Panel/Box/MasterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MusicRow" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/Box/MusicRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Music"
+
+[node name="Slider" type="HSlider" parent="Panel/Box/MusicRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SfxRow" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/Box/SfxRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Effects"
+
+[node name="Slider" type="HSlider" parent="Panel/Box/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="Mute" type="CheckBox" parent="Panel/Box"]
+layout_mode = 2
+focus_mode = 0
+text = "Mute all sound"
 
 [node name="Hint" type="Label" parent="Panel/Box"]
 layout_mode = 2

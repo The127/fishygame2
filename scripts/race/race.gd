@@ -125,6 +125,9 @@ func _on_marble_reached_finish(body: Node2D) -> void:
 	var place: int = _ranking.record_finish(marble.id, elapsed)
 	if place == 0:
 		return
+	marble.splash()
+	if place == 1:
+		marble.celebrate()
 	marble_finished.emit(marble.id, place)
 	if _ranking.all_finished():
 		_finish_race()
@@ -134,4 +137,5 @@ func _finish_race() -> void:
 	running = false
 	for marble: Marble in _marbles.values():
 		marble.set_deferred("freeze", true)
-	race_finished.emit(_ranking.get_results(get_progress_map()))
+	var results: Array[Dictionary] = _ranking.get_results(get_progress_map())
+	race_finished.emit(results)

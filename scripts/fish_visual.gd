@@ -12,17 +12,41 @@ var color: Color = Color.WHITE:
 		queue_redraw()
 
 var heading: float = 0.0
+## Steady glow tint, e.g. a curse. Transparent means the glow follows `color`.
+var aura: Color = Color.TRANSPARENT
+## While true the glow pulses gold.
+var celebrating: bool = false
+
 var _time: float = 0.0
+var _flash_color: Color = Color.WHITE
+var _flash_total: float = 0.0
+var _flash_left: float = 0.0
+var _glow: Sprite2D
 
 
 func _ready() -> void:
 	top_level = true
 	z_index = 5
+	_glow = Sprite2D.new()
+	_glow.texture = RaceFx.glow_texture()
+	_glow.material = RaceFx.additive_material()
+	_glow.show_behind_parent = true
+	add_child(_glow)
+	_update_glow()
 
 
 func _process(delta: float) -> void:
 	_time += delta
+	_flash_left = maxf(_flash_left - delta, 0.0)
+	_update_glow()
 	queue_redraw()
+
+
+## A short bright pulse of the glow in `flash_tint`, fading over `seconds`.
+func flash(flash_tint: Color, seconds: float = 0.6) -> void:
+	_flash_color = flash_tint
+	_flash_total = seconds
+	_flash_left = seconds
 
 
 ## Points the fish along a travel direction. Slow or still marbles keep their last heading.
@@ -34,6 +58,25 @@ func face(velocity: Vector2, delta: float) -> void:
 	var facing_left: bool = absf(wrapf(heading, -PI, PI)) > PI * 0.5
 	rotation = heading
 	scale = Vector2(1.0, -1.0 if facing_left else 1.0)
+
+
+func _update_glow() -> void:
+	var tint: Color = color.lightened(0.3)
+	tint.a = 0.28
+	var glow_scale: float = 1.0
+	if aura.a > 0.0:
+		tint = Color(aura.r, aura.g, aura.b, 0.5)
+	if celebrating:
+		var pulse: float = 0.5 + 0.5 * sin(_time * 6.0)
+		tint = RaceFx.WINNER_COLOR
+		tint.a = 0.4 + 0.4 * pulse
+		glow_scale += 0.5 * pulse
+	if _flash_left > 0.0 and _flash_total > 0.0:
+		var k: float = _flash_left / _flash_total
+		tint = tint.lerp(Color(_flash_color.r, _flash_color.g, _flash_color.b, 0.95), k)
+		glow_scale += 0.9 * k
+	_glow.modulate = tint
+	_glow.scale = Vector2.ONE * glow_scale * 1.1
 
 
 func _draw() -> void:

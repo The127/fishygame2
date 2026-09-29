@@ -28,6 +28,7 @@ var _curse_left: float = 0.0
 var _base_damp: float = 0.0
 var _label: Label
 var _fish: FishVisual
+var _trail: CPUParticles2D
 
 
 func _ready() -> void:
@@ -45,11 +46,17 @@ func _ready() -> void:
 	_label.add_theme_constant_override("outline_size", 4)
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_label)
+	_trail = RaceFx.make_trail()
+	_trail.top_level = true
+	add_child(_trail)
 
 
 ## Pushes the marble along `forward` (a unit vector toward the finish).
 func boost(forward: Vector2) -> void:
 	apply_central_impulse(forward * BOOST_IMPULSE * mass)
+	if _fish != null:
+		_fish.flash(RaceFx.BOOST_COLOR)
+		RaceFx.burst(self, global_position, RaceFx.BOOST_COLOR, 16, 130.0, -forward * 60.0)
 
 
 ## Knocks the marble back against `forward` and slows it for [constant CURSE_SECONDS].
@@ -61,6 +68,9 @@ func curse(forward: Vector2) -> void:
 	apply_central_impulse(-forward * CURSE_KNOCKBACK * mass)
 	if _fish != null:
 		_fish.color = color.lerp(CURSE_TINT, 0.6)
+		_fish.aura = RaceFx.CURSE_COLOR
+		_fish.flash(RaceFx.CURSE_COLOR)
+		RaceFx.burst(self, global_position, RaceFx.CURSE_COLOR, 14, 70.0, Vector2(0, 30))
 
 
 func is_cursed() -> bool:
@@ -76,9 +86,24 @@ func _physics_process(delta: float) -> void:
 		linear_damp = _base_damp
 		if _fish != null:
 			_fish.color = color
+			_fish.aura = Color.TRANSPARENT
+
+
+## A splash of bubbles where the fish crossed the finish.
+func splash() -> void:
+	RaceFx.burst(self, global_position, RaceFx.SPLASH_COLOR, 18, 110.0, Vector2(0, 60))
+
+
+## Winner celebration: pulsing gold glow and a shower of sparkles.
+func celebrate() -> void:
+	if _fish != null:
+		_fish.celebrating = true
+	RaceFx.burst(self, global_position, RaceFx.WINNER_COLOR, 24, 150.0, Vector2(0, 30))
 
 
 func _process(delta: float) -> void:
 	_fish.face(linear_velocity, delta)
+	_trail.global_position = global_position
+	_trail.emitting = linear_velocity.length() > 60.0 and not freeze
 	var size: Vector2 = _label.get_minimum_size()
 	_label.global_position = global_position + Vector2(-size.x * 0.5, -RADIUS - size.y - 2.0)

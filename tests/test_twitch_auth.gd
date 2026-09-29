@@ -108,7 +108,7 @@ func test_expired_stored_session_is_dropped_by_chat() -> void:
 	var chat: Node = _new_chat()
 	chat.store = _store
 	add_child_autofree(chat)
-	assert_eq(chat.login_status, "error")
+	assert_eq(chat.login_status, TwitchAuth.LoginStatus.ERROR)
 	assert_true(chat.session.is_empty())
 	assert_true(_store.load_session().is_empty())
 	assert_true(chat.source is DebugChatSource)
@@ -122,10 +122,10 @@ func test_valid_stored_session_starts_twitch_source() -> void:
 	var chat: Node = _new_chat()
 	chat.store = _store
 	add_child_autofree(chat)
-	assert_eq(chat.login_status, "logged_in")
+	assert_eq(chat.login_status, TwitchAuth.LoginStatus.LOGGED_IN)
 	assert_true(chat.source is TwitchEventSubSource)
 	chat.logout()
-	assert_eq(chat.login_status, "logged_out")
+	assert_eq(chat.login_status, TwitchAuth.LoginStatus.LOGGED_OUT)
 	assert_true(chat.source is DebugChatSource)
 	assert_true(_store.load_session().is_empty())
 
@@ -144,3 +144,27 @@ func test_store_rejects_wrongly_typed_session() -> void:
 		{"client_id": "app", "token": 5, "user_id": "1", "login": "s", "expires_at": 5}
 	)
 	assert_true(_store.load_session().is_empty())
+
+
+func test_status_text_maps_every_status() -> void:
+	var s := TwitchAuth.LoginStatus
+	assert_eq(TwitchAuth.status_text(s.LOGGED_IN, "bob", "", true), "Logged in as bob")
+	assert_eq(TwitchAuth.status_text(s.VALIDATING, "", "", true), "Checking Twitch login...")
+	assert_eq(TwitchAuth.status_text(s.ERROR, "", "boom", true), "boom")
+	assert_eq(TwitchAuth.status_text(s.LOGGED_OUT, "", "", true), "Not logged in")
+	assert_string_contains(TwitchAuth.status_text(s.LOGGED_OUT, "", "", false), "web build")
+
+
+func test_store_reports_failed_write() -> void:
+	var bad := TwitchSessionStore.new("user://no_such_dir/twitch.cfg")
+	assert_false(bad.save_pending_login("st", "app"))
+	assert_true(_store.save_pending_login("st", "app"))
+
+
+func test_failed_pending_save_shows_error_and_does_not_redirect() -> void:
+	var chat: Node = _new_chat()
+	chat.store = TwitchSessionStore.new("user://no_such_dir/twitch.cfg")
+	add_child_autofree(chat)
+	assert_false(chat._redirect_to_twitch("app", "https://x.example/"))
+	assert_eq(chat.login_status, TwitchAuth.LoginStatus.ERROR)
+	assert_string_contains(chat.login_error, "storage")

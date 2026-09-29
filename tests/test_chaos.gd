@@ -111,6 +111,31 @@ func test_new_race_resets_cooldowns() -> void:
 	assert_eq(_requests.size(), 2)
 
 
+func test_command_after_race_finished_is_free() -> void:
+	_chaos.on_race_finished([] as Array[Dictionary])
+	_say("v", "#boost bob")
+	assert_eq(_rejections, ["closed"] as Array[String])
+	assert_eq(_requests.size(), 0)
+	assert_eq(_balance("v"), 1000)
+
+
+func test_abort_mid_race_refunds_spend() -> void:
+	_say("v", "#boost bob")
+	_say("w", "#curse alice")
+	_chaos.on_state_changed(GameFlow.State.IDLE, GameFlow.State.RACING)
+	assert_eq(_balance("v"), 1000)
+	assert_eq(_balance("w"), 1000)
+	_chaos.on_state_changed(GameFlow.State.IDLE, GameFlow.State.LOBBY)
+	assert_eq(_balance("v"), 1000)
+
+
+func test_finished_race_keeps_spend() -> void:
+	_say("v", "#boost bob")
+	_chaos.on_state_changed(GameFlow.State.PODIUM, GameFlow.State.RACING)
+	_chaos.on_state_changed(GameFlow.State.IDLE, GameFlow.State.PODIUM)
+	assert_eq(_balance("v"), 1000 - _chaos.boost_cost)
+
+
 func test_marble_effects_change_velocity() -> void:
 	var marble: Marble = load("res://scenes/marble.tscn").instantiate()
 	add_child_autofree(marble)
