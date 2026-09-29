@@ -30,6 +30,9 @@ func _ready() -> void:
 	if points == null:
 		points = PointsStore.new(points_path, starting_balance)
 		points.load_from_disk()
+		# A refresh mid-round loses the round itself, so give open bets back.
+		if points.refund_stakes() > 0:
+			points.save_to_disk()
 
 
 func handle_command(msg: ChatMessage, command: String, args: PackedStringArray) -> void:
@@ -63,6 +66,7 @@ func place_bet(msg: ChatMessage, args: PackedStringArray) -> bool:
 		return false
 	var name_to_show: String = msg.display_name if msg.display_name != "" else msg.login
 	_bets[msg.user_id] = {"name": name_to_show, "target": target, "amount": amount}
+	points.add_stake(msg.user_id, amount)
 	points.save_to_disk()
 	bet_placed.emit(msg, target, amount)
 	bets_changed.emit(summary())
@@ -137,7 +141,7 @@ func on_podium_ready(podium: Array[Dictionary]) -> void:
 				}
 			)
 		)
-	_bets.clear()
+	_clear_bets()
 	points.save_to_disk()
 	payouts_settled.emit(results)
 
@@ -147,8 +151,14 @@ func _refund_all() -> void:
 		return
 	for user_id: String in _bets:
 		points.add(user_id, int(_bets[user_id]["amount"]))
-	_bets.clear()
+	_clear_bets()
 	points.save_to_disk()
+
+
+func _clear_bets() -> void:
+	for user_id: String in _bets:
+		points.clear_stake(user_id)
+	_bets.clear()
 
 
 func _find_contestant(text: String) -> Contestant:
