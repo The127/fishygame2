@@ -83,7 +83,11 @@ func _input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_CLOSE_REQUEST and _dirty:
+	# The web build gets no close request, so losing focus also flushes a pending save.
+	var leaving: bool = (
+		what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_FOCUS_OUT
+	)
+	if leaving and _dirty:
 		save_now()
 
 
