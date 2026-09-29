@@ -107,9 +107,11 @@ func _ready() -> void:
 	_panel.stop_pressed.connect(_flow.stop)
 	_panel.add_debug_players_pressed.connect(_flow.add_debug_players)
 	_panel.map_selected.connect(_on_map_selected)
+	_panel.auto_mode_toggled.connect(_on_auto_mode_toggled)
 	_panel.volume_changed.connect(Sound.set_volume)
 	_panel.mute_toggled.connect(Sound.set_muted)
 	_panel.select_map(_map_choice)
+	_panel.set_auto_mode(settings.auto_mode)
 	_panel.set_audio_state(Sound.settings.get_volumes(), Sound.settings.muted)
 	_flow.countdown_tick.connect(_on_countdown_tick)
 	_race.marble_finished.connect(_on_marble_finished)
@@ -126,6 +128,7 @@ func _apply_settings() -> void:
 	_flow.min_players = settings.min_players
 	_flow.max_players = settings.max_players
 	_flow.countdown_seconds = settings.countdown_seconds
+	_flow.set_auto_mode(settings.auto_mode, float(settings.auto_join_seconds))
 	_betting.starting_balance = settings.starting_balance
 	_betting.points.starting_balance = settings.starting_balance
 	_betting.min_bet = settings.min_bet
@@ -205,6 +208,12 @@ func _on_marble_finished(_id: int, _place: int) -> void:
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	if not podium.is_empty() and podium[0]["finished"]:
 		Sound.play(Sound.Sfx.WIN)
+
+
+func _on_auto_mode_toggled(enabled: bool) -> void:
+	settings.auto_mode = enabled
+	settings.save()
+	_flow.set_auto_mode(enabled, float(settings.auto_join_seconds))
 
 
 func _on_map_selected(choice: String) -> void:

@@ -9,6 +9,7 @@ var settings: GameSettings = null
 
 var _spinners: Dictionary[String, SpinBox] = {}
 var _map_picker: OptionButton
+var _auto_mode: CheckBox
 var _chat_replies: CheckBox
 var _status: Label
 var _preview: PaddingPreview
@@ -75,6 +76,13 @@ func _build() -> void:
 	UiStyle.style_button(_map_picker, 20)
 	grid.add_child(_row_label("Default map"))
 	grid.add_child(_map_picker)
+	_auto_mode = CheckBox.new()
+	_auto_mode.text = "Auto mode (rounds run on their own)"
+	_auto_mode.add_theme_font_override("font", UiStyle.font(600))
+	_auto_mode.add_theme_font_size_override("font_size", 22)
+	_auto_mode.add_theme_color_override("font_color", UiStyle.TEXT)
+	_auto_mode.toggled.connect(_on_auto_mode_toggled)
+	box.add_child(_auto_mode)
 	_chat_replies = CheckBox.new()
 	_chat_replies.text = "Reply in chat"
 	_chat_replies.add_theme_font_override("font", UiStyle.font(600))
@@ -122,6 +130,7 @@ func _refresh() -> void:
 	for i: int in _map_picker.item_count:
 		if String(_map_picker.get_item_metadata(i)) == settings.default_map:
 			_map_picker.select(i)
+	_auto_mode.set_pressed_no_signal(settings.auto_mode)
 	_chat_replies.set_pressed_no_signal(settings.chat_replies)
 	_preview.set_play_fraction(settings.play_fraction())
 
@@ -139,6 +148,11 @@ func _on_number_changed(value: float, key: String) -> void:
 
 func _on_map_picked(index: int) -> void:
 	settings.default_map = String(_map_picker.get_item_metadata(index))
+	_commit()
+
+
+func _on_auto_mode_toggled(pressed: bool) -> void:
+	settings.auto_mode = pressed
 	_commit()
 
 

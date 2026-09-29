@@ -153,3 +153,8 @@ func test_debug_players_button_joins_fake_viewers() -> void:
 	assert_eq(_flow.get_contestants().size(), 3)
 	_panel.add_debug_players_pressed.emit(5)
 	assert_eq(_flow.get_contestants().size(), 4, "capped at max_players")
+
+
+func test_auto_mode_is_off_by_default() -> void:
+	assert_false(_flow.auto_mode)
+	assert_false((_panel.get_node("Panel/Box/Auto") as CheckBox).button_pressed)

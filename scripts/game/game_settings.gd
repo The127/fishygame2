@@ -15,6 +15,13 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "min_players", "label": "Min players", "min": 1, "max": 20, "step": 1},
 	{"key": "max_players", "label": "Max players", "min": 1, "max": 20, "step": 1},
 	{"key": "countdown_seconds", "label": "Countdown (s)", "min": 0, "max": 30, "step": 1},
+	{
+		"key": "auto_join_seconds",
+		"label": "Auto mode join window (s)",
+		"min": 5,
+		"max": 600,
+		"step": 5
+	},
 	{"key": "starting_balance", "label": "Starting points", "min": 0, "max": 1000000, "step": 100},
 	{"key": "min_bet", "label": "Min bet", "min": 1, "max": 1000000, "step": 10},
 	{"key": "max_bet", "label": "Max bet (0 = no limit)", "min": 0, "max": 1000000, "step": 100},
@@ -33,6 +40,7 @@ const FIELDS: Array[Dictionary] = [
 var min_players: int = 1
 var max_players: int = 20
 var countdown_seconds: int = 3
+var auto_join_seconds: int = 60
 var starting_balance: int = 1000
 var min_bet: int = 1
 var max_bet: int = 0
@@ -49,6 +57,8 @@ var pad_top: int = 0
 var pad_bottom: int = 0
 ## A TrackCatalog id, or RANDOM_MAP.
 var default_map: String = RANDOM_MAP
+## Whether the game cycles lobby, race and podium on its own. Off by default.
+var auto_mode: bool = false
 ## Whether the game answers in chat (join rejections).
 var chat_replies: bool = true
 ## Empty means in-memory only.
@@ -98,6 +108,7 @@ func reset_to_defaults() -> void:
 		set(key, fresh.get(key))
 	default_map = fresh.default_map
 	chat_replies = fresh.chat_replies
+	auto_mode = fresh.auto_mode
 
 
 ## Loads the saved values; missing or malformed ones keep their current value.
@@ -118,6 +129,9 @@ func load_settings() -> void:
 	var replies: Variant = file.get_value(SECTION, "chat_replies", chat_replies)
 	if replies is bool:
 		chat_replies = replies
+	var auto: Variant = file.get_value(SECTION, "auto_mode", auto_mode)
+	if auto is bool:
+		auto_mode = auto
 	sanitize()
 
 
@@ -131,6 +145,7 @@ func save() -> bool:
 		file.set_value(SECTION, key, get(key))
 	file.set_value(SECTION, "default_map", default_map)
 	file.set_value(SECTION, "chat_replies", chat_replies)
+	file.set_value(SECTION, "auto_mode", auto_mode)
 	return file.save(save_path) == OK
 
 

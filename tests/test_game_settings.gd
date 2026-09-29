@@ -24,6 +24,8 @@ func test_defaults_match_the_game_defaults() -> void:
 	assert_eq(settings.curse_cost, 150)
 	assert_eq(settings.max_bet, 0)
 	assert_true(settings.chat_replies)
+	assert_false(settings.auto_mode)
+	assert_eq(settings.auto_join_seconds, 60)
 	assert_eq(settings.default_map, GameSettings.RANDOM_MAP)
 
 
@@ -34,6 +36,8 @@ func test_save_and_load_round_trip() -> void:
 	settings.boost_cost = 250
 	settings.default_map = "pachinko"
 	settings.chat_replies = false
+	settings.auto_mode = true
+	settings.auto_join_seconds = 90
 	assert_true(settings.save())
 	var loaded := GameSettings.new(PATH)
 	loaded.load_settings()
@@ -42,6 +46,8 @@ func test_save_and_load_round_trip() -> void:
 	assert_eq(loaded.boost_cost, 250)
 	assert_eq(loaded.default_map, "pachinko")
 	assert_false(loaded.chat_replies)
+	assert_true(loaded.auto_mode)
+	assert_eq(loaded.auto_join_seconds, 90)
 
 
 func test_missing_file_keeps_defaults() -> void:
