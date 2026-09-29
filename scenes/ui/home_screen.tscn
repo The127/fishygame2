@@ -1,0 +1,61 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/home_screen.gd" id="1_home"]
+
+[sub_resource type="Gradient" id="Gradient_sea"]
+colors = PackedColorArray(0.05, 0.35, 0.6, 1, 0.02, 0.08, 0.2, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_sea"]
+gradient = SubResource("Gradient_sea")
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
+
+[node name="HomeScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_home")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_sea")
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Box" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="Center/Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 96
+text = "Fishy Marble Run"
+horizontal_alignment = 1
+
+[node name="Tagline" type="Label" parent="Center/Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Chat joins as fish. Fish race down the track."
+horizontal_alignment = 1
+
+[node name="OpenLobby" type="Button" parent="Center/Box"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Open lobby"
