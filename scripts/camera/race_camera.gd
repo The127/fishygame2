@@ -72,7 +72,7 @@ func set_bounds(bounds: Rect2) -> void:
 func set_play_fraction(fraction: Rect2) -> void:
 	_play_fraction = fraction
 	if _following:
-		_target_zoom = CameraFraming.fit_zoom(_focus_size, _play_size(), MIN_ZOOM, MAX_ZOOM)
+		_target_zoom = CameraFraming.fit_zoom(_focus_size, _play_size(), _min_zoom(MIN_ZOOM), MAX_ZOOM)
 	else:
 		show_overview(true)
 
@@ -82,7 +82,7 @@ func show_overview(snap: bool = false) -> void:
 	_following = false
 	_followed_count = 0
 	_target_zoom = CameraFraming.fit_zoom(
-		_bounds.size, _play_size(), OVERVIEW_MIN_ZOOM, MAX_ZOOM
+		_bounds.size, _play_size(), _min_zoom(OVERVIEW_MIN_ZOOM), MAX_ZOOM
 	)
 	_target_center = _bounds.get_center()
 	if snap:
@@ -102,7 +102,7 @@ func follow(positions: Dictionary, progress: Dictionary) -> void:
 	var rect: Rect2 = CameraFraming.focus_rect(group, MARGIN, MIN_FRAME)
 	_following = true
 	_focus_size = rect.size
-	_target_zoom = CameraFraming.fit_zoom(rect.size, _play_size(), MIN_ZOOM, MAX_ZOOM)
+	_target_zoom = CameraFraming.fit_zoom(rect.size, _play_size(), _min_zoom(MIN_ZOOM), MAX_ZOOM)
 	_target_center = rect.get_center()
 
 
@@ -121,6 +121,11 @@ func _place(new_zoom: float) -> void:
 func _play_rect() -> Rect2:
 	var size: Vector2 = _viewport_size()
 	return Rect2(_play_fraction.position * size, _play_fraction.size * size)
+
+
+## `lowest` scaled down with the padding, so the whole track still fits the play area.
+func _min_zoom(lowest: float) -> float:
+	return lowest * minf(_play_fraction.size.x, _play_fraction.size.y)
 
 
 func _play_size() -> Vector2:
