@@ -59,9 +59,7 @@ func test_settings_button_opens_the_settings_screen() -> void:
 
 
 func test_settings_screen_edits_and_resets_the_settings() -> void:
-	var screen: SettingsScreen = (
-		(load("res://scenes/ui/settings_screen.tscn") as PackedScene).instantiate()
-	)
+	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
 	screen.settings = GameSettings.new()
 	add_child_autofree(screen)
 	var spinner: SpinBox = screen._spinners["max_players"]
@@ -74,6 +72,25 @@ func test_settings_screen_edits_and_resets_the_settings() -> void:
 	screen.reset_pressed()
 	assert_eq(screen.settings.max_players, 20)
 	assert_eq(spinner.value, 20.0)
+
+
+func test_settings_screen_fits_a_720p_window_and_groups_settings_in_tabs() -> void:
+	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
+	screen.settings = GameSettings.new()
+	var host := Control.new()
+	host.size = Vector2(1280.0, 720.0)
+	add_child_autofree(host)
+	host.add_child(screen)
+	await wait_process_frames(2)
+	var tabs: TabContainer = screen.find_children("*", "TabContainer", true, false)[0]
+	assert_gte(tabs.get_tab_count(), 5)
+	var bounds := Rect2(Vector2.ZERO, Vector2(1280.0, 720.0))
+	assert_true(bounds.encloses(tabs.get_global_rect()), "tabs stay inside the window")
+	assert_lte(tabs.get_minimum_size().x, SettingsScreen.PANEL_WIDTH, "tab bar fits the panel")
+	for key: String in screen._spinners:
+		assert_not_null(screen._spinners[key].get_parent(), "%s is in a tab" % key)
+	var reset: Button = screen.find_child("Reset", true, false)
+	assert_true(bounds.encloses(reset.get_global_rect()), "buttons stay on screen")
 
 
 func test_home_board_hidden_until_someone_is_ranked() -> void:
