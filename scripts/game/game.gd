@@ -72,6 +72,12 @@ func _ready() -> void:
 	_panel.stop_pressed.connect(_flow.stop)
 	_panel.add_debug_players_pressed.connect(_flow.add_debug_players)
 	_panel.map_selected.connect(_on_map_selected)
+	_panel.volume_changed.connect(Sound.set_volume)
+	_panel.mute_toggled.connect(Sound.set_muted)
+	_panel.set_audio_state(Sound.settings.get_volumes(), Sound.settings.muted)
+	_flow.countdown_tick.connect(_on_countdown_tick)
+	_race.marble_finished.connect(_on_marble_finished)
+	_flow.podium_ready.connect(_on_podium_ready)
 	_rng.randomize()
 	_flow.open_lobby()
 
@@ -96,7 +102,21 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 
 
 func _on_player_joined(_contestant: Contestant) -> void:
+	Sound.play(Sound.Sfx.JOIN)
 	_refresh_lobby()
+
+
+func _on_countdown_tick(_seconds_left: int) -> void:
+	Sound.play(Sound.Sfx.TICK)
+
+
+func _on_marble_finished(_id: int, _place: int) -> void:
+	Sound.play(Sound.Sfx.SPLASH)
+
+
+func _on_podium_ready(podium: Array[Dictionary]) -> void:
+	if not podium.is_empty() and podium[0]["finished"]:
+		Sound.play(Sound.Sfx.WIN)
 
 
 func _on_map_selected(choice: String) -> void:
@@ -155,6 +175,7 @@ func _on_effect_requested(marble_id: int, kind: Chaos.Kind) -> void:
 
 
 func _on_effect_applied(msg: ChatMessage, target: Contestant, kind: Chaos.Kind, _cost: int) -> void:
+	Sound.play(Sound.Sfx.BOOST if kind == Chaos.Kind.BOOST else Sound.Sfx.CURSE)
 	var verb: String = "boosted" if kind == Chaos.Kind.BOOST else "cursed"
 	_overlay.show_notice("%s %s %s!" % [_viewer_name(msg), verb, target.display_name])
 
@@ -173,6 +194,7 @@ func _viewer_name(msg: ChatMessage) -> String:
 
 
 func _on_race_started(contestants: Array[Contestant]) -> void:
+	Sound.play(Sound.Sfx.GO)
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_race.start(_track, contestants.size(), rng)
