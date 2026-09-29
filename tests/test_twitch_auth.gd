@@ -8,6 +8,7 @@ var _store: TwitchSessionStore
 func before_each() -> void:
 	DirAccess.remove_absolute(STORE_PATH)
 	_store = TwitchSessionStore.new(STORE_PATH)
+	DebugMode.set_enabled(true)
 
 
 func after_each() -> void:

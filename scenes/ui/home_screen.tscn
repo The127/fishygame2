@@ -1,14 +1,69 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/home_screen.gd" id="1_home"]
+[ext_resource type="Script" path="res://scripts/ui/home_marbles.gd" id="2_marbles"]
+[ext_resource type="Shader" path="res://assets/shaders/home_background.gdshader" id="3_bgshader"]
+[ext_resource type="Shader" path="res://assets/shaders/title_gradient.gdshader" id="4_titleshader"]
+[ext_resource type="FontFile" path="res://assets/fonts/Exo2.ttf" id="5_exo2"]
 
-[sub_resource type="Gradient" id="Gradient_sea"]
-colors = PackedColorArray(0.05, 0.35, 0.6, 1, 0.02, 0.08, 0.2, 1)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bg"]
+shader = ExtResource("3_bgshader")
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_sea"]
-gradient = SubResource("Gradient_sea")
-fill_from = Vector2(0.5, 0)
-fill_to = Vector2(0.5, 1)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_title"]
+shader = ExtResource("4_titleshader")
+
+[sub_resource type="FontVariation" id="FontVariation_title"]
+base_font = ExtResource("5_exo2")
+variation_opentype = {
+2003265652: 900.0
+}
+spacing_glyph = 8
+
+[sub_resource type="FontVariation" id="FontVariation_sub"]
+base_font = ExtResource("5_exo2")
+variation_opentype = {
+2003265652: 600.0
+}
+spacing_glyph = 6
+
+[sub_resource type="FontVariation" id="FontVariation_button"]
+base_font = ExtResource("5_exo2")
+variation_opentype = {
+2003265652: 700.0
+}
+spacing_glyph = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
+bg_color = Color(0, 0.8, 1, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0.8, 1, 0.2)
+shadow_size = 16
+content_margin_left = 48.0
+content_margin_right = 48.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
+bg_color = Color(0, 0.8, 1, 0.14)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.92, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0.8, 1, 0.4)
+shadow_size = 28
+content_margin_left = 48.0
+content_margin_right = 48.0
 
 [node name="HomeScreen" type="Control"]
 layout_mode = 3
@@ -19,7 +74,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_home")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_bg")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -27,7 +83,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = SubResource("GradientTexture2D_sea")
+
+[node name="Marbles" type="Control" parent="."]
+modulate = Color(1, 1, 1, 0.4)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_default_cursor_shape = 3
+script = ExtResource("2_marbles")
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -36,29 +102,49 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="Box" type="VBoxContainer" parent="Center"]
 custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
-theme_override_constants/separation = 24
+mouse_filter = 2
+theme_override_constants/separation = 28
 
 [node name="Title" type="Label" parent="Center/Box"]
+material = SubResource("ShaderMaterial_title")
 layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_shadow_color = Color(0, 0.8, 1, 0.18)
+theme_override_constants/shadow_outline_size = 14
+theme_override_fonts/font = SubResource("FontVariation_title")
 theme_override_font_sizes/font_size = 96
-text = "Fishy Marble Run"
+text = "FISHY MARBLE RUN"
 horizontal_alignment = 1
 
 [node name="Tagline" type="Label" parent="Center/Box"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "Chat joins as fish. Fish race down the track."
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.416, 0.624, 0.769, 1)
+theme_override_fonts/font = SubResource("FontVariation_sub")
+theme_override_font_sizes/font_size = 24
+text = "CHAT JOINS AS FISH. FISH RACE DOWN THE TRACK."
 horizontal_alignment = 1
 
 [node name="OpenLobby" type="Button" parent="Center/Box"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "Open lobby"
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0.8, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = SubResource("FontVariation_button")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_hover")
+text = "OPEN LOBBY"
 
 [node name="LoginStatus" type="Label" parent="Center/Box"]
 layout_mode = 2

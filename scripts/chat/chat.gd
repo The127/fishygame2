@@ -1,6 +1,6 @@
 extends Node
 ## Autoload "Chat": owns the active chat source and republishes its messages
-## and parsed commands. Falls back to the debug source without Twitch config.
+## and parsed commands. Without Twitch config it falls back to the debug source, only in debug mode.
 
 signal message_received(msg: ChatMessage)
 signal command_received(msg: ChatMessage, command: String, args: PackedStringArray)
@@ -26,10 +26,10 @@ func _ready() -> void:
 	var cfg: Dictionary = load_twitch_config()
 	if cfg.is_empty():
 		cfg = _config_from_stored_session()
-	if cfg.is_empty():
-		set_source(DebugChatSource.new())
-	else:
+	if not cfg.is_empty():
 		_use_config(cfg)
+	elif DebugMode.is_enabled():
+		set_source(DebugChatSource.new())
 	if not fragment.is_empty():
 		_finish_login(fragment)
 
@@ -58,7 +58,19 @@ func logout() -> void:
 	login_error = ""
 	_set_login_status("logged_out")
 	if source is TwitchEventSubSource:
-		set_source(DebugChatSource.new())
+		if DebugMode.is_enabled():
+			set_source(DebugChatSource.new())
+		else:
+			_clear_source()
+
+
+func _clear_source() -> void:
+	if source == null:
+		return
+	source.stop()
+	source.message_received.disconnect(_on_message)
+	source.queue_free()
+	source = null
 
 
 func set_source(new_source: ChatSource) -> void:
@@ -85,6 +97,7 @@ func send_message(text: String) -> void:
 func load_twitch_config() -> Dictionary:
 	var cfg: Dictionary = {}
 	if OS.has_feature("web"):
+		DebugMode.is_enabled()  # cache it before the query string is wiped below
 		for key: String in ["client_id", "token", "broadcaster_id", "user_id"]:
 			var value: Variant = JavaScriptBridge.eval(
 				"new URLSearchParams(window.location.search).get('%s')" % key

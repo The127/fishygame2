@@ -79,6 +79,12 @@ Notes:
   `broadcaster_id` (and optionally `user_id`) as URL query parameters, or use `user://twitch.cfg`
   on desktop. The Twitch login button only works in the web build.
 
+## Debug mode
+
+The +1/+5 fake player buttons and the fake chat fallback only exist in debug mode, so they never
+show up on stream. On the web build add `?debug=1` to the URL. Desktop editor and debug builds
+have it on automatically.
+
 ## Development commands
 
 Install the dev tools once: `pip install -r requirements-dev.txt` (gdtoolkit, pinned) and
