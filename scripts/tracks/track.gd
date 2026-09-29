@@ -5,6 +5,9 @@ extends Node2D
 
 signal marble_reached_finish(marble: Node2D)
 
+## Distance in pixels either side of a point used to estimate the track direction.
+const FORWARD_SAMPLE: float = 30.0
+
 @export var spawn_columns: int = 5
 @export var spawn_spacing: float = 34.0
 
@@ -31,6 +34,21 @@ func get_progress(global_pos: Vector2) -> float:
 	if length <= 0.0:
 		return 0.0
 	return curve.get_closest_offset(_centerline.to_local(global_pos)) / length
+
+
+## Unit vector along the centerline (toward the finish) nearest to a global position.
+func get_forward(global_pos: Vector2) -> Vector2:
+	var curve: Curve2D = _centerline.curve
+	var length: float = curve.get_baked_length()
+	if length <= 0.0:
+		return Vector2.DOWN
+	var offset: float = curve.get_closest_offset(_centerline.to_local(global_pos))
+	var ahead: Vector2 = curve.sample_baked(minf(offset + FORWARD_SAMPLE, length))
+	var behind: Vector2 = curve.sample_baked(maxf(offset - FORWARD_SAMPLE, 0.0))
+	var direction: Vector2 = _centerline.to_global(ahead) - _centerline.to_global(behind)
+	if direction.length_squared() < 0.0001:
+		return Vector2.DOWN
+	return direction.normalized()
 
 
 func _on_finish_body_entered(body: Node2D) -> void:

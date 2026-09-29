@@ -14,6 +14,16 @@ const BET_REJECTIONS: Dictionary = {
 	"insufficient": "not enough points",
 }
 
+const CHAOS_REJECTIONS: Dictionary = {
+	"closed": "chaos only works during a race",
+	"usage": "use #boost <name> or #curse <name>",
+	"unknown_fish": "no such racer",
+	"finished": "that fish already finished",
+	"cooldown": "you have to wait before another one",
+	"fish_busy": "that fish was just hit, try again shortly",
+	"insufficient": "not enough points",
+}
+
 var _last_reply_msec: Dictionary[String, int] = {}
 
 var _map_choice: String = TrackCatalog.RANDOM_ID
@@ -23,6 +33,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
+@onready var _chaos: Chaos = $Chaos
 @onready var _race: Race = $Race
 @onready var _overlay: Overlay = $Overlay
 @onready var _panel: ControlPanel = $ControlPanel
@@ -31,6 +42,8 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 func _ready() -> void:
 	Chat.command_received.connect(_flow.handle_command)
 	Chat.command_received.connect(_betting.handle_command)
+	Chat.command_received.connect(_chaos.handle_command)
+	_chaos.points = _betting.points
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
 	_flow.join_rejected.connect(_on_join_rejected)
@@ -38,6 +51,12 @@ func _ready() -> void:
 	_flow.race_started.connect(_on_race_started)
 	_flow.player_joined.connect(_betting.add_contestant)
 	_flow.state_changed.connect(_betting.on_state_changed)
+	_flow.player_joined.connect(_chaos.add_contestant)
+	_flow.state_changed.connect(_chaos.on_state_changed)
+	_chaos.effect_requested.connect(_on_effect_requested)
+	_chaos.effect_applied.connect(_on_effect_applied)
+	_chaos.effect_rejected.connect(_on_effect_rejected)
+	_race.marble_finished.connect(_chaos.on_marble_finished)
 	_flow.podium_ready.connect(_overlay.show_podium)
 	_flow.podium_ready.connect(_betting.on_podium_ready)
 	_betting.bets_changed.connect(_overlay.show_bets)
@@ -123,6 +142,23 @@ func _on_bet_placed(msg: ChatMessage, target: Contestant, amount: int) -> void:
 
 func _on_bet_rejected(msg: ChatMessage, reason: String) -> void:
 	var text: String = BET_REJECTIONS.get(reason, "bet not accepted")
+	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
+
+
+func _on_effect_requested(marble_id: int, kind: Chaos.Kind) -> void:
+	if kind == Chaos.Kind.BOOST:
+		_race.boost_marble(marble_id)
+	else:
+		_race.curse_marble(marble_id)
+
+
+func _on_effect_applied(msg: ChatMessage, target: Contestant, kind: Chaos.Kind, _cost: int) -> void:
+	var verb: String = "boosted" if kind == Chaos.Kind.BOOST else "cursed"
+	_overlay.show_notice("%s %s %s!" % [_viewer_name(msg), verb, target.display_name])
+
+
+func _on_effect_rejected(msg: ChatMessage, reason: String) -> void:
+	var text: String = CHAOS_REJECTIONS.get(reason, "not accepted")
 	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
 
 
