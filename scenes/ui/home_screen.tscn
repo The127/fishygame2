@@ -92,7 +92,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_default_cursor_shape = 3
+clip_contents = true
 script = ExtResource("2_marbles")
 
 [node name="Center" type="CenterContainer" parent="."]
@@ -120,6 +120,7 @@ theme_override_fonts/font = SubResource("FontVariation_title")
 theme_override_font_sizes/font_size = 96
 text = "FISHY MARBLE RUN"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="Tagline" type="Label" parent="Center/Box"]
 layout_mode = 2
@@ -129,11 +130,13 @@ theme_override_fonts/font = SubResource("FontVariation_sub")
 theme_override_font_sizes/font_size = 24
 text = "CHAT JOINS AS FISH. FISH RACE DOWN THE TRACK."
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="OpenLobby" type="Button" parent="Center/Box"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 0.8, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
@@ -160,11 +163,13 @@ placeholder_text = "Twitch app client id"
 [node name="Login" type="Button" parent="Center/Box"]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 28
 text = "Log in with Twitch"
 
 [node name="Logout" type="Button" parent="Center/Box"]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 28
 text = "Log out"
