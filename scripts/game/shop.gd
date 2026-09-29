@@ -16,6 +16,8 @@ signal catalog_requested(msg: ChatMessage)
 ## Set by the game so the shop spends from the same balances as betting.
 var points: PointsStore = null
 var store: ShopStore = null
+## Set from the settings: color names in the catalog then carry the fish marking.
+var colorblind: bool = false
 
 
 func _ready() -> void:
@@ -71,7 +73,7 @@ func catalog_text() -> String:
 		% [
 			"|".join(ShopCatalog.SPECIES_NAMES),
 			species_price,
-			"|".join(ShopCatalog.COLOR_NAMES),
+			"|".join(ShopCatalog.color_labels(colorblind)),
 			color_price,
 		]
 	)

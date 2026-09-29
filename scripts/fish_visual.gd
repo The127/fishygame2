@@ -3,6 +3,9 @@ extends Node2D
 ## Procedural fish drawing. It faces its `heading` (radians) and never spins
 ## with the rolling body, so the fish stays right side up.
 
+## Markings that tell fish apart without color; see [FishPalette].
+enum Pattern { SOLID, STRIPES, SPOTS, LINES, CHEVRONS }
+
 ## Body shapes, picked per marble so fish read by outline. `length` and `height` are
 ## half extents, `peak` shifts the deepest point (below 1 toward the head), `tail` is
 ## the tail fin length, `dorsal` and `belly` the fin heights.
@@ -45,6 +48,7 @@ const SPECIES: Array[Dictionary] = [
 	},
 ]
 const OUTLINE: Color = Color(0.01, 0.02, 0.035, 0.95)
+const MARK: Color = Color(0.96, 0.98, 1.0, 0.95)
 const BODY_STEPS: int = 20
 
 var color: Color = Color.WHITE:
@@ -54,6 +58,11 @@ var color: Color = Color.WHITE:
 
 ## Index into SPECIES, wrapped.
 var species: int = 0
+## A [enum Pattern], wrapped.
+var pattern: int = 0:
+	set(value):
+		pattern = value
+		queue_redraw()
 var heading: float = 0.0
 ## Steady glow tint, e.g. a curse. Transparent means the glow follows `color`.
 var aura: Color = Color.TRANSPARENT
@@ -144,8 +153,7 @@ func _draw() -> void:
 	var bottom := PackedVector2Array()
 	for i: int in BODY_STEPS + 1:
 		var u: float = float(i) / float(BODY_STEPS)
-		var h: float = height * pow(sin(PI * pow(u, sp["peak"])), 0.8)
-		h = maxf(h, height * 0.16)
+		var h: float = _body_half_height(sp, u)
 		var x: float = length - 2.0 * length * u
 		top.append(Vector2(x, -h))
 		bottom.append(Vector2(x, h * 0.9))
@@ -157,6 +165,7 @@ func _draw() -> void:
 		colors.append(back.lerp(belly_col, clampf(p.y / height * 0.5 + 0.5, 0.0, 1.0)))
 	draw_polygon(body, colors)
 	draw_polyline(body + PackedVector2Array([body[0]]), OUTLINE, 2.5)
+	_draw_pattern(sp)
 	# Glowing lateral stripe and back edge.
 	var stripe := PackedVector2Array()
 	for i: int in 9:
@@ -169,6 +178,58 @@ func _draw() -> void:
 	draw_circle(eye, 3.2, OUTLINE)
 	draw_circle(eye, 2.2, accent.lightened(0.5))
 	draw_circle(eye + Vector2(0.6, 0), 1.0, OUTLINE)
+
+
+## Half the body height at [param u], 0 at the snout and 1 at the tail.
+func _body_half_height(sp: Dictionary, u: float) -> float:
+	var height: float = sp["height"]
+	return maxf(height * pow(sin(PI * pow(u, sp["peak"])), 0.8), height * 0.16)
+
+
+## Markings on the body: a bright core over a dark edge so they read on any body color.
+func _draw_pattern(sp: Dictionary) -> void:
+	var length: float = sp["length"]
+	match posmod(pattern, Pattern.size()):
+		Pattern.STRIPES:
+			for u: float in [0.34, 0.5, 0.66]:
+				var x: float = length - 2.0 * length * u
+				var h: float = _body_half_height(sp, u)
+				_mark_line(PackedVector2Array([Vector2(x, -h * 0.85), Vector2(x, h * 0.75)]), 2.4)
+		Pattern.SPOTS:
+			var side: float = -1.0
+			for u: float in [0.3, 0.42, 0.54, 0.66, 0.78]:
+				var x: float = length - 2.0 * length * u
+				_mark_dot(Vector2(x, side * _body_half_height(sp, u) * 0.45), 2.0)
+				side = -side
+		Pattern.LINES:
+			for side: float in [-0.5, 0.5]:
+				var line := PackedVector2Array()
+				for i: int in 6:
+					var u: float = lerpf(0.28, 0.8, float(i) / 5.0)
+					var x: float = length - 2.0 * length * u
+					line.append(Vector2(x, side * _body_half_height(sp, u)))
+				_mark_line(line, 1.6)
+		Pattern.CHEVRONS:
+			for u: float in [0.4, 0.6]:
+				var x: float = length - 2.0 * length * u
+				var h: float = _body_half_height(sp, u) * 0.6
+				var back: float = length * 0.22
+				_mark_line(
+					PackedVector2Array(
+						[Vector2(x - back, -h), Vector2(x, 0.0), Vector2(x - back, h)]
+					),
+					1.8
+				)
+
+
+func _mark_line(points: PackedVector2Array, width: float) -> void:
+	draw_polyline(points, OUTLINE, width + 1.8)
+	draw_polyline(points, MARK, width)
+
+
+func _mark_dot(at: Vector2, radius: float) -> void:
+	draw_circle(at, radius + 0.9, OUTLINE)
+	draw_circle(at, radius, MARK)
 
 
 func _draw_tail(sp: Dictionary, fin_col: Color, accent: Color, wag: float) -> void:

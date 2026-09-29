@@ -29,6 +29,13 @@ var species: int = -1:
 		if _fish != null:
 			_fish.species = value
 
+## A [enum FishVisual.Pattern].
+var pattern: int = 0:
+	set(value):
+		pattern = value
+		if _fish != null:
+			_fish.pattern = value
+
 var label_text: String = "":
 	set(value):
 		label_text = value
@@ -46,6 +53,7 @@ func _ready() -> void:
 	_fish = FishVisual.new()
 	_fish.color = color
 	_fish.species = species if species >= 0 else id
+	_fish.pattern = pattern
 	add_child(_fish)
 	# Top level so the name stays upright and unscaled while the marble rolls.
 	_label = Label.new()

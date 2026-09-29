@@ -31,13 +31,17 @@ var display_name: String = ""
 var color: Color = Color.WHITE
 ## Index into [constant FishVisual.SPECIES], wrapped.
 var species: int = 0
+## Slot in [constant PALETTE] (and the shop's color names) this fish wears.
+var palette_slot: int = 0
+## A [enum FishVisual.Pattern]; only marked in the colorblind look.
+var pattern: int = 0
 
 
 static func create(p_user_id: String, p_display_name: String, slot: int = 0) -> Contestant:
 	var contestant := Contestant.new()
 	contestant.user_id = p_user_id
 	contestant.display_name = p_display_name
-	contestant.color = color_for_slot(slot)
+	contestant.set_look(slot, false)
 	contestant.species = posmod(slot, FishVisual.SPECIES.size())
 	return contestant
 
@@ -46,3 +50,10 @@ static func create(p_user_id: String, p_display_name: String, slot: int = 0) -> 
 static func color_for_slot(slot: int) -> Color:
 	var base: Color = PALETTE[posmod(slot, PALETTE.size())]
 	return base.darkened(0.3) if slot >= PALETTE.size() else base
+
+
+## Wears palette [param slot], in the colorblind look when [param colorblind] is set.
+func set_look(slot: int, colorblind: bool) -> void:
+	palette_slot = posmod(slot, PALETTE.size())
+	color = FishPalette.color_of(slot, colorblind)
+	pattern = FishPalette.pattern_of(slot, colorblind)

@@ -97,3 +97,38 @@ func _assert_all_distinct(roster: Array[Contestant]) -> void:
 	for contestant: Contestant in roster:
 		assert_false(seen.has(contestant.color), "%s has its own color" % contestant.display_name)
 		seen[contestant.color] = true
+
+
+func test_colorblind_loadout_uses_the_colorblind_look() -> void:
+	var store := _store_with({"1": {"color": "blue"}})
+	var roster: Array[Contestant] = _roster(3)
+	ShopCatalog.assign_loadouts(roster, store, true)
+	assert_eq(roster[1].palette_slot, 3)
+	assert_eq(roster[1].color, FishPalette.color_of(3, true))
+	assert_eq(roster[1].pattern, FishPalette.pattern_of(3, true))
+	assert_eq(roster[0].color, FishPalette.color_of(0, true))
+
+
+func test_colorblind_full_race_keeps_every_fish_distinguishable() -> void:
+	var roster: Array[Contestant] = _roster(20)
+	ShopCatalog.assign_loadouts(roster, ShopStore.new(), true)
+	var seen: Dictionary = {}
+	for contestant: Contestant in roster:
+		var key: String = "%s/%d" % [contestant.color.to_html(), contestant.pattern]
+		assert_false(seen.has(key), "%s has a look of their own" % contestant.display_name)
+		seen[key] = true
+
+
+func test_standard_loadout_has_no_markings() -> void:
+	var roster: Array[Contestant] = _roster(5)
+	ShopCatalog.assign_loadouts(roster, ShopStore.new())
+	for contestant: Contestant in roster:
+		assert_eq(contestant.pattern, FishVisual.Pattern.SOLID)
+
+
+func test_color_labels_name_the_marking_only_in_colorblind_mode() -> void:
+	assert_eq(ShopCatalog.color_labels(false), ShopCatalog.COLOR_NAMES)
+	var labels: Array[String] = ShopCatalog.color_labels(true)
+	assert_eq(labels.size(), ShopCatalog.COLOR_NAMES.size())
+	assert_eq(labels[0], "red (solid)")
+	assert_eq(labels[1], "green (striped)")

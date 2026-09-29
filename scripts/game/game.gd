@@ -151,6 +151,7 @@ func _apply_settings() -> void:
 	_betting.max_bet = settings.max_bet
 	_shop.species_price = settings.species_price
 	_shop.color_price = settings.color_price
+	_shop.colorblind = settings.colorblind
 	_chaos.boost_cost = settings.boost_cost
 	_chaos.curse_cost = settings.curse_cost
 	_chaos.viewer_cooldown = float(settings.viewer_cooldown)
@@ -364,7 +365,7 @@ func _viewer_name(msg: ChatMessage) -> String:
 
 func _on_race_started(contestants: Array[Contestant]) -> void:
 	Sound.play(Sound.Sfx.GO)
-	ShopCatalog.assign_loadouts(contestants, _shop.store)
+	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_race.start(_track, contestants.size(), rng)
@@ -375,6 +376,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 			continue
 		marble.color = contestants[marble.id].color
 		marble.species = contestants[marble.id].species
+		marble.pattern = contestants[marble.id].pattern
 		marble.label_text = contestants[marble.id].display_name
 
 

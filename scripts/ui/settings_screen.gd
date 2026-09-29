@@ -46,6 +46,7 @@ const TABS: Array[Dictionary] = [
 			"cheer_max_emotes",
 		],
 	},
+	{"title": "Accessibility", "items": ["colorblind"]},
 	{
 		"title": "Stream layout",
 		"items": ["pad_left", "pad_right", "pad_top", "pad_bottom", "preview"],
@@ -59,6 +60,7 @@ var _captions: Dictionary[String, String] = {}
 var _map_picker: OptionButton
 var _auto_mode: CheckBox
 var _chat_replies: CheckBox
+var _colorblind: CheckBox
 var _status: Label
 var _preview: PaddingPreview
 
@@ -177,6 +179,10 @@ func _build_controls() -> Dictionary[String, Control]:
 	_chat_replies.toggled.connect(_on_chat_replies_toggled)
 	_captions["chat_replies"] = "Reply in chat"
 	controls["chat_replies"] = _chat_replies
+	_colorblind = _make_check("On")
+	_colorblind.toggled.connect(_on_colorblind_toggled)
+	_captions["colorblind"] = "Colorblind mode (alternate colors and fish markings)"
+	controls["colorblind"] = _colorblind
 	return controls
 
 
@@ -243,6 +249,7 @@ func _refresh() -> void:
 			_map_picker.select(i)
 	_auto_mode.set_pressed_no_signal(settings.auto_mode)
 	_chat_replies.set_pressed_no_signal(settings.chat_replies)
+	_colorblind.set_pressed_no_signal(settings.colorblind)
 	_preview.set_play_fraction(settings.play_fraction())
 
 
@@ -269,6 +276,11 @@ func _on_auto_mode_toggled(pressed: bool) -> void:
 
 func _on_chat_replies_toggled(pressed: bool) -> void:
 	settings.chat_replies = pressed
+	_commit()
+
+
+func _on_colorblind_toggled(pressed: bool) -> void:
+	settings.colorblind = pressed
 	_commit()
 
 

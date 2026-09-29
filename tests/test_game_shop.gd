@@ -49,3 +49,21 @@ func test_joining_and_shopping_remember_the_viewer_name() -> void:
 	assert_eq(_betting.points.get_name("7"), "User7")
 	_say("8", "#shop")
 	assert_eq(_betting.points.get_name("8"), "User8")
+
+
+func test_colorblind_setting_reaches_marbles_the_podium_and_the_shop() -> void:
+	_game.settings.colorblind = true
+	_game._apply_settings()
+	assert_true(_shop.colorblind)
+	_say("1", "#join")
+	_say("0", "#join")
+	_say("1", "#color blue")
+	assert_true(_flow.start_race())
+	_flow.tick(float(_flow.countdown_seconds))
+	var marble: Marble = _marble(0)
+	assert_eq(marble.color, FishPalette.color_of(3, true))
+	assert_eq(marble.pattern, FishPalette.pattern_of(3, true))
+	var podiums: Array = []
+	_flow.podium_ready.connect(func(podium: Array[Dictionary]) -> void: podiums.append(podium))
+	_finish_marbles([0, 1])
+	assert_true(podiums[0][0].has("pattern"))
