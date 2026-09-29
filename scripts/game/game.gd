@@ -90,6 +90,10 @@ func _ready() -> void:
 	_race.marble_finished.connect(_on_marble_finished)
 	_flow.podium_ready.connect(_on_podium_ready)
 	_rng.randomize()
+	if OS.has_feature("web") and DebugMode.is_enabled():
+		var bridge := WebTestBridge.new()
+		add_child(bridge)
+		bridge.setup(_flow, _betting, _panel)
 	_flow.open_lobby()
 
 

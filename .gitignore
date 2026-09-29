@@ -42,3 +42,7 @@ desktop.ini
 *.dmg
 .claude/settings.local.json
 CLAUDE.local.md
+
+# Browser smoke test
+tests/browser/node_modules/
+tests/browser/results/
