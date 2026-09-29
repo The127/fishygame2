@@ -70,17 +70,19 @@ func _add_winner(entry: Dictionary, place: int) -> void:
 	add_child(time_label)
 
 
-func _make_label(text: String, size: int, weight: int, color: Color) -> Label:
+func _make_label(text: String, font_size: int, weight: int, color: Color) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.clip_text = true
-	UiStyle.style_label(label, size, weight, color)
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	UiStyle.style_label(label, font_size, weight, color)
 	return label
 
 
 func _draw() -> void:
+	var font: Font = UiStyle.font(900)
 	for place: int in SLOT_PLACES:
 		var rect: Rect2 = step_rect(place)
 		var tint: Color = PLACE_COLORS[place]
@@ -89,12 +91,11 @@ func _draw() -> void:
 		draw_rect(rect, Color(0.012, 0.047, 0.102, 0.92))
 		draw_rect(rect, Color(tint, 0.9 * alpha), false, 3.0)
 		draw_rect(Rect2(rect.position, Vector2(rect.size.x, 6.0)), Color(tint, alpha))
-		var font: Font = UiStyle.font(900)
 		var text: String = str(place)
-		var size: int = 64
-		var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		var font_size: int = 64
+		var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 		var pos := Vector2(rect.get_center().x - width * 0.5, rect.position.y + 66.0)
 		draw_string_outline(
-			font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, 8, Color(0.0, 0.03, 0.08, 0.95)
+			font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 8, Color(0.0, 0.03, 0.08, 0.95)
 		)
-		draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(tint, alpha))
+		draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(tint, alpha))

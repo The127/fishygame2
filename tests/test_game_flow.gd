@@ -133,6 +133,7 @@ func test_race_finished_goes_to_podium_then_lobby() -> void:
 	var podium: Array = get_signal_parameters(_flow, "podium_ready", 0)[0]
 	assert_eq(podium.size(), 3)
 	assert_eq(podium[0]["name"], "P2")
+	assert_true(podium[0].has("id"))
 	assert_eq(podium[1]["place"], 2)
 	_flow.tick(5.5)
 	assert_eq(_flow.state, GameFlow.State.LOBBY)
