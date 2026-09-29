@@ -25,6 +25,7 @@ point_count = 7
 [node name="Track" type="Node2D"]
 script = ExtResource("1_track")
 spawn_columns = 5
+style_id = "crystal"
 
 [node name="Backdrop" type="Polygon2D" parent="."]
 z_index = -10
