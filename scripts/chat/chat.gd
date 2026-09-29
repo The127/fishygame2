@@ -25,6 +25,8 @@ func _ready() -> void:
 
 
 func set_source(new_source: ChatSource) -> void:
+	if new_source == null or new_source == source:
+		return
 	if source != null:
 		source.stop()
 		source.message_received.disconnect(_on_message)
@@ -46,6 +48,8 @@ func load_twitch_config() -> Dictionary:
 			)
 			if value != null and str(value) != "":
 				cfg[key] = str(value)
+		# The token is a secret: keep it out of the address bar and history.
+		JavaScriptBridge.eval("history.replaceState(null, '', window.location.pathname)")
 	else:
 		var file := ConfigFile.new()
 		if file.load(CONFIG_PATH) == OK:
@@ -55,6 +59,8 @@ func load_twitch_config() -> Dictionary:
 					cfg[key] = value
 	for required: String in ["client_id", "token", "broadcaster_id"]:
 		if not cfg.has(required):
+			if cfg.has("token") or cfg.has("client_id") or cfg.has("broadcaster_id"):
+				push_warning("Twitch config incomplete, missing: %s" % required)
 			return {}
 	return cfg
 

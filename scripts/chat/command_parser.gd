@@ -15,7 +15,10 @@ func parse(text: String) -> Dictionary:
 	var trimmed: String = text.strip_edges()
 	if prefix.is_empty() or not trimmed.begins_with(prefix):
 		return {}
-	var parts: PackedStringArray = trimmed.substr(prefix.length()).split(" ", false)
+	var rest: String = trimmed.substr(prefix.length())
+	if rest.is_empty() or rest[0] == " ":
+		return {}
+	var parts: PackedStringArray = rest.split(" ", false)
 	if parts.is_empty():
 		return {}
 	var args: PackedStringArray = parts.slice(1)

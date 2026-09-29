@@ -3,9 +3,15 @@ extends ChatSource
 ## Reads chat via Twitch EventSub WebSocket (channel.chat.message).
 ## Never logs the access token.
 
+## Emitted on unrecoverable errors (bad token, missing scope, revoked subscription).
+## The source stops and does not reconnect.
+signal failed(reason: String)
+
 const EVENTSUB_URL: String = "wss://eventsub.wss.twitch.tv/ws"
 const SUBSCRIPTIONS_URL: String = "https://api.twitch.tv/helix/eventsub/subscriptions"
 const MAX_BACKOFF: float = 30.0
+## Seconds to wait for a session_welcome before retrying the connection.
+const WELCOME_TIMEOUT: float = 10.0
 
 var client_id: String = ""
 var access_token: String = ""
@@ -37,6 +43,7 @@ func _init(
 
 
 func start() -> void:
+	stop()
 	_running = true
 	_connect(EVENTSUB_URL)
 
@@ -135,13 +142,13 @@ func build_subscription_body(session_id: String) -> Dictionary:
 func _process(delta: float) -> void:
 	if not _running:
 		return
+	if _pending_socket != null:
+		_poll_pending()
 	if _reconnect_in >= 0.0:
 		_reconnect_in -= delta
 		if _reconnect_in < 0.0:
 			_connect(EVENTSUB_URL)
 		return
-	if _pending_socket != null:
-		_poll_pending()
 	if _socket == null:
 		return
 	_socket.poll()
@@ -154,11 +161,20 @@ func _process(delta: float) -> void:
 			# Twitch asks clients to treat silence beyond the keepalive as a dead connection.
 			if _session_id != "" and _since_last_message > _keepalive_timeout + 5.0:
 				_socket.close()
+			elif _session_id == "" and _since_last_message > WELCOME_TIMEOUT:
+				_socket.close()
+		WebSocketPeer.STATE_CONNECTING:
+			_since_last_message += delta
+			if _since_last_message > WELCOME_TIMEOUT:
+				_socket.close()
 		WebSocketPeer.STATE_CLOSED:
 			_on_unexpected_close()
 
 
 func _connect(url: String) -> void:
+	if _pending_socket != null:
+		_pending_socket.close()
+		_pending_socket = null
 	_socket = WebSocketPeer.new()
 	_session_id = ""
 	_since_last_message = 0.0
@@ -169,6 +185,11 @@ func _connect(url: String) -> void:
 
 
 func _on_unexpected_close() -> void:
+	if _pending_socket != null:
+		# A reconnect handoff is in flight: let it take over instead of starting over.
+		_socket = null
+		_session_id = ""
+		return
 	_socket = null
 	_session_id = ""
 	_reconnect_in = _backoff
@@ -179,6 +200,8 @@ func _poll_pending() -> void:
 	_pending_socket.poll()
 	if _pending_socket.get_ready_state() == WebSocketPeer.STATE_CLOSED:
 		_pending_socket = null
+		if _socket == null:
+			_on_unexpected_close()
 		return
 	while (
 		_pending_socket != null
@@ -208,13 +231,16 @@ func _handle_frame(raw: String, from_pending: bool) -> void:
 			var url: String = frame["reconnect_url"]
 			if not url.is_empty() and _pending_socket == null:
 				_pending_socket = WebSocketPeer.new()
-				_pending_socket.connect_to_url(url)
+				var err: Error = _pending_socket.connect_to_url(url)
+				if err != OK:
+					push_warning("EventSub reconnect failed: %s" % error_string(err))
+					_pending_socket = null
 		"notification":
 			var msg: ChatMessage = frame["message"]
 			if msg != null:
 				message_received.emit(msg)
 		"revocation":
-			push_warning("EventSub subscription revoked (token invalid or scope missing?)")
+			_fail("EventSub subscription revoked (token invalid or scope missing?)")
 		_:
 			pass  # session_keepalive and unknown types
 
@@ -236,8 +262,19 @@ func _subscribe(session_id: String) -> void:
 
 
 func _on_subscribe_completed(
-	_result: int, code: int, _headers: PackedStringArray, _body: PackedByteArray, req: HTTPRequest
+	_result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, req: HTTPRequest
 ) -> void:
 	req.queue_free()
-	if code < 200 or code >= 300:
-		push_warning("EventSub subscribe returned HTTP %d" % code)
+	if code >= 200 and code < 300:
+		return
+	var detail: String = body.get_string_from_utf8()
+	if code == 401 or code == 403:
+		_fail("EventSub subscribe rejected (HTTP %d): %s" % [code, detail])
+	else:
+		push_warning("EventSub subscribe returned HTTP %d: %s" % [code, detail])
+
+
+func _fail(reason: String) -> void:
+	push_warning(reason)
+	stop()
+	failed.emit(reason)

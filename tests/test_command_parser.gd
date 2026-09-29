@@ -30,3 +30,8 @@ func test_custom_prefix() -> void:
 func test_extra_whitespace() -> void:
 	var r: Dictionary = CommandParser.new().parse("  #join   a   b ")
 	assert_eq(r["args"], PackedStringArray(["a", "b"]))
+
+
+func test_whitespace_after_prefix_is_not_a_command() -> void:
+	assert_true(CommandParser.new().parse("# join").is_empty())
+	assert_true(CommandParser.new().parse("#").is_empty())
