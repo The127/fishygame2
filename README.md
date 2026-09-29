@@ -29,19 +29,40 @@ The `Web` preset in `export_presets.cfg` builds without threads, so no COOP/COEP
 are needed. Output goes to `build/web/index.html`.
 
 ```sh
-mkdir -p build/web
-godot --headless --export-release Web build/web/index.html
+just export-web   # or: godot --headless --export-release Web build/web/index.html
 ```
 
 Serve `build/web/` with any static file server and add the URL as an OBS browser source
 (1920x1080). Serving over HTTP is required; opening the file directly will not work.
 
-## Checks
+## Development commands
+
+Install the dev tools once: `pip install -r requirements-dev.txt` (gdtoolkit, pinned) and
+[just](https://github.com/casey/just). Every recipe uses `godot` from `PATH`; override with
+`GODOT=/path/to/godot just <recipe>`. CI runs these same recipes' commands.
+
+| Command           | What it does                                                        |
+| ----------------- | ------------------------------------------------------------------- |
+| `just test`       | Headless import, then the [GUT](https://github.com/bitwes/Gut) suite in `tests/` |
+| `just lint`       | `gdformat --check` and `gdlint` over `scripts/` and `tests/`        |
+| `just format`     | `gdformat` over `scripts/` and `tests/`                             |
+| `just export-web` | Web export to `build/web/`                                          |
+
+Tests live in `tests/` as `test_*.gd` files extending `GutTest` (config: `.gutconfig.json`).
+`addons/` (including the vendored GUT 9.7.1) is excluded from lint and format. `gdlint` allows lines up to 240 columns (gdformat wraps code at 100) so long literals such as recorded JSON do not need suppression; prefer JSON fixture files under `tests/` when data is large.
+
+Basic sanity checks:
 
 ```sh
 godot --headless --import   # (re)import assets; must finish without errors
 godot --headless --quit     # loads the project and exits; must be clean
 ```
+
+## CI
+
+`.github/workflows/ci.yml` runs on pushes to `main` and on all pull requests: lint/format,
+headless GUT tests, and a Web export uploaded as the `web-build` artifact. The Godot version
+is set once in the `GODOT_VERSION` env var at the top of the workflow.
 
 ## Layout
 
