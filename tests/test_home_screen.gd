@@ -1,40 +1,9 @@
 extends GutTest
-## Home screen layout and marble wrapping.
+## Home screen layout and its 3D backdrop.
 
 
 func _make_home() -> HomeScreen:
 	return (load("res://scenes/ui/home_screen.tscn") as PackedScene).instantiate() as HomeScreen
-
-
-func _make_marbles(area: Vector2) -> HomeMarbles:
-	var marbles: HomeMarbles = HomeMarbles.new()
-	add_child_autofree(marbles)
-	marbles.size = area
-	return marbles
-
-
-func test_marbles_wait_for_a_size_before_spawning() -> void:
-	var marbles: HomeMarbles = _make_marbles(Vector2.ZERO)
-	marbles._process(0.016)
-	assert_eq(marbles._marbles.size(), 0, "no spawn while the size is zero")
-	marbles.size = Vector2(800, 600)
-	marbles._process(0.016)
-	assert_eq(marbles._marbles.size(), HomeMarbles.MARBLE_COUNT)
-	var xs: Dictionary = {}
-	for marble: Dictionary in marbles._marbles:
-		xs[snappedf(Vector2(marble["pos"]).x, 1.0)] = true
-	assert_gt(xs.size(), 1, "marbles are spread out, not clustered")
-
-
-func test_wrap_keeps_positions_inside_margin() -> void:
-	var marbles: HomeMarbles = _make_marbles(Vector2(800, 600))
-	marbles._process(0.016)
-	var m: float = HomeMarbles.WRAP_MARGIN
-	var wrapped: Vector2 = marbles._wrap(Vector2(800 + m + 10.0, -m - 10.0))
-	assert_almost_eq(wrapped.x, -m + 10.0, 0.001)
-	assert_almost_eq(wrapped.y, 600.0 + m - 10.0, 0.001)
-	var inside: Vector2 = Vector2(100, 200)
-	assert_eq(marbles._wrap(inside), inside, "positions in range are unchanged")
 
 
 func test_title_fits_narrow_window() -> void:
@@ -134,3 +103,49 @@ func test_leaderboard_keeps_full_size_when_there_is_room() -> void:
 	await wait_process_frames(4)
 	var expected: float = 2.0 * LeaderboardPanel.COLUMN_WIDTH + LeaderboardPanel.SEPARATION
 	assert_almost_eq(home._board.get_global_rect().size.x, expected, 1.0)
+
+
+func test_home_screen_builds_the_3d_backdrop() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	var scene: HomeScene3D = home.get_node("Scene3D")
+	assert_not_null(scene.camera, "camera is created")
+	assert_eq(scene.fish_count(), HomeScene3D.FISH_COUNT)
+	assert_eq(scene.school.count, HomeScene3D.FISH_COUNT)
+	assert_eq(scene.mouse_filter, Control.MOUSE_FILTER_STOP, "background takes clicks")
+	assert_eq(home.get_node("Center").mouse_filter, Control.MOUSE_FILTER_IGNORE)
+
+
+func _click(button: int, pressed: bool, pos: Vector2) -> InputEventMouseButton:
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = button
+	event.pressed = pressed
+	event.position = pos
+	return event
+
+
+func test_clicking_the_backdrop_scares_fish() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	home.set_deferred("size", Vector2(1280, 720))
+	await wait_process_frames(2)
+	var scene: HomeScene3D = home.get_node("Scene3D")
+	# Park a fish right in front of the camera so a click at the centre hits it.
+	scene.school.positions[0] = (
+		scene.camera.position + scene.camera.project_ray_normal(scene.size / 2.0) * 6.0
+	)
+	var before: Vector3 = scene.school.velocities[0]
+	scene._gui_input(_click(MOUSE_BUTTON_RIGHT, true, scene.size / 2.0))
+	scene._gui_input(_click(MOUSE_BUTTON_LEFT, false, scene.size / 2.0))
+	assert_eq(scene.school.velocities[0], before, "only a left press scares")
+	scene._gui_input(_click(MOUSE_BUTTON_LEFT, true, scene.size / 2.0))
+	assert_ne(scene.school.velocities[0], before, "a left click scares the fish under it")
+
+
+func test_menu_controls_sit_above_the_backdrop() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	assert_lt(home.get_node("Scene3D").get_index(), home.get_node("Center").get_index())
+	for path: String in ["Center/Box/OpenLobby", "Center/Box/ClientId"]:
+		var control: Control = home.get_node(path)
+		assert_eq(control.mouse_filter, Control.MOUSE_FILTER_STOP, path)
