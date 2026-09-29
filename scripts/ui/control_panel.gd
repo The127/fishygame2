@@ -18,6 +18,7 @@ func _ready() -> void:
 	($Panel/Box/Buttons/Open as Button).pressed.connect(open_lobby_pressed.emit)
 	($Panel/Box/Buttons/Start as Button).pressed.connect(start_pressed.emit)
 	($Panel/Box/Buttons/Stop as Button).pressed.connect(stop_pressed.emit)
+	($Panel/Box/DebugButtons as Control).visible = DebugMode.is_enabled()
 	($Panel/Box/DebugButtons/AddOne as Button).pressed.connect(
 		add_debug_players_pressed.emit.bind(1)
 	)
