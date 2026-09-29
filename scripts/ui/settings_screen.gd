@@ -92,11 +92,26 @@ func _build() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 10)
 	panel.add_child(box)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 16)
+	box.add_child(header)
+	var home := Button.new()
+	home.name = "Home"
+	home.text = "< HOME"
+	home.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	home.pressed.connect(_on_back_pressed)
+	UiStyle.style_button(home, 24)
+	header.add_child(home)
 	var title := Label.new()
 	title.text = "SETTINGS"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiStyle.style_label(title, 36, 900, UiStyle.CYAN, 6)
-	box.add_child(title)
+	header.add_child(title)
+	# Same width as the Home button so the title stays centred.
+	var spacer := Control.new()
+	spacer.custom_minimum_size.x = home.get_minimum_size().x
+	header.add_child(spacer)
 	var controls: Dictionary[String, Control] = _build_controls()
 	var tabs := TabContainer.new()
 	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -287,6 +302,12 @@ func _on_colorblind_toggled(pressed: bool) -> void:
 func reset_pressed() -> void:
 	settings.reset_to_defaults()
 	_commit("Defaults restored")
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		_on_back_pressed()
 
 
 func _on_back_pressed() -> void:
