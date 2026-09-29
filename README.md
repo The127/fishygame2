@@ -161,7 +161,8 @@ MARBLES=20 tests/run_race_seeds.sh godot 1 100 pachinko
 ```
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
-collapsing planks on Shipwreck, a cross current on Volcanic Vents and a surge that spins up the vortex on Whirlpool. The Jellyfish
+collapsing planks on Shipwreck, a cross current on Volcanic Vents, a surge that spins up the vortex on
+Whirlpool and a tide that sloshes the flip gates on Coral Maze. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers, and its hazard is a surge that speeds them up.
 Abyss has an unstable portal that throws fish back. Events are planned from the race seed, so a seed replays the same
@@ -172,6 +173,11 @@ they strike in Settings > Race.
 Volcanic Vents also has timed geysers (`scripts/tracks/geyser.gd`) that throw marbles upward and
 sideways. They belong to the map, so they erupt whatever the hazard setting is. Each vent's phase and
 period come from the race seed, so a seed replays the same eruptions.
+
+Coral Maze's gimmick is the flip gate (`scripts/tracks/flip_gate.gd`): a tilting paddle under a
+ledge that flips every time a fish rolls off it, so the order fish arrive in decides which of the
+four routes each one takes. Gates start in the same state every race, so a seed replays the same
+routes.
 
 Basic sanity checks:
 

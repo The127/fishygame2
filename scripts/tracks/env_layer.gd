@@ -3,7 +3,7 @@ extends Node2D
 ## One procedurally drawn silhouette layer of a track's environment (rock spires,
 ## kelp, crystal shards). Deterministic for a given seed, so a map always looks the same.
 
-enum Kind { SPIRES, KELP, SHARDS, MASTS, BLOOMS }
+enum Kind { SPIRES, KELP, SHARDS, MASTS, BLOOMS, CORAL }
 
 const WIDTH: float = 2400.0
 const FLOOR_Y: float = 1080.0
@@ -59,6 +59,8 @@ func _draw() -> void:
 				_draw_mast(Vector2(x, base_y), h * flip, i)
 			Kind.BLOOMS:
 				_draw_bloom(Vector2(x, base_y), h * flip)
+			Kind.CORAL:
+				_draw_coral(Vector2(x, base_y), h * flip)
 
 
 func _draw_spire(base: Vector2, height: float, width_scale: float) -> void:
@@ -119,6 +121,31 @@ func _draw_shard(base: Vector2, height: float, width_scale: float) -> void:
 	draw_colored_polygon(PackedVector2Array([left, tip, right]), color)
 	if highlight.a > 0.0:
 		draw_colored_polygon(PackedVector2Array([mid, tip, right]), highlight)
+
+
+## A branching coral: a trunk that forks a few times, each fork thinner and shorter.
+func _draw_coral(base: Vector2, height: float) -> void:
+	var up: Vector2 = Vector2(0.0, -signf(height))
+	_draw_coral_branch(base, up.rotated(_rng.randf_range(-0.15, 0.15)), absf(height) * 0.42, 5)
+
+
+func _draw_coral_branch(from: Vector2, direction: Vector2, length: float, depth: int) -> void:
+	var to: Vector2 = from + direction * length
+	var width: float = 3.0 + float(depth) * 2.6
+	draw_line(from, to, color, width, true)
+	draw_circle(to, width * 0.5, color)
+	if highlight.a > 0.0 and depth == 0:
+		draw_circle(to, width * 0.5 + 2.0, highlight)
+	if depth == 0:
+		return
+	var spread: float = _rng.randf_range(0.35, 0.65)
+	var shrink: float = _rng.randf_range(0.66, 0.8)
+	_draw_coral_branch(to, direction.rotated(-spread), length * shrink, depth - 1)
+	_draw_coral_branch(to, direction.rotated(spread * 0.9), length * shrink, depth - 1)
+	if depth >= 3:
+		_draw_coral_branch(
+			to, direction.rotated(_rng.randf_range(-0.15, 0.15)), length * 0.55, depth - 2
+		)
 
 
 ## A broken mast with a yard and a torn sail, or every third one a curved hull rib.
