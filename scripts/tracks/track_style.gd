@@ -146,8 +146,8 @@ func _add_layers() -> void:
 	# Mid: vegetation or shards closer to the action.
 	_add_layer(_parallax(0.5, -40), kind, _palette["plant"], 5, 14, 200.0, 460.0, false, 30.0)
 	_add_layer(_parallax(0.5, -40), far_kind, _palette["mid"], 6, 8, 120.0, 280.0, true, 0.0)
-	# Near: dark silhouettes in front of everything but the fish names, low and at the sides.
-	var near: Parallax2D = _parallax(1.25, 8)
+	# Near: dark silhouettes in front of the walls but behind the fish, trails and effects.
+	var near: Parallax2D = _parallax(1.25, 3)
 	_add_layer(near, kind, _palette["near"], 7, 9, 40.0, 110.0, false, 18.0)
 	_add_layer(near, far_kind, _palette["near"], 8, 5, 140.0, 300.0, true, 0.0)
 
@@ -177,7 +177,7 @@ func _add_layer(
 
 
 func _add_fog() -> void:
-	for spec: Array in [[-30, 0.14, 0.0], [9, 0.07, 0.6]]:
+	for spec: Array in [[-30, 0.14, 0.0], [3, 0.07, 0.6]]:
 		var fog: ColorRect = ColorRect.new()
 		fog.size = VIEW
 		fog.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -211,13 +211,13 @@ func _add_motes() -> void:
 	var material: CanvasItemMaterial = CanvasItemMaterial.new()
 	material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	motes.material = material
-	motes.z_index = 7
+	motes.z_index = 3
 	add_child(motes)
 
 
 func _dress_body(body: StaticBody2D) -> void:
 	var visual: Polygon2D = body.get_node_or_null("Visual") as Polygon2D
-	if visual == null:
+	if visual == null or visual.polygon.size() < 3:
 		return
 	if body.get_node_or_null("Collider") is CollisionShape2D:
 		_dress_peg(visual)
