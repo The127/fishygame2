@@ -8,6 +8,7 @@ const GLOW_SIZE: int = 64
 const BOOST_COLOR: Color = Color(0.35, 0.95, 1.0)
 const CURSE_COLOR: Color = Color(0.6, 0.25, 0.85)
 const SPLASH_COLOR: Color = Color(0.75, 0.95, 1.0)
+const CHEER_COLOR: Color = Color(1.0, 0.75, 0.9)
 const WINNER_COLOR: Color = Color(1.0, 0.85, 0.35)
 
 static var _glow_texture: GradientTexture2D = null

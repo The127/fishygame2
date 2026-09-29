@@ -35,6 +35,34 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "pad_right", "label": "Blocked right (%)", "min": 0, "max": 40, "step": 1},
 	{"key": "pad_top", "label": "Blocked top (%)", "min": 0, "max": 40, "step": 1},
 	{"key": "pad_bottom", "label": "Blocked bottom (%)", "min": 0, "max": 40, "step": 1},
+	{
+		"key": "cheer_strength",
+		"label": "Cheer strength (%, 0 = off)",
+		"min": 0,
+		"max": 500,
+		"step": 10
+	},
+	{
+		"key": "cheer_viewer_cooldown",
+		"label": "Cheer viewer cooldown (s)",
+		"min": 0,
+		"max": 600,
+		"step": 1
+	},
+	{
+		"key": "cheer_fish_cooldown",
+		"label": "Cheer fish cooldown (s)",
+		"min": 0,
+		"max": 60,
+		"step": 1
+	},
+	{
+		"key": "cheer_max_emotes",
+		"label": "Cheer max emotes counted",
+		"min": 1,
+		"max": 20,
+		"step": 1
+	},
 ]
 
 var min_players: int = 1
@@ -55,6 +83,10 @@ var pad_left: int = 0
 var pad_right: int = 0
 var pad_top: int = 0
 var pad_bottom: int = 0
+var cheer_strength: int = 100
+var cheer_viewer_cooldown: int = 10
+var cheer_fish_cooldown: int = 2
+var cheer_max_emotes: int = 5
 ## A TrackCatalog id, or RANDOM_MAP.
 var default_map: String = RANDOM_MAP
 ## Whether the game cycles lobby, race and podium on its own. Off by default.

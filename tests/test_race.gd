@@ -67,3 +67,27 @@ func test_effects_spawn_particles_and_glow_state() -> void:
 	marble.celebrate()
 	marble.splash()
 	assert_true(marble.is_cursed())
+
+
+func test_cheer_nudges_a_live_marble_forward() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 2, _rng(3))
+	var marble: Marble = race.get_marbles()[0]
+	marble.gravity_scale = 0.0
+	marble.linear_velocity = Vector2.ZERO
+	assert_true(race.cheer_marble(marble.id, 2.0))
+	await wait_physics_frames(2)
+	var forward: Vector2 = track.get_forward(marble.global_position)
+	assert_gt(marble.linear_velocity.dot(forward), 0.0)
+
+
+func test_cheer_is_refused_for_finished_or_unknown_marbles() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 3, _rng(4))
+	track.marble_reached_finish.emit(race.get_marbles()[0])
+	assert_false(race.cheer_marble(0, 1.0))
+	assert_false(race.cheer_marble(99, 1.0))

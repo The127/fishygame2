@@ -56,6 +56,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 @onready var _betting: Betting = $Betting
 @onready var _chaos: Chaos = $Chaos
 @onready var _shop: Shop = $Shop
+@onready var _cheer: Cheer = $Cheer
 @onready var _race: Race = $Race
 @onready var _camera: RaceCamera = $RaceCamera
 @onready var _overlay: Overlay = $Overlay
@@ -91,9 +92,15 @@ func _ready() -> void:
 	_chaos.effect_requested.connect(_on_effect_requested)
 	_chaos.effect_applied.connect(_on_effect_applied)
 	_chaos.effect_rejected.connect(_on_effect_rejected)
+	Chat.message_received.connect(_cheer.handle_message)
+	_flow.player_joined.connect(_cheer.add_contestant)
+	_flow.state_changed.connect(_cheer.on_state_changed)
+	_cheer.cheer_requested.connect(_race.cheer_marble)
 	_race.marble_finished.connect(_chaos.on_marble_finished)
+	_race.marble_finished.connect(_cheer.on_marble_finished)
 	# Before the flow's connection below, so chaos closes before the state changes.
 	_race.race_finished.connect(_chaos.on_race_finished)
+	_race.race_finished.connect(_cheer.on_race_finished)
 	_flow.podium_ready.connect(_overlay.show_podium)
 	_flow.podium_ready.connect(_betting.on_podium_ready)
 	_betting.bets_changed.connect(_overlay.show_bets)
@@ -139,6 +146,10 @@ func _apply_settings() -> void:
 	_chaos.curse_cost = settings.curse_cost
 	_chaos.viewer_cooldown = float(settings.viewer_cooldown)
 	_chaos.fish_lockout = float(settings.fish_lockout)
+	_cheer.strength_percent = settings.cheer_strength
+	_cheer.viewer_cooldown = float(settings.cheer_viewer_cooldown)
+	_cheer.fish_cooldown = float(settings.cheer_fish_cooldown)
+	_cheer.max_emotes = settings.cheer_max_emotes
 	_map_choice = settings.default_map
 	_camera.set_play_fraction(settings.play_fraction())
 	_overlay.set_play_fraction(settings.play_fraction())

@@ -80,6 +80,16 @@ func curse_marble(id: int) -> bool:
 	return true
 
 
+## Gives a marble a small cheering nudge toward the finish. `strength` is in emote units.
+## Returns false if the race is not running or the id is unknown.
+func cheer_marble(id: int, strength: float) -> bool:
+	var marble: Marble = _live_marble(id)
+	if marble == null:
+		return false
+	marble.cheer(_track.get_forward(marble.global_position), strength)
+	return true
+
+
 ## Current global position of every marble still racing, id -> Vector2.
 func get_position_map() -> Dictionary:
 	var positions: Dictionary = {}
