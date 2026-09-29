@@ -80,6 +80,15 @@ func curse_marble(id: int) -> bool:
 	return true
 
 
+## Current global position of every marble, id -> Vector2.
+func get_position_map() -> Dictionary:
+	var positions: Dictionary = {}
+	for id: int in _marbles:
+		var marble: Marble = _marbles[id]
+		positions[id] = marble.global_position
+	return positions
+
+
 func get_progress_map() -> Dictionary:
 	var progress: Dictionary = {}
 	for id: int in _marbles:

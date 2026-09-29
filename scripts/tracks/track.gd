@@ -10,6 +10,8 @@ const FORWARD_SAMPLE: float = 30.0
 
 @export var spawn_columns: int = 5
 @export var spawn_spacing: float = 34.0
+## World area the race camera may look at. Grow it if a map extends beyond the default frame.
+@export var view_bounds: Rect2 = Rect2(0.0, 0.0, 1920.0, 1080.0)
 
 @onready var _finish: Area2D = $Finish
 @onready var _centerline: Path2D = $Centerline
