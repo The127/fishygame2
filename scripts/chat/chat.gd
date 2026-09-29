@@ -39,10 +39,7 @@ func begin_login(client_id: String) -> void:
 	client_id = client_id.strip_edges()
 	if client_id.is_empty() or not OS.has_feature("web"):
 		return
-	var redirect: String = str(
-		JavaScriptBridge.eval("window.location.origin + window.location.pathname")
-	)
-	_redirect_to_twitch(client_id, redirect)
+	_redirect_to_twitch(client_id, TwitchAuth.current_redirect_url())
 
 
 ## Redirects to Twitch, unless the pending login could not be stored: then the streamer would

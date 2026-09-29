@@ -88,6 +88,10 @@ the OBS audio mixer.
 
 ## Twitch login (streamer setup)
 
+On first launch the game shows a short setup guide (Twitch app, login, OBS, safe areas, debug
+mode). Skipping or finishing it is remembered per browser source; reopen it from Settings >
+Setup guide. The steps below are the same information in full.
+
 The game reads chat over Twitch EventSub and posts replies through the Twitch API, so it needs a
 token for the streamer's account. There is no backend: the browser logs in with the OAuth
 implicit grant and keeps the token in its own `localStorage`.
