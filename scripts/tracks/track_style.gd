@@ -67,12 +67,14 @@ const FOG_SHADER: Shader = preload("res://assets/shaders/env/fog.gdshader")
 const VIEW: Vector2 = Vector2(1920.0, 1080.0)
 const FOG_RECT: Rect2 = Rect2(-160.0, -260.0, 2240.0, 1500.0)
 const PEG_GLOW_SIZE: float = 128.0
+const FINISH_COLOR: Color = Color(1.0, 0.86, 0.3)
 
 static var _glow_texture: GradientTexture2D
 
 var _palette: Dictionary = {}
 var _time: float = 0.0
 var _pegs: Array[Dictionary] = []
+var _finish_glows: Array[Node2D] = []
 var _rays: Array[Polygon2D] = []
 var _fogs: Array[ColorRect] = []
 var _motes: CPUParticles2D
@@ -86,6 +88,7 @@ func dress(track: Track, style_id: String) -> void:
 	_add_layers()
 	_add_fog()
 	_add_motes()
+	_dress_finish(track)
 	for child: Node in track.get_children():
 		if child is StaticBody2D:
 			_dress_body(child as StaticBody2D)
@@ -96,6 +99,8 @@ func _process(delta: float) -> void:
 	for peg: Dictionary in _pegs:
 		var pulse: float = 0.72 + 0.28 * sin(_time * 1.6 + float(peg["phase"]))
 		(peg["glow"] as Sprite2D).modulate.a = pulse
+	for glow: Node2D in _finish_glows:
+		glow.modulate.a = 0.75 + 0.25 * sin(_time * 2.2)
 	for i: int in _rays.size():
 		_rays[i].modulate.a = 0.7 + 0.3 * sin(_time * 0.5 + float(i) * 1.9)
 	_follow_view()
@@ -264,6 +269,8 @@ func _dress_body(body: StaticBody2D) -> void:
 		return
 	if body.get_node_or_null("Collider") is CollisionShape2D:
 		_dress_peg(visual)
+	elif body is AnimatableBody2D:
+		_dress_mover(visual)
 	else:
 		_dress_wall(visual)
 
@@ -284,6 +291,48 @@ func _dress_wall(visual: Polygon2D) -> void:
 	halo.material = halo_material
 	visual.add_child(halo)
 	visual.add_child(_outline(ring, 2.0, Color(rim, 0.7)))
+
+
+## The stone texture is anchored to the world, so on a moving body it would slide across
+## the shape. Movers keep their flat color and get a lit edge instead.
+func _dress_mover(visual: Polygon2D) -> void:
+	var ring: PackedVector2Array = visual.polygon + PackedVector2Array([visual.polygon[0]])
+	var rim: Color = _palette["rim"]
+	visual.add_child(_outline(ring, 2.0, Color(rim, 0.7)))
+
+
+## Replaces the flat finish patch with a glowing gate that fills the whole finish zone.
+func _dress_finish(track: Track) -> void:
+	var finish: Area2D = track.get_node_or_null("Finish") as Area2D
+	if finish == null:
+		return
+	var zone: CollisionShape2D = finish.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if zone == null or not zone.shape is RectangleShape2D:
+		return
+	var flat: Node2D = finish.get_node_or_null("Visual") as Node2D
+	if flat != null:
+		flat.visible = false
+	var size: Vector2 = (zone.shape as RectangleShape2D).size
+	var rect: Rect2 = Rect2(zone.position - size * 0.5, size)
+	var gate: Node2D = Node2D.new()
+	gate.name = "Gate"
+	gate.z_index = 2
+	var material: CanvasItemMaterial = CanvasItemMaterial.new()
+	material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	gate.material = material
+	var fill: Polygon2D = Polygon2D.new()
+	fill.polygon = PackedVector2Array(
+		[rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]
+	)
+	var faint: Color = Color(FINISH_COLOR, 0.0)
+	var strong: Color = Color(FINISH_COLOR, 0.4)
+	fill.vertex_colors = PackedColorArray([faint, faint, strong, strong])
+	gate.add_child(fill)
+	var ring: PackedVector2Array = fill.polygon + PackedVector2Array([fill.polygon[0]])
+	gate.add_child(_outline(ring, 14.0, Color(FINISH_COLOR, 0.14)))
+	gate.add_child(_outline(ring, 3.0, Color(FINISH_COLOR, 0.85)))
+	finish.add_child(gate)
+	_finish_glows.append(gate)
 
 
 func _dress_peg(visual: Polygon2D) -> void:
