@@ -2,6 +2,9 @@ class_name Game
 extends Node2D
 ## Wires chat commands, the round state machine, the race and the UI together.
 
+## Milliseconds before the same viewer gets another rejection reply.
+const REPLY_COOLDOWN_MSEC: int = 15000
+
 const BET_REJECTIONS: Dictionary = {
 	"closed": "betting is closed",
 	"usage": "use #bet <name> <amount>",
@@ -10,6 +13,8 @@ const BET_REJECTIONS: Dictionary = {
 	"invalid_amount": "invalid amount",
 	"insufficient": "not enough points",
 }
+
+var _last_reply_msec: Dictionary[String, int] = {}
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
@@ -24,6 +29,7 @@ func _ready() -> void:
 	Chat.command_received.connect(_betting.handle_command)
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
+	_flow.join_rejected.connect(_on_join_rejected)
 	_flow.countdown_tick.connect(_overlay.show_countdown)
 	_flow.race_started.connect(_on_race_started)
 	_flow.player_joined.connect(_betting.add_contestant)
@@ -64,6 +70,22 @@ func _on_player_joined(_contestant: Contestant) -> void:
 	_refresh_lobby()
 
 
+func _on_join_rejected(msg: ChatMessage, reason: String) -> void:
+	if _flow.state == GameFlow.State.IDLE:
+		return
+	var text: String = GameFlow.rejection_text(reason, msg)
+	if text == "":
+		return
+	var now: int = Time.get_ticks_msec()
+	if (
+		_last_reply_msec.has(msg.user_id)
+		and now - _last_reply_msec[msg.user_id] < REPLY_COOLDOWN_MSEC
+	):
+		return
+	_last_reply_msec[msg.user_id] = now
+	Chat.send_message(text)
+
+
 func _on_bet_placed(msg: ChatMessage, target: Contestant, amount: int) -> void:
 	_overlay.show_notice("%s bet %d on %s" % [_viewer_name(msg), amount, target.display_name])
 
@@ -85,10 +107,13 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_race.start(_track, contestants.size(), rng)
-	var marbles: Array[Marble] = _race.get_marbles()
-	for i: int in contestants.size():
-		marbles[i].color = contestants[i].color
-		marbles[i].label_text = contestants[i].display_name
+	# Marble ids are roster ids, so match on id rather than on list order.
+	for marble: Marble in _race.get_marbles():
+		if marble.id < 0 or marble.id >= contestants.size():
+			push_warning("Marble id %d has no contestant" % marble.id)
+			continue
+		marble.color = contestants[marble.id].color
+		marble.label_text = contestants[marble.id].display_name
 
 
 func _refresh_lobby() -> void:

@@ -16,7 +16,10 @@ enum State { IDLE, LOBBY, COUNTDOWN, RACING, PODIUM }
 @export var max_players: int = 20
 ## Seconds before the lobby starts the race on its own. 0 or less means manual start only.
 @export var lobby_seconds: float = 30.0
-@export var min_players: int = 1
+## Players needed before a round can start. Never below 1.
+@export var min_players: int = 1:
+	set(value):
+		min_players = maxi(value, 1)
 @export var countdown_seconds: int = 3
 @export var podium_seconds: float = 8.0
 @export var podium_size: int = 3
@@ -138,11 +141,22 @@ func join(msg: ChatMessage) -> bool:
 		join_rejected.emit(msg, "full")
 		return false
 	var name_to_show: String = msg.display_name if msg.display_name != "" else msg.login
-	var contestant: Contestant = Contestant.create(msg.user_id, name_to_show)
+	var contestant: Contestant = Contestant.create(msg.user_id, name_to_show, _contestants.size())
 	_ids[msg.user_id] = true
 	_contestants.append(contestant)
 	player_joined.emit(contestant)
 	return true
+
+
+## Chat reply for a rejected join, or "" when the rejection should stay silent.
+static func rejection_text(reason: String, msg: ChatMessage) -> String:
+	var who: String = msg.display_name if msg.display_name != "" else msg.login
+	match reason:
+		"full":
+			return "@%s the lobby is full." % who
+		"closed":
+			return "@%s there is no open lobby right now." % who
+	return ""
 
 
 func get_contestants() -> Array[Contestant]:

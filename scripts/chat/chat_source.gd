@@ -13,3 +13,8 @@ func start() -> void:
 ## Stop producing messages. Subclasses override.
 func stop() -> void:
 	pass
+
+
+## Post a message to the channel. Sources that cannot write ignore it.
+func send_message(_text: String) -> void:
+	pass

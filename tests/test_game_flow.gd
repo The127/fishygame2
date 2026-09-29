@@ -54,11 +54,16 @@ func test_max_players_enforced() -> void:
 	assert_signal_emit_count(_flow, "join_rejected", 2)
 
 
-func test_color_derived_from_user_id() -> void:
-	assert_eq(Contestant.color_for("123"), Contestant.color_for("123"))
+func test_colors_distinct_per_lobby() -> void:
+	var seen: Array[Color] = []
+	for i: int in Contestant.PALETTE.size():
+		var c: Color = Contestant.color_for_slot(i)
+		assert_false(seen.has(c), "slot %d repeats a color" % i)
+		seen.append(c)
 	_flow.open_lobby()
-	_join("123", "A")
-	assert_eq(_flow.get_contestants()[0].color, Contestant.color_for("123"))
+	_join("1", "A")
+	_join("2", "B")
+	assert_ne(_flow.get_contestants()[0].color, _flow.get_contestants()[1].color)
 
 
 func test_manual_start_needs_players() -> void:
@@ -159,3 +164,36 @@ func test_report_ignored_outside_racing() -> void:
 	_flow.open_lobby()
 	_flow.report_race_finished(_results([0]))
 	assert_eq(_flow.state, GameFlow.State.LOBBY)
+
+
+func test_min_players_clamped_to_one() -> void:
+	_flow.min_players = 0
+	assert_eq(_flow.min_players, 1)
+	_flow.open_lobby()
+	assert_false(_flow.start_race())
+
+
+func test_rejection_reasons_and_texts() -> void:
+	var msg := ChatMessage.create("1", "alice", "Alice", "#join")
+	assert_string_contains(GameFlow.rejection_text("full", msg), "full")
+	assert_string_contains(GameFlow.rejection_text("closed", msg), "Alice")
+	assert_eq(GameFlow.rejection_text("duplicate", msg), "")
+	watch_signals(_flow)
+	_join("1", "A")
+	assert_signal_emit_count(_flow, "join_rejected", 1)
+
+
+func test_full_lobby_rejects_with_full_reason() -> void:
+	_flow.open_lobby()
+	for i: int in 3:
+		_join(str(i), "P%d" % i)
+	watch_signals(_flow)
+	_join("9", "Late")
+	assert_eq(get_signal_parameters(_flow, "join_rejected", 0)[1], "full")
+
+
+func test_min_players_clamp_values() -> void:
+	_flow.min_players = -5
+	assert_eq(_flow.min_players, 1)
+	_flow.min_players = 2
+	assert_eq(_flow.min_players, 2)

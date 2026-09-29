@@ -2,20 +2,44 @@ class_name Contestant
 extends RefCounted
 ## A viewer who joined the lobby. Keyed by the stable Twitch user id.
 
+## Hand-picked colors that stay easy to tell apart on a busy track. Assigned by join order.
+const PALETTE: Array[Color] = [
+	Color("e6194b"),
+	Color("3cb44b"),
+	Color("ffe119"),
+	Color("4363d8"),
+	Color("f58231"),
+	Color("911eb4"),
+	Color("42d4f4"),
+	Color("f032e6"),
+	Color("bfef45"),
+	Color("fabed4"),
+	Color("469990"),
+	Color("dcbeff"),
+	Color("9a6324"),
+	Color("fffac8"),
+	Color("800000"),
+	Color("aaffc3"),
+	Color("808000"),
+	Color("ffd8b1"),
+	Color("000075"),
+	Color("a9a9a9"),
+]
+
 var user_id: String = ""
 var display_name: String = ""
 var color: Color = Color.WHITE
 
 
-static func create(p_user_id: String, p_display_name: String) -> Contestant:
+static func create(p_user_id: String, p_display_name: String, slot: int = 0) -> Contestant:
 	var contestant := Contestant.new()
 	contestant.user_id = p_user_id
 	contestant.display_name = p_display_name
-	contestant.color = color_for(p_user_id)
+	contestant.color = color_for_slot(slot)
 	return contestant
 
 
-## Stable color for a user id: same id, same color, on every run.
-static func color_for(user_id: String) -> Color:
-	var hue: float = float(posmod(user_id.hash(), 360)) / 360.0
-	return Color.from_hsv(hue, 0.7, 0.95)
+## Color for the n-th joiner of a lobby. Past the palette it repeats, darkened.
+static func color_for_slot(slot: int) -> Color:
+	var base: Color = PALETTE[posmod(slot, PALETTE.size())]
+	return base.darkened(0.3) if slot >= PALETTE.size() else base
