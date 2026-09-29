@@ -3,11 +3,13 @@ extends GutTest
 ## Shared setup and helpers for the Game scene tests (test_game_*.gd).
 
 const POINTS_PATH: String = "user://test_game_points.json"
+const SHOP_PATH: String = "user://test_game_shop.json"
 
 var _game: Game
 var _flow: GameFlow
 var _betting: Betting
 var _chaos: Chaos
+var _shop: Shop
 var _race: Race
 var _panel: ControlPanel
 var _source: DebugChatSource
@@ -21,10 +23,12 @@ func before_each() -> void:
 	_flow = _game.get_node("GameFlow") as GameFlow
 	_betting = _game.get_node("Betting") as Betting
 	_chaos = _game.get_node("Chaos") as Chaos
+	_shop = _game.get_node("Shop") as Shop
 	_race = _game.get_node("Race") as Race
 	_panel = _game.get_node("ControlPanel") as ControlPanel
 	_betting.points_path = POINTS_PATH
 	_chaos.points_path = POINTS_PATH
+	_shop.shop_path = SHOP_PATH
 	_game.settings = GameSettings.new()
 	_game.settings.max_players = 4
 	_game.settings.countdown_seconds = 3
@@ -43,10 +47,11 @@ func after_each() -> void:
 
 
 func _remove_points_files() -> void:
-	for suffix: String in ["", ".tmp", ".bak"]:
-		var path: String = ProjectSettings.globalize_path(POINTS_PATH + suffix)
-		if FileAccess.file_exists(path):
-			DirAccess.remove_absolute(path)
+	for base: String in [POINTS_PATH, SHOP_PATH]:
+		for suffix: String in ["", ".tmp", ".bak"]:
+			var path: String = ProjectSettings.globalize_path(base + suffix)
+			if FileAccess.file_exists(path):
+				DirAccess.remove_absolute(path)
 
 
 func _say(user_id: String, text: String) -> void:
