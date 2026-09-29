@@ -66,11 +66,11 @@ func _start_race(count: int) -> void:
 ## Every marble crosses the finish, best place to worst in the given id order.
 func _finish_marbles(order: Array[int]) -> void:
 	var track: Track = _current_track()
-	var marbles: Array[Marble] = _race.get_marbles()
+	assert_not_null(track, "a track is loaded")
 	for id: int in order:
-		for marble: Marble in marbles:
-			if marble.id == id:
-				track.marble_reached_finish.emit(marble)
+		var marble: Marble = _marble(id)
+		assert_not_null(marble, "marble %d exists" % id)
+		track.marble_reached_finish.emit(marble)
 
 
 func _current_track() -> Track:

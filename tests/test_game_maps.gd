@@ -34,15 +34,15 @@ func test_race_uses_selected_map() -> void:
 	assert_eq(_race.get_marbles().size(), 2)
 
 
-func test_random_map_picks_a_known_map_and_changes_each_lobby() -> void:
-	_panel.map_selected.emit("zigzag")
+func test_random_map_avoids_repeating_the_last_map() -> void:
 	_panel.map_selected.emit(TrackCatalog.RANDOM_ID)
-	var seen: Dictionary = {}
+	var last: String = _current_track().scene_file_path
 	for i: int in 6:
-		seen[_current_track().scene_file_path] = true
 		_panel.stop_pressed.emit()
 		_panel.open_lobby_pressed.emit()
-	assert_eq(seen.size(), TrackCatalog.ids().size(), "random avoids repeating the last map")
+		var path: String = _current_track().scene_file_path
+		assert_ne(path, last, "lobby %d repeated the previous map" % i)
+		last = path
 
 
 func test_stop_and_reopen_keeps_map_and_clears_marbles() -> void:

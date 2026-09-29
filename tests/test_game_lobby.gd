@@ -130,3 +130,26 @@ func test_timeout_with_a_finisher_still_pays_the_winner() -> void:
 	await wait_physics_frames(2)
 	assert_eq(_flow.state, GameFlow.State.PODIUM)
 	assert_eq(_balance("100"), 900 + 300)
+
+
+func test_join_during_countdown_is_rejected() -> void:
+	_join(1)
+	_panel.start_pressed.emit()
+	_say("9", "#join")
+	assert_eq(_flow.get_contestants().size(), 1)
+	assert_eq(_source.sent.size(), 1)
+
+
+func test_stop_from_podium_goes_idle() -> void:
+	_start_race(2)
+	_finish_marbles([0, 1])
+	_panel.stop_pressed.emit()
+	assert_eq(_flow.state, GameFlow.State.IDLE)
+	assert_eq(_race.get_marbles().size(), 0)
+
+
+func test_debug_players_button_joins_fake_viewers() -> void:
+	_panel.add_debug_players_pressed.emit(3)
+	assert_eq(_flow.get_contestants().size(), 3)
+	_panel.add_debug_players_pressed.emit(5)
+	assert_eq(_flow.get_contestants().size(), 4, "capped at max_players")

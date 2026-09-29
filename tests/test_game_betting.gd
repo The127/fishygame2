@@ -34,11 +34,7 @@ func test_second_bet_same_round_rejected() -> void:
 	_say("100", "#bet user0 100")
 	watch_signals(_betting)
 	_say("100", "#bet user1 100")
-	assert_signal_emitted_with_parameters(
-		_betting,
-		"bet_rejected",
-		[get_signal_parameters(_betting, "bet_rejected", 0)[0], "already_bet"]
-	)
+	assert_eq(get_signal_parameters(_betting, "bet_rejected", 0)[1], "already_bet")
 	assert_eq(_balance("100"), 900)
 
 
@@ -167,3 +163,12 @@ func test_new_lobby_forgets_previous_roster_for_bets() -> void:
 	watch_signals(_betting)
 	_say("100", "#bet user0 100")
 	assert_eq(get_signal_parameters(_betting, "bet_rejected", 0)[1], "unknown_fish")
+
+
+func test_bet_during_podium_rejected() -> void:
+	_start_race(2)
+	_finish_marbles([0, 1])
+	watch_signals(_betting)
+	_say("100", "#bet user0 100")
+	assert_eq(get_signal_parameters(_betting, "bet_rejected", 0)[1], "closed")
+	assert_eq(_balance("100"), 1000)
