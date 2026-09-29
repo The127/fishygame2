@@ -160,6 +160,12 @@ tests/run_race_seeds.sh godot 1 100                  # every map, 10 marbles, se
 MARBLES=20 tests/run_race_seeds.sh godot 1 100 pachinko
 ```
 
+Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
+collapsing planks on Shipwreck. Events are planned from the race seed, so a seed replays the same
+ones, and the seed runs above have them on (frequency 3). Pass `--hazards=0` to
+`scenes/debug/race_debug.tscn` to run without them. Streamers turn them off or change how often
+they strike in Settings > Race.
+
 Basic sanity checks:
 
 ```sh

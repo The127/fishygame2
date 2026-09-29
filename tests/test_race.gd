@@ -149,3 +149,24 @@ func test_photo_finish_only_for_the_winner() -> void:
 	watch_signals(race)
 	track.marble_reached_finish.emit(marbles[1])
 	assert_signal_not_emitted(race, "photo_finish")
+
+
+func test_hazards_arm_with_the_race_and_disarm_when_it_is_cleared() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 2, _rng(1))
+	assert_false(track.get_hazards()[0].is_armed(), "off by default")
+	race.start(track, 2, _rng(1), 3)
+	assert_true(track.get_hazards()[0].is_armed())
+	race.clear()
+	assert_false(track.get_hazards()[0].is_armed())
+
+
+func test_hazards_stop_when_the_race_finishes() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 1, _rng(1), 3)
+	track.marble_reached_finish.emit(race.get_marbles()[0])
+	assert_false(track.get_hazards()[0].is_armed())

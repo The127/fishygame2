@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
 [ext_resource type="Script" path="res://scripts/tracks/spinner.gd" id="2_spinner"]
+[ext_resource type="Script" path="res://scripts/tracks/plank_hazard.gd" id="3_plank"]
 
 [sub_resource type="PhysicsMaterial" id="PM_track"]
 friction = 0.6
@@ -39,22 +40,42 @@ physics_material_override = SubResource("PM_track")
 
 
 [node name="Collider" type="CollisionPolygon2D" parent="DeckA"]
-polygon = PackedVector2Array(30, 160, 1560, 360, 1557.15, 381.814, 27.148, 181.814)
+polygon = PackedVector2Array(30, 160, 1345.8, 332, 1342.948, 353.814, 27.148, 181.814)
 
 [node name="Visual" type="Polygon2D" parent="DeckA"]
 color = Color(0.35, 0.24, 0.14, 1)
-polygon = PackedVector2Array(30, 160, 1560, 360, 1557.15, 381.814, 27.148, 181.814)
+polygon = PackedVector2Array(30, 160, 1345.8, 332, 1342.948, 353.814, 27.148, 181.814)
 
 [node name="DeckB" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 
 [node name="Collider" type="CollisionPolygon2D" parent="DeckB"]
-polygon = PackedVector2Array(1890, 600, 330, 760, 332.245, 781.885, 1892.24, 621.885)
+polygon = PackedVector2Array(1890, 600, 548.4, 737.6, 550.645, 759.485, 1892.245, 621.885)
 
 [node name="Visual" type="Polygon2D" parent="DeckB"]
 color = Color(0.35, 0.24, 0.14, 1)
-polygon = PackedVector2Array(1890, 600, 330, 760, 332.245, 781.885, 1892.24, 621.885)
+polygon = PackedVector2Array(1890, 600, 548.4, 737.6, 550.645, 759.485, 1892.245, 621.885)
+
+[node name="DeckATail" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="DeckATail"]
+polygon = PackedVector2Array(1514.1, 354, 1560, 360, 1557.148, 381.814, 1511.248, 375.814)
+
+[node name="Visual" type="Polygon2D" parent="DeckATail"]
+color = Color(0.35, 0.24, 0.14, 1)
+polygon = PackedVector2Array(1514.1, 354, 1560, 360, 1557.148, 381.814, 1511.248, 375.814)
+
+[node name="DeckBTail" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="DeckBTail"]
+polygon = PackedVector2Array(376.8, 755.2, 330, 760, 332.245, 781.885, 379.045, 777.085)
+
+[node name="Visual" type="Polygon2D" parent="DeckBTail"]
+color = Color(0.35, 0.24, 0.14, 1)
+polygon = PackedVector2Array(376.8, 755.2, 330, 760, 332.245, 781.885, 379.045, 777.085)
 
 [node name="DeckC" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
@@ -110,6 +131,36 @@ polygon = PackedVector2Array(-60, -460, 1980, -460, 1980, -400, -60, -400)
 [node name="Visual" type="Polygon2D" parent="Ceiling"]
 color = Color(0.22, 0.17, 0.12, 1)
 polygon = PackedVector2Array(-60, -460, 1980, -460, 1980, -400, -60, -400)
+
+[node name="Planks" type="Node2D" parent="."]
+script = ExtResource("3_plank")
+kind = "plank"
+telegraph_seconds = 1.5
+active_seconds = 2.2
+
+[node name="PlankA" type="AnimatableBody2D" parent="Planks"]
+physics_material_override = SubResource("PM_track")
+position = Vector2(1514.1, 354)
+metadata/open_degrees = 70.0
+
+[node name="Collider" type="CollisionPolygon2D" parent="Planks/PlankA"]
+polygon = PackedVector2Array(-168.3, -22, 0, 0, -2.852, 21.814, -171.152, -0.186)
+
+[node name="Visual" type="Polygon2D" parent="Planks/PlankA"]
+color = Color(0.5, 0.34, 0.17, 1)
+polygon = PackedVector2Array(-168.3, -22, 0, 0, -2.852, 21.814, -171.152, -0.186)
+
+[node name="PlankB" type="AnimatableBody2D" parent="Planks"]
+physics_material_override = SubResource("PM_track")
+position = Vector2(376.8, 755.2)
+metadata/open_degrees = 25.0
+
+[node name="Collider" type="CollisionPolygon2D" parent="Planks/PlankB"]
+polygon = PackedVector2Array(171.6, -17.6, 0, 0, 2.245, 21.885, 173.845, 4.285)
+
+[node name="Visual" type="Polygon2D" parent="Planks/PlankB"]
+color = Color(0.5, 0.34, 0.17, 1)
+polygon = PackedVector2Array(171.6, -17.6, 0, 0, 2.245, 21.885, 173.845, 4.285)
 
 [node name="Propeller" type="AnimatableBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
@@ -228,45 +279,45 @@ polygon = PackedVector2Array(617, 657.308, 616.168, 662.561, 613.753, 667.3, 609
 physics_material_override = SubResource("PM_peg")
 
 [node name="Collider" type="CollisionShape2D" parent="Peg10"]
-position = Vector2(350, 814.41)
+position = Vector2(350, 802.41)
 shape = SubResource("Circle_peg")
 
 [node name="Visual" type="Polygon2D" parent="Peg10"]
 color = Color(0.95, 0.7, 0.25, 1)
-polygon = PackedVector2Array(367, 814.409, 366.168, 819.662, 363.753, 824.401, 359.992, 828.162, 355.253, 830.577, 350, 831.409, 344.747, 830.577, 340.008, 828.162, 336.247, 824.401, 333.832, 819.662, 333, 814.409, 333.832, 809.155, 336.247, 804.416, 340.008, 800.655, 344.747, 798.241, 350, 797.409, 355.253, 798.241, 359.992, 800.655, 363.753, 804.416, 366.168, 809.155)
+polygon = PackedVector2Array(367, 802.409, 366.168, 807.662, 363.753, 812.401, 359.992, 816.162, 355.253, 818.577, 350, 819.409, 344.747, 818.577, 340.008, 816.162, 336.247, 812.401, 333.832, 807.662, 333, 802.409, 333.832, 797.155, 336.247, 792.416, 340.008, 788.655, 344.747, 786.241, 350, 785.409, 355.253, 786.241, 359.992, 788.655, 363.753, 792.416, 366.168, 797.155)
 
 [node name="Peg11" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
 
 [node name="Collider" type="CollisionShape2D" parent="Peg11"]
-position = Vector2(650, 846.67)
+position = Vector2(650, 834.67)
 shape = SubResource("Circle_peg")
 
 [node name="Visual" type="Polygon2D" parent="Peg11"]
 color = Color(0.95, 0.7, 0.25, 1)
-polygon = PackedVector2Array(667, 846.667, 666.168, 851.92, 663.753, 856.659, 659.992, 860.42, 655.253, 862.835, 650, 863.667, 644.747, 862.835, 640.008, 860.42, 636.247, 856.659, 633.832, 851.92, 633, 846.667, 633.832, 841.413, 636.247, 836.674, 640.008, 832.913, 644.747, 830.499, 650, 829.667, 655.253, 830.499, 659.992, 832.913, 663.753, 836.674, 666.168, 841.413)
+polygon = PackedVector2Array(667, 834.667, 666.168, 839.92, 663.753, 844.659, 659.992, 848.42, 655.253, 850.835, 650, 851.667, 644.747, 850.835, 640.008, 848.42, 636.247, 844.659, 633.832, 839.92, 633, 834.667, 633.832, 829.413, 636.247, 824.674, 640.008, 820.913, 644.747, 818.499, 650, 817.667, 655.253, 818.499, 659.992, 820.913, 663.753, 824.674, 666.168, 829.413)
 
 [node name="Peg12" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
 
 [node name="Collider" type="CollisionShape2D" parent="Peg12"]
-position = Vector2(950, 878.92)
+position = Vector2(950, 866.92)
 shape = SubResource("Circle_peg")
 
 [node name="Visual" type="Polygon2D" parent="Peg12"]
 color = Color(0.95, 0.7, 0.25, 1)
-polygon = PackedVector2Array(967, 878.925, 966.168, 884.178, 963.753, 888.917, 959.992, 892.678, 955.253, 895.093, 950, 895.925, 944.747, 895.093, 940.008, 892.678, 936.247, 888.917, 933.832, 884.178, 933, 878.925, 933.832, 873.671, 936.247, 868.932, 940.008, 865.171, 944.747, 862.757, 950, 861.925, 955.253, 862.757, 959.992, 865.171, 963.753, 868.932, 966.168, 873.671)
+polygon = PackedVector2Array(967, 866.925, 966.168, 872.178, 963.753, 876.917, 959.992, 880.678, 955.253, 883.093, 950, 883.925, 944.747, 883.093, 940.008, 880.678, 936.247, 876.917, 933.832, 872.178, 933, 866.925, 933.832, 861.671, 936.247, 856.932, 940.008, 853.171, 944.747, 850.757, 950, 849.925, 955.253, 850.757, 959.992, 853.171, 963.753, 856.932, 966.168, 861.671)
 
 [node name="Peg13" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
 
 [node name="Collider" type="CollisionShape2D" parent="Peg13"]
-position = Vector2(1250, 911.18)
+position = Vector2(1250, 899.18)
 shape = SubResource("Circle_peg")
 
 [node name="Visual" type="Polygon2D" parent="Peg13"]
 color = Color(0.95, 0.7, 0.25, 1)
-polygon = PackedVector2Array(1267, 911.183, 1266.17, 916.436, 1263.75, 921.175, 1259.99, 924.936, 1255.25, 927.351, 1250, 928.183, 1244.75, 927.351, 1240.01, 924.936, 1236.25, 921.175, 1233.83, 916.436, 1233, 911.183, 1233.83, 905.93, 1236.25, 901.19, 1240.01, 897.43, 1244.75, 895.015, 1250, 894.183, 1255.25, 895.015, 1259.99, 897.43, 1263.75, 901.19, 1266.17, 905.93)
+polygon = PackedVector2Array(1267, 899.183, 1266.17, 904.436, 1263.75, 909.175, 1259.99, 912.936, 1255.25, 915.351, 1250, 916.183, 1244.75, 915.351, 1240.01, 912.936, 1236.25, 909.175, 1233.83, 904.436, 1233, 899.183, 1233.83, 893.93, 1236.25, 889.19, 1240.01, 885.43, 1244.75, 883.015, 1250, 882.183, 1255.25, 883.015, 1259.99, 885.43, 1263.75, 889.19, 1266.17, 893.93)
 
 [node name="Centerline" type="Path2D" parent="."]
 curve = SubResource("Curve_center")

@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
+[ext_resource type="Script" path="res://scripts/tracks/current_hazard.gd" id="2_current"]
 
 [sub_resource type="PhysicsMaterial" id="PM_track"]
 friction = 0.6
@@ -21,6 +22,15 @@ _data = {
 "points": PackedVector2Array(0, 0, 0, 0, 60, 139.306, 0, 0, 0, 0, 1500, 394, 0, 0, 0, 0, 1500, 529, 0, 0, 0, 0, 330, 694, 0, 0, 0, 0, 330, 784.928, 0, 0, 0, 0, 1000, 854, 0, 0, 0, 0, 1580, 950, 0, 0, 0, 0, 1580, 1030)
 }
 point_count = 8
+
+[sub_resource type="RectangleShape2D" id="Rect_current_1"]
+size = Vector2(1134.54, 90)
+
+[sub_resource type="RectangleShape2D" id="Rect_current_2"]
+size = Vector2(1197.332, 90)
+
+[sub_resource type="RectangleShape2D" id="Rect_current_3"]
+size = Vector2(741.107, 90)
 
 [node name="Track" type="Node2D"]
 script = ExtResource("1_track")
@@ -186,6 +196,33 @@ shape = SubResource("Circle_bump")
 [node name="Visual" type="Polygon2D" parent="Bumper6"]
 color = Color(0.95, 0.35, 0.45, 1)
 polygon = PackedVector2Array(1597, 915, 1596.42, 919.4, 1594.72, 923.5, 1592.02, 927.021, 1588.5, 929.722, 1584.4, 931.421, 1580, 932, 1575.6, 931.421, 1571.5, 929.722, 1567.98, 927.021, 1565.28, 923.5, 1563.58, 919.4, 1563, 915, 1563.58, 910.6, 1565.28, 906.5, 1567.98, 902.979, 1571.5, 900.278, 1575.6, 898.579, 1580, 898, 1584.4, 898.579, 1588.5, 900.278, 1592.02, 902.979, 1594.72, 906.5, 1596.42, 910.6)
+
+[node name="Currents" type="Node2D" parent="."]
+script = ExtResource("2_current")
+kind = "current"
+telegraph_seconds = 1.5
+active_seconds = 2.8
+
+[node name="Zone1" type="Area2D" parent="Currents"]
+position = Vector2(772.838, 235.688)
+rotation = 0.175
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Currents/Zone1"]
+shape = SubResource("Rect_current_1")
+
+[node name="Zone2" type="Area2D" parent="Currents"]
+position = Vector2(1103.716, 555.441)
+rotation = 3.001
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Currents/Zone2"]
+shape = SubResource("Rect_current_2")
+
+[node name="Zone3" type="Area2D" parent="Currents"]
+position = Vector2(519.615, 775.237)
+rotation = 0.103
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Currents/Zone3"]
+shape = SubResource("Rect_current_3")
 
 [node name="Centerline" type="Path2D" parent="."]
 curve = SubResource("Curve_center")

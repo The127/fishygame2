@@ -28,6 +28,8 @@ func test_defaults_match_the_game_defaults() -> void:
 	assert_false(settings.auto_mode)
 	assert_eq(settings.auto_join_seconds, 60)
 	assert_eq(settings.default_map, GameSettings.RANDOM_MAP)
+	assert_true(settings.hazards_enabled)
+	assert_eq(settings.hazard_frequency, 3)
 
 
 func test_save_and_load_round_trip() -> void:
@@ -39,6 +41,8 @@ func test_save_and_load_round_trip() -> void:
 	settings.chat_replies = false
 	settings.auto_mode = true
 	settings.auto_join_seconds = 90
+	settings.hazards_enabled = false
+	settings.hazard_frequency = 5
 	assert_true(settings.save())
 	var loaded := GameSettings.new(PATH)
 	loaded.load_settings()
@@ -49,6 +53,8 @@ func test_save_and_load_round_trip() -> void:
 	assert_false(loaded.chat_replies)
 	assert_true(loaded.auto_mode)
 	assert_eq(loaded.auto_join_seconds, 90)
+	assert_false(loaded.hazards_enabled)
+	assert_eq(loaded.hazard_frequency, 5)
 
 
 func test_missing_file_keeps_defaults() -> void:

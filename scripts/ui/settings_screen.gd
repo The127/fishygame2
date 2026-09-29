@@ -17,6 +17,8 @@ const TABS: Array[Dictionary] = [
 			"max_players",
 			"countdown_seconds",
 			"default_map",
+			"hazards_enabled",
+			"hazard_frequency",
 			"auto_mode",
 			"auto_join_seconds",
 		],
@@ -59,6 +61,7 @@ var _spinners: Dictionary[String, SpinBox] = {}
 var _captions: Dictionary[String, String] = {}
 var _map_picker: OptionButton
 var _auto_mode: CheckBox
+var _hazards: CheckBox
 var _chat_replies: CheckBox
 var _colorblind: CheckBox
 var _status: Label
@@ -186,6 +189,10 @@ func _build_controls() -> Dictionary[String, Control]:
 	UiStyle.style_button(_map_picker, 20)
 	_captions["default_map"] = "Default map"
 	controls["default_map"] = _map_picker
+	_hazards = _make_check("On")
+	_hazards.toggled.connect(_on_hazards_toggled)
+	_captions["hazards_enabled"] = "Map hazards (currents, eels, planks)"
+	controls["hazards_enabled"] = _hazards
 	_auto_mode = _make_check("On")
 	_auto_mode.toggled.connect(_on_auto_mode_toggled)
 	_captions["auto_mode"] = "Auto mode (rounds run on their own)"
@@ -262,6 +269,8 @@ func _refresh() -> void:
 	for i: int in _map_picker.item_count:
 		if String(_map_picker.get_item_metadata(i)) == settings.default_map:
 			_map_picker.select(i)
+	_hazards.set_pressed_no_signal(settings.hazards_enabled)
+	_spinners["hazard_frequency"].editable = settings.hazards_enabled
 	_auto_mode.set_pressed_no_signal(settings.auto_mode)
 	_chat_replies.set_pressed_no_signal(settings.chat_replies)
 	_colorblind.set_pressed_no_signal(settings.colorblind)
@@ -281,6 +290,11 @@ func _on_number_changed(value: float, key: String) -> void:
 
 func _on_map_picked(index: int) -> void:
 	settings.default_map = String(_map_picker.get_item_metadata(index))
+	_commit()
+
+
+func _on_hazards_toggled(pressed: bool) -> void:
+	settings.hazards_enabled = pressed
 	_commit()
 
 
