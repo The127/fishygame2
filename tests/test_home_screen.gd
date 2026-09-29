@@ -2,6 +2,10 @@ extends GutTest
 ## Home screen layout and marble wrapping.
 
 
+func _make_home() -> HomeScreen:
+	return (load("res://scenes/ui/home_screen.tscn") as PackedScene).instantiate() as HomeScreen
+
+
 func _make_marbles(area: Vector2) -> HomeMarbles:
 	var marbles: HomeMarbles = HomeMarbles.new()
 	add_child_autofree(marbles)
@@ -31,10 +35,6 @@ func test_wrap_keeps_positions_inside_margin() -> void:
 	assert_almost_eq(wrapped.y, 600.0 + m - 10.0, 0.001)
 	var inside: Vector2 = Vector2(100, 200)
 	assert_eq(marbles._wrap(inside), inside, "positions in range are unchanged")
-
-
-func _make_home() -> HomeScreen:
-	return (load("res://scenes/ui/home_screen.tscn") as PackedScene).instantiate()
 
 
 func test_title_fits_narrow_window() -> void:
@@ -74,3 +74,14 @@ func test_settings_screen_edits_and_resets_the_settings() -> void:
 	screen.reset_pressed()
 	assert_eq(screen.settings.max_players, 20)
 	assert_eq(spinner.value, 20.0)
+
+
+func test_home_board_hidden_until_someone_is_ranked() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	var store := PointsStore.new("", 100)
+	home.show_leaderboard(store)
+	assert_false(home._board.visible)
+	store.add_win("1")
+	home.show_leaderboard(store)
+	assert_true(home._board.visible)

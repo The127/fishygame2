@@ -15,7 +15,7 @@ signal bets_changed(summary: String)
 ## One entry per bet: {user_id, name, target, amount, payout}. payout is 0 for a lost bet.
 signal payouts_settled(results: Array[Dictionary])
 
-@export var points_path: String = "user://points.json"
+@export var points_path: String = PointsStore.DEFAULT_PATH
 @export var starting_balance: int = 1000
 ## Smallest accepted bet.
 @export var min_bet: int = 1
@@ -133,6 +133,8 @@ func on_podium_ready(podium: Array[Dictionary]) -> void:
 	if winner_id.is_empty():
 		_refund_all()
 		return
+	points.add_win(winner_id)
+	points.set_name(winner_id, str(podium[0]["name"]))
 	var odds: int = _roster.size()
 	var results: Array[Dictionary] = []
 	for user_id: String in _bets:

@@ -13,6 +13,9 @@ var _lobby_header: Label
 var _lobby_status: Label
 var _lobby_names: GridContainer
 var _lobby_key: String = ""
+var _board_panel: PanelContainer
+var _board: LeaderboardPanel
+var _board_has_rows: bool = false
 var _big: Label
 var _results_column: VBoxContainer
 var _podium_panel: PanelContainer
@@ -28,6 +31,7 @@ var _notice_timer: Timer
 
 func _ready() -> void:
 	_build_lobby()
+	_build_board()
 	_build_countdown()
 	_build_results()
 	_build_bets()
@@ -49,6 +53,13 @@ func clear() -> void:
 
 func show_idle() -> void:
 	clear()
+
+
+## All-time board shown next to the lobby (see PointsStore.top_by_points and top_by_wins).
+func set_leaderboard(points_rows: Array[Dictionary], wins_rows: Array[Dictionary]) -> void:
+	_board_has_rows = _board.set_rows(points_rows, wins_rows)
+	if _lobby_panel.visible:
+		_board_panel.visible = _board_has_rows
 
 
 func show_lobby(names: PackedStringArray, max_players: int, seconds_left: float) -> void:
@@ -73,6 +84,7 @@ func show_lobby(names: PackedStringArray, max_players: int, seconds_left: float)
 		_lobby_names.add_child(_make_label(player, 26, 600, UiStyle.TEXT))
 	_lobby_names.visible = not names.is_empty()
 	_lobby_panel.visible = true
+	_board_panel.visible = _board_has_rows
 
 
 func show_countdown(seconds_left: int) -> void:
@@ -134,6 +146,7 @@ func _clear_notice() -> void:
 func _clear_lobby() -> void:
 	_lobby_key = ""
 	_lobby_panel.visible = false
+	_board_panel.visible = false
 
 
 func _set_bets_text(text: String) -> void:
@@ -157,6 +170,18 @@ func _build_lobby() -> void:
 	_lobby_names.add_theme_constant_override("h_separation", 40)
 	_lobby_names.add_theme_constant_override("v_separation", 2)
 	box.add_child(_lobby_names)
+
+
+func _build_board() -> void:
+	_board_panel = _make_panel(false)
+	add_child(_board_panel)
+	_board = LeaderboardPanel.new()
+	_board_panel.add_child(_board)
+	# Top-right, growing to the left and down with its content.
+	_board_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_board_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_board_panel.offset_top = MARGIN
+	_board_panel.offset_right = -MARGIN
 
 
 func _build_countdown() -> void:

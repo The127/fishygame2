@@ -13,6 +13,8 @@ const TITLE_MIN_FONT_SIZE: int = 36
 ## Window width at which the title uses its full size on a single line.
 const TITLE_FULL_WIDTH: float = 1100.0
 
+var _board: LeaderboardPanel
+
 @onready var _box: VBoxContainer = $Center/Box
 @onready var _title: Label = $Center/Box/Title
 @onready var _open_lobby: Button = $Center/Box/OpenLobby
@@ -24,6 +26,11 @@ const TITLE_FULL_WIDTH: float = 1100.0
 
 
 func _ready() -> void:
+	_board = LeaderboardPanel.new()
+	_board.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_box.add_child(_board)
+	_box.move_child(_board, _settings.get_index() + 1)
+	show_leaderboard(_load_store())
 	_open_lobby.pressed.connect(_on_open_lobby_pressed)
 	_settings.pressed.connect(_on_settings_pressed)
 	UiStyle.style_button(_settings, 28)
@@ -35,6 +42,19 @@ func _ready() -> void:
 	_fit_to_window()
 	_open_lobby.grab_focus()
 	_refresh_login()
+
+
+## Fills the all-time board from [param store]; hidden while nobody is ranked.
+func show_leaderboard(store: PointsStore) -> void:
+	_board.visible = _board.set_rows(
+		store.top_by_points(LeaderboardPanel.ROWS), store.top_by_wins(LeaderboardPanel.ROWS)
+	)
+
+
+func _load_store() -> PointsStore:
+	var store := PointsStore.new(PointsStore.DEFAULT_PATH)
+	store.load_from_disk()
+	return store
 
 
 ## Keeps the title (and the box around it) inside the window: the box narrows

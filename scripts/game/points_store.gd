@@ -11,8 +11,14 @@ extends RefCounted
 ## On the web the file lives in IndexedDB, which the engine flushes a few seconds after a write,
 ## so a reload right after settlement could lose it. Every save is therefore also mirrored to
 ## localStorage (synchronous) and the newer of the two copies wins on load.
+##
+## Also keeps the all-time leaderboard data: race wins per viewer and the last display name
+## seen for each viewer. Version 1 files have neither; they load with no wins and no names.
 
-const FORMAT_VERSION: int = 1
+const FORMAT_VERSION: int = 2
+const DEFAULT_PATH: String = "user://points.json"
+## Longest display name kept for the leaderboard.
+const MAX_NAME_LENGTH: int = 32
 ## Balances are clamped to this so payouts can never overflow a 64-bit int.
 const MAX_BALANCE: int = 1_000_000_000_000
 
@@ -25,6 +31,10 @@ var _balances: Dictionary = {}
 var _stakes: Dictionary = {}
 ## Save time (unix seconds) of the copy that was loaded last; 0 if it had none.
 var _loaded_at: float = 0.0
+## user_id -> races won.
+var _wins: Dictionary = {}
+## user_id -> last known display name.
+var _names: Dictionary = {}
 
 
 func _init(p_save_path: String = "", p_starting_balance: int = 1000) -> void:
@@ -84,6 +94,39 @@ func refund_stakes() -> int:
 	return count
 
 
+func get_wins(user_id: String) -> int:
+	return int(_wins.get(user_id, 0))
+
+
+func add_win(user_id: String) -> int:
+	# A winner is always ranked on the points board, even without ever betting.
+	_balances[user_id] = get_balance(user_id)
+	_wins[user_id] = mini(get_wins(user_id) + 1, MAX_BALANCE)
+	return get_wins(user_id)
+
+
+## Remembers how to show the viewer on the leaderboard. Empty names are ignored.
+func set_name(user_id: String, display_name: String) -> void:
+	var trimmed: String = display_name.strip_edges().left(MAX_NAME_LENGTH)
+	if not trimmed.is_empty():
+		_names[user_id] = trimmed
+
+
+func get_name(user_id: String) -> String:
+	return str(_names.get(user_id, user_id))
+
+
+## Viewers with the most points, best first: [{user_id, name, points, wins}].
+## Only viewers the store has an entry for (they bet or won at least once) are ranked.
+func top_by_points(count: int) -> Array[Dictionary]:
+	return _top(_balances, "points", count)
+
+
+## Viewers with the most race wins, best first. Viewers without a win are left out.
+func top_by_wins(count: int) -> Array[Dictionary]:
+	return _top(_wins, "wins", count)
+
+
 ## Loads balances from [member save_path]. A missing file is not an error (returns true).
 ## If the main file is unreadable the backup is used (returns true); if that fails too the
 ## unreadable file is moved aside, the store is left empty and false is returned.
@@ -91,6 +134,8 @@ func load_from_disk() -> bool:
 	_balances.clear()
 	_stakes.clear()
 	_loaded_at = 0.0
+	_wins.clear()
+	_names.clear()
 	if save_path.is_empty():
 		return true
 	var ok: bool = _load_files()
@@ -135,6 +180,8 @@ func save_to_disk() -> bool:
 				"saved_at": Time.get_unix_time_from_system(),
 				"balances": _balances,
 				"stakes": _stakes,
+				"wins": _wins,
+				"names": _names,
 			}
 		)
 	)
@@ -219,6 +266,11 @@ func _apply(data: Dictionary) -> void:
 	_balances = _clean(data["balances"])
 	_stakes = _clean(data.get("stakes", {}))
 	_loaded_at = _saved_at(data)
+	# Cosmetic data: a bad value here must not cost anyone their balance.
+	var wins: Variant = data.get("wins", {})
+	_wins = _clean(wins) if wins is Dictionary else {}
+	var names: Variant = data.get("names", {})
+	_names = _clean_names(names) if names is Dictionary else {}
 
 
 ## Returns the parsed save data, or an empty dictionary if the file is missing or invalid.
@@ -254,6 +306,41 @@ func _clean(raw: Dictionary) -> Dictionary:
 				int(clampf(float(value), 0.0, float(MAX_BALANCE))), 0, MAX_BALANCE
 			)
 	return cleaned
+
+
+func _clean_names(raw: Dictionary) -> Dictionary:
+	var cleaned: Dictionary = {}
+	for user_id: Variant in raw:
+		var value: Variant = raw[user_id]
+		if value is String and not (value as String).strip_edges().is_empty():
+			cleaned[str(user_id)] = (value as String).strip_edges().left(MAX_NAME_LENGTH)
+	return cleaned
+
+
+## Ranks the ids of [param source] by [param key] ("points" or "wins"), then name, then id.
+## Rows with nothing to show (a win count of zero) are left out.
+func _top(source: Dictionary, key: String, count: int) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	for user_id: String in source:
+		var row: Dictionary = {
+			"user_id": user_id,
+			"name": get_name(user_id),
+			"points": get_balance(user_id),
+			"wins": get_wins(user_id),
+		}
+		if key == "points" or int(row[key]) > 0:
+			rows.append(row)
+	rows.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			if a[key] != b[key]:
+				return a[key] > b[key]
+			var a_name: String = (a["name"] as String).to_lower()
+			var b_name: String = (b["name"] as String).to_lower()
+			if a_name != b_name:
+				return a_name < b_name
+			return (a["user_id"] as String) < (b["user_id"] as String)
+	)
+	return rows.slice(0, maxi(count, 0))
 
 
 func _quarantine(path: String) -> void:
