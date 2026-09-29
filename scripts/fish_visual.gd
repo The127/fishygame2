@@ -3,21 +3,65 @@ extends Node2D
 ## Procedural fish drawing. It faces its `heading` (radians) and never spins
 ## with the rolling body, so the fish stays right side up.
 
-const LENGTH: float = 15.0
-const HEIGHT: float = 10.0
+## Body shapes, picked per marble so fish read by outline. `length` and `height` are
+## half extents, `peak` shifts the deepest point (below 1 toward the head), `tail` is
+## the tail fin length, `dorsal` and `belly` the fin heights.
+const SPECIES: Array[Dictionary] = [
+	{
+		"length": 15.0,
+		"height": 8.0,
+		"peak": 0.85,
+		"tail": 9.0,
+		"spread": 7.0,
+		"dorsal": 6.0,
+		"belly": 3.0
+	},
+	{
+		"length": 12.0,
+		"height": 11.0,
+		"peak": 1.0,
+		"tail": 6.0,
+		"spread": 6.0,
+		"dorsal": 9.0,
+		"belly": 6.0
+	},
+	{
+		"length": 17.0,
+		"height": 5.5,
+		"peak": 1.1,
+		"tail": 8.0,
+		"spread": 4.0,
+		"dorsal": 4.0,
+		"belly": 2.0
+	},
+	{
+		"length": 14.0,
+		"height": 10.0,
+		"peak": 0.7,
+		"tail": 7.0,
+		"spread": 8.0,
+		"dorsal": 10.0,
+		"belly": 8.0
+	},
+]
+const OUTLINE: Color = Color(0.01, 0.02, 0.035, 0.95)
+const BODY_STEPS: int = 20
 
 var color: Color = Color.WHITE:
 	set(value):
 		color = value
 		queue_redraw()
 
+## Index into SPECIES, wrapped.
+var species: int = 0
 var heading: float = 0.0
 ## Steady glow tint, e.g. a curse. Transparent means the glow follows `color`.
 var aura: Color = Color.TRANSPARENT
 ## While true the glow pulses gold.
 var celebrating: bool = false
 
-var _time: float = 0.0
+var _time: float = randf() * TAU
+var _speed: float = 0.0
 var _flash_color: Color = Color.WHITE
 var _flash_total: float = 0.0
 var _flash_left: float = 0.0
@@ -51,6 +95,7 @@ func flash(flash_tint: Color, seconds: float = 0.6) -> void:
 
 ## Points the fish along a travel direction. Slow or still marbles keep their last heading.
 func face(velocity: Vector2, delta: float) -> void:
+	_speed = velocity.length()
 	if velocity.length() > 20.0:
 		heading = lerp_angle(heading, velocity.angle(), clampf(delta * 10.0, 0.0, 1.0))
 	global_position = get_parent().global_position
@@ -80,48 +125,92 @@ func _update_glow() -> void:
 
 
 func _draw() -> void:
-	var dark: Color = color.darkened(0.35)
-	var light: Color = color.lightened(0.45)
-	var wag: float = sin(_time * 12.0) * 3.0
-	# Tail.
-	draw_colored_polygon(
-		PackedVector2Array(
-			[
-				Vector2(-LENGTH * 0.6, 0),
-				Vector2(-LENGTH - 4.0, -HEIGHT * 0.7 + wag),
-				Vector2(-LENGTH - 1.0, wag * 0.4),
-				Vector2(-LENGTH - 4.0, HEIGHT * 0.7 + wag),
-			]
-		),
-		dark
+	var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
+	var length: float = sp["length"]
+	var height: float = sp["height"]
+	var swim: float = clampf(_speed / 300.0, 0.0, 1.0)
+	var wag: float = sin(_time * (7.0 + 5.0 * swim)) * (1.5 + 2.5 * swim)
+	var flutter: float = sin(_time * 6.0 + 1.3) * 1.5
+	# Dark, desaturated body; the viewer color lives in the glowing accents.
+	var back: Color = Color.from_hsv(color.h, color.s * 0.95, color.v * 0.5)
+	var belly_col: Color = Color.from_hsv(color.h, color.s * 0.7, color.v * 0.85)
+	var fin_col: Color = Color.from_hsv(color.h, color.s, color.v * 0.7, 0.92)
+	var accent: Color = color.lightened(0.25)
+	var pulse: float = 0.75 + 0.25 * sin(_time * 2.5)
+	_draw_tail(sp, fin_col, accent, wag)
+	_draw_fins(sp, fin_col, accent, flutter)
+	# Body: shaded back to belly, dark rim so it separates from the background.
+	var top := PackedVector2Array()
+	var bottom := PackedVector2Array()
+	for i: int in BODY_STEPS + 1:
+		var u: float = float(i) / float(BODY_STEPS)
+		var h: float = height * pow(sin(PI * pow(u, sp["peak"])), 0.8)
+		h = maxf(h, height * 0.16)
+		var x: float = length - 2.0 * length * u
+		top.append(Vector2(x, -h))
+		bottom.append(Vector2(x, h * 0.9))
+	var body := PackedVector2Array(top)
+	var colors := PackedColorArray()
+	for i: int in bottom.size():
+		body.append(bottom[bottom.size() - 1 - i])
+	for p: Vector2 in body:
+		colors.append(back.lerp(belly_col, clampf(p.y / height * 0.5 + 0.5, 0.0, 1.0)))
+	draw_polygon(body, colors)
+	draw_polyline(body + PackedVector2Array([body[0]]), OUTLINE, 2.5)
+	# Glowing lateral stripe and back edge.
+	var stripe := PackedVector2Array()
+	for i: int in 9:
+		var x: float = lerpf(length * 0.55, -length * 0.75, float(i) / 8.0)
+		stripe.append(Vector2(x, -height * 0.05 + sin(float(i) * 0.9 + _time * 3.0) * 0.5))
+	draw_polyline(stripe, Color(accent.r, accent.g, accent.b, pulse), 1.8)
+	draw_polyline(top, Color(accent.r, accent.g, accent.b, 0.55), 1.0)
+	# Glowing eye.
+	var eye := Vector2(length * 0.5, -height * 0.25)
+	draw_circle(eye, 3.2, OUTLINE)
+	draw_circle(eye, 2.2, accent.lightened(0.5))
+	draw_circle(eye + Vector2(0.6, 0), 1.0, OUTLINE)
+
+
+func _draw_tail(sp: Dictionary, fin_col: Color, accent: Color, wag: float) -> void:
+	var length: float = sp["length"]
+	var tail: float = sp["tail"]
+	var spread: float = sp["spread"]
+	var base := Vector2(-length * 0.85, 0.0)
+	var points := PackedVector2Array(
+		[
+			base + Vector2(0.0, -1.5),
+			Vector2(-length - tail, -spread + wag),
+			Vector2(-length - tail * 0.55, wag * 0.5),
+			Vector2(-length - tail, spread + wag),
+			base + Vector2(0.0, 1.5),
+		]
 	)
-	# Dorsal and belly fins.
-	draw_colored_polygon(
-		PackedVector2Array(
-			[Vector2(-5, -HEIGHT * 0.7), Vector2(2, -HEIGHT - 4.0), Vector2(5, -HEIGHT * 0.6)]
-		),
-		dark
+	draw_colored_polygon(points, fin_col)
+	draw_polyline(points.slice(1, 4), Color(accent.r, accent.g, accent.b, 0.8), 1.2)
+	draw_polyline(points, OUTLINE, 1.5)
+
+
+func _draw_fins(sp: Dictionary, fin_col: Color, accent: Color, flutter: float) -> void:
+	var length: float = sp["length"]
+	var height: float = sp["height"]
+	var dorsal: float = sp["dorsal"]
+	var belly: float = sp["belly"]
+	var edge := Color(accent.r, accent.g, accent.b, 0.8)
+	var top_fin := PackedVector2Array(
+		[
+			Vector2(length * 0.2, -height * 0.8),
+			Vector2(-length * 0.15 + flutter, -height - dorsal),
+			Vector2(-length * 0.55, -height * 0.7),
+		]
 	)
-	draw_colored_polygon(
-		PackedVector2Array(
-			[Vector2(-2, HEIGHT * 0.7), Vector2(2, HEIGHT + 2.0), Vector2(4, HEIGHT * 0.6)]
-		),
-		dark
+	var bottom_fin := PackedVector2Array(
+		[
+			Vector2(length * 0.05, height * 0.8),
+			Vector2(-length * 0.25 - flutter, height + belly),
+			Vector2(-length * 0.5, height * 0.65),
+		]
 	)
-	# Body: an ellipse, lighter belly, outline.
-	var body := PackedVector2Array()
-	var belly := PackedVector2Array()
-	for i: int in 24:
-		var a: float = TAU * float(i) / 24.0
-		var p := Vector2(cos(a) * LENGTH, sin(a) * HEIGHT)
-		body.append(p)
-		if p.y >= 0.0:
-			belly.append(Vector2(p.x, p.y * 0.55 + 3.0))
-	draw_colored_polygon(body, color)
-	draw_polyline(body + PackedVector2Array([body[0]]), dark, 1.5)
-	# Gill line, eye.
-	draw_arc(Vector2(5, 0), 7.0, PI * 0.65, PI * 1.35, 8, dark, 1.5)
-	draw_circle(Vector2(9, -2.5), 3.0, Color.WHITE)
-	draw_circle(Vector2(10, -2.5), 1.5, Color.BLACK)
-	if belly.size() > 2:
-		draw_polyline(belly, light, 1.0)
+	for fin: PackedVector2Array in [top_fin, bottom_fin]:
+		draw_colored_polygon(fin, fin_col)
+		draw_polyline(fin, OUTLINE, 1.5)
+		draw_line(fin[0], fin[1], edge, 1.2)
