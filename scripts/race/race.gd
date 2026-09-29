@@ -158,7 +158,9 @@ func _check_photo_finish(winner_id: int) -> void:
 			continue
 		var marble: Marble = _marbles[id]
 		var distance: float = marble.global_position.distance_to(finish)
-		var speed: float = marble.linear_velocity.length()
+		var to_finish: Vector2 = finish - marble.global_position
+		# Only the speed toward the gate counts, not sideways or backwards motion.
+		var speed: float = maxf(0.0, marble.linear_velocity.dot(to_finish.normalized()))
 		if PhotoFinish.is_close(distance, speed) and PhotoFinish.eta(distance, speed) < best_eta:
 			best_eta = PhotoFinish.eta(distance, speed)
 			chaser_id = id
