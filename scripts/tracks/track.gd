@@ -14,6 +14,8 @@ const FORWARD_SAMPLE: float = 30.0
 @export var spawn_spacing: float = 34.0
 ## World area the race camera may look at. Grow it if a map extends beyond the default frame.
 @export var view_bounds: Rect2 = Rect2(0.0, 0.0, 1920.0, 1080.0)
+## How strongly the fish glow, 1 is normal. Dark maps raise it so the fish carry the light.
+@export var fish_glow: float = 1.0
 ## Look of the map, a key of TrackStyle.PALETTES.
 @export var style_id: String = TrackStyle.DEFAULT_STYLE
 

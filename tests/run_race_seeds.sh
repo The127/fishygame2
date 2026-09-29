@@ -5,7 +5,7 @@
 GODOT="${1:-godot}"
 FIRST="${2:-1}"
 LAST="${3:-10}"
-MAPS="${4:-zigzag pachinko wreck whirlpool jelly}"
+MAPS="${4:-zigzag pachinko wreck whirlpool jelly abyss}"
 MARBLES="${MARBLES:-10}"
 status=0
 OUT="$(mktemp)"

@@ -73,3 +73,8 @@ static func handover_scale(time_left: float, total: float, min_scale: float) -> 
 		return 1.0
 	var t: float = 1.0 - clampf(time_left / total, 0.0, 1.0)
 	return lerpf(min_scale, 1.0, t * t * (3.0 - 2.0 * t))
+
+
+## Whether the focus moved so far in one update that it can only be a teleport, not a chase.
+static func is_jump(from: Vector2, to: Vector2, threshold: float) -> bool:
+	return from.distance_to(to) > threshold

@@ -64,6 +64,8 @@ var pattern: int = 0:
 		pattern = value
 		queue_redraw()
 var heading: float = 0.0
+## Scales the glow's strength and size, 1 is normal. Raised on dark maps.
+var glow_boost: float = 1.0
 ## Steady glow tint, e.g. a curse. Transparent means the glow follows `color`.
 var aura: Color = Color.TRANSPARENT
 ## While true the glow pulses gold.
@@ -129,8 +131,9 @@ func _update_glow() -> void:
 		var k: float = _flash_left / _flash_total
 		tint = tint.lerp(Color(_flash_color.r, _flash_color.g, _flash_color.b, 0.95), k)
 		glow_scale += 0.9 * k
+	tint.a = minf(tint.a * glow_boost, 1.0)
 	_glow.modulate = tint
-	_glow.scale = Vector2.ONE * glow_scale * 1.1
+	_glow.scale = Vector2.ONE * glow_scale * 1.1 * lerpf(1.0, glow_boost, 0.6)
 
 
 func _draw() -> void:

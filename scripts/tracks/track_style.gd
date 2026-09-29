@@ -95,6 +95,24 @@ const PALETTES: Dictionary = {
 		"far_kind": EnvLayer.Kind.SPIRES,
 		"sway_scale": 1.6,
 	},
+	"abyss":
+	{
+		"sky_top": Color(0.006, 0.018, 0.045),
+		"sky_bottom": Color(0.0, 0.004, 0.014),
+		"far": Color(0.01, 0.028, 0.05),
+		"mid": Color(0.008, 0.022, 0.04),
+		"near": Color(0.0, 0.004, 0.012),
+		"plant": Color(0.012, 0.045, 0.06),
+		"stone_dark": Color(0.025, 0.04, 0.065),
+		"stone_light": Color(0.09, 0.14, 0.19),
+		"rim": Color(0.3, 0.85, 0.9),
+		"ray": Color(0.08, 0.22, 0.3),
+		"fog": Color(0.02, 0.08, 0.14),
+		"mote": Color(0.4, 0.95, 1.0),
+		"layer_kind": EnvLayer.Kind.KELP,
+		"far_kind": EnvLayer.Kind.SPIRES,
+		"sway_scale": 0.7,
+	},
 }
 const DEFAULT_STYLE: String = "kelp"
 

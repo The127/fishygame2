@@ -31,6 +31,11 @@ const MAPS: Array[Dictionary] = [
 		"name": "Jellyfish Field",
 		"scene": preload("res://scenes/tracks/jelly_track.tscn"),
 	},
+	{
+		"id": "abyss",
+		"name": "Abyss",
+		"scene": preload("res://scenes/tracks/abyss_track.tscn"),
+	},
 ]
 
 

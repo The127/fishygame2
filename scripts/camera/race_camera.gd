@@ -23,6 +23,14 @@ const HANDOVER_MIN_SCALE: float = 0.25
 const MAX_PAN_SPEED: float = 900.0
 const MAX_ZOOM_SPEED: float = 0.6
 
+## When the followed group is sent far away in one go (a portal) the view glides after it:
+## the easing starts gentle and ramps up over JUMP_TIME, and the pan speed is capped.
+const JUMP_DISTANCE: float = 450.0
+const JUMP_TIME: float = 0.8
+const JUMP_MIN_SCALE: float = 0.6
+const JUMP_PAN_SPEED: float = 2600.0
+const JUMP_ZOOM_SPEED: float = 0.8
+
 ## Zoom used on the finish gate during a photo finish, before the play-area fit.
 const PHOTO_FRAME: Vector2 = Vector2(480.0, 270.0)
 ## Easing rate during the hold. Applied in real time, not slowed with the game.
@@ -35,6 +43,7 @@ var _target_center: Vector2 = Vector2(960.0, 540.0)
 var _target_zoom: float = MIN_ZOOM
 var _followed_count: int = 0
 var _handover_left: float = 0.0
+var _jump_left: float = 0.0
 var _focus_size: Vector2 = Vector2(1920.0, 1080.0)
 ## Where the camera looks (the middle of the play area), before the padding shift.
 var _center: Vector2 = Vector2(960.0, 540.0)
@@ -51,8 +60,10 @@ func _process(delta: float) -> void:
 		_process_hold(delta)
 		return
 	_handover_left = maxf(_handover_left - delta, 0.0)
-	var ease_scale: float = CameraFraming.handover_scale(
-		_handover_left, HANDOVER_TIME, HANDOVER_MIN_SCALE
+	_jump_left = maxf(_jump_left - delta, 0.0)
+	var ease_scale: float = minf(
+		CameraFraming.handover_scale(_handover_left, HANDOVER_TIME, HANDOVER_MIN_SCALE),
+		CameraFraming.handover_scale(_jump_left, JUMP_TIME, JUMP_MIN_SCALE)
 	)
 	var position_rate: float = (FOLLOW_POSITION_RATE if _following else OVERVIEW_RATE) * ease_scale
 	var zoom_rate: float = (FOLLOW_ZOOM_RATE if _following else OVERVIEW_RATE) * ease_scale
@@ -61,12 +72,16 @@ func _process(delta: float) -> void:
 	var zoom_step: float = (_target_zoom - zoom.x) * t_zoom
 	if _handover_left > 0.0:
 		zoom_step = clampf(zoom_step, -MAX_ZOOM_SPEED * delta, MAX_ZOOM_SPEED * delta)
+	elif _jump_left > 0.0:
+		zoom_step = clampf(zoom_step, -JUMP_ZOOM_SPEED * delta, JUMP_ZOOM_SPEED * delta)
 	var new_zoom: float = zoom.x + zoom_step
 	zoom = Vector2(new_zoom, new_zoom)
 	var current: Vector2 = _center
 	var step: Vector2 = (_target_center - current) * t_position
 	if _handover_left > 0.0:
 		step = step.limit_length(MAX_PAN_SPEED * delta)
+	elif _jump_left > 0.0:
+		step = step.limit_length(JUMP_PAN_SPEED * delta)
 	_center = CameraFraming.clamp_center(current + step, new_zoom, _play_size(), _bounds)
 	_place(new_zoom)
 
@@ -123,6 +138,7 @@ func show_overview(snap: bool = false) -> void:
 	_holding = false
 	_following = false
 	_followed_count = 0
+	_jump_left = 0.0
 	_target_zoom = CameraFraming.fit_zoom(
 		_bounds.size, _play_size(), _min_zoom(OVERVIEW_MIN_ZOOM), MAX_ZOOM
 	)
@@ -144,6 +160,8 @@ func follow(positions: Dictionary, progress: Dictionary) -> void:
 		show_overview()
 		return
 	var rect: Rect2 = CameraFraming.focus_rect(group, MARGIN, MIN_FRAME)
+	if _following and CameraFraming.is_jump(_target_center, rect.get_center(), JUMP_DISTANCE):
+		_jump_left = JUMP_TIME
 	_following = true
 	_focus_size = rect.size
 	_target_zoom = CameraFraming.fit_zoom(rect.size, _play_size(), _min_zoom(MIN_ZOOM), MAX_ZOOM)
@@ -152,6 +170,7 @@ func follow(positions: Dictionary, progress: Dictionary) -> void:
 
 func _snap() -> void:
 	_handover_left = 0.0
+	_jump_left = 0.0
 	_center = CameraFraming.clamp_center(_target_center, _target_zoom, _play_size(), _bounds)
 	_place(_target_zoom)
 
