@@ -81,3 +81,48 @@ func test_camera_move_is_smooth() -> void:
 	cam.follow({0: Vector2(1500, 900)}, {0: 0.9})
 	cam._process(1.0 / 60.0)
 	assert_lt(cam.global_position.distance_to(Vector2(960, 540)), 40.0, "no jump in one frame")
+
+
+func test_handover_scale_ramps_from_slow_to_normal() -> void:
+	assert_almost_eq(CameraFraming.handover_scale(2.0, 2.0, 0.25), 0.25, 0.001)
+	assert_eq(CameraFraming.handover_scale(0.0, 2.0, 0.25), 1.0)
+	var mid: float = CameraFraming.handover_scale(1.0, 2.0, 0.25)
+	assert_gt(mid, 0.25)
+	assert_lt(mid, 1.0)
+
+
+func test_finish_hands_over_slower_than_normal_follow() -> void:
+	var normal: RaceCamera = RaceCamera.new()
+	var handover: RaceCamera = RaceCamera.new()
+	add_child_autofree(normal)
+	add_child_autofree(handover)
+	var lead: Dictionary = {0: Vector2(1500, 900), 1: Vector2(500, 300)}
+	var progress: Dictionary = {0: 0.9, 1: 0.2}
+	for cam: RaceCamera in [normal, handover]:
+		cam.show_overview(true)
+		cam.follow(lead, progress)
+	# Fish 0 finishes: only the pack at the back remains.
+	handover.follow({1: Vector2(500, 300)}, {1: 0.2})
+	normal.follow({0: Vector2(1500, 900), 1: Vector2(500, 300)}, progress)
+	normal._target_center = Vector2(500, 300)
+	normal._target_zoom = handover._target_zoom
+	var start: Vector2 = normal.global_position
+	for i: int in 30:
+		normal._process(1.0 / 60.0)
+		handover._process(1.0 / 60.0)
+	assert_lt(
+		handover.global_position.distance_to(start),
+		normal.global_position.distance_to(start),
+		"a finish slows the hand-over"
+	)
+
+
+func test_per_frame_pan_is_capped_during_handover() -> void:
+	var cam: RaceCamera = RaceCamera.new()
+	add_child_autofree(cam)
+	cam.show_overview(true)
+	cam._target_center = Vector2(1900, 1000)
+	cam._handover_left = RaceCamera.HANDOVER_TIME
+	var before: Vector2 = cam.global_position
+	cam._process(1.0)
+	assert_lte(cam.global_position.distance_to(before), RaceCamera.MAX_PAN_SPEED + 0.01)
