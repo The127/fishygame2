@@ -57,6 +57,12 @@ func test_rejected_outside_race() -> void:
 	assert_eq(_balance("v"), 1000)
 
 
+func test_target_name_with_spaces() -> void:
+	_chaos.add_contestant(Contestant.create("c", "Big Fish"))
+	_say("v", "#boost Big Fish")
+	assert_eq(_requests, [[2, Chaos.Kind.BOOST]] as Array[Array])
+
+
 func test_usage_and_unknown_fish_are_free() -> void:
 	_say("v", "#boost")
 	_say("v", "#boost nobody")

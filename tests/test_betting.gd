@@ -62,6 +62,13 @@ func test_target_matches_case_insensitive_and_at_sign() -> void:
 	assert_eq(_betting.total_wagered(), 20)
 
 
+func test_bet_on_name_with_spaces() -> void:
+	_betting.add_contestant(Contestant.create("c", "Big Fish"))
+	_bet("v1", "V1", "#bet Big Fish 40")
+	_bet("v2", "V2", "#bet @big fish all")
+	assert_eq(_betting.total_wagered(), 1040)
+
+
 func test_bet_all_uses_whole_balance() -> void:
 	_bet("v1", "Viewer", "#bet Alice all")
 	assert_eq(_balance("v1"), 0)

@@ -54,20 +54,22 @@ func place_bet(msg: ChatMessage, args: PackedStringArray) -> bool:
 	var reason: String = "closed"
 	if _open:
 		reason = "usage"
-	if _open and args.size() == 2:
+	if _open and args.size() >= 2:
 		reason = "already_bet" if _bets.has(msg.user_id) else ""
 	if reason.is_empty():
-		target = _find_contestant(args[0])
-		amount = _parse_amount(args[1], points.get_balance(msg.user_id))
+		# The amount is the last word, so names containing spaces still work.
+		var amount_text: String = args[args.size() - 1]
+		target = _find_contestant(" ".join(args.slice(0, args.size() - 1)))
+		amount = _parse_amount(amount_text, points.get_balance(msg.user_id))
 		# "all" means as much as the limits allow.
-		if args[1].to_lower() == "all" and max_bet > 0:
+		if amount_text.to_lower() == "all" and max_bet > 0:
 			amount = mini(amount, max_bet)
 		if target == null:
 			reason = "unknown_fish"
 		elif amount <= 0:
 			reason = "invalid_amount"
 		elif amount < min_bet:
-			reason = "insufficient" if args[1].to_lower() == "all" else "below_min"
+			reason = "insufficient" if amount_text.to_lower() == "all" else "below_min"
 		elif max_bet > 0 and amount > max_bet:
 			reason = "above_max"
 		elif not points.try_debit(msg.user_id, amount):
