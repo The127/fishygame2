@@ -277,7 +277,9 @@ func _on_send_completed(
 	_result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, req: HTTPRequest
 ) -> void:
 	req.queue_free()
-	if code < 200 or code >= 300:
+	if code == 401:
+		_fail("Chat send rejected (HTTP 401): token expired or revoked")
+	elif code < 200 or code >= 300:
 		push_warning("Chat send returned HTTP %d: %s" % [code, body.get_string_from_utf8()])
 
 

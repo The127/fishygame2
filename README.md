@@ -43,6 +43,42 @@ over a colorful scene: empty areas should show the scene underneath, not black.
 Serve `build/web/` with any static file server and add the URL as an OBS browser source
 (1920x1080). Serving over HTTP is required; opening the file directly will not work.
 
+## Twitch login (streamer setup)
+
+The game reads chat over Twitch EventSub and posts replies through the Twitch API, so it needs a
+token for the streamer's account. There is no backend: the browser logs in with the OAuth
+implicit grant and keeps the token in its own `localStorage`.
+
+One-time setup, done by whoever hosts the game (once, not per streamer):
+
+1. Register an app at <https://dev.twitch.tv/console/apps>.
+2. Add an **OAuth Redirect URL** that is exactly the address the game is opened at, without query
+   or fragment (for example `https://fish.example.com/`, or `http://localhost:8000/` for testing;
+   if you open `.../index.html`, register that). It must match what the browser shows, or Twitch
+   refuses the login.
+3. Category: Game Integration, client type: Public. Copy the **Client ID** (it is not a secret;
+   never put a client secret anywhere in this project).
+
+Each streamer, once (and again whenever the login expires):
+
+1. Add the game URL as an OBS browser source, right-click it and choose **Interact**.
+2. On the home screen paste the client id, press **Log in with Twitch**, and approve the scopes
+   `user:read:chat` and `user:write:chat`. The screen then shows "Logged in as <name>".
+3. Press **Open lobby**. The login survives reloads of the browser source.
+
+Notes:
+
+- The token is stored only in that browser source's `localStorage`, next to the game. Anyone who
+  can open the OBS browser source's Interact window or its profile can use it; **Log out** on the
+  home screen revokes it at Twitch and deletes it. Do not screen-share that window while logged in.
+- Implicit tokens expire (Twitch decides when, typically hours) and cannot be refreshed. When it
+  runs out, or Twitch rejects it, the home screen says so and the streamer logs in again.
+- Login uses the account's own channel: the token owner is the broadcaster and the chat sender.
+- Login always asks Twitch to show the account chooser, so check you approve the right account.
+- The older way still works and takes precedence over a stored login when the page loads: pass `client_id`, `token`,
+  `broadcaster_id` (and optionally `user_id`) as URL query parameters, or use `user://twitch.cfg`
+  on desktop. The Twitch login button only works in the web build.
+
 ## Debug mode
 
 The +1/+5 fake player buttons and the fake chat fallback only exist in debug mode, so they never
