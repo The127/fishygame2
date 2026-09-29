@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
+[ext_resource type="Script" path="res://scripts/tracks/eel_hazard.gd" id="2_eel"]
 
 [sub_resource type="PhysicsMaterial" id="PM_track"]
 friction = 0.6
@@ -626,6 +627,14 @@ shape = SubResource("Circle_peg")
 [node name="Visual" type="Polygon2D" parent="Peg44"]
 color = Color(0.95, 0.75, 0.25, 1)
 polygon = PackedVector2Array(1807.0, 390.0, 1806.17, 395.25, 1803.75, 399.99, 1799.99, 403.75, 1795.25, 406.17, 1790.0, 407.0, 1784.75, 406.17, 1780.01, 403.75, 1776.25, 399.99, 1773.83, 395.25, 1773.0, 390.0, 1773.83, 384.75, 1776.25, 380.01, 1780.01, 376.25, 1784.75, 373.83, 1790.0, 373.0, 1795.25, 373.83, 1799.99, 376.25, 1803.75, 380.01, 1806.17, 384.75)
+
+[node name="Eel" type="Node2D" parent="."]
+script = ExtResource("2_eel")
+kind = "eel"
+telegraph_seconds = 1.6
+route_starts = PackedVector2Array(1095.056, 937.069, 1603.954, 703.1)
+route_ends = PackedVector2Array(1645.056, 853.736, 1053.954, 636.721)
+speed = 330.0
 
 [node name="Centerline" type="Path2D" parent="."]
 curve = SubResource("Curve_center")

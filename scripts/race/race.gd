@@ -21,8 +21,8 @@ var _marbles: Dictionary = {}
 
 
 ## Clears any previous race and spawns `count` marbles. Every random draw comes
-## from the given rng.
-func start(track: Track, count: int, rng: RandomNumberGenerator) -> void:
+## from the given rng. `hazard_frequency` (1 to 5) turns on the map's hazard events, 0 leaves them off.
+func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequency: int = 0) -> void:
 	assert(marble_scene != null and count > 0, "Race needs a marble_scene and count > 0")
 	clear()
 	_track = track
@@ -40,12 +40,15 @@ func start(track: Track, count: int, rng: RandomNumberGenerator) -> void:
 		marble.global_position = _track.get_spawn_position(i) + jitter
 		_marbles[i] = marble
 	_ranking = RaceRanking.new(ids)
+	_track.arm_hazards(rng, hazard_frequency)
 	elapsed = 0.0
 	running = true
 
 
 func clear() -> void:
 	running = false
+	if _track != null:
+		_track.stop_hazards()
 	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
 		_track.marble_reached_finish.disconnect(_on_marble_reached_finish)
 	_track = null
@@ -170,6 +173,7 @@ func _check_photo_finish(winner_id: int) -> void:
 
 func _finish_race() -> void:
 	running = false
+	_track.stop_hazards()
 	for marble: Marble in _marbles.values():
 		marble.set_deferred("freeze", true)
 	var results: Array[Dictionary] = _ranking.get_results(get_progress_map())

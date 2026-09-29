@@ -394,7 +394,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
-	_race.start(_track, contestants.size(), rng)
+	_race.start(_track, contestants.size(), rng, settings.hazard_level())
 	# Marble ids are roster ids, so match on id rather than on list order.
 	for marble: Marble in _race.get_marbles():
 		if marble.id < 0 or marble.id >= contestants.size():

@@ -4,6 +4,8 @@ extends Node2D
 ## Path2D used to measure race progress.
 
 signal marble_reached_finish(marble: Node2D)
+## A hazard event begins its telegraph. `kind` names the event.
+signal hazard_started(kind: String)
 
 ## Distance in pixels either side of a point used to estimate the track direction.
 const FORWARD_SAMPLE: float = 30.0
@@ -22,9 +24,34 @@ const FORWARD_SAMPLE: float = 30.0
 
 func _ready() -> void:
 	_finish.body_entered.connect(_on_finish_body_entered)
+	for hazard: Hazard in get_hazards():
+		hazard.telegraph_started.connect(hazard_started.emit)
 	var style: TrackStyle = TrackStyle.new()
 	add_child(style)
 	style.dress(self, style_id)
+
+
+## Plans this map's hazard events for a race. Each hazard draws its own seed from `rng`.
+## A frequency of 0 or less means no hazards.
+func arm_hazards(rng: RandomNumberGenerator, frequency: int) -> void:
+	if frequency <= 0:
+		return
+	for hazard: Hazard in get_hazards():
+		hazard.arm(rng.randi(), frequency)
+
+
+## Ends any event in progress and puts the map back as it was.
+func stop_hazards() -> void:
+	for hazard: Hazard in get_hazards():
+		hazard.disarm()
+
+
+func get_hazards() -> Array[Hazard]:
+	var result: Array[Hazard] = []
+	for child: Node in get_children():
+		if child is Hazard:
+			result.append(child as Hazard)
+	return result
 
 
 ## Global position of the nth start slot (grid of spawn_columns per row, rows stack upward).

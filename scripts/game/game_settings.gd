@@ -31,6 +31,7 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "color_price", "label": "Fish color price", "min": 0, "max": 1000000, "step": 50},
 	{"key": "viewer_cooldown", "label": "Viewer cooldown (s)", "min": 0, "max": 600, "step": 1},
 	{"key": "fish_lockout", "label": "Fish lockout (s)", "min": 0, "max": 60, "step": 1},
+	{"key": "hazard_frequency", "label": "Hazard frequency (1-5)", "min": 1, "max": 5, "step": 1},
 	{"key": "pad_left", "label": "Blocked left (%)", "min": 0, "max": 40, "step": 1},
 	{"key": "pad_right", "label": "Blocked right (%)", "min": 0, "max": 40, "step": 1},
 	{"key": "pad_top", "label": "Blocked top (%)", "min": 0, "max": 40, "step": 1},
@@ -78,6 +79,8 @@ var species_price: int = 500
 var color_price: int = 250
 var viewer_cooldown: int = 20
 var fish_lockout: int = 5
+## How often a map's hazard events strike, 1 (rare) to 5 (constant).
+var hazard_frequency: int = 3
 ## Screen edges kept free for the streamer's own overlays, in percent of the screen.
 var pad_left: int = 0
 var pad_right: int = 0
@@ -95,6 +98,8 @@ var auto_mode: bool = false
 var chat_replies: bool = true
 ## Whether fish wear the colorblind palette and a marking each (see [FishPalette]).
 var colorblind: bool = false
+## Whether maps run their hazard events (currents, eels, collapsing planks).
+var hazards_enabled: bool = true
 ## Empty means in-memory only.
 var save_path: String = ""
 
@@ -144,6 +149,7 @@ func reset_to_defaults() -> void:
 	chat_replies = fresh.chat_replies
 	auto_mode = fresh.auto_mode
 	colorblind = fresh.colorblind
+	hazards_enabled = fresh.hazards_enabled
 
 
 ## Loads the saved values; missing or malformed ones keep their current value.
@@ -170,6 +176,9 @@ func load_settings() -> void:
 	var blind: Variant = file.get_value(SECTION, "colorblind", colorblind)
 	if blind is bool:
 		colorblind = blind
+	var hazards: Variant = file.get_value(SECTION, "hazards_enabled", hazards_enabled)
+	if hazards is bool:
+		hazards_enabled = hazards
 	sanitize()
 
 
@@ -185,7 +194,13 @@ func save() -> bool:
 	file.set_value(SECTION, "chat_replies", chat_replies)
 	file.set_value(SECTION, "auto_mode", auto_mode)
 	file.set_value(SECTION, "colorblind", colorblind)
+	file.set_value(SECTION, "hazards_enabled", hazards_enabled)
 	return file.save(save_path) == OK
+
+
+## The frequency to hand to a race: 0 when hazards are off.
+func hazard_level() -> int:
+	return hazard_frequency if hazards_enabled else 0
 
 
 static func field_of(key: String) -> Dictionary:

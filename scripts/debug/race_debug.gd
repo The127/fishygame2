@@ -1,13 +1,16 @@
 class_name RaceDebug
 extends Node2D
-## Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7 --map=pachinko --count=20
+## Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7 --map=pachinko --count=20 --hazards=3
+## --hazards is the hazard frequency (0 turns hazard events off).
 
 @export var seed_value: int = 1
 @export var marble_count: int = 10
 @export var map_id: String = "zigzag"
+@export var hazard_frequency: int = 3
 
 var _autorun: bool = false
 var _track: Track
+var _hazard_events: PackedStringArray = []
 
 @onready var _race: Race = $Race
 
@@ -24,6 +27,8 @@ func _ready() -> void:
 			marble_count = maxi(1, int(arg.substr(8)))
 		elif arg.begins_with("--map="):
 			map_id = arg.substr(6)
+		elif arg.begins_with("--hazards="):
+			hazard_frequency = clampi(int(arg.substr(10)), 0, 5)
 	if not TrackCatalog.has_map(map_id):
 		push_error("Unknown map '%s' (known: %s)" % [map_id, ", ".join(TrackCatalog.ids())])
 		get_tree().quit(2)
@@ -31,6 +36,7 @@ func _ready() -> void:
 	_track = TrackCatalog.instantiate(map_id)
 	add_child(_track)
 	move_child(_track, 0)
+	_track.hazard_started.connect(_on_hazard_started)
 	if _autorun:
 		_start_race()
 	else:
@@ -48,8 +54,19 @@ func _unhandled_input(event: InputEvent) -> void:
 func _start_race() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed_value
-	print("Race start: map %s, seed %d, %d marbles" % [map_id, seed_value, marble_count])
-	_race.start(_track, marble_count, rng)
+	print(
+		(
+			"Race start: map %s, seed %d, %d marbles, hazards %d"
+			% [map_id, seed_value, marble_count, hazard_frequency]
+		)
+	)
+	_hazard_events.clear()
+	_race.start(_track, marble_count, rng, hazard_frequency)
+
+
+func _on_hazard_started(kind: String) -> void:
+	_hazard_events.append("%s@%.1f" % [kind, _race.elapsed])
+	print("  hazard: %s at t=%.2fs" % [kind, _race.elapsed])
 
 
 func _on_marble_finished(id: int, place: int) -> void:
@@ -61,14 +78,26 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 	for r: Dictionary in results:
 		order.append("%d%s" % [r["id"], "" if r["finished"] else "*"])
 	print("Finish order: %s (* = timeout ranked) total %.2fs" % [", ".join(order), _race.elapsed])
+	var positions: Dictionary = _race.get_position_map()
+	for r: Dictionary in results:
+		if not r["finished"] and positions.has(r["id"]):
+			var at: Vector2 = positions[r["id"]]
+			print("  unfinished: marble %d at (%.0f, %.0f)" % [r["id"], at.x, at.y])
 	if _autorun:
 		var unfinished: int = (
 			results.filter(func(r: Dictionary) -> bool: return not r["finished"]).size()
 		)
 		print(
 			(
-				"RESULT map=%s seed=%d time=%.2f unfinished=%d order=%s"
-				% [map_id, seed_value, _race.elapsed, unfinished, ",".join(order)]
+				"RESULT map=%s seed=%d time=%.2f unfinished=%d hazards=%d order=%s"
+				% [
+					map_id,
+					seed_value,
+					_race.elapsed,
+					unfinished,
+					_hazard_events.size(),
+					",".join(order)
+				]
 			)
 		)
 		get_tree().quit(1 if unfinished > 0 else 0)

@@ -15,6 +15,7 @@ func _configure(settings: GameSettings) -> void:
 	settings.default_map = "pachinko"
 	settings.pad_left = 25
 	settings.pad_top = 10
+	settings.hazard_frequency = 4
 
 
 func test_flow_reads_the_settings() -> void:
@@ -88,3 +89,16 @@ func test_padding_shrinks_the_camera_and_overlay_area() -> void:
 	assert_almost_eq(overlay._frame.anchor_top, 0.1, 0.0001)
 	assert_almost_eq(overlay._frame.anchor_right, 1.0, 0.0001)
 	assert_almost_eq(overlay._frame.anchor_bottom, 1.0, 0.0001)
+
+
+func test_hazards_are_armed_for_a_race_at_the_configured_frequency() -> void:
+	_start_race(2)
+	var hazard: Hazard = _current_track().get_hazards()[0]
+	assert_true(hazard.is_armed())
+	assert_false(hazard.get_schedule().is_empty())
+
+
+func test_hazards_stay_off_when_disabled() -> void:
+	_game.settings.hazards_enabled = false
+	_start_race(2)
+	assert_false(_current_track().get_hazards()[0].is_armed())
