@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/control_panel.gd" id="1_panel"]
+
+[node name="ControlPanel" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_panel")
+
+[node name="Panel" type="PanelContainer" parent="."]
+offset_left = 1560.0
+offset_top = 20.0
+offset_right = 1900.0
+offset_bottom = 140.0
+
+[node name="Box" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+
+[node name="Status" type="Label" parent="Panel/Box"]
+layout_mode = 2
+text = "Idle"
+
+[node name="Buttons" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="Open" type="Button" parent="Panel/Box/Buttons"]
+layout_mode = 2
+focus_mode = 0
+text = "Open lobby"
+
+[node name="Start" type="Button" parent="Panel/Box/Buttons"]
+layout_mode = 2
+focus_mode = 0
+text = "Start (Space)"
+
+[node name="Stop" type="Button" parent="Panel/Box/Buttons"]
+layout_mode = 2
+focus_mode = 0
+text = "Stop"
+
+[node name="Hint" type="Label" parent="Panel/Box"]
+layout_mode = 2
+text = "F1 hides this panel"
