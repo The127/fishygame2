@@ -10,6 +10,10 @@ const CURSE_DAMP: float = 3.0
 const CURSE_TINT: Color = Color(0.6, 0.35, 0.85)
 const BOOST_IMPULSE: float = 450.0
 const CURSE_KNOCKBACK: float = 250.0
+## Impulse per emote unit of a cheer, far below a boost.
+const CHEER_IMPULSE: float = 40.0
+## Largest cheer in emote units, so no setting makes a cheer as strong as a boost.
+const CHEER_MAX_STRENGTH: float = 8.0
 
 var id: int = 0
 var color: Color = Color.WHITE:
@@ -65,6 +69,21 @@ func boost(forward: Vector2) -> void:
 	if _fish != null:
 		_fish.flash(RaceFx.BOOST_COLOR)
 		RaceFx.burst(self, global_position, RaceFx.BOOST_COLOR, 16, 130.0, -forward * 60.0)
+
+
+## A free cheer: a small push along `forward` scaled by `strength` (emote units) and a few bubbles.
+func cheer(forward: Vector2, strength: float) -> void:
+	strength = minf(strength, CHEER_MAX_STRENGTH)
+	apply_central_impulse(forward * CHEER_IMPULSE * strength * mass)
+	if _fish != null:
+		RaceFx.burst(
+			self,
+			global_position,
+			RaceFx.CHEER_COLOR,
+			clampi(4 + roundi(strength * 2.0), 4, 16),
+			70.0,
+			Vector2(0, -70)
+		)
 
 
 ## Knocks the marble back against `forward` and slows it for [constant CURSE_SECONDS].

@@ -23,6 +23,7 @@ func test_defaults_match_the_game_defaults() -> void:
 	assert_eq(settings.boost_cost, 100)
 	assert_eq(settings.curse_cost, 150)
 	assert_eq(settings.max_bet, 0)
+	assert_eq(settings.cheer_strength, 100)
 	assert_true(settings.chat_replies)
 	assert_false(settings.auto_mode)
 	assert_eq(settings.auto_join_seconds, 60)
