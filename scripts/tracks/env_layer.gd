@@ -7,6 +7,10 @@ enum Kind { SPIRES, KELP, SHARDS, MASTS }
 
 const WIDTH: float = 2400.0
 const FLOOR_Y: float = 1080.0
+## Ceiling shapes start this far above the frame and are lengthened by the same amount
+## (past the overview's top edge), so they still hang the same distance into it.
+const CEILING_Y: float = -220.0
+const CEILING_EXTRA: float = 160.0
 const SWAY_SHADER: Shader = preload("res://assets/shaders/env/sway.gdshader")
 
 var kind: Kind = Kind.SPIRES
@@ -28,7 +32,7 @@ func _ready() -> void:
 		var material: ShaderMaterial = ShaderMaterial.new()
 		material.shader = SWAY_SHADER
 		material.set_shader_parameter("amplitude", sway)
-		material.set_shader_parameter("anchor_y", -60.0 if from_top else FLOOR_Y + 60.0)
+		material.set_shader_parameter("anchor_y", CEILING_Y if from_top else FLOOR_Y + 60.0)
 		material.set_shader_parameter("reach", max_height)
 		self.material = material
 	queue_redraw()
@@ -37,10 +41,12 @@ func _ready() -> void:
 func _draw() -> void:
 	_rng.seed = seed_value
 	var flip: float = -1.0 if from_top else 1.0
-	var base_y: float = -60.0 if from_top else FLOOR_Y + 60.0
+	var base_y: float = CEILING_Y if from_top else FLOOR_Y + 60.0
 	for i: int in count:
 		var x: float = -200.0 + WIDTH * (float(i) + _rng.randf_range(0.1, 0.9)) / float(count)
 		var h: float = _rng.randf_range(min_height, max_height)
+		if from_top:
+			h += CEILING_EXTRA
 		var w: float = _rng.randf_range(0.5, 1.0)
 		match kind:
 			Kind.SPIRES:

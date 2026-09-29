@@ -65,6 +65,7 @@ const DEFAULT_STYLE: String = "kelp"
 const STONE_SHADER: Shader = preload("res://assets/shaders/env/stone.gdshader")
 const FOG_SHADER: Shader = preload("res://assets/shaders/env/fog.gdshader")
 const VIEW: Vector2 = Vector2(1920.0, 1080.0)
+const FOG_RECT: Rect2 = Rect2(-160.0, -260.0, 2240.0, 1500.0)
 const PEG_GLOW_SIZE: float = 128.0
 
 static var _glow_texture: GradientTexture2D
@@ -217,7 +218,9 @@ func _add_layer(
 func _add_fog() -> void:
 	for spec: Array in [[-30, 0.14, 0.0], [3, 0.07, 0.6]]:
 		var fog: ColorRect = ColorRect.new()
-		fog.size = VIEW
+		# Covers the overview frame of every map, which reaches above and beside the base view.
+		fog.position = FOG_RECT.position
+		fog.size = FOG_RECT.size
 		fog.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		fog.z_index = int(spec[0])
 		var material: ShaderMaterial = ShaderMaterial.new()
