@@ -37,6 +37,12 @@ func set_source(new_source: ChatSource) -> void:
 	source.start()
 
 
+## Posts a message to the channel through the active source.
+func send_message(text: String) -> void:
+	if source != null:
+		source.send_message(text)
+
+
 ## Returns {client_id, token, broadcaster_id[, user_id]} or {} if not configured.
 ## Web: URL query params. Desktop: user://twitch.cfg, section [twitch].
 func load_twitch_config() -> Dictionary:

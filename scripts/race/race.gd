@@ -30,7 +30,6 @@ func start(track: Track, count: int, rng: RandomNumberGenerator) -> void:
 		ids.append(i)
 		var marble: Marble = marble_scene.instantiate() as Marble
 		marble.id = i
-		marble.color = Color.from_hsv(fposmod(i * 0.618034, 1.0), 0.7, 0.95)
 		var jitter: Vector2 = Vector2(
 			rng.randf_range(-SPAWN_JITTER, SPAWN_JITTER),
 			rng.randf_range(-SPAWN_JITTER, SPAWN_JITTER)

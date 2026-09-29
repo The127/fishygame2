@@ -9,9 +9,12 @@ signal failed(reason: String)
 
 const EVENTSUB_URL: String = "wss://eventsub.wss.twitch.tv/ws"
 const SUBSCRIPTIONS_URL: String = "https://api.twitch.tv/helix/eventsub/subscriptions"
+const SEND_URL: String = "https://api.twitch.tv/helix/chat/messages"
 const MAX_BACKOFF: float = 30.0
 ## Seconds to wait for a session_welcome before retrying the connection.
 const WELCOME_TIMEOUT: float = 10.0
+## How many recent message ids to remember for de-duplication.
+const MAX_SEEN_IDS: int = 512
 
 var client_id: String = ""
 var access_token: String = ""
@@ -28,6 +31,9 @@ var _keepalive_timeout: float = 10.0
 var _since_last_message: float = 0.0
 var _backoff: float = 1.0
 var _reconnect_in: float = -1.0
+## Recently delivered message ids (insertion ordered), to drop duplicates that
+## arrive on both sockets during a reconnect handoff.
+var _seen_ids: Dictionary = {}
 
 
 func _init(
@@ -125,7 +131,8 @@ static func parse_chat_event(event: Variant) -> ChatMessage:
 		str(e.get("chatter_user_login", "")),
 		str(e.get("chatter_user_name", "")),
 		str(m.get("text", "")),
-		emotes
+		emotes,
+		str(e.get("message_id", ""))
 	)
 
 
@@ -237,12 +244,54 @@ func _handle_frame(raw: String, from_pending: bool) -> void:
 					_pending_socket = null
 		"notification":
 			var msg: ChatMessage = frame["message"]
-			if msg != null:
+			if msg != null and not _is_duplicate(msg):
 				message_received.emit(msg)
 		"revocation":
 			_fail("EventSub subscription revoked (token invalid or scope missing?)")
 		_:
 			pass  # session_keepalive and unknown types
+
+
+## Posts to chat via Helix. Needs the user:write:chat scope; failures only warn.
+func send_message(text: String) -> void:
+	if access_token.is_empty():
+		return
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(_on_send_completed.bind(req))
+	var headers: PackedStringArray = [
+		"Authorization: Bearer %s" % access_token,
+		"Client-Id: %s" % client_id,
+		"Content-Type: application/json",
+	]
+	var body: String = JSON.stringify(
+		{"broadcaster_id": broadcaster_id, "sender_id": user_id, "message": text}
+	)
+	var err: Error = req.request(SEND_URL, headers, HTTPClient.METHOD_POST, body)
+	if err != OK:
+		push_warning("Chat send request failed: %s" % error_string(err))
+		req.queue_free()
+
+
+func _on_send_completed(
+	_result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, req: HTTPRequest
+) -> void:
+	req.queue_free()
+	if code < 200 or code >= 300:
+		push_warning("Chat send returned HTTP %d: %s" % [code, body.get_string_from_utf8()])
+
+
+## Returns true if the message id was already delivered; otherwise remembers it.
+## Messages without an id are never treated as duplicates.
+func _is_duplicate(msg: ChatMessage) -> bool:
+	if msg.id.is_empty():
+		return false
+	if _seen_ids.has(msg.id):
+		return true
+	_seen_ids[msg.id] = true
+	if _seen_ids.size() > MAX_SEEN_IDS:
+		_seen_ids.erase(_seen_ids.keys()[0])
+	return false
 
 
 func _subscribe(session_id: String) -> void:
