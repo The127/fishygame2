@@ -149,3 +149,24 @@ func test_menu_controls_sit_above_the_backdrop() -> void:
 	for path: String in ["Center/Box/OpenLobby", "Center/Box/ClientId"]:
 		var control: Control = home.get_node(path)
 		assert_eq(control.mouse_filter, Control.MOUSE_FILTER_STOP, path)
+
+
+func test_settings_screen_toggles_colorblind_mode() -> void:
+	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
+	screen.settings = GameSettings.new()
+	add_child_autofree(screen)
+	assert_false(screen._colorblind.button_pressed)
+	assert_true(_tab_titles(screen).has("Accessibility"))
+	screen._colorblind.button_pressed = true
+	assert_true(screen.settings.colorblind)
+	screen.reset_pressed()
+	assert_false(screen.settings.colorblind)
+	assert_false(screen._colorblind.button_pressed)
+
+
+func _tab_titles(screen: SettingsScreen) -> Array[String]:
+	var tabs: TabContainer = screen.find_children("*", "TabContainer", true, false)[0]
+	var titles: Array[String] = []
+	for i: int in tabs.get_tab_count():
+		titles.append(tabs.get_tab_title(i))
+	return titles

@@ -99,3 +99,10 @@ func test_listing_shows_names_and_prices() -> void:
 
 func _msg(user_id: String) -> ChatMessage:
 	return ChatMessage.create(user_id, "user" + user_id, "User" + user_id, "")
+
+
+func test_colorblind_listing_names_the_markings_and_still_fits_a_message() -> void:
+	_shop.colorblind = true
+	var text: String = _shop.catalog_text()
+	assert_string_contains(text, "red (solid)")
+	assert_lt(text.length(), 500, "fits in one Twitch message")

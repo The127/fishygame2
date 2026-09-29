@@ -134,6 +134,7 @@ func report_race_finished(results: Array[Dictionary]) -> void:
 					"name": contestant.display_name,
 					"color": contestant.color,
 					"species": contestant.species,
+					"pattern": contestant.pattern,
 					"time": float(r["time"]),
 					"finished": bool(r["finished"]),
 				}

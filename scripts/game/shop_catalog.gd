@@ -31,6 +31,20 @@ const COLOR_NAMES: Array[String] = [
 ]
 
 
+## The color names as the shop lists them. With [param colorblind] each name is followed by
+## its marking, e.g. "red (solid)", since the fish is told apart by that rather than by hue.
+## Chat still takes the plain name.
+static func color_labels(colorblind: bool) -> Array[String]:
+	if not colorblind:
+		return COLOR_NAMES
+	var labels: Array[String] = []
+	for i: int in COLOR_NAMES.size():
+		labels.append(
+			"%s (%s)" % [COLOR_NAMES[i], FishPalette.pattern_name(FishPalette.pattern_of(i, true))]
+		)
+	return labels
+
+
 ## Whether [param item] (case does not matter) is on sale as a [param kind].
 static func has_item(kind: String, item: String) -> bool:
 	return index_of(kind, item) >= 0
@@ -46,11 +60,15 @@ static func index_of(kind: String, item: String) -> int:
 	return -1
 
 
-## Gives every contestant the species and color they equipped in [param store].
+## Gives every contestant the species and color they equipped in [param store], in the
+## colorblind look (see [FishPalette]) when [param colorblind] is set. The color names and
+## what viewers own stay the same either way.
 ## A viewer keeps their color unless an earlier joiner already holds it; then, like
 ## everyone without a bought color, they get their join slot color or, if that is taken,
 ## the first palette color nobody has. So no two fish share a color while the palette lasts.
-static func assign_loadouts(contestants: Array[Contestant], store: ShopStore) -> void:
+static func assign_loadouts(
+	contestants: Array[Contestant], store: ShopStore, colorblind: bool = false
+) -> void:
 	var taken: Dictionary = {}
 	var settled: Dictionary = {}
 	for i: int in contestants.size():
@@ -66,17 +84,17 @@ static func assign_loadouts(contestants: Array[Contestant], store: ShopStore) ->
 		if color >= 0 and not taken.has(color):
 			taken[color] = true
 			settled[i] = true
-			contestant.color = Contestant.PALETTE[color]
+			contestant.set_look(color, colorblind)
 	for i: int in contestants.size():
 		if settled.has(i):
 			continue
 		var slot_color: int = i if i < Contestant.PALETTE.size() else -1
 		if slot_color >= 0 and not taken.has(slot_color):
 			taken[slot_color] = true
-			contestants[i].color = Contestant.color_for_slot(i)
+			contestants[i].set_look(i, colorblind)
 			continue
 		for free: int in Contestant.PALETTE.size():
 			if not taken.has(free):
 				taken[free] = true
-				contestants[i].color = Contestant.PALETTE[free]
+				contestants[i].set_look(free, colorblind)
 				break

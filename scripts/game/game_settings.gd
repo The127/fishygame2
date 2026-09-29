@@ -93,6 +93,8 @@ var default_map: String = RANDOM_MAP
 var auto_mode: bool = false
 ## Whether the game answers in chat (join rejections).
 var chat_replies: bool = true
+## Whether fish wear the colorblind palette and a marking each (see [FishPalette]).
+var colorblind: bool = false
 ## Empty means in-memory only.
 var save_path: String = ""
 
@@ -141,6 +143,7 @@ func reset_to_defaults() -> void:
 	default_map = fresh.default_map
 	chat_replies = fresh.chat_replies
 	auto_mode = fresh.auto_mode
+	colorblind = fresh.colorblind
 
 
 ## Loads the saved values; missing or malformed ones keep their current value.
@@ -164,6 +167,9 @@ func load_settings() -> void:
 	var auto: Variant = file.get_value(SECTION, "auto_mode", auto_mode)
 	if auto is bool:
 		auto_mode = auto
+	var blind: Variant = file.get_value(SECTION, "colorblind", colorblind)
+	if blind is bool:
+		colorblind = blind
 	sanitize()
 
 
@@ -178,6 +184,7 @@ func save() -> bool:
 	file.set_value(SECTION, "default_map", default_map)
 	file.set_value(SECTION, "chat_replies", chat_replies)
 	file.set_value(SECTION, "auto_mode", auto_mode)
+	file.set_value(SECTION, "colorblind", colorblind)
 	return file.save(save_path) == OK
 
 
