@@ -103,5 +103,13 @@ func _apply_style() -> void:
 	popup.add_theme_stylebox_override("hover", UiStyle.button_box(true))
 
 
+## Shows the given choice (a map id or TrackCatalog.RANDOM_ID) without emitting map_selected.
+func select_map(choice: String) -> void:
+	for i: int in _map_picker.item_count:
+		if String(_map_picker.get_item_metadata(i)) == choice:
+			_map_picker.select(i)
+			return
+
+
 func _on_map_picked(index: int) -> void:
 	map_selected.emit(String(_map_picker.get_item_metadata(index)))

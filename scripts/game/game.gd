@@ -11,6 +11,8 @@ const BET_REJECTIONS: Dictionary = {
 	"already_bet": "you already bet this round",
 	"unknown_fish": "no such racer",
 	"invalid_amount": "invalid amount",
+	"below_min": "bet is below the minimum",
+	"above_max": "bet is above the maximum",
 	"insufficient": "not enough points",
 }
 
@@ -23,6 +25,9 @@ const CHAOS_REJECTIONS: Dictionary = {
 	"fish_busy": "that fish was just hit, try again shortly",
 	"insufficient": "not enough points",
 }
+
+## The streamer's rules. Loaded from storage in _ready unless a caller sets it first.
+var settings: GameSettings = null
 
 var _last_reply_msec: Dictionary[String, int] = {}
 
@@ -41,10 +46,15 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
 func _ready() -> void:
+	if settings == null:
+		settings = GameSettings.new(GameSettings.DEFAULT_PATH)
+		settings.load_settings()
+	_apply_settings()
 	Chat.command_received.connect(_flow.handle_command)
 	Chat.command_received.connect(_betting.handle_command)
 	Chat.command_received.connect(_chaos.handle_command)
 	_chaos.points = _betting.points
+	_betting.points.starting_balance = settings.starting_balance
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
 	_flow.join_rejected.connect(_on_join_rejected)
@@ -75,12 +85,27 @@ func _ready() -> void:
 	_panel.map_selected.connect(_on_map_selected)
 	_panel.volume_changed.connect(Sound.set_volume)
 	_panel.mute_toggled.connect(Sound.set_muted)
+	_panel.select_map(_map_choice)
 	_panel.set_audio_state(Sound.settings.get_volumes(), Sound.settings.muted)
 	_flow.countdown_tick.connect(_on_countdown_tick)
 	_race.marble_finished.connect(_on_marble_finished)
 	_flow.podium_ready.connect(_on_podium_ready)
 	_rng.randomize()
 	_flow.open_lobby()
+
+
+func _apply_settings() -> void:
+	_flow.min_players = settings.min_players
+	_flow.max_players = settings.max_players
+	_flow.countdown_seconds = settings.countdown_seconds
+	_betting.starting_balance = settings.starting_balance
+	_betting.min_bet = settings.min_bet
+	_betting.max_bet = settings.max_bet
+	_chaos.boost_cost = settings.boost_cost
+	_chaos.curse_cost = settings.curse_cost
+	_chaos.viewer_cooldown = float(settings.viewer_cooldown)
+	_chaos.fish_lockout = float(settings.fish_lockout)
+	_map_choice = settings.default_map
 
 
 func _process(_delta: float) -> void:
@@ -155,7 +180,7 @@ func _on_join_rejected(msg: ChatMessage, reason: String) -> void:
 	if _flow.state == GameFlow.State.IDLE:
 		return
 	var text: String = GameFlow.rejection_text(reason, msg)
-	if text == "":
+	if text == "" or not settings.chat_replies:
 		return
 	var now: int = Time.get_ticks_msec()
 	if (

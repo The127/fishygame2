@@ -25,10 +25,17 @@ func before_each() -> void:
 	_panel = _game.get_node("ControlPanel") as ControlPanel
 	_betting.points_path = POINTS_PATH
 	_chaos.points_path = POINTS_PATH
-	_flow.max_players = 4
-	_flow.countdown_seconds = 3
+	_game.settings = GameSettings.new()
+	_game.settings.max_players = 4
+	_game.settings.countdown_seconds = 3
 	_flow.podium_seconds = 5.0
+	_configure(_game.settings)
 	add_child_autofree(_game)
+
+
+## Override to change the settings before the game scene starts.
+func _configure(_settings: GameSettings) -> void:
+	pass
 
 
 func after_each() -> void:
