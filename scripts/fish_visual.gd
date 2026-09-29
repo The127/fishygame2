@@ -68,14 +68,14 @@ func _draw() -> void:
 	# Body: an ellipse, lighter belly, outline.
 	var body := PackedVector2Array()
 	var belly := PackedVector2Array()
-	for i: int in 25:
+	for i: int in 24:
 		var a: float = TAU * float(i) / 24.0
 		var p := Vector2(cos(a) * LENGTH, sin(a) * HEIGHT)
 		body.append(p)
 		if p.y >= 0.0:
 			belly.append(Vector2(p.x, p.y * 0.55 + 3.0))
 	draw_colored_polygon(body, color)
-	draw_polyline(body, dark, 1.5)
+	draw_polyline(body + PackedVector2Array([body[0]]), dark, 1.5)
 	# Gill line, eye.
 	draw_arc(Vector2(5, 0), 7.0, PI * 0.65, PI * 1.35, 8, dark, 1.5)
 	draw_circle(Vector2(9, -2.5), 3.0, Color.WHITE)
