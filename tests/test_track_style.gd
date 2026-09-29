@@ -45,3 +45,23 @@ func test_mist_follows_the_view() -> void:
 	style._process(0.016)
 	assert_eq(fog.global_position, Vector2(300.0, 100.0))
 	get_viewport().canvas_transform = Transform2D.IDENTITY
+
+
+func test_finish_zone_is_visible_and_inside_the_camera_view() -> void:
+	for id: String in TrackCatalog.ids():
+		var track: Track = TrackCatalog.instantiate(id)
+		add_child_autofree(track)
+		var finish: Area2D = track.get_node("Finish")
+		assert_not_null(finish.get_node_or_null("Gate"), "%s finish gate" % id)
+		var shape: RectangleShape2D = finish.get_node("CollisionShape2D").shape
+		var zone: Rect2 = Rect2(finish.position - shape.size * 0.5, shape.size)
+		assert_true(track.view_bounds.encloses(zone), "%s finish inside view_bounds" % id)
+
+
+func test_moving_bodies_do_not_get_the_world_anchored_stone_texture() -> void:
+	var track: Track = TrackCatalog.instantiate("wreck")
+	add_child_autofree(track)
+	var blades: Polygon2D = track.get_node("Propeller/Visual")
+	assert_null(blades.material)
+	var deck: Polygon2D = track.get_node("DeckA/Visual")
+	assert_true(deck.material is ShaderMaterial)
