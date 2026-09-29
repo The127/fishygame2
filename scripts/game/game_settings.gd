@@ -20,6 +20,8 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "max_bet", "label": "Max bet (0 = no limit)", "min": 0, "max": 1000000, "step": 100},
 	{"key": "boost_cost", "label": "Boost cost", "min": 0, "max": 1000000, "step": 10},
 	{"key": "curse_cost", "label": "Curse cost", "min": 0, "max": 1000000, "step": 10},
+	{"key": "species_price", "label": "Fish species price", "min": 0, "max": 1000000, "step": 50},
+	{"key": "color_price", "label": "Fish color price", "min": 0, "max": 1000000, "step": 50},
 	{"key": "viewer_cooldown", "label": "Viewer cooldown (s)", "min": 0, "max": 600, "step": 1},
 	{"key": "fish_lockout", "label": "Fish lockout (s)", "min": 0, "max": 60, "step": 1},
 	{"key": "pad_left", "label": "Blocked left (%)", "min": 0, "max": 40, "step": 1},
@@ -36,6 +38,8 @@ var min_bet: int = 1
 var max_bet: int = 0
 var boost_cost: int = 100
 var curse_cost: int = 150
+var species_price: int = 500
+var color_price: int = 250
 var viewer_cooldown: int = 20
 var fish_lockout: int = 5
 ## Screen edges kept free for the streamer's own overlays, in percent of the screen.

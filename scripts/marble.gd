@@ -18,6 +18,13 @@ var color: Color = Color.WHITE:
 		if _fish != null:
 			_fish.color = value
 
+## Index into [constant FishVisual.SPECIES]; a negative value means "by marble id".
+var species: int = -1:
+	set(value):
+		species = value
+		if _fish != null:
+			_fish.species = value
+
 var label_text: String = "":
 	set(value):
 		label_text = value
@@ -34,7 +41,7 @@ var _trail: CPUParticles2D
 func _ready() -> void:
 	_fish = FishVisual.new()
 	_fish.color = color
-	_fish.species = id
+	_fish.species = species if species >= 0 else id
 	add_child(_fish)
 	# Top level so the name stays upright and unscaled while the marble rolls.
 	_label = Label.new()

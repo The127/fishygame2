@@ -16,6 +16,13 @@ const BET_REJECTIONS: Dictionary = {
 	"insufficient": "not enough points",
 }
 
+const SHOP_REJECTIONS: Dictionary = {
+	"usage": "use #fish <species> or #color <name>, see #shop",
+	"unknown_species": "no such species, see #shop",
+	"unknown_color": "no such color, see #shop",
+	"insufficient": "not enough points",
+}
+
 const CHAOS_REJECTIONS: Dictionary = {
 	"closed": "chaos only works during a race",
 	"usage": "use #boost <name> or #curse <name>",
@@ -30,7 +37,7 @@ const CHAOS_REJECTIONS: Dictionary = {
 const TOP_COOLDOWN_MSEC: int = 30000
 
 ## Commands that put a viewer on the leaderboard, so their name is remembered.
-const NAMED_COMMANDS: PackedStringArray = ["bet", "boost", "curse", "points"]
+const NAMED_COMMANDS: PackedStringArray = ["join", "bet", "boost", "curse", "points", "fish", "color", "shop"]
 
 ## The streamer's rules. Loaded from storage in _ready unless a caller sets it first.
 var settings: GameSettings = null
@@ -46,6 +53,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
 @onready var _chaos: Chaos = $Chaos
+@onready var _shop: Shop = $Shop
 @onready var _race: Race = $Race
 @onready var _camera: RaceCamera = $RaceCamera
 @onready var _overlay: Overlay = $Overlay
@@ -63,7 +71,12 @@ func _ready() -> void:
 	Chat.command_received.connect(_betting.handle_command)
 	Chat.command_received.connect(_chaos.handle_command)
 	Chat.command_received.connect(_on_command)
+	Chat.command_received.connect(_shop.handle_command)
 	_chaos.points = _betting.points
+	_shop.points = _betting.points
+	_shop.equipped.connect(_on_shop_equipped)
+	_shop.rejected.connect(_on_shop_rejected)
+	_shop.catalog_requested.connect(_on_shop_catalog_requested)
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
 	_flow.join_rejected.connect(_on_join_rejected)
@@ -115,6 +128,8 @@ func _apply_settings() -> void:
 	_betting.points.starting_balance = settings.starting_balance
 	_betting.min_bet = settings.min_bet
 	_betting.max_bet = settings.max_bet
+	_shop.species_price = settings.species_price
+	_shop.color_price = settings.color_price
 	_chaos.boost_cost = settings.boost_cost
 	_chaos.curse_cost = settings.curse_cost
 	_chaos.viewer_cooldown = float(settings.viewer_cooldown)
@@ -258,6 +273,24 @@ func _on_effect_rejected(msg: ChatMessage, reason: String) -> void:
 	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
 
 
+func _on_shop_equipped(msg: ChatMessage, _kind: String, item: String, price: int) -> void:
+	if price > 0:
+		_overlay.show_notice("%s bought %s for %d" % [_viewer_name(msg), item, price])
+	else:
+		_overlay.show_notice("%s switched to %s" % [_viewer_name(msg), item])
+
+
+func _on_shop_rejected(msg: ChatMessage, reason: String) -> void:
+	var text: String = SHOP_REJECTIONS.get(reason, "not accepted")
+	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
+
+
+func _on_shop_catalog_requested(_msg: ChatMessage) -> void:
+	_overlay.show_notice("Shop: #fish <species> or #color <name>")
+	if settings.chat_replies:
+		Chat.send_message(_shop.catalog_text())
+
+
 func _on_balance_reported(msg: ChatMessage, balance: int) -> void:
 	_overlay.show_notice("%s has %d points" % [_viewer_name(msg), balance])
 
@@ -268,6 +301,7 @@ func _viewer_name(msg: ChatMessage) -> String:
 
 func _on_race_started(contestants: Array[Contestant]) -> void:
 	Sound.play(Sound.Sfx.GO)
+	ShopCatalog.assign_loadouts(contestants, _shop.store)
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_race.start(_track, contestants.size(), rng)
@@ -277,6 +311,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 			push_warning("Marble id %d has no contestant" % marble.id)
 			continue
 		marble.color = contestants[marble.id].color
+		marble.species = contestants[marble.id].species
 		marble.label_text = contestants[marble.id].display_name
 
 

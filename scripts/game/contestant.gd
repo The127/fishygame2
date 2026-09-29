@@ -29,6 +29,8 @@ const PALETTE: Array[Color] = [
 var user_id: String = ""
 var display_name: String = ""
 var color: Color = Color.WHITE
+## Index into [constant FishVisual.SPECIES], wrapped.
+var species: int = 0
 
 
 static func create(p_user_id: String, p_display_name: String, slot: int = 0) -> Contestant:
@@ -36,6 +38,7 @@ static func create(p_user_id: String, p_display_name: String, slot: int = 0) -> 
 	contestant.user_id = p_user_id
 	contestant.display_name = p_display_name
 	contestant.color = color_for_slot(slot)
+	contestant.species = posmod(slot, FishVisual.SPECIES.size())
 	return contestant
 
 

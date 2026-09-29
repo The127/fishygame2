@@ -52,7 +52,7 @@ func _add_winner(entry: Dictionary, place: int) -> void:
 	var rect: Rect2 = step_rect(place)
 	var fish := FishVisual.new()
 	fish.color = entry["color"]
-	fish.species = int(entry["id"])
+	fish.species = int(entry.get("species", entry["id"]))
 	fish.celebrating = place == 1
 	add_child(fish)
 	# FishVisual detaches itself in _ready to follow a marble; here it stays with the view.
