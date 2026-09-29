@@ -11,14 +11,14 @@ signal map_selected(choice: String)
 ## Emits a bus name (see AudioSettings.BUSES) and a linear volume 0..1.
 signal volume_changed(bus: String, value: float)
 signal mute_toggled(muted: bool)
+## F2: switch between the flat 2D look and the underwater 3D stage.
+signal render_3d_toggled
 
 const VOLUME_ROWS: Dictionary = {
 	AudioSettings.BUS_MASTER: "Master",
 	AudioSettings.BUS_MUSIC: "Music",
 	AudioSettings.BUS_SFX: "Effects",
 }
-## F2: switch between the flat 2D look and the underwater 3D stage.
-signal render_3d_toggled
 
 @onready var _panel: PanelContainer = $Panel
 @onready var _status: Label = $Panel/Box/Status
