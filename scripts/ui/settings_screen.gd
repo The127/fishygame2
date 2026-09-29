@@ -42,6 +42,11 @@ const TABS: Array[Dictionary] = [
 		"items":
 		[
 			"chat_replies",
+			"reply_joins",
+			"reply_bets",
+			"reply_chaos",
+			"reply_shop",
+			"reply_results",
 			"cheer_strength",
 			"cheer_viewer_cooldown",
 			"cheer_fish_cooldown",
@@ -63,6 +68,7 @@ var _map_picker: OptionButton
 var _auto_mode: CheckBox
 var _hazards: CheckBox
 var _chat_replies: CheckBox
+var _reply_toggles: Dictionary[String, CheckBox] = {}
 var _colorblind: CheckBox
 var _status: Label
 var _preview: PaddingPreview
@@ -201,6 +207,13 @@ func _build_controls() -> Dictionary[String, Control]:
 	_chat_replies.toggled.connect(_on_chat_replies_toggled)
 	_captions["chat_replies"] = "Reply in chat"
 	controls["chat_replies"] = _chat_replies
+	for toggle: Dictionary in GameSettings.CHAT_TOGGLES:
+		var key: String = toggle["key"]
+		var check := _make_check("On")
+		check.toggled.connect(_on_reply_toggled.bind(key))
+		_reply_toggles[key] = check
+		_captions[key] = String(toggle["label"])
+		controls[key] = check
 	_colorblind = _make_check("On")
 	_colorblind.toggled.connect(_on_colorblind_toggled)
 	_captions["colorblind"] = "Colorblind mode (alternate colors and fish markings)"
@@ -273,6 +286,8 @@ func _refresh() -> void:
 	_spinners["hazard_frequency"].editable = settings.hazards_enabled
 	_auto_mode.set_pressed_no_signal(settings.auto_mode)
 	_chat_replies.set_pressed_no_signal(settings.chat_replies)
+	for key: String in _reply_toggles:
+		_reply_toggles[key].set_pressed_no_signal(bool(settings.get(key)))
 	_colorblind.set_pressed_no_signal(settings.colorblind)
 	_preview.set_play_fraction(settings.play_fraction())
 
@@ -305,6 +320,11 @@ func _on_auto_mode_toggled(pressed: bool) -> void:
 
 func _on_chat_replies_toggled(pressed: bool) -> void:
 	settings.chat_replies = pressed
+	_commit()
+
+
+func _on_reply_toggled(pressed: bool, key: String) -> void:
+	settings.set(key, pressed)
 	_commit()
 
 
