@@ -85,10 +85,13 @@ func load_from_disk() -> bool:
 		return true
 	if _load_file(save_path):
 		return true
-	push_warning("Points file %s is unusable, trying backup" % save_path)
-	if _load_file(_backup_path()):
+	push_warning("Points file %s is unusable, trying recovery files" % save_path)
+	# A finished temp file means the save was interrupted between the two renames.
+	if _load_file(_tmp_path()) or _load_file(_backup_path()):
+		_quarantine(save_path)
 		return true
 	_quarantine(save_path)
+	_quarantine(_tmp_path())
 	_quarantine(_backup_path())
 	return false
 
@@ -97,7 +100,7 @@ func load_from_disk() -> bool:
 func save_to_disk() -> bool:
 	if save_path.is_empty():
 		return true
-	var tmp: String = save_path + ".tmp"
+	var tmp: String = _tmp_path()
 	var file: FileAccess = FileAccess.open(tmp, FileAccess.WRITE)
 	if file == null:
 		push_warning("Could not write %s" % tmp)
@@ -113,13 +116,18 @@ func save_to_disk() -> bool:
 	# Only a readable current file is worth keeping as the backup.
 	if _read(save_path).size() > 0:
 		_remove(_backup_path())
-		DirAccess.rename_absolute(save_path, _backup_path())
+		if DirAccess.rename_absolute(save_path, _backup_path()) != OK:
+			push_warning("Could not back up %s" % save_path)
 	else:
-		_remove(save_path)
+		_quarantine(save_path)
 	if DirAccess.rename_absolute(tmp, save_path) != OK:
 		push_warning("Could not replace %s" % save_path)
 		return false
 	return true
+
+
+func _tmp_path() -> String:
+	return save_path + ".tmp"
 
 
 func _backup_path() -> String:

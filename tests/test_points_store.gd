@@ -169,3 +169,32 @@ func test_stakes_persist_and_refund() -> void:
 	assert_eq(reloaded.get_balance("1"), 100)
 	assert_eq(reloaded.stake_of("1"), 0)
 	_cleanup_extras()
+
+
+func test_interrupted_save_recovers_from_finished_temp_file() -> void:
+	var store := PointsStore.new(PATH, 100)
+	store.add("1", 1)
+	store.save_to_disk()
+	store.add("1", 1)
+	store.save_to_disk()
+	# Crash between the renames: no main file, complete temp file, older backup.
+	DirAccess.rename_absolute(PATH, PATH + ".tmp")
+	var reloaded := PointsStore.new(PATH, 100)
+	assert_true(reloaded.load_from_disk())
+	assert_eq(reloaded.get_balance("1"), 102)
+
+
+func test_corrupt_main_is_kept_aside_when_backup_is_used() -> void:
+	var store := PointsStore.new(PATH, 100)
+	store.add("1", 1)
+	store.save_to_disk()
+	store.save_to_disk()
+	_write(PATH, "garbage")
+	var reloaded := PointsStore.new(PATH, 100)
+	assert_true(reloaded.load_from_disk())
+	var found: bool = false
+	for name_text: String in DirAccess.open("user://").get_files():
+		if name_text.begins_with("test_points_store.json.corrupt-"):
+			found = true
+	assert_true(found)
+	assert_false(FileAccess.file_exists(PATH))

@@ -31,8 +31,8 @@ func _ready() -> void:
 		points = PointsStore.new(points_path, starting_balance)
 		points.load_from_disk()
 		# A refresh mid-round loses the round itself, so give open bets back.
-		if points.refund_stakes() > 0:
-			points.save_to_disk()
+		if points.refund_stakes() > 0 and not points.save_to_disk():
+			push_warning("Could not save refunded bets")
 
 
 func handle_command(msg: ChatMessage, command: String, args: PackedStringArray) -> void:
