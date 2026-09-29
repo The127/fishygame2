@@ -33,6 +33,14 @@ mkdir -p build/web
 godot --headless --export-release Web build/web/index.html
 ```
 
+Exporting needs the Godot 4.7.x Web export templates (Editor > Manage Export Templates,
+or unpack the matching `.tpz` into `~/.local/share/godot/export_templates/4.7.x.stable/`),
+otherwise it fails with "No export template found".
+
+The preset injects a small style (`html/head_include`) that makes the page background
+transparent, so only what the game draws shows up in OBS. To check, add the browser source
+over a colorful scene: empty areas should show the scene underneath, not black.
+
 Serve `build/web/` with any static file server and add the URL as an OBS browser source
 (1920x1080). Serving over HTTP is required; opening the file directly will not work.
 
