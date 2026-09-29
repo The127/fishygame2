@@ -1,0 +1,7 @@
+.git
+.godot
+build
+.github
+.venv
+Dockerfile
+.dockerignore

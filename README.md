@@ -43,6 +43,25 @@ over a colorful scene: empty areas should show the scene underneath, not black.
 Serve `build/web/` with any static file server and add the URL as an OBS browser source
 (1920x1080). Serving over HTTP is required; opening the file directly will not work.
 
+## Docker
+
+The image exports the Web build with a checksum-verified headless Godot and serves it with nginx.
+
+```sh
+docker build -t fishygame2 .
+docker run --rm -p 8080:80 fishygame2
+```
+
+Open <http://localhost:8080>, or use that URL as an OBS browser source (1920x1080).
+CI builds the image on every PR and pushes it to `ghcr.io/the127/fishygame2` (`latest` and the
+commit SHA) on pushes to `main`:
+
+```sh
+docker run --rm -p 8080:80 ghcr.io/the127/fishygame2:latest
+```
+
+The Godot version and checksums in the `Dockerfile` must match `.github/workflows/ci.yml`.
+
 ## Development commands
 
 Install the dev tools once: `pip install -r requirements-dev.txt` (gdtoolkit, pinned) and
