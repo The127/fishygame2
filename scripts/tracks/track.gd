@@ -31,6 +31,14 @@ func _ready() -> void:
 	style.dress(self, style_id)
 
 
+## Lets the map's seeded gimmicks (drifting obstacles and the like) choose their layout for a
+## race. Draws nothing from `rng` on maps that have none.
+func seed_gimmicks(rng: RandomNumberGenerator) -> void:
+	for child: Node in get_children():
+		if child.has_method("reseed"):
+			child.call("reseed", rng.randi())
+
+
 ## Plans this map's hazard events for a race. Each hazard draws its own seed from `rng`.
 ## A frequency of 0 or less means no hazards.
 func arm_hazards(rng: RandomNumberGenerator, frequency: int) -> void:
