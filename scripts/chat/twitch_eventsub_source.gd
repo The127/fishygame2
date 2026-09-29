@@ -13,6 +13,8 @@ const SEND_URL: String = "https://api.twitch.tv/helix/chat/messages"
 const MAX_BACKOFF: float = 30.0
 ## Seconds to wait for a session_welcome before retrying the connection.
 const WELCOME_TIMEOUT: float = 10.0
+## How many recent message ids to remember for de-duplication.
+const MAX_SEEN_IDS: int = 512
 
 var client_id: String = ""
 var access_token: String = ""
@@ -29,6 +31,9 @@ var _keepalive_timeout: float = 10.0
 var _since_last_message: float = 0.0
 var _backoff: float = 1.0
 var _reconnect_in: float = -1.0
+## Recently delivered message ids (insertion ordered), to drop duplicates that
+## arrive on both sockets during a reconnect handoff.
+var _seen_ids: Dictionary = {}
 
 
 func _init(
@@ -126,7 +131,8 @@ static func parse_chat_event(event: Variant) -> ChatMessage:
 		str(e.get("chatter_user_login", "")),
 		str(e.get("chatter_user_name", "")),
 		str(m.get("text", "")),
-		emotes
+		emotes,
+		str(e.get("message_id", ""))
 	)
 
 
@@ -273,6 +279,19 @@ func _on_send_completed(
 	req.queue_free()
 	if code < 200 or code >= 300:
 		push_warning("Chat send returned HTTP %d: %s" % [code, body.get_string_from_utf8()])
+
+
+## Returns true if the message id was already delivered; otherwise remembers it.
+## Messages without an id are never treated as duplicates.
+func _is_duplicate(msg: ChatMessage) -> bool:
+	if msg.id.is_empty():
+		return false
+	if _seen_ids.has(msg.id):
+		return true
+	_seen_ids[msg.id] = true
+	if _seen_ids.size() > MAX_SEEN_IDS:
+		_seen_ids.erase(_seen_ids.keys()[0])
+	return false
 
 
 func _subscribe(session_id: String) -> void:
