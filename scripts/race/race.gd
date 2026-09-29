@@ -51,6 +51,7 @@ func clear() -> void:
 	running = false
 	if _track != null:
 		_track.stop_hazards()
+		_track.stop_gimmicks()
 	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
 		_track.marble_reached_finish.disconnect(_on_marble_reached_finish)
 	_track = null

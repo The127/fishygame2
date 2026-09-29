@@ -56,6 +56,20 @@ func stop_hazards() -> void:
 		hazard.disarm()
 
 
+## Puts the map's geysers back to sleep.
+func stop_gimmicks() -> void:
+	for geyser: Geyser in get_geysers():
+		geyser.disarm()
+
+
+func get_geysers() -> Array[Geyser]:
+	var result: Array[Geyser] = []
+	for child: Node in get_children():
+		if child is Geyser:
+			result.append(child as Geyser)
+	return result
+
+
 func get_hazards() -> Array[Hazard]:
 	var result: Array[Hazard] = []
 	for child: Node in get_children():
