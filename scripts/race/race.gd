@@ -21,10 +21,10 @@ var _marbles: Dictionary = {}
 ## Clears any previous race and spawns `count` marbles. Every random draw comes
 ## from the given rng.
 func start(track: Track, count: int, rng: RandomNumberGenerator) -> void:
+	assert(marble_scene != null and count > 0, "Race needs a marble_scene and count > 0")
 	clear()
 	_track = track
-	if not _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
-		_track.marble_reached_finish.connect(_on_marble_reached_finish)
+	_track.marble_reached_finish.connect(_on_marble_reached_finish)
 	var ids: Array[int] = []
 	for i: int in count:
 		ids.append(i)
@@ -45,13 +45,22 @@ func start(track: Track, count: int, rng: RandomNumberGenerator) -> void:
 
 func clear() -> void:
 	running = false
+	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
+		_track.marble_reached_finish.disconnect(_on_marble_reached_finish)
+	_track = null
+	_ranking = null
 	for marble: Marble in _marbles.values():
+		# Leave the tree now so a stale marble can't trigger the finish area this frame.
+		remove_child(marble)
 		marble.queue_free()
 	_marbles.clear()
 
 
-func get_marbles() -> Array:
-	return _marbles.values()
+func get_marbles() -> Array[Marble]:
+	var result: Array[Marble] = []
+	for marble: Marble in _marbles.values():
+		result.append(marble)
+	return result
 
 
 func get_progress_map() -> Dictionary:
@@ -71,9 +80,11 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_marble_reached_finish(body: Node2D) -> void:
-	if not running or not body is Marble:
+	if not running or _ranking == null or not body is Marble:
 		return
 	var marble: Marble = body as Marble
+	if _marbles.get(marble.id) != marble:
+		return
 	var place: int = _ranking.record_finish(marble.id, elapsed)
 	if place == 0:
 		return
@@ -84,4 +95,6 @@ func _on_marble_reached_finish(body: Node2D) -> void:
 
 func _finish_race() -> void:
 	running = false
+	for marble: Marble in _marbles.values():
+		marble.set_deferred("freeze", true)
 	race_finished.emit(_ranking.get_results(get_progress_map()))

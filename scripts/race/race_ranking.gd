@@ -68,7 +68,7 @@ func get_results(progress: Dictionary = {}) -> Array[Dictionary]:
 		func(a: int, b: int) -> bool:
 			var pa: float = float(progress.get(a, 0.0))
 			var pb: float = float(progress.get(b, 0.0))
-			if is_equal_approx(pa, pb):
+			if pa == pb:
 				return a < b
 			return pa > pb
 	)

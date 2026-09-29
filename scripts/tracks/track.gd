@@ -6,7 +6,7 @@ extends Node2D
 signal marble_reached_finish(marble: Node2D)
 
 @export var spawn_columns: int = 5
-@export var spawn_spacing: float = 30.0
+@export var spawn_spacing: float = 34.0
 
 @onready var _finish: Area2D = $Finish
 @onready var _centerline: Path2D = $Centerline
