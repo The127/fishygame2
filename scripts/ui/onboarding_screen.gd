@@ -192,10 +192,10 @@ func go_back() -> void:
 	_show_step()
 
 
-## Marks the onboarding as done and returns to the home screen.
+## Marks the onboarding as done (at least for this page load) and returns to the home screen.
 func finish() -> void:
-	if not store.set_done(true):
-		_status.text = "Could not remember this in the browser, the guide may show again"
+	OnboardingStore.dismissed_this_session = true
+	store.set_done(true)
 	get_tree().change_scene_to_file(HOME_SCENE)
 
 

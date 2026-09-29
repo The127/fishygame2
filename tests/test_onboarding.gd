@@ -6,10 +6,12 @@ const PATH: String = "user://test_onboarding.cfg"
 
 func before_each() -> void:
 	DirAccess.remove_absolute(PATH)
+	OnboardingStore.dismissed_this_session = false
 
 
 func after_all() -> void:
 	DirAccess.remove_absolute(PATH)
+	OnboardingStore.dismissed_this_session = false
 
 
 func _make_screen() -> OnboardingScreen:
@@ -65,3 +67,20 @@ func test_redirect_url_falls_back_to_placeholder_outside_web() -> void:
 		pending("desktop only")
 		return
 	assert_eq(OnboardingScreen.redirect_url(), OnboardingScreen.REDIRECT_PLACEHOLDER)
+
+
+func test_dismissal_counts_as_done_even_when_saving_fails() -> void:
+	# A directory in place of the file makes the save fail.
+	var store := OnboardingStore.new("user://")
+	assert_false(store.set_done(true), "saving fails")
+	assert_false(store.is_done())
+	OnboardingStore.dismissed_this_session = true
+	assert_true(store.is_done(), "the session flag keeps the home screen from redirecting")
+
+
+func test_starts_at_login_step_when_returning_from_twitch() -> void:
+	var previous: TwitchAuth.LoginStatus = Chat.login_status
+	Chat.login_status = TwitchAuth.LoginStatus.VALIDATING
+	var screen := _make_screen()
+	Chat.login_status = previous
+	assert_eq(screen._step, 1)
