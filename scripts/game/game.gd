@@ -35,6 +35,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 @onready var _betting: Betting = $Betting
 @onready var _chaos: Chaos = $Chaos
 @onready var _race: Race = $Race
+@onready var _camera: RaceCamera = $RaceCamera
 @onready var _overlay: Overlay = $Overlay
 @onready var _panel: ControlPanel = $ControlPanel
 
@@ -85,6 +86,8 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if _flow.state == GameFlow.State.LOBBY:
 		_refresh_lobby()
+	if _flow.state == GameFlow.State.RACING and _race.running:
+		_camera.follow(_race.get_position_map(), _race.get_progress_map())
 	_panel.set_status(_status_text())
 
 
@@ -93,10 +96,14 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 		GameFlow.State.IDLE:
 			_race.clear()
 			_overlay.show_idle()
+			_camera.show_overview()
 		GameFlow.State.LOBBY:
 			_race.clear()
 			_load_map()
 			_refresh_lobby()
+			_camera.show_overview(true)
+		GameFlow.State.COUNTDOWN, GameFlow.State.PODIUM:
+			_camera.show_overview()
 		GameFlow.State.RACING:
 			_overlay.show_racing()
 
@@ -140,6 +147,8 @@ func _load_map() -> void:
 	_track = TrackCatalog.instantiate(id)
 	add_child(_track)
 	move_child(_track, 0)
+	_camera.set_bounds(_track.view_bounds)
+	_camera.show_overview(true)
 
 
 func _on_join_rejected(msg: ChatMessage, reason: String) -> void:
