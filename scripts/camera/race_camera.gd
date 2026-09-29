@@ -5,6 +5,8 @@ extends Camera2D
 
 const MIN_ZOOM: float = 1.0
 const MAX_ZOOM: float = 2.0
+## The overview may zoom out further, so tall maps fit the frame.
+const OVERVIEW_MIN_ZOOM: float = 0.5
 ## Room around the leading group, in world pixels.
 const MARGIN: float = 220.0
 ## The frame is never smaller than this, so a lone leader does not zoom in absurdly far.
@@ -42,7 +44,9 @@ func set_bounds(bounds: Rect2) -> void:
 ## Frame the whole track. With `snap` the view jumps there (new map), otherwise it glides.
 func show_overview(snap: bool = false) -> void:
 	_following = false
-	_target_zoom = CameraFraming.fit_zoom(_bounds.size, _viewport_size(), MIN_ZOOM, MAX_ZOOM)
+	_target_zoom = CameraFraming.fit_zoom(
+		_bounds.size, _viewport_size(), OVERVIEW_MIN_ZOOM, MAX_ZOOM
+	)
 	_target_center = _bounds.get_center()
 	if snap:
 		_snap()
