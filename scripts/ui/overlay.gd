@@ -8,6 +8,7 @@ extends CanvasLayer
 const MARGIN: int = 48
 const LOBBY_COLUMNS: int = 2
 
+var _frame: Control
 var _lobby_panel: PanelContainer
 var _lobby_header: Label
 var _lobby_status: Label
@@ -27,6 +28,11 @@ var _notice_timer: Timer
 
 
 func _ready() -> void:
+	# Everything is laid out inside this frame, which streamer padding shrinks.
+	_frame = Control.new()
+	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_frame)
 	_build_lobby()
 	_build_countdown()
 	_build_results()
@@ -37,6 +43,18 @@ func _ready() -> void:
 	_notice_timer.timeout.connect(_clear_notice)
 	add_child(_notice_timer)
 	clear()
+
+
+## Keeps the UI inside `fraction` of the screen (fractions of the viewport).
+func set_play_fraction(fraction: Rect2) -> void:
+	_frame.anchor_left = fraction.position.x
+	_frame.anchor_top = fraction.position.y
+	_frame.anchor_right = fraction.end.x
+	_frame.anchor_bottom = fraction.end.y
+	_frame.offset_left = 0.0
+	_frame.offset_top = 0.0
+	_frame.offset_right = 0.0
+	_frame.offset_bottom = 0.0
 
 
 func clear() -> void:
@@ -144,7 +162,7 @@ func _set_bets_text(text: String) -> void:
 func _build_lobby() -> void:
 	_lobby_panel = _make_panel()
 	_lobby_panel.position = Vector2(MARGIN, MARGIN)
-	add_child(_lobby_panel)
+	_frame.add_child(_lobby_panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 10)
 	_lobby_panel.add_child(box)
@@ -164,7 +182,7 @@ func _build_countdown() -> void:
 	_big.material = UiStyle.gradient_material()
 	_big.add_theme_color_override("font_shadow_color", Color(UiStyle.CYAN, 0.25))
 	_big.add_theme_constant_override("shadow_outline_size", 18)
-	add_child(_big)
+	_frame.add_child(_big)
 	_big.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_big.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_big.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -175,7 +193,7 @@ func _build_results() -> void:
 	_results_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_results_column.add_theme_constant_override("separation", 24)
 	_results_column.alignment = BoxContainer.ALIGNMENT_BEGIN
-	add_child(_results_column)
+	_frame.add_child(_results_column)
 	# Top-centered column, 1920 wide; the panels inside size to their content.
 	_results_column.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_results_column.offset_top = 96.0
@@ -203,7 +221,7 @@ func _build_bets() -> void:
 	_bets_panel = _make_panel()
 	_bets = _make_label("", 28, 600, UiStyle.TEXT)
 	_bets_panel.add_child(_bets)
-	add_child(_bets_panel)
+	_frame.add_child(_bets_panel)
 	# Bottom-left, growing upward when the text gets longer.
 	_bets_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	_bets_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -224,7 +242,7 @@ func _build_notice() -> void:
 	strip.alignment = BoxContainer.ALIGNMENT_CENTER
 	strip.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	strip.offset_top = 24.0
-	add_child(strip)
+	_frame.add_child(strip)
 	strip.add_child(_notice_panel)
 
 

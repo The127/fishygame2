@@ -147,3 +147,39 @@ func test_every_default_is_inside_its_range() -> void:
 	for field: Dictionary in GameSettings.FIELDS:
 		var value: int = settings.get(field["key"])
 		assert_between(value, int(field["min"]), int(field["max"]), str(field["key"]))
+
+
+func test_play_fraction_is_the_whole_screen_by_default() -> void:
+	assert_eq(GameSettings.new().play_fraction(), Rect2(0.0, 0.0, 1.0, 1.0))
+
+
+func test_play_fraction_leaves_out_the_padding() -> void:
+	var settings := GameSettings.new()
+	settings.set_number("pad_left", 25.0)
+	settings.set_number("pad_right", 5.0)
+	settings.set_number("pad_top", 10.0)
+	settings.set_number("pad_bottom", 20.0)
+	var rect: Rect2 = settings.play_fraction()
+	assert_almost_eq(rect.position.x, 0.25, 0.0001)
+	assert_almost_eq(rect.position.y, 0.10, 0.0001)
+	assert_almost_eq(rect.size.x, 0.70, 0.0001)
+	assert_almost_eq(rect.size.y, 0.70, 0.0001)
+
+
+func test_padding_is_clamped_so_a_fifth_of_the_screen_stays() -> void:
+	var settings := GameSettings.new()
+	settings.set_number("pad_left", 90.0)
+	settings.set_number("pad_right", 90.0)
+	assert_eq(settings.pad_left, 40)
+	assert_almost_eq(settings.play_fraction().size.x, 0.2, 0.0001)
+
+
+func test_padding_survives_save_and_load() -> void:
+	var settings := GameSettings.new(PATH)
+	settings.pad_left = 30
+	settings.pad_bottom = 15
+	assert_true(settings.save())
+	var loaded := GameSettings.new(PATH)
+	loaded.load_settings()
+	assert_eq(loaded.pad_left, 30)
+	assert_eq(loaded.pad_bottom, 15)

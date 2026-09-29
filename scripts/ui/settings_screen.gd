@@ -11,6 +11,7 @@ var _spinners: Dictionary[String, SpinBox] = {}
 var _map_picker: OptionButton
 var _chat_replies: CheckBox
 var _status: Label
+var _preview: PaddingPreview
 
 
 func _ready() -> void:
@@ -57,6 +58,13 @@ func _build() -> void:
 		_spinners[String(field["key"])] = spinner
 		grid.add_child(_row_label(String(field["label"])))
 		grid.add_child(spinner)
+	_preview = PaddingPreview.new()
+	_preview.custom_minimum_size = Vector2(256.0, 144.0)
+	_preview.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var preview_label := _row_label("Game area")
+	preview_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	grid.add_child(preview_label)
+	grid.add_child(_preview)
 	_map_picker = OptionButton.new()
 	_map_picker.add_item(RANDOM_LABEL)
 	_map_picker.set_item_metadata(0, GameSettings.RANDOM_MAP)
@@ -115,6 +123,7 @@ func _refresh() -> void:
 		if String(_map_picker.get_item_metadata(i)) == settings.default_map:
 			_map_picker.select(i)
 	_chat_replies.set_pressed_no_signal(settings.chat_replies)
+	_preview.set_play_fraction(settings.play_fraction())
 
 
 func _commit(saved_text: String = "Saved") -> void:
