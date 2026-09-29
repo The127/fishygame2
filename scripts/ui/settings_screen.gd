@@ -209,7 +209,7 @@ func _add_tab(
 		if not controls.has(key):
 			continue
 		placed[key] = true
-		var caption := _row_label(String(_captions[key]))
+		var caption := _row_label(_captions[key])
 		if key == PREVIEW_KEY:
 			caption.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		grid.add_child(caption)

@@ -84,10 +84,11 @@ func test_settings_screen_fits_a_720p_window_and_groups_settings_in_tabs() -> vo
 	await wait_process_frames(2)
 	var tabs: TabContainer = screen.find_children("*", "TabContainer", true, false)[0]
 	assert_gte(tabs.get_tab_count(), 5)
-	assert_lte(screen.get_combined_minimum_size().y, 720.0, "content scrolls instead of growing")
+	var bounds := Rect2(Vector2.ZERO, Vector2(1280.0, 720.0))
+	assert_true(bounds.encloses(tabs.get_global_rect()), "tabs stay inside the window")
+	assert_lte(tabs.get_minimum_size().x, SettingsScreen.PANEL_WIDTH, "tab bar fits the panel")
 	for key: String in screen._spinners:
 		assert_not_null(screen._spinners[key].get_parent(), "%s is in a tab" % key)
-	var bounds := Rect2(Vector2.ZERO, Vector2(1280.0, 720.0))
 	var reset: Button = screen.find_child("Reset", true, false)
 	assert_true(bounds.encloses(reset.get_global_rect()), "buttons stay on screen")
 
