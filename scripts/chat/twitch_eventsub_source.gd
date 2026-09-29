@@ -244,7 +244,7 @@ func _handle_frame(raw: String, from_pending: bool) -> void:
 					_pending_socket = null
 		"notification":
 			var msg: ChatMessage = frame["message"]
-			if msg != null:
+			if msg != null and not _is_duplicate(msg):
 				message_received.emit(msg)
 		"revocation":
 			_fail("EventSub subscription revoked (token invalid or scope missing?)")

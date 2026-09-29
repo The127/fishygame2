@@ -3,7 +3,32 @@ extends RefCounted
 ## Parses chat text such as "#join red" into a command and arguments.
 
 ## Characters that are treated as a plain space.
-const SEPARATORS: PackedInt32Array = [0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0xA0, 0x2007, 0x202F, 0x3000]
+const SEPARATORS: PackedInt32Array = [
+	0x09,
+	0x0A,
+	0x0B,
+	0x0C,
+	0x0D,
+	0x85,
+	0xA0,
+	0x1680,
+	0x2000,
+	0x2001,
+	0x2002,
+	0x2003,
+	0x2004,
+	0x2005,
+	0x2006,
+	0x2007,
+	0x2008,
+	0x2009,
+	0x200A,
+	0x2028,
+	0x2029,
+	0x202F,
+	0x205F,
+	0x3000
+]
 ## Invisible characters removed before parsing: zero-width space/joiners, word
 ## joiner, BOM, soft hyphen, and the 7TV tag character (U+E0000) that is
 ## appended to repeated messages.
