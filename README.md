@@ -56,8 +56,8 @@ cd tests/browser && npm ci && npx playwright install chromium   # once
 just smoke                                                       # or: npm run smoke
 ```
 
-`CHROMIUM_PATH` uses an installed Chromium instead of Playwright's. `STRICT_RELOAD=1` reloads
-right after the podium instead of waiting for the save to reach IndexedDB (fails until #66 is fixed).
+`CHROMIUM_PATH` uses an installed Chromium instead of Playwright's. The test reloads right after
+the podium, so it also checks that points survive a quick reload.
 
 ## Sound
 
