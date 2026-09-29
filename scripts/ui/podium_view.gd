@@ -96,6 +96,13 @@ func _draw() -> void:
 		var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 		var pos := Vector2(rect.get_center().x - width * 0.5, rect.position.y + 66.0)
 		draw_string_outline(
-			font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 8, Color(0.0, 0.03, 0.08, 0.95)
+			font,
+			pos,
+			text,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			font_size,
+			8,
+			Color(0.0, 0.03, 0.08, 0.95)
 		)
 		draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(tint, alpha))
