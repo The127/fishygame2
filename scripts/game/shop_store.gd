@@ -3,6 +3,9 @@ extends RefCounted
 ## What each viewer owns in the fish shop and has equipped, keyed by Twitch user id and
 ## optionally persisted as JSON. Items are chat names (see [ShopCatalog]).
 ##
+## Saves are atomic (temp file, then rename) and keep the previous file as a backup; an
+## unreadable file is moved aside instead of being overwritten.
+##
 ## On the web the file lives in IndexedDB, which the engine flushes a few seconds after a
 ## write, so every save is also mirrored to localStorage and the newer copy wins on load.
 
@@ -17,6 +20,10 @@ var save_path: String = ""
 var _owned: Dictionary = {}
 ## user_id -> {kind: String}
 var _equipped: Dictionary = {}
+## Save time (unix seconds) of the copy that was loaded last; 0 if it had none.
+var _loaded_at: float = 0.0
+## Whether a saved copy was loaded from the files.
+var _loaded: bool = false
 
 
 func _init(p_save_path: String = "") -> void:
@@ -50,24 +57,45 @@ func equipped(user_id: String, kind: String) -> String:
 	return String(_equipped.get(user_id, {}).get(kind, ""))
 
 
-## Loads the saved data. A missing file is not an error (returns true); an unreadable
-## one leaves the store empty and returns false.
+## Loads the saved data. A missing file is not an error (returns true). If the main file is
+## unreadable the temp file or backup is used (returns true); if those fail too the unreadable
+## files are moved aside (never overwritten by the next save), the store is left empty and
+## false is returned.
 func load_from_disk() -> bool:
 	_owned.clear()
 	_equipped.clear()
+	_loaded_at = 0.0
+	_loaded = false
 	if save_path.is_empty():
 		return true
-	var file_data: Dictionary = _parse(_read(save_path))
+	var ok: bool = _load_files()
+	# The mirror can hold a save the browser had not flushed to IndexedDB yet.
 	var mirrored: Dictionary = _parse(_mirror_read())
-	var file_time: float = _saved_at(file_data)
-	if not mirrored.is_empty() and (file_data.is_empty() or _saved_at(mirrored) > file_time):
-		file_data = mirrored
-	if file_data.is_empty():
-		return not FileAccess.file_exists(save_path)
-	_apply(file_data)
-	return true
+	if not mirrored.is_empty() and (not _loaded or _saved_at(mirrored) > _loaded_at):
+		_owned.clear()
+		_equipped.clear()
+		_apply(mirrored)
+		return true
+	return ok
 
 
+func _load_files() -> bool:
+	if not FileAccess.file_exists(save_path) and not FileAccess.file_exists(_backup_path()):
+		return true
+	if _load_file(save_path):
+		return true
+	push_warning("Shop file %s is unusable, trying recovery files" % save_path)
+	# A finished temp file means the save was interrupted between the two renames.
+	if _load_file(_tmp_path()) or _load_file(_backup_path()):
+		_quarantine(save_path)
+		return true
+	_quarantine(save_path)
+	_quarantine(_tmp_path())
+	_quarantine(_backup_path())
+	return false
+
+
+## Writes to a temp file first, then swaps it in, keeping the previous file as backup.
 func save_to_disk() -> bool:
 	if save_path.is_empty():
 		return true
@@ -83,7 +111,7 @@ func save_to_disk() -> bool:
 		)
 	)
 	_mirror_write(text)
-	var tmp: String = save_path + ".tmp"
+	var tmp: String = _tmp_path()
 	var file: FileAccess = FileAccess.open(tmp, FileAccess.WRITE)
 	if file == null:
 		push_warning("Could not write %s" % tmp)
@@ -94,8 +122,13 @@ func save_to_disk() -> bool:
 	if write_error != OK:
 		push_warning("Could not write %s" % tmp)
 		return false
-	if FileAccess.file_exists(save_path):
-		DirAccess.remove_absolute(save_path)
+	# Only a readable current file is worth keeping as the backup.
+	if not _parse(_read(save_path)).is_empty():
+		_remove(_backup_path())
+		if DirAccess.rename_absolute(save_path, _backup_path()) != OK:
+			push_warning("Could not back up %s" % save_path)
+	else:
+		_quarantine(save_path)
 	if DirAccess.rename_absolute(tmp, save_path) != OK:
 		push_warning("Could not replace %s" % save_path)
 		return false
@@ -137,6 +170,36 @@ func _mirror_read() -> String:
 	return value if value is String else ""
 
 
+func _tmp_path() -> String:
+	return save_path + ".tmp"
+
+
+func _backup_path() -> String:
+	return save_path + ".bak"
+
+
+func _load_file(path: String) -> bool:
+	var data: Dictionary = _parse(_read(path))
+	if data.is_empty():
+		return false
+	_owned.clear()
+	_equipped.clear()
+	_apply(data)
+	return true
+
+
+func _quarantine(path: String) -> void:
+	if FileAccess.file_exists(path):
+		DirAccess.rename_absolute(
+			path, "%s.corrupt-%d" % [path, int(Time.get_unix_time_from_system())]
+		)
+
+
+func _remove(path: String) -> void:
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+
+
 func _read(path: String) -> String:
 	if not FileAccess.file_exists(path):
 		return ""
@@ -164,6 +227,8 @@ func _saved_at(data: Dictionary) -> float:
 
 ## Copies the data over, dropping anything that is not the expected shape.
 func _apply(data: Dictionary) -> void:
+	_loaded = true
+	_loaded_at = _saved_at(data)
 	var owned: Dictionary = data["owned"]
 	for user_id: Variant in owned:
 		if not (owned[user_id] is Dictionary):

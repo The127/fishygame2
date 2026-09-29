@@ -3,6 +3,12 @@ extends HBoxContainer
 ## Two columns, most points and most race wins. Used on the home screen and in the lobby.
 
 const ROWS: int = 5
+## Width of one column, and the gap between the two, when there is room.
+const COLUMN_WIDTH: float = 300.0
+const SEPARATION: float = 64.0
+const MIN_SEPARATION: float = 16.0
+## Columns never get narrower than this; longer names are clipped.
+const MIN_COLUMN_WIDTH: float = 100.0
 
 var _points_column: VBoxContainer
 var _wins_column: VBoxContainer
@@ -10,7 +16,7 @@ var _wins_column: VBoxContainer
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_theme_constant_override("separation", 64)
+	add_theme_constant_override("separation", int(SEPARATION))
 	_points_column = _make_column("MOST POINTS")
 	_wins_column = _make_column("MOST WINS")
 
@@ -23,12 +29,24 @@ func set_rows(points_rows: Array[Dictionary], wins_rows: Array[Dictionary]) -> b
 	return not points_rows.is_empty() or not wins_rows.is_empty()
 
 
+## Narrows the columns (and the gap) so the panel fits in [param available] pixels.
+func fit_width(available: float) -> void:
+	var gap: float = clampf(available - 2.0 * COLUMN_WIDTH, MIN_SEPARATION, SEPARATION)
+	var width: float = clampf((available - gap) / 2.0, MIN_COLUMN_WIDTH, COLUMN_WIDTH)
+	add_theme_constant_override("separation", int(gap))
+	for column: VBoxContainer in [_points_column, _wins_column]:
+		column.custom_minimum_size.x = width
+
+
 func _make_column(title: String) -> VBoxContainer:
 	var column := VBoxContainer.new()
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_theme_constant_override("separation", 2)
-	column.custom_minimum_size = Vector2(300, 0)
-	column.add_child(_make_label(title, 26, 800, UiStyle.CYAN, 3))
+	column.custom_minimum_size = Vector2(COLUMN_WIDTH, 0)
+	var heading: Label = _make_label(title, 26, 800, UiStyle.CYAN, 3)
+	heading.clip_text = true
+	heading.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	column.add_child(heading)
 	add_child(column)
 	return column
 
