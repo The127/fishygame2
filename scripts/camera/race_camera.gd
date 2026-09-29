@@ -72,7 +72,9 @@ func set_bounds(bounds: Rect2) -> void:
 func set_play_fraction(fraction: Rect2) -> void:
 	_play_fraction = fraction
 	if _following:
-		_target_zoom = CameraFraming.fit_zoom(_focus_size, _play_size(), _min_zoom(MIN_ZOOM), MAX_ZOOM)
+		_target_zoom = CameraFraming.fit_zoom(
+			_focus_size, _play_size(), _min_zoom(MIN_ZOOM), MAX_ZOOM
+		)
 	else:
 		show_overview(true)
 
