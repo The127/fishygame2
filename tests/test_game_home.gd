@@ -14,7 +14,7 @@ func before_each() -> void:
 
 
 func test_home_button_in_lobby_leaves_without_asking() -> void:
-	watch_signals(_panel)
+	assert_eq(_flow.state, GameFlow.State.LOBBY)
 	_panel.home_pressed.emit()
 	assert_eq(_flow.state, GameFlow.State.IDLE)
 	assert_false((_panel.get_node("Panel/Box/LeaveConfirm") as Control).visible)
@@ -63,7 +63,7 @@ func test_confirmed_leave_refunds_bets_and_chaos_and_stops_auto_mode() -> void:
 	_say("100", "#boost user1")
 	assert_eq(_balance("100"), 1000 - 100 - _chaos.boost_cost)
 	_panel.home_pressed.emit()
-	_panel.leave_confirmed.emit()
+	(_panel.get_node("Panel/Box/LeaveConfirm/Answers/Leave") as Button).pressed.emit()
 	assert_eq(_flow.state, GameFlow.State.IDLE)
 	assert_eq(_balance("100"), 1000, "bet and chaos stake refunded")
 	assert_eq(_chaos.points.stake_of("100"), 0)
@@ -71,3 +71,21 @@ func test_confirmed_leave_refunds_bets_and_chaos_and_stops_auto_mode() -> void:
 	_flow.tick(10000.0)
 	assert_eq(_flow.state, GameFlow.State.IDLE, "no auto round after leaving")
 	assert_true(_game.settings.auto_mode, "saved setting untouched")
+
+
+func test_stay_puts_a_hidden_panel_back_out_of_sight() -> void:
+	_start_race(2)
+	var box: Control = _panel.get_node("Panel") as Control
+	box.visible = false
+	_panel.home_pressed.emit()
+	assert_true(box.visible, "question must be visible")
+	(_panel.get_node("Panel/Box/LeaveConfirm/Answers/Stay") as Button).pressed.emit()
+	assert_false(box.visible)
+
+
+func test_question_goes_away_when_the_round_ends_on_its_own() -> void:
+	_start_race(2)
+	_panel.home_pressed.emit()
+	_finish_marbles([1, 0])
+	assert_eq(_flow.state, GameFlow.State.PODIUM)
+	assert_false((_panel.get_node("Panel/Box/LeaveConfirm") as Control).visible)

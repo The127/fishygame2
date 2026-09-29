@@ -24,6 +24,8 @@ const VOLUME_ROWS: Dictionary = {
 	AudioSettings.BUS_SFX: "Effects",
 }
 
+var _hidden_before_ask: bool = false
+
 @onready var _panel: PanelContainer = $Panel
 @onready var _status: Label = $Panel/Box/Status
 @onready var _map_picker: OptionButton = $Panel/Box/MapRow/MapPicker
@@ -81,12 +83,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Shows the "leave the round?" question. Reveals the panel so it can be answered.
 func ask_leave() -> void:
+	if not _confirm.visible:
+		_hidden_before_ask = not _panel.visible
 	_panel.visible = true
 	_confirm.visible = true
 
 
-## Hides the leave question without leaving.
+## Hides the leave question without leaving, and re-hides the panel if F1 had hidden it.
 func cancel_leave() -> void:
+	if _confirm.visible and _hidden_before_ask:
+		_panel.visible = false
 	_confirm.visible = false
 
 
@@ -155,5 +161,5 @@ func _on_map_picked(index: int) -> void:
 
 
 func _on_leave_pressed() -> void:
-	_confirm.visible = false
+	cancel_leave()
 	leave_confirmed.emit()

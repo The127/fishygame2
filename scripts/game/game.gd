@@ -182,6 +182,8 @@ func _process(_delta: float) -> void:
 
 func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> void:
 	_photo.stop()
+	if new_state != GameFlow.State.COUNTDOWN and new_state != GameFlow.State.RACING:
+		_panel.cancel_leave()
 	match new_state:
 		GameFlow.State.IDLE:
 			_race.clear()
