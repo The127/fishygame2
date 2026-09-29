@@ -62,12 +62,39 @@ func get_marbles() -> Array[Marble]:
 	return result
 
 
+## Pushes a marble toward the finish. Returns false if the race is not running or the id is unknown.
+func boost_marble(id: int) -> bool:
+	var marble: Marble = _live_marble(id)
+	if marble == null:
+		return false
+	marble.boost(_track.get_forward(marble.global_position))
+	return true
+
+
+## Knocks a marble back and slows it. Returns false if the race is not running or the id is unknown.
+func curse_marble(id: int) -> bool:
+	var marble: Marble = _live_marble(id)
+	if marble == null:
+		return false
+	marble.curse(_track.get_forward(marble.global_position))
+	return true
+
+
 func get_progress_map() -> Dictionary:
 	var progress: Dictionary = {}
 	for id: int in _marbles:
 		var marble: Marble = _marbles[id]
 		progress[id] = _track.get_progress(marble.global_position)
 	return progress
+
+
+## The marble with this id if it is still racing (not yet finished), else null.
+func _live_marble(id: int) -> Marble:
+	if not running or _ranking == null or not _marbles.has(id):
+		return null
+	if _ranking.is_finished(id):
+		return null
+	return _marbles[id]
 
 
 func _physics_process(delta: float) -> void:
