@@ -5,6 +5,7 @@ extends CanvasLayer
 signal open_lobby_pressed
 signal start_pressed
 signal stop_pressed
+signal add_debug_players_pressed(count: int)
 ## Emits a map id, or TrackCatalog.RANDOM_ID for a random map.
 signal map_selected(choice: String)
 
@@ -17,6 +18,12 @@ func _ready() -> void:
 	($Panel/Box/Buttons/Open as Button).pressed.connect(open_lobby_pressed.emit)
 	($Panel/Box/Buttons/Start as Button).pressed.connect(start_pressed.emit)
 	($Panel/Box/Buttons/Stop as Button).pressed.connect(stop_pressed.emit)
+	($Panel/Box/DebugButtons/AddOne as Button).pressed.connect(
+		add_debug_players_pressed.emit.bind(1)
+	)
+	($Panel/Box/DebugButtons/AddFive as Button).pressed.connect(
+		add_debug_players_pressed.emit.bind(5)
+	)
 	_map_picker.add_item("Random")
 	_map_picker.set_item_metadata(0, TrackCatalog.RANDOM_ID)
 	for id: String in TrackCatalog.ids():

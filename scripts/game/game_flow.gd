@@ -15,7 +15,7 @@ enum State { IDLE, LOBBY, COUNTDOWN, RACING, PODIUM }
 
 @export var max_players: int = 20
 ## Seconds before the lobby starts the race on its own. 0 or less means manual start only.
-@export var lobby_seconds: float = 30.0
+@export var lobby_seconds: float = 0.0
 ## Players needed before a round can start. Never below 1.
 @export var min_players: int = 1:
 	set(value):
@@ -30,6 +30,7 @@ var timer: float = 0.0
 var _contestants: Array[Contestant] = []
 var _ids: Dictionary = {}
 var _last_tick: int = 0
+var _debug_count: int = 0
 
 
 func _process(delta: float) -> void:
@@ -69,6 +70,7 @@ func open_lobby() -> bool:
 		return false
 	_contestants.clear()
 	_ids.clear()
+	_debug_count = 0
 	timer = lobby_seconds
 	_set_state(State.LOBBY)
 	return true
@@ -122,6 +124,18 @@ func report_race_finished(results: Array[Dictionary]) -> void:
 	timer = podium_seconds
 	_set_state(State.PODIUM)
 	podium_ready.emit(podium)
+
+
+## Adds fake viewers to the open lobby through the normal join path. Returns how many joined.
+func add_debug_players(count: int) -> int:
+	var added: int = 0
+	while added < count and state == State.LOBBY and _contestants.size() < max_players:
+		_debug_count += 1
+		var user_id: String = "debug_%d" % _debug_count
+		var msg := ChatMessage.create(user_id, user_id, "Debug %d" % _debug_count, "#join")
+		if join(msg):
+			added += 1
+	return added
 
 
 ## Chat entry point; connect Chat.command_received to it.

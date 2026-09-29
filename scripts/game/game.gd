@@ -49,6 +49,7 @@ func _ready() -> void:
 	_panel.open_lobby_pressed.connect(_flow.open_lobby)
 	_panel.start_pressed.connect(_flow.start_race)
 	_panel.stop_pressed.connect(_flow.stop)
+	_panel.add_debug_players_pressed.connect(_flow.add_debug_players)
 	_panel.map_selected.connect(_on_map_selected)
 	_rng.randomize()
 	_flow.open_lobby()
