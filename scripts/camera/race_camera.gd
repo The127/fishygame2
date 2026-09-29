@@ -23,6 +23,12 @@ const HANDOVER_MIN_SCALE: float = 0.25
 const MAX_PAN_SPEED: float = 900.0
 const MAX_ZOOM_SPEED: float = 0.6
 
+## Zoom used on the finish gate during a photo finish, before the play-area fit.
+const PHOTO_FRAME: Vector2 = Vector2(480.0, 270.0)
+## Easing rate during the hold. Applied in real time, not slowed with the game.
+const PHOTO_RATE: float = 4.0
+
+var _holding: bool = false
 var _bounds: Rect2 = Rect2(0.0, 0.0, 1920.0, 1080.0)
 var _following: bool = false
 var _target_center: Vector2 = Vector2(960.0, 540.0)
@@ -41,6 +47,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if _holding:
+		_process_hold(delta)
+		return
 	_handover_left = maxf(_handover_left - delta, 0.0)
 	var ease_scale: float = CameraFraming.handover_scale(
 		_handover_left, HANDOVER_TIME, HANDOVER_MIN_SCALE
@@ -59,6 +68,36 @@ func _process(delta: float) -> void:
 	if _handover_left > 0.0:
 		step = step.limit_length(MAX_PAN_SPEED * delta)
 	_center = CameraFraming.clamp_center(current + step, new_zoom, _play_size(), _bounds)
+	_place(new_zoom)
+
+
+## Photo finish: hold a tight frame on `point`. Ignores follow() until release_hold().
+func hold_on(point: Vector2) -> void:
+	_holding = true
+	_following = true
+	_target_center = point
+	_target_zoom = CameraFraming.fit_zoom(PHOTO_FRAME, _play_size(), _min_zoom(MIN_ZOOM), MAX_ZOOM)
+
+
+## Ends the hold. The view eases back with the slowed hand-over easing.
+func release_hold() -> void:
+	if not _holding:
+		return
+	_holding = false
+	_handover_left = HANDOVER_TIME
+
+
+func is_holding() -> bool:
+	return _holding
+
+
+func _process_hold(delta: float) -> void:
+	# The game runs slowed, so undo that to keep the zoom snappy in real time.
+	var real_delta: float = delta / maxf(Engine.time_scale, 0.05)
+	var t: float = CameraFraming.damping(PHOTO_RATE, real_delta)
+	var new_zoom: float = zoom.x + (_target_zoom - zoom.x) * t
+	var step: Vector2 = (_target_center - _center) * t
+	_center = CameraFraming.clamp_center(_center + step, new_zoom, _play_size(), _bounds)
 	_place(new_zoom)
 
 
@@ -81,6 +120,7 @@ func set_play_fraction(fraction: Rect2) -> void:
 
 ## Frame the whole track. With `snap` the view jumps there (new map), otherwise it glides.
 func show_overview(snap: bool = false) -> void:
+	_holding = false
 	_following = false
 	_followed_count = 0
 	_target_zoom = CameraFraming.fit_zoom(
@@ -94,6 +134,8 @@ func show_overview(snap: bool = false) -> void:
 ## Follow the leading group. `positions` and `progress` map marble id -> value.
 ## Falls back to the overview when there is nobody to follow.
 func follow(positions: Dictionary, progress: Dictionary) -> void:
+	if _holding:
+		return
 	if positions.size() < _followed_count:
 		_handover_left = HANDOVER_TIME
 	_followed_count = positions.size()

@@ -4,6 +4,8 @@ extends Node2D
 
 signal marble_finished(id: int, place: int)
 signal race_finished(results: Array[Dictionary])
+## The winner just crossed with `chaser_id` about to follow. Visual cue only.
+signal photo_finish(winner_id: int, chaser_id: int)
 
 const SPAWN_JITTER: float = 3.0
 
@@ -139,8 +141,31 @@ func _on_marble_reached_finish(body: Node2D) -> void:
 	if place == 1:
 		marble.celebrate()
 	marble_finished.emit(marble.id, place)
+	if place == 1:
+		_check_photo_finish(marble.id)
 	if _ranking.all_finished():
 		_finish_race()
+
+
+## Emits photo_finish when another marble is about to cross right behind the winner.
+## Reads state only, so it cannot change the outcome.
+func _check_photo_finish(winner_id: int) -> void:
+	var finish: Vector2 = _track.get_finish_position()
+	var chaser_id: int = -1
+	var best_eta: float = INF
+	for id: int in _marbles:
+		if id == winner_id or _ranking.is_finished(id):
+			continue
+		var marble: Marble = _marbles[id]
+		var distance: float = marble.global_position.distance_to(finish)
+		var to_finish: Vector2 = finish - marble.global_position
+		# Only the speed toward the gate counts, not sideways or backwards motion.
+		var speed: float = maxf(0.0, marble.linear_velocity.dot(to_finish.normalized()))
+		if PhotoFinish.is_close(distance, speed) and PhotoFinish.eta(distance, speed) < best_eta:
+			best_eta = PhotoFinish.eta(distance, speed)
+			chaser_id = id
+	if chaser_id >= 0:
+		photo_finish.emit(winner_id, chaser_id)
 
 
 func _finish_race() -> void:

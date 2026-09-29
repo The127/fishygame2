@@ -104,3 +104,48 @@ func test_cheer_strength_is_capped_below_a_boost() -> void:
 	race.cheer_marble(marble.id, 1000.0)
 	await wait_physics_frames(2)
 	assert_lt(marble.linear_velocity.length(), Marble.BOOST_IMPULSE)
+
+
+func _place_near_finish(marble: Marble, track: Track, distance: float, speed: float) -> void:
+	marble.freeze = true
+	marble.global_position = track.get_finish_position() + Vector2(0.0, -distance)
+	marble.linear_velocity = Vector2(0.0, speed)
+
+
+func test_photo_finish_when_chaser_is_about_to_cross() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 3, _rng(4))
+	var marbles: Array[Marble] = race.get_marbles()
+	_place_near_finish(marbles[1], track, 40.0, 400.0)
+	_place_near_finish(marbles[2], track, 60.0, 400.0)
+	watch_signals(race)
+	track.marble_reached_finish.emit(marbles[0])
+	assert_signal_emitted_with_parameters(race, "photo_finish", [0, 1])
+
+
+func test_no_photo_finish_when_chasers_are_far_or_slow() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 3, _rng(4))
+	var marbles: Array[Marble] = race.get_marbles()
+	_place_near_finish(marbles[1], track, 900.0, 400.0)
+	_place_near_finish(marbles[2], track, 40.0, 0.0)
+	watch_signals(race)
+	track.marble_reached_finish.emit(marbles[0])
+	assert_signal_not_emitted(race, "photo_finish")
+
+
+func test_photo_finish_only_for_the_winner() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 3, _rng(4))
+	var marbles: Array[Marble] = race.get_marbles()
+	track.marble_reached_finish.emit(marbles[0])
+	_place_near_finish(marbles[2], track, 40.0, 400.0)
+	watch_signals(race)
+	track.marble_reached_finish.emit(marbles[1])
+	assert_signal_not_emitted(race, "photo_finish")

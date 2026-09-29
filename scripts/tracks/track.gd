@@ -34,6 +34,11 @@ func get_spawn_position(index: int) -> Vector2:
 	return _spawn_origin.to_global(Vector2(col * spawn_spacing, -row * spawn_spacing))
 
 
+## Global position of the finish gate.
+func get_finish_position() -> Vector2:
+	return _finish.global_position
+
+
 ## Progress along the centerline in [0, 1] for a global position.
 func get_progress(global_pos: Vector2) -> float:
 	var curve: Curve2D = _centerline.curve
