@@ -176,3 +176,19 @@ func test_rejection_reasons_and_texts() -> void:
 	watch_signals(_flow)
 	_join("1", "A")
 	assert_signal_emit_count(_flow, "join_rejected", 1)
+
+
+func test_full_lobby_rejects_with_full_reason() -> void:
+	_flow.open_lobby()
+	for i: int in 3:
+		_join(str(i), "P%d" % i)
+	watch_signals(_flow)
+	_join("9", "Late")
+	assert_eq(get_signal_parameters(_flow, "join_rejected", 0)[1], "full")
+
+
+func test_min_players_clamp_values() -> void:
+	_flow.min_players = -5
+	assert_eq(_flow.min_players, 1)
+	_flow.min_players = 2
+	assert_eq(_flow.min_players, 2)

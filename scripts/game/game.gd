@@ -5,7 +5,7 @@ extends Node2D
 ## Milliseconds before the same viewer gets another rejection reply.
 const REPLY_COOLDOWN_MSEC: int = 15000
 
-var _last_reply_msec: Dictionary = {}
+var _last_reply_msec: Dictionary[String, int] = {}
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _race: Race = $Race
@@ -52,13 +52,15 @@ func _on_player_joined(_contestant: Contestant) -> void:
 
 
 func _on_join_rejected(msg: ChatMessage, reason: String) -> void:
+	if _flow.state == GameFlow.State.IDLE:
+		return
 	var text: String = GameFlow.rejection_text(reason, msg)
 	if text == "":
 		return
 	var now: int = Time.get_ticks_msec()
 	if (
 		_last_reply_msec.has(msg.user_id)
-		and now - int(_last_reply_msec[msg.user_id]) < REPLY_COOLDOWN_MSEC
+		and now - _last_reply_msec[msg.user_id] < REPLY_COOLDOWN_MSEC
 	):
 		return
 	_last_reply_msec[msg.user_id] = now
@@ -72,6 +74,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 	# Marble ids are roster ids, so match on id rather than on list order.
 	for marble: Marble in _race.get_marbles():
 		if marble.id < 0 or marble.id >= contestants.size():
+			push_warning("Marble id %d has no contestant" % marble.id)
 			continue
 		marble.color = contestants[marble.id].color
 		marble.label_text = contestants[marble.id].display_name
