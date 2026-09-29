@@ -55,6 +55,11 @@ layout_mode = 2
 focus_mode = 0
 text = "+5 players"
 
+[node name="Auto" type="CheckBox" parent="Panel/Box"]
+layout_mode = 2
+focus_mode = 0
+text = "Auto mode (rounds run on their own)"
+
 [node name="MapRow" type="HBoxContainer" parent="Panel/Box"]
 layout_mode = 2
 

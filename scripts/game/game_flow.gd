@@ -24,6 +24,12 @@ enum State { IDLE, LOBBY, COUNTDOWN, RACING, PODIUM }
 @export var podium_seconds: float = 8.0
 @export var podium_size: int = 3
 
+## Auto mode: the lobby closes after [member auto_lobby_seconds] and the round cycles on its
+## own. Change it with [method set_auto_mode]. Off means manual start only.
+var auto_mode: bool = false
+## Join window of auto mode in seconds.
+var auto_lobby_seconds: float = 60.0
+
 var state: State = State.IDLE
 var timer: float = 0.0
 
@@ -62,6 +68,16 @@ func tick(delta: float) -> void:
 			timer -= delta
 			if timer <= 0.0:
 				open_lobby()
+
+
+## Turns auto mode on or off. An open lobby picks it up right away: turning it on starts a
+## fresh join window, turning it off leaves the lobby open until the streamer starts.
+func set_auto_mode(enabled: bool, join_seconds: float = auto_lobby_seconds) -> void:
+	auto_mode = enabled
+	auto_lobby_seconds = join_seconds
+	lobby_seconds = auto_lobby_seconds if enabled else 0.0
+	if state == State.LOBBY:
+		timer = lobby_seconds
 
 
 ## Opens a fresh lobby (empty roster). Allowed from IDLE and PODIUM.

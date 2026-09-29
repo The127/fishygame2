@@ -10,6 +10,8 @@ signal add_debug_players_pressed(count: int)
 signal map_selected(choice: String)
 ## Emits a bus name (see AudioSettings.BUSES) and a linear volume 0..1.
 signal volume_changed(bus: String, value: float)
+## Streamer switched auto mode (unattended rounds) on or off.
+signal auto_mode_toggled(enabled: bool)
 signal mute_toggled(muted: bool)
 
 const VOLUME_ROWS: Dictionary = {
@@ -21,6 +23,7 @@ const VOLUME_ROWS: Dictionary = {
 @onready var _panel: PanelContainer = $Panel
 @onready var _status: Label = $Panel/Box/Status
 @onready var _map_picker: OptionButton = $Panel/Box/MapRow/MapPicker
+@onready var _auto: CheckBox = $Panel/Box/Auto
 @onready var _mute: CheckBox = $Panel/Box/Mute
 @onready var _volume_sliders: Dictionary = {
 	AudioSettings.BUS_MASTER: $Panel/Box/MasterRow/Slider,
@@ -47,6 +50,7 @@ func _ready() -> void:
 		_map_picker.add_item(TrackCatalog.get_name_of(id))
 		_map_picker.set_item_metadata(_map_picker.item_count - 1, id)
 	_map_picker.item_selected.connect(_on_map_picked)
+	_auto.toggled.connect(auto_mode_toggled.emit)
 	_mute.toggled.connect(mute_toggled.emit)
 	for bus: String in _volume_sliders:
 		(_volume_sliders[bus] as HSlider).value_changed.connect(volume_changed.emit.bind(bus))
@@ -66,6 +70,11 @@ func set_status(text: String) -> void:
 	_status.text = text
 
 
+## Shows the auto mode choice without emitting [signal auto_mode_toggled].
+func set_auto_mode(enabled: bool) -> void:
+	_auto.set_pressed_no_signal(enabled)
+
+
 ## Shows the current audio choices without emitting any signal. Volumes are linear 0..1 per bus.
 func set_audio_state(volumes: Dictionary, muted: bool) -> void:
 	_mute.set_pressed_no_signal(muted)
@@ -79,9 +88,10 @@ func _apply_style() -> void:
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiStyle.style_label($Panel/Box/MapRow/MapLabel as Label, 22, 600, UiStyle.MUTED)
 	UiStyle.style_label($Panel/Box/Hint as Label, 18, 600, UiStyle.MUTED)
-	_mute.add_theme_font_override("font", UiStyle.font(600))
-	_mute.add_theme_font_size_override("font_size", 22)
-	_mute.add_theme_color_override("font_color", UiStyle.TEXT)
+	for box: CheckBox in [_auto, _mute]:
+		box.add_theme_font_override("font", UiStyle.font(600))
+		box.add_theme_font_size_override("font_size", 22)
+		box.add_theme_color_override("font_color", UiStyle.TEXT)
 	for row: String in ["MasterRow", "MusicRow", "SfxRow"]:
 		UiStyle.style_label(get_node("Panel/Box/%s/Label" % row) as Label, 22, 600, UiStyle.MUTED)
 	for button: Button in [
