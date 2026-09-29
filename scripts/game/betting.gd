@@ -17,6 +17,10 @@ signal payouts_settled(results: Array[Dictionary])
 
 @export var points_path: String = "user://points.json"
 @export var starting_balance: int = 1000
+## Smallest accepted bet.
+@export var min_bet: int = 1
+## Largest accepted bet. 0 means no limit.
+@export var max_bet: int = 0
 
 var points: PointsStore = null
 
@@ -55,10 +59,17 @@ func place_bet(msg: ChatMessage, args: PackedStringArray) -> bool:
 	if reason.is_empty():
 		target = _find_contestant(args[0])
 		amount = _parse_amount(args[1], points.get_balance(msg.user_id))
+		# "all" means as much as the limits allow.
+		if args[1].to_lower() == "all" and max_bet > 0:
+			amount = mini(amount, max_bet)
 		if target == null:
 			reason = "unknown_fish"
 		elif amount <= 0:
 			reason = "invalid_amount"
+		elif amount < min_bet:
+			reason = "insufficient" if args[1].to_lower() == "all" else "below_min"
+		elif max_bet > 0 and amount > max_bet:
+			reason = "above_max"
 		elif not points.try_debit(msg.user_id, amount):
 			reason = "insufficient"
 	if not reason.is_empty():

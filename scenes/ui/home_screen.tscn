@@ -149,6 +149,13 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_hover")
 text = "OPEN LOBBY"
 
+[node name="Settings" type="Button" parent="Center/Box"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+text = "SETTINGS"
+
 [node name="LoginStatus" type="Label" parent="Center/Box"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24

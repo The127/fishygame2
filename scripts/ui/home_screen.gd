@@ -3,6 +3,7 @@ extends Control
 ## Landing screen. Buttons in the menu box open one part of the game each.
 ## Also lets the streamer log in with Twitch (web only) so chat works without hand-made URLs.
 
+const SETTINGS_SCENE: String = "res://scenes/ui/settings_screen.tscn"
 const RACE_SCENE: String = "res://scenes/main.tscn"
 ## The menu box never exceeds this width, and shrinks with the window.
 const MAX_BOX_WIDTH: float = 1200.0
@@ -15,6 +16,7 @@ const TITLE_FULL_WIDTH: float = 1100.0
 @onready var _box: VBoxContainer = $Center/Box
 @onready var _title: Label = $Center/Box/Title
 @onready var _open_lobby: Button = $Center/Box/OpenLobby
+@onready var _settings: Button = $Center/Box/Settings
 @onready var _login_status: Label = $Center/Box/LoginStatus
 @onready var _client_id: LineEdit = $Center/Box/ClientId
 @onready var _login: Button = $Center/Box/Login
@@ -23,6 +25,8 @@ const TITLE_FULL_WIDTH: float = 1100.0
 
 func _ready() -> void:
 	_open_lobby.pressed.connect(_on_open_lobby_pressed)
+	_settings.pressed.connect(_on_settings_pressed)
+	UiStyle.style_button(_settings, 28)
 	_login.pressed.connect(_on_login_pressed)
 	_logout.pressed.connect(Chat.logout)
 	Chat.login_changed.connect(_refresh_login)
@@ -45,6 +49,10 @@ func _fit_to_window() -> void:
 
 func _on_open_lobby_pressed() -> void:
 	get_tree().change_scene_to_file(RACE_SCENE)
+
+
+func _on_settings_pressed() -> void:
+	get_tree().change_scene_to_file(SETTINGS_SCENE)
 
 
 func _on_login_pressed() -> void:
