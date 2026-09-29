@@ -80,10 +80,12 @@ func curse_marble(id: int) -> bool:
 	return true
 
 
-## Current global position of every marble, id -> Vector2.
+## Current global position of every marble still racing, id -> Vector2.
 func get_position_map() -> Dictionary:
 	var positions: Dictionary = {}
 	for id: int in _marbles:
+		if _ranking != null and _ranking.is_finished(id):
+			continue
 		var marble: Marble = _marbles[id]
 		positions[id] = marble.global_position
 	return positions

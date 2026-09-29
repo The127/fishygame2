@@ -42,3 +42,13 @@ func test_finish_signal_reports_place() -> void:
 	var marbles: Array[Marble] = race.get_marbles()
 	track.marble_reached_finish.emit(marbles[2])
 	assert_signal_emitted_with_parameters(race, "marble_finished", [2, 1])
+
+
+func test_position_map_skips_finished_marbles() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 3, _rng(3))
+	assert_eq(race.get_position_map().size(), 3)
+	track.marble_reached_finish.emit(race.get_marbles()[0])
+	assert_eq(race.get_position_map().size(), 2)
