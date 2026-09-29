@@ -58,3 +58,12 @@ static func clamp_center(center: Vector2, zoom: float, viewport: Vector2, bounds
 ## Frame-rate independent smoothing factor for lerp: 0 at once, approaching 1 as delta grows.
 static func damping(rate: float, delta: float) -> float:
 	return 1.0 - exp(-rate * delta)
+
+
+## Easing-rate multiplier after a finish: `min_scale` right away, ramping smoothly to 1
+## as `time_left` runs from `total` down to 0.
+static func handover_scale(time_left: float, total: float, min_scale: float) -> float:
+	if total <= 0.0 or time_left <= 0.0:
+		return 1.0
+	var t: float = 1.0 - clampf(time_left / total, 0.0, 1.0)
+	return lerpf(min_scale, 1.0, t * t * (3.0 - 2.0 * t))
