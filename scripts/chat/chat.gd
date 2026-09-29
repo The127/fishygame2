@@ -140,7 +140,11 @@ func _config_from_stored_session() -> Dictionary:
 func _take_redirect_fragment() -> String:
 	if not OS.has_feature("web"):
 		return ""
-	var fragment: String = str(JavaScriptBridge.eval("window.location.hash"))
+	# The export's head script already stashed the hash and cleared it from the address bar.
+	var fragment: String = str(
+		JavaScriptBridge.eval("window.__twitchHash || window.location.hash || ''")
+	)
+	JavaScriptBridge.eval("window.__twitchHash = ''")
 	if fragment.length() > 1:
 		JavaScriptBridge.eval("history.replaceState(null, '', window.location.pathname)")
 		return fragment
@@ -175,7 +179,7 @@ func _finish_login(fragment: String) -> void:
 
 
 func _on_validate_completed(
-	_result: int,
+	result: int,
 	code: int,
 	_headers: PackedStringArray,
 	body: PackedByteArray,
@@ -184,6 +188,9 @@ func _on_validate_completed(
 	client_id: String
 ) -> void:
 	req.queue_free()
+	if result != HTTPRequest.RESULT_SUCCESS:
+		_login_failed("Could not reach Twitch to validate the login")
+		return
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if code != 200 or not parsed is Dictionary:
 		_login_failed("Twitch rejected the login (HTTP %d)" % code)

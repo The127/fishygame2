@@ -52,9 +52,10 @@ implicit grant and keeps the token in its own `localStorage`.
 One-time setup, done by whoever hosts the game (once, not per streamer):
 
 1. Register an app at <https://dev.twitch.tv/console/apps>.
-2. Add an **OAuth Redirect URL** that is exactly the URL the game is served from, including the
-   trailing slash (for example `https://fish.example.com/`, or `http://localhost:8000/` for
-   testing). It must match what the browser shows, or Twitch refuses the login.
+2. Add an **OAuth Redirect URL** that is exactly the address the game is opened at, without query
+   or fragment (for example `https://fish.example.com/`, or `http://localhost:8000/` for testing;
+   if you open `.../index.html`, register that). It must match what the browser shows, or Twitch
+   refuses the login.
 3. Category: Game Integration, client type: Public. Copy the **Client ID** (it is not a secret;
    never put a client secret anywhere in this project).
 
@@ -73,7 +74,8 @@ Notes:
 - Implicit tokens expire (Twitch decides when, typically hours) and cannot be refreshed. When it
   runs out, or Twitch rejects it, the home screen says so and the streamer logs in again.
 - Login uses the account's own channel: the token owner is the broadcaster and the chat sender.
-- The older way still works and takes precedence over a stored login: pass `client_id`, `token`,
+- Login always asks Twitch to show the account chooser, so check you approve the right account.
+- The older way still works and takes precedence over a stored login when the page loads: pass `client_id`, `token`,
   `broadcaster_id` (and optionally `user_id`) as URL query parameters, or use `user://twitch.cfg`
   on desktop. The Twitch login button only works in the web build.
 

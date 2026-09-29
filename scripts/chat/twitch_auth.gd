@@ -50,12 +50,15 @@ static func session_from_validation(
 	# A token issued to another app must never be accepted.
 	if str(data.get("client_id", "")) != client_id:
 		return {"error": "Token was issued for a different Twitch app"}
-	var scopes: Array = data.get("scopes", [])
+	var scopes_value: Variant = data.get("scopes", [])
+	var scopes: Array = scopes_value if scopes_value is Array else []
 	for scope: String in SCOPES:
 		if not scopes.has(scope):
 			return {"error": "Token is missing the scope %s" % scope}
 	if str(data.get("user_id", "")).is_empty():
 		return {"error": "Token has no user"}
+	if int(data.get("expires_in", 0)) <= 0:
+		return {"error": "Token has no valid expiry"}
 	return {
 		"session":
 		{

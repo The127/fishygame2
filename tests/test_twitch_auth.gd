@@ -127,3 +127,19 @@ func test_valid_stored_session_starts_twitch_source() -> void:
 	assert_eq(chat.login_status, "logged_out")
 	assert_true(chat.source is DebugChatSource)
 	assert_true(_store.load_session().is_empty())
+
+
+func test_validation_rejects_bad_scopes_type_and_expiry() -> void:
+	var data: Dictionary = _valid_data()
+	data["scopes"] = null
+	assert_true(TwitchAuth.session_from_validation("tok", "app", data, 0).has("error"))
+	data = _valid_data()
+	data["expires_in"] = 0
+	assert_true(TwitchAuth.session_from_validation("tok", "app", data, 0).has("error"))
+
+
+func test_store_rejects_wrongly_typed_session() -> void:
+	_store.save_session(
+		{"client_id": "app", "token": 5, "user_id": "1", "login": "s", "expires_at": 5}
+	)
+	assert_true(_store.load_session().is_empty())

@@ -24,9 +24,11 @@ func load_session() -> Dictionary:
 	if not parsed is Dictionary:
 		return {}
 	var data: Dictionary = parsed
-	for key: String in ["client_id", "token", "user_id", "login", "expires_at"]:
-		if not data.has(key):
+	for key: String in ["client_id", "token", "user_id"]:
+		if not data.get(key) is String or (data[key] as String).is_empty():
 			return {}
+	if not data.get("login") is String or not data.get("expires_at") is float:
+		return {}
 	return data
 
 
@@ -53,10 +55,6 @@ func take_pending_state() -> String:
 
 func load_client_id() -> String:
 	return _read(CLIENT_ID_KEY)
-
-
-func save_client_id(client_id: String) -> void:
-	_write(CLIENT_ID_KEY, client_id)
 
 
 func _read(key: String) -> String:
