@@ -43,6 +43,7 @@ func _ready() -> void:
 	_fit_to_window()
 	_open_lobby.grab_focus()
 	_refresh_login()
+	# Fire and forget: waits a few frames, then makes the web page transparent again.
 	WebBoot.release_background()
 	# Only when this is the running scene, so tests that instantiate the screen stay put.
 	if get_tree().current_scene == self and not OnboardingStore.new().is_done():

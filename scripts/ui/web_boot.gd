@@ -7,11 +7,14 @@ extends RefCounted
 ## Frames to wait after the first draw, so shader compiles do not leave a blank canvas.
 const FRAMES_BEFORE_RELEASE: int = 3
 
+static var _started: bool = false
+
 
 ## Call from the first scene's _ready. Does nothing outside the web export.
 static func release_background() -> void:
-	if not OS.has_feature("web"):
+	if _started or not OS.has_feature("web"):
 		return
-	for i: int in FRAMES_BEFORE_RELEASE:
+	_started = true
+	for _i: int in FRAMES_BEFORE_RELEASE:
 		await RenderingServer.frame_post_draw
 	JavaScriptBridge.eval("if (window.fishyBootRelease) window.fishyBootRelease();")
