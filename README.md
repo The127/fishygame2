@@ -43,6 +43,22 @@ over a colorful scene: empty areas should show the scene underneath, not black.
 Serve `build/web/` with any static file server and add the URL as an OBS browser source
 (1920x1080). Serving over HTTP is required; opening the file directly will not work.
 
+## Browser smoke test
+
+CI loads the Web export in headless Chromium (Playwright), plays a whole round with fake players and a
+bet, and reloads the page to check that points persist. It drives the game through `window.fishyTest`,
+which only exists in the web build with `?debug=1` (`scripts/debug/web_test_bridge.gd`). Screenshots
+are uploaded as the `browser-smoke-screenshots` artifact.
+
+```sh
+just export-web
+cd tests/browser && npm ci && npx playwright install chromium   # once
+just smoke                                                       # or: npm run smoke
+```
+
+`CHROMIUM_PATH` uses an installed Chromium instead of Playwright's. `STRICT_RELOAD=1` reloads
+right after the podium instead of waiting for the save to reach IndexedDB (fails until #66 is fixed).
+
 ## Twitch login (streamer setup)
 
 The game reads chat over Twitch EventSub and posts replies through the Twitch API, so it needs a

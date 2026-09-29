@@ -71,6 +71,10 @@ func _ready() -> void:
 	_panel.add_debug_players_pressed.connect(_flow.add_debug_players)
 	_panel.map_selected.connect(_on_map_selected)
 	_rng.randomize()
+	if OS.has_feature("web") and DebugMode.is_enabled():
+		var bridge := WebTestBridge.new()
+		add_child(bridge)
+		bridge.setup(_flow, _betting, _panel)
 	_flow.open_lobby()
 
 
