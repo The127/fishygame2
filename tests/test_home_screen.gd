@@ -99,14 +99,36 @@ func test_home_screen_builds_the_3d_backdrop() -> void:
 	assert_eq(home.get_node("Center").mouse_filter, Control.MOUSE_FILTER_IGNORE)
 
 
+func _click(button: int, pressed: bool, pos: Vector2) -> InputEventMouseButton:
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = button
+	event.pressed = pressed
+	event.position = pos
+	return event
+
+
 func test_clicking_the_backdrop_scares_fish() -> void:
 	var home: HomeScreen = _make_home()
 	add_child_autofree(home)
+	home.set_deferred("size", Vector2(1280, 720))
 	await wait_process_frames(2)
 	var scene: HomeScene3D = home.get_node("Scene3D")
-	var before: PackedVector3Array = scene.school.velocities.duplicate()
-	scene.school.scare(Vector3.ZERO, Vector3.FORWARD, 1000.0)
-	var changed: bool = false
-	for i: int in scene.school.count:
-		changed = changed or not before[i].is_equal_approx(scene.school.velocities[i])
-	assert_true(changed, "a scare changes fish velocities")
+	# Park a fish right in front of the camera so a click at the centre hits it.
+	scene.school.positions[0] = (
+		scene.camera.position + scene.camera.project_ray_normal(scene.size / 2.0) * 6.0
+	)
+	var before: Vector3 = scene.school.velocities[0]
+	scene._gui_input(_click(MOUSE_BUTTON_RIGHT, true, scene.size / 2.0))
+	scene._gui_input(_click(MOUSE_BUTTON_LEFT, false, scene.size / 2.0))
+	assert_eq(scene.school.velocities[0], before, "only a left press scares")
+	scene._gui_input(_click(MOUSE_BUTTON_LEFT, true, scene.size / 2.0))
+	assert_ne(scene.school.velocities[0], before, "a left click scares the fish under it")
+
+
+func test_menu_controls_sit_above_the_backdrop() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	assert_lt(home.get_node("Scene3D").get_index(), home.get_node("Center").get_index())
+	for path: String in ["Center/Box/OpenLobby", "Center/Box/ClientId"]:
+		var control: Control = home.get_node(path)
+		assert_eq(control.mouse_filter, Control.MOUSE_FILTER_STOP, path)

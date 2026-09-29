@@ -19,7 +19,7 @@ void vertex() {
 	part = UV.x;
 	height = VERTEX.y;
 	phase = INSTANCE_CUSTOM.x;
-	float tail = smoothstep(0.35, -1.05, VERTEX.x);
+	float tail = 1.0 - smoothstep(-1.05, 0.35, VERTEX.x);
 	VERTEX.z += sin(TIME * wag_speed + phase - VERTEX.x * 3.0) * wag_amount * tail;
 	VERTEX.x *= 1.0 - 0.03 * abs(VERTEX.z) * tail;
 }
