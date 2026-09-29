@@ -6,6 +6,8 @@
 // Reloads the moment the podium shows, so the payout has to survive without waiting for
 // Godot's asynchronous IndexedDB flush (saves are mirrored to localStorage).
 //
+// The viewport is small on purpose: software rendering cost scales with pixels.
+//
 // Env: WEB_DIR (default ../../build/web), OUT_DIR (default ./results), CHROMIUM_PATH (use an
 // already installed Chromium instead of the one Playwright downloaded), STEP_TIMEOUT_MS.
 import { chromium } from "playwright";
@@ -109,7 +111,7 @@ async function main() {
     args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
   });
   // One persistent context so IndexedDB (user://) survives the reload like it does for a streamer.
-  const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   // Pretend the first-run onboarding was already completed, so the home screen stays put.
   await context.addInitScript(() => localStorage.setItem("fishygame2.onboarding_done", "1"));
   const page = await context.newPage();

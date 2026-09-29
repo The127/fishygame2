@@ -55,10 +55,33 @@ jobs:
         run: godot --headless --import
       - name: Run GUT tests
         run: tools/run_tests.sh
-      - name: Race seeds (every map, no jams)
+
+  # One job per map so the seed sweeps run in parallel. Pull requests run a shorter sweep; main runs the full one.
+  race-seeds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        map: [zigzag, pachinko, wreck]
+    env:
+      LAST_SEED: ${{ github.event_name == 'pull_request' && '8' || '20' }}
+      MAP: ${{ matrix.map }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot
         run: |
-          tests/run_race_seeds.sh godot 1 20
-          MARBLES=20 tests/run_race_seeds.sh godot 1 20 "zigzag pachinko wreck"
+          curl -fsSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          echo "${GODOT_SHA512}  godot.zip" | sha512sum -c -
+          unzip -q godot.zip
+          sudo install -m 755 "Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+          rm godot.zip
+      - name: Import project
+        run: godot --headless --import
+      - name: Race seeds (no jams)
+        run: |
+          tests/run_race_seeds.sh godot 1 "$LAST_SEED" "$MAP"
+          MARBLES=20 tests/run_race_seeds.sh godot 1 "$LAST_SEED" "$MAP"
 
   export-web:
     runs-on: ubuntu-latest
@@ -117,11 +140,25 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: tests/browser/package-lock.json
-      - name: Install Playwright and Chromium
+      - name: Install Playwright
         working-directory: tests/browser
+        run: npm ci
+      - name: Cache Chromium
+        id: chromium
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ hashFiles('tests/browser/package-lock.json') }}
+      - name: Install Chromium
+        working-directory: tests/browser
+        env:
+          CHROMIUM_CACHED: ${{ steps.chromium.outputs.cache-hit }}
         run: |
-          npm ci
-          npx playwright install --with-deps chromium
+          if [ "$CHROMIUM_CACHED" = "true" ]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
       - name: Play a round in the browser
         working-directory: tests/browser
         run: npm run smoke
@@ -136,7 +173,7 @@ jobs:
   deploy-pages:
     # Publish the tested export from main. Only this job gets the Pages permissions.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [lint, test, browser-smoke]
+    needs: [lint, test, race-seeds, browser-smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
