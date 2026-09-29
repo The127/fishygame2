@@ -4,6 +4,9 @@ extends Control
 ## the edges, bounce off each other and get a kick when clicked.
 
 const RADIUS: float = 48.0
+## Marbles wrap once fully outside the visible area (rim and outline included),
+## so they slide off one edge and in from the opposite one without popping.
+const WRAP_MARGIN: float = RADIUS + 4.0
 const CLICK_IMPULSE: float = 240.0
 const MARBLE_COUNT: int = 12
 const GOLDEN_RATIO_CONJUGATE: float = 0.618034
@@ -15,11 +18,12 @@ var _time: float = 0.0
 func _ready() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
+	var area: Vector2 = _wrap_area()
 	for i: int in MARBLE_COUNT:
 		var speed: float = rng.randf_range(50.0, 130.0)
 		var angle: float = rng.randf() * TAU
 		var marble: Dictionary = {
-			"pos": Vector2(rng.randf() * size.x, rng.randf() * size.y),
+			"pos": Vector2(rng.randf() * area.x, rng.randf() * area.y) - _margin(),
 			"vel": Vector2.from_angle(angle) * speed,
 			"color": Color.from_hsv(fmod(float(i) * GOLDEN_RATIO_CONJUGATE, 1.0), 0.8, 0.95),
 			"heading": angle,
@@ -31,19 +35,40 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_time += delta
 	_resolve_collisions()
-	var pad: float = RADIUS
-	var wrap: Vector2 = size + Vector2(pad, pad) * 2.0
 	for marble: Dictionary in _marbles:
 		var pos: Vector2 = marble["pos"]
 		var vel: Vector2 = marble["vel"]
 		pos += vel * delta
-		pos.x = fposmod(pos.x + pad, wrap.x) - pad
-		pos.y = fposmod(pos.y + pad, wrap.y) - pad
-		marble["pos"] = pos
+		marble["pos"] = _wrap(pos)
 		marble["spin"] = float(marble["spin"]) + vel.length() / RADIUS * delta
 		if vel.length() > 1.0:
 			marble["heading"] = lerp_angle(float(marble["heading"]), vel.angle(), delta * 4.0)
 	queue_redraw()
+
+
+func _margin() -> Vector2:
+	return Vector2(WRAP_MARGIN, WRAP_MARGIN)
+
+
+## The looping area: the visible rect plus a margin on every side.
+func _wrap_area() -> Vector2:
+	return size + _margin() * 2.0
+
+
+func _wrap(pos: Vector2) -> Vector2:
+	var area: Vector2 = _wrap_area()
+	var shifted: Vector2 = pos + _margin()
+	return Vector2(fposmod(shifted.x, area.x), fposmod(shifted.y, area.y)) - _margin()
+
+
+## Shortest offset from a to b on the looping area, so marbles collide across the seam.
+func _wrapped_offset(from: Vector2, to: Vector2) -> Vector2:
+	var area: Vector2 = _wrap_area()
+	var delta: Vector2 = to - from
+	return Vector2(
+		fposmod(delta.x + area.x * 0.5, area.x) - area.x * 0.5,
+		fposmod(delta.y + area.y * 0.5, area.y) - area.y * 0.5
+	)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -65,7 +90,7 @@ func _resolve_collisions() -> void:
 		for j: int in range(i + 1, _marbles.size()):
 			var a: Dictionary = _marbles[i]
 			var b: Dictionary = _marbles[j]
-			var offset: Vector2 = Vector2(b["pos"]) - Vector2(a["pos"])
+			var offset: Vector2 = _wrapped_offset(a["pos"], b["pos"])
 			var dist: float = offset.length()
 			if dist >= diameter or dist < 0.0001:
 				continue
