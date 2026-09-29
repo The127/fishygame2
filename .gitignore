@@ -34,3 +34,11 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Other export targets and local Claude Code files
+*.exe
+*.apk
+*.aab
+*.dmg
+.claude/settings.local.json
+CLAUDE.local.md
