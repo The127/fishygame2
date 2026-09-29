@@ -42,3 +42,18 @@ func test_finish_signal_reports_place() -> void:
 	var marbles: Array[Marble] = race.get_marbles()
 	track.marble_reached_finish.emit(marbles[2])
 	assert_signal_emitted_with_parameters(race, "marble_finished", [2, 1])
+
+
+func test_effects_spawn_particles_and_glow_state() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 2, _rng(3))
+	var marble: Marble = race.get_marbles()[0]
+	var before: int = marble.get_child_count()
+	marble.boost(Vector2.DOWN)
+	assert_gt(marble.get_child_count(), before, "boost adds a burst")
+	marble.curse(Vector2.DOWN)
+	marble.celebrate()
+	marble.splash()
+	assert_true(marble.is_cursed())
