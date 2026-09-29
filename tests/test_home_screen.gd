@@ -189,3 +189,10 @@ func test_settings_screen_has_a_home_button_and_escape_returns_home() -> void:
 	assert_true(wired, "Home leaves the settings screen")
 	assert_true(screen.has_method("_unhandled_input"), "Esc is handled")
 	assert_true(InputMap.has_action("ui_cancel"))
+
+
+func test_title_ends_with_roman_numeral_two() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	var title: Label = home.get_node("Center/Box/Title")
+	assert_eq(title.text, "FISHY MARBLE RUN II")

@@ -102,7 +102,7 @@ theme_override_colors/font_shadow_color = Color(0, 0.8, 1, 0.18)
 theme_override_constants/shadow_outline_size = 14
 theme_override_fonts/font = SubResource("FontVariation_title")
 theme_override_font_sizes/font_size = 96
-text = "FISHY MARBLE RUN"
+text = "FISHY MARBLE RUN II"
 horizontal_alignment = 1
 autowrap_mode = 3
 
