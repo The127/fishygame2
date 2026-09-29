@@ -99,3 +99,11 @@ func test_cooldowns_reset_for_a_new_race() -> void:
 	_cheer.on_state_changed(GameFlow.State.PODIUM, GameFlow.State.RACING)
 	_cheer.on_state_changed(GameFlow.State.RACING, GameFlow.State.COUNTDOWN)
 	assert_true(_cheer.handle_message(_msg("v", "bob Kappa")))
+
+
+func test_cheer_settings_are_clamped() -> void:
+	var settings := GameSettings.new()
+	settings.set_number("cheer_max_emotes", 0)
+	settings.set_number("cheer_strength", 9999)
+	assert_eq(settings.cheer_max_emotes, 1)
+	assert_eq(settings.cheer_strength, 500)

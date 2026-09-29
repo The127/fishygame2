@@ -91,3 +91,16 @@ func test_cheer_is_refused_for_finished_or_unknown_marbles() -> void:
 	track.marble_reached_finish.emit(race.get_marbles()[0])
 	assert_false(race.cheer_marble(0, 1.0))
 	assert_false(race.cheer_marble(99, 1.0))
+
+
+func test_cheer_strength_is_capped_below_a_boost() -> void:
+	var parts: Array = _make_race()
+	var race: Race = parts[0] as Race
+	var track: Track = parts[1] as Track
+	race.start(track, 2, _rng(5))
+	var marble: Marble = race.get_marbles()[0]
+	marble.gravity_scale = 0.0
+	marble.linear_velocity = Vector2.ZERO
+	race.cheer_marble(marble.id, 1000.0)
+	await wait_physics_frames(2)
+	assert_lt(marble.linear_velocity.length(), Marble.BOOST_IMPULSE)

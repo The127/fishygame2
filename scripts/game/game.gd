@@ -146,6 +146,7 @@ func _apply_settings() -> void:
 	_chaos.curse_cost = settings.curse_cost
 	_chaos.viewer_cooldown = float(settings.viewer_cooldown)
 	_chaos.fish_lockout = float(settings.fish_lockout)
+	_cheer.command_prefix = Chat.parser.prefix
 	_cheer.strength_percent = settings.cheer_strength
 	_cheer.viewer_cooldown = float(settings.cheer_viewer_cooldown)
 	_cheer.fish_cooldown = float(settings.cheer_fish_cooldown)

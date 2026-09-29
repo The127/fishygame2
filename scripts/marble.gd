@@ -12,6 +12,8 @@ const BOOST_IMPULSE: float = 450.0
 const CURSE_KNOCKBACK: float = 250.0
 ## Impulse per emote unit of a cheer, far below a boost.
 const CHEER_IMPULSE: float = 40.0
+## Largest cheer in emote units, so no setting makes a cheer as strong as a boost.
+const CHEER_MAX_STRENGTH: float = 8.0
 
 var id: int = 0
 var color: Color = Color.WHITE:
@@ -71,6 +73,7 @@ func boost(forward: Vector2) -> void:
 
 ## A free cheer: a small push along `forward` scaled by `strength` (emote units) and a few bubbles.
 func cheer(forward: Vector2, strength: float) -> void:
+	strength = minf(strength, CHEER_MAX_STRENGTH)
 	apply_central_impulse(forward * CHEER_IMPULSE * strength * mass)
 	if _fish != null:
 		RaceFx.burst(
