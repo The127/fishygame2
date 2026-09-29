@@ -60,6 +60,8 @@ commit SHA) on pushes to `main`:
 docker run --rm -p 8080:80 ghcr.io/the127/fishygame2:latest
 ```
 
+The first push creates the GHCR package as private; make it public in the package settings for anonymous pulls.
+
 The Godot version and checksums in the `Dockerfile` must match `.github/workflows/ci.yml`.
 
 ## Development commands

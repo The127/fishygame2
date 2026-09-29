@@ -34,6 +34,7 @@ RUN mkdir -p build/web \
 
 # Stage 2: serve the static export.
 FROM nginx:1.27-alpine
+LABEL org.opencontainers.image.source="https://github.com/The127/fishygame2"
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=export /project/build/web /usr/share/nginx/html
 EXPOSE 80
