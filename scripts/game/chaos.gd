@@ -69,7 +69,7 @@ func cost_of(kind: Kind) -> int:
 ## Chat entry point for "#boost <name>" and "#curse <name>". Returns true if applied.
 func use_effect(msg: ChatMessage, args: PackedStringArray, kind: Kind) -> bool:
 	var reason: String = _check(msg, args, kind)
-	var target_id: int = _find_contestant_index(args[0]) if args.size() == 1 else -1
+	var target_id: int = _find_contestant_index(" ".join(args)) if not args.is_empty() else -1
 	if reason.is_empty() and not points.try_debit(msg.user_id, cost_of(kind)):
 		reason = "insufficient"
 	if not reason.is_empty():
@@ -121,9 +121,9 @@ func on_state_changed(new_state: GameFlow.State, old_state: GameFlow.State) -> v
 func _check(msg: ChatMessage, args: PackedStringArray, kind: Kind) -> String:
 	if not _racing:
 		return "closed"
-	if args.size() != 1:
+	if args.is_empty():
 		return "usage"
-	var target_id: int = _find_contestant_index(args[0])
+	var target_id: int = _find_contestant_index(" ".join(args))
 	if target_id < 0:
 		return "unknown_fish"
 	var reason: String = ""
