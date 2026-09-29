@@ -53,3 +53,18 @@ func test_board_shows_in_the_next_lobby() -> void:
 	_flow.tick(_flow.podium_seconds)
 	assert_eq(_flow.state, GameFlow.State.LOBBY)
 	assert_true(overlay._board_has_rows)
+
+
+func test_chat_backfills_the_name_of_a_ranked_viewer() -> void:
+	_betting.points.set_balance("9", 500)
+	assert_eq(_betting.points.get_name("9"), "Viewer 9")
+	_say("9", "hello chat")
+	assert_eq(_betting.points.get_name("9"), "User9")
+	var reloaded := PointsStore.new(POINTS_PATH, 1000)
+	reloaded.load_from_disk()
+	assert_eq(reloaded.get_name("9"), "User9", "the backfilled name is saved")
+
+
+func test_chat_from_unranked_viewers_records_no_name() -> void:
+	_say("8", "hello chat")
+	assert_eq(_betting.points.get_name("8"), "Viewer 8")

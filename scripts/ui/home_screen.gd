@@ -62,6 +62,7 @@ func _load_store() -> PointsStore:
 func _fit_to_window() -> void:
 	var width: float = maxf(size.x - SIDE_MARGIN * 2.0, 0.0)
 	_box.custom_minimum_size.x = minf(width, MAX_BOX_WIDTH)
+	_board.fit_width(_box.custom_minimum_size.x)
 	var fit: float = clampf(width / TITLE_FULL_WIDTH, 0.0, 1.0)
 	var font_size: int = maxi(roundi(TITLE_FONT_SIZE * fit), TITLE_MIN_FONT_SIZE)
 	_title.add_theme_font_size_override("font_size", font_size)

@@ -85,3 +85,35 @@ func test_home_board_hidden_until_someone_is_ranked() -> void:
 	store.add_win("1")
 	home.show_leaderboard(store)
 	assert_true(home._board.visible)
+
+
+func _ranked_store() -> PointsStore:
+	var store := PointsStore.new("", 100)
+	store.set_balance("1", 900)
+	store.set_name("1", "A Rather Long Viewer Name Here")
+	store.add_win("1")
+	return store
+
+
+func test_leaderboard_fits_narrow_windows() -> void:
+	for width: int in [700, 500, 360, 320]:
+		var home: HomeScreen = _make_home()
+		add_child_autofree(home)
+		home.show_leaderboard(_ranked_store())
+		home.set_deferred("size", Vector2(width, 900))
+		await wait_process_frames(4)
+		var board: Control = home._board
+		assert_true(board.visible)
+		var rect: Rect2 = board.get_global_rect()
+		assert_gte(rect.position.x, 0.0, "board starts inside a %dpx window" % width)
+		assert_lte(rect.end.x, float(width), "board ends inside a %dpx window" % width)
+
+
+func test_leaderboard_keeps_full_size_when_there_is_room() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	home.show_leaderboard(_ranked_store())
+	home.set_deferred("size", Vector2(1280, 720))
+	await wait_process_frames(4)
+	var expected: float = 2.0 * LeaderboardPanel.COLUMN_WIDTH + LeaderboardPanel.SEPARATION
+	assert_almost_eq(home._board.get_global_rect().size.x, expected, 1.0)

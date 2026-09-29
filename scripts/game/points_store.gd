@@ -106,14 +106,26 @@ func add_win(user_id: String) -> int:
 
 
 ## Remembers how to show the viewer on the leaderboard. Empty names are ignored.
-func set_name(user_id: String, display_name: String) -> void:
+## Returns true if the stored name changed.
+func set_name(user_id: String, display_name: String) -> bool:
 	var trimmed: String = display_name.strip_edges().left(MAX_NAME_LENGTH)
-	if not trimmed.is_empty():
-		_names[user_id] = trimmed
+	if trimmed.is_empty() or _names.get(user_id, "") == trimmed:
+		return false
+	_names[user_id] = trimmed
+	return true
 
 
+## Whether the viewer is ranked on a board (has a balance or a win).
+func has_entry(user_id: String) -> bool:
+	return _balances.has(user_id) or _wins.has(user_id)
+
+
+## The last name seen for the viewer, or "Viewer 1234" (last digits of the id) if none was
+## ever recorded, so the board never shows a raw Twitch id.
 func get_name(user_id: String) -> String:
-	return str(_names.get(user_id, user_id))
+	if _names.has(user_id):
+		return str(_names[user_id])
+	return "Viewer %s" % user_id.right(4)
 
 
 ## Viewers with the most points, best first: [{user_id, name, points, wins}].

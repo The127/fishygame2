@@ -69,6 +69,7 @@ func _ready() -> void:
 	_apply_settings()
 	# First, so the name is stored before a bet or effect saves the points.
 	Chat.command_received.connect(_remember_name)
+	Chat.message_received.connect(_backfill_name)
 	Chat.command_received.connect(_flow.handle_command)
 	Chat.command_received.connect(_betting.handle_command)
 	Chat.command_received.connect(_chaos.handle_command)
@@ -173,6 +174,16 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 func _remember_name(msg: ChatMessage, command: String, _args: PackedStringArray) -> void:
 	if NAMED_COMMANDS.has(command):
 		_betting.points.set_name(msg.user_id, _viewer_name(msg))
+
+
+## Any chat line from a viewer who is already ranked fills in or refreshes their name, so
+## entries saved before names were recorded get one as soon as the viewer says anything.
+func _backfill_name(msg: ChatMessage) -> void:
+	var points: PointsStore = _betting.points
+	if not points.has_entry(msg.user_id):
+		return
+	if points.set_name(msg.user_id, _viewer_name(msg)):
+		points.save_to_disk()
 
 
 func _on_command(_msg: ChatMessage, command: String, _args: PackedStringArray) -> void:
