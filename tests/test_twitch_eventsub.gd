@@ -37,6 +37,7 @@ func test_notification_message() -> void:
 	assert_eq(msg.user_id, "4145994")
 	assert_eq(msg.login, "viewer32")
 	assert_eq(msg.display_name, "viewer32")
+	assert_eq(msg.id, "cc106a89")
 	assert_eq(msg.text, "#join Kappa hi")
 	assert_eq(msg.emotes.size(), 1)
 	assert_eq(msg.emotes[0]["id"], "25")
@@ -56,3 +57,43 @@ func test_subscription_body() -> void:
 	assert_eq(body["condition"], {"broadcaster_user_id": "1971641", "user_id": "1971641"})
 	assert_eq(body["transport"], {"method": "websocket", "session_id": "SID"})
 	src.free()
+
+
+func test_duplicate_message_id_dropped() -> void:
+	var source := TwitchEventSubSource.new()
+	add_child_autofree(source)
+	watch_signals(source)
+	var raw: String = _fixture("notification.json")
+	source._handle_frame(raw, false)
+	source._handle_frame(raw, true)
+	assert_signal_emit_count(source, "message_received", 1)
+
+
+func test_different_message_ids_both_delivered() -> void:
+	var source := TwitchEventSubSource.new()
+	add_child_autofree(source)
+	watch_signals(source)
+	var raw: String = _fixture("notification.json")
+	source._handle_frame(raw, false)
+	source._handle_frame(raw.replace("cc106a89", "other-id"), false)
+	assert_signal_emit_count(source, "message_received", 2)
+
+
+func test_messages_without_id_never_deduped() -> void:
+	var source := TwitchEventSubSource.new()
+	add_child_autofree(source)
+	watch_signals(source)
+	var raw: String = _fixture("notification.json").replace('"message_id":"cc106a89",', "")
+	source._handle_frame(raw, false)
+	source._handle_frame(raw, false)
+	assert_signal_emit_count(source, "message_received", 2)
+
+
+func test_seen_ids_are_bounded() -> void:
+	var source := TwitchEventSubSource.new()
+	add_child_autofree(source)
+	for i: int in TwitchEventSubSource.MAX_SEEN_IDS + 10:
+		source._is_duplicate(ChatMessage.create("1", "a", "a", "x", [], "id%d" % i))
+	assert_eq(source._seen_ids.size(), TwitchEventSubSource.MAX_SEEN_IDS)
+	# The oldest id was evicted, the newest is still remembered.
+	assert_false(source._is_duplicate(ChatMessage.create("1", "a", "a", "x", [], "id0")))
