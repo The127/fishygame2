@@ -7,6 +7,10 @@ extends RefCounted
 ## Saves are atomic (temp file, then rename) and keep the previous file as a backup.
 ## Stakes are points a viewer has bet or spent on chaos this round but not yet settled: they are saved in the same
 ## write as the balances so a crash or refresh mid-round can refund them.
+##
+## On the web the file lives in IndexedDB, which the engine flushes a few seconds after a write,
+## so a reload right after settlement could lose it. Every save is therefore also mirrored to
+## localStorage (synchronous) and the newer of the two copies wins on load.
 
 const FORMAT_VERSION: int = 1
 ## Balances are clamped to this so payouts can never overflow a 64-bit int.
@@ -19,6 +23,8 @@ var save_path: String = ""
 var _balances: Dictionary = {}
 ## user_id -> points currently held in open bets.
 var _stakes: Dictionary = {}
+## Save time (unix seconds) of the copy that was loaded last; 0 if it had none.
+var _loaded_at: float = 0.0
 
 
 func _init(p_save_path: String = "", p_starting_balance: int = 1000) -> void:
@@ -84,8 +90,19 @@ func refund_stakes() -> int:
 func load_from_disk() -> bool:
 	_balances.clear()
 	_stakes.clear()
+	_loaded_at = 0.0
 	if save_path.is_empty():
 		return true
+	var ok: bool = _load_files()
+	# The mirror can hold a save the browser had not flushed to IndexedDB yet.
+	var mirrored: Dictionary = _parse(_mirror_read())
+	if not mirrored.is_empty() and float(mirrored.get("saved_at", 0.0)) > _loaded_at:
+		_apply(mirrored)
+		return true
+	return ok
+
+
+func _load_files() -> bool:
 	if not FileAccess.file_exists(save_path) and not FileAccess.file_exists(_backup_path()):
 		return true
 	if _load_file(save_path):
@@ -110,9 +127,16 @@ func save_to_disk() -> bool:
 	if file == null:
 		push_warning("Could not write %s" % tmp)
 		return false
-	file.store_string(
-		JSON.stringify({"version": FORMAT_VERSION, "balances": _balances, "stakes": _stakes})
+	var text: String = JSON.stringify(
+		{
+			"version": FORMAT_VERSION,
+			"saved_at": Time.get_unix_time_from_system(),
+			"balances": _balances,
+			"stakes": _stakes,
+		}
 	)
+	_mirror_write(text)
+	file.store_string(text)
 	var write_error: Error = file.get_error()
 	file.close()
 	if write_error != OK:
@@ -131,6 +155,39 @@ func save_to_disk() -> bool:
 	return true
 
 
+## Whether saves are mirrored to localStorage. Only true in the web build.
+func _mirror_enabled() -> bool:
+	return OS.has_feature("web")
+
+
+func _mirror_key() -> String:
+	return "fishygame2.points:" + save_path
+
+
+func _mirror_write(text: String) -> void:
+	if not _mirror_enabled():
+		return
+	# JSON.stringify of a string is a valid JavaScript string literal.
+	JavaScriptBridge.eval(
+		(
+			"try { window.localStorage.setItem(%s, %s); } catch (e) {}"
+			% [JSON.stringify(_mirror_key()), JSON.stringify(text)]
+		)
+	)
+
+
+func _mirror_read() -> String:
+	if not _mirror_enabled():
+		return ""
+	var value: Variant = JavaScriptBridge.eval(
+		(
+			"(function () { try { return window.localStorage.getItem(%s) || ''; } catch (e) { return ''; } })()"
+			% JSON.stringify(_mirror_key())
+		)
+	)
+	return value if value is String else ""
+
+
 func _tmp_path() -> String:
 	return save_path + ".tmp"
 
@@ -143,9 +200,14 @@ func _load_file(path: String) -> bool:
 	var data: Dictionary = _read(path)
 	if data.is_empty():
 		return false
+	_apply(data)
+	return true
+
+
+func _apply(data: Dictionary) -> void:
 	_balances = _clean(data["balances"])
 	_stakes = _clean(data.get("stakes", {}))
-	return true
+	_loaded_at = float(data.get("saved_at", 0.0))
 
 
 ## Returns the parsed save data, or an empty dictionary if the file is missing or invalid.
@@ -155,8 +217,13 @@ func _read(path: String) -> Dictionary:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if file == null:
 		return {}
+	return _parse(file.get_as_text())
+
+
+## Returns the parsed save data, or an empty dictionary if the text is empty or invalid.
+func _parse(text: String) -> Dictionary:
 	var json := JSON.new()
-	if json.parse(file.get_as_text()) != OK:
+	if text.is_empty() or json.parse(text) != OK:
 		return {}
 	var parsed: Variant = json.data
 	if not (parsed is Dictionary) or not (parsed.get("balances") is Dictionary):

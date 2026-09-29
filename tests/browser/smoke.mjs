@@ -3,8 +3,8 @@
 //
 //   just export-web && cd tests/browser && npm ci && npx playwright install chromium && npm run smoke
 //
-// Set STRICT_RELOAD=1 to reload the moment the podium shows instead of waiting for the save
-// to reach IndexedDB. That currently loses the payout (known issue), so CI leaves it off.
+// Reloads the moment the podium shows, so the payout has to survive without waiting for
+// Godot's asynchronous IndexedDB flush (saves are mirrored to localStorage).
 //
 // Env: WEB_DIR (default ../../build/web), OUT_DIR (default ./results), CHROMIUM_PATH (use an
 // already installed Chromium instead of the one Playwright downloaded), STEP_TIMEOUT_MS.
@@ -96,44 +96,6 @@ async function openLobby(page, url) {
   throw new Error("timed out waiting for lobby after Open lobby");
 }
 
-// Contents of the saved points file as Godot's IDBFS holds it, or null.
-const savedPoints = (page) =>
-  page.evaluate(
-    () =>
-      new Promise((done) => {
-        const open = indexedDB.open("/userfs");
-        open.onerror = () => done(null);
-        open.onsuccess = () => {
-          const db = open.result;
-          if (!db.objectStoreNames.contains("FILE_DATA")) return done(null);
-          const cursor = db.transaction("FILE_DATA").objectStore("FILE_DATA").openCursor();
-          cursor.onsuccess = () => {
-            const c = cursor.result;
-            if (!c) return done(null);
-            if (String(c.key).endsWith("/points.json") && c.value.contents) {
-              return done(new TextDecoder().decode(c.value.contents));
-            }
-            c.continue();
-          };
-          cursor.onerror = () => done(null);
-        };
-      }),
-  );
-
-async function waitForSavedBalance(page, user, balance) {
-  const deadline = Date.now() + stepTimeout;
-  let last = null;
-  while (Date.now() < deadline) {
-    last = await savedPoints(page);
-    try {
-      const saved = JSON.parse(last);
-      if (saved.balances[user] === balance && Object.keys(saved.stakes).length === 0) return;
-    } catch {}
-    await page.waitForTimeout(250);
-  }
-  throw new Error(`${user}=${balance} never reached IndexedDB; last saved: ${last}`);
-}
-
 async function shot(page, name) {
   await page.screenshot({ path: join(outDir, `${name}.png`) });
 }
@@ -187,13 +149,6 @@ async function main() {
       fail(`alice ended with ${settled}, expected ${expected} (winner: ${podium.podium[0]})`);
     }
 
-    if (process.env.STRICT_RELOAD) {
-      log("STRICT_RELOAD: reloading right away");
-    } else {
-      // Godot writes IndexedDB asynchronously, so give it time. Reloading right away loses
-      // the payout (see STRICT_RELOAD in the header comment).
-      await waitForSavedBalance(page, "alice", settled);
-    }
     log(`reload with alice at ${settled}`);
     await openLobby(page, url);
     await act(page, "chat", "alice", "#points");
