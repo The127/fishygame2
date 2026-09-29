@@ -141,7 +141,7 @@ func join(msg: ChatMessage) -> bool:
 		join_rejected.emit(msg, "full")
 		return false
 	var name_to_show: String = msg.display_name if msg.display_name != "" else msg.login
-	var contestant: Contestant = Contestant.create(msg.user_id, name_to_show)
+	var contestant: Contestant = Contestant.create(msg.user_id, name_to_show, _contestants.size())
 	_ids[msg.user_id] = true
 	_contestants.append(contestant)
 	player_joined.emit(contestant)
