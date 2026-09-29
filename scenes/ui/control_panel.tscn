@@ -10,7 +10,7 @@ script = ExtResource("1_panel")
 offset_left = 1560.0
 offset_top = 20.0
 offset_right = 1900.0
-offset_bottom = 140.0
+offset_bottom = 170.0
 
 [node name="Box" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
@@ -36,6 +36,19 @@ text = "Start (Space)"
 layout_mode = 2
 focus_mode = 0
 text = "Stop"
+
+[node name="DebugButtons" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="AddOne" type="Button" parent="Panel/Box/DebugButtons"]
+layout_mode = 2
+focus_mode = 0
+text = "+1 player"
+
+[node name="AddFive" type="Button" parent="Panel/Box/DebugButtons"]
+layout_mode = 2
+focus_mode = 0
+text = "+5 players"
 
 [node name="Hint" type="Label" parent="Panel/Box"]
 layout_mode = 2
