@@ -397,8 +397,6 @@ func _reply_stats(msg: ChatMessage, args: PackedStringArray) -> void:
 	Chat.send_message(StatsText.chat_text(points, user_id))
 
 
-## Feed it Race.race_finished: counts the race for everyone on the field and keeps the times
-## and podium places. Ids are roster indexes.
 func _on_treasure_collected(id: int, kind: int, value: int) -> void:
 	Sound.play(Sound.Sfx.BOOST)
 	var contestants: Array[Contestant] = _flow.get_contestants()
@@ -411,6 +409,8 @@ func _on_treasure_collected(id: int, kind: int, value: int) -> void:
 	)
 
 
+## Feed it Race.race_finished: counts the race for everyone on the field and keeps the times
+## and podium places. Ids are roster indexes.
 func _record_race_stats(results: Array[Dictionary]) -> void:
 	var points: PointsStore = _betting.points
 	var contestants: Array[Contestant] = _flow.get_contestants()
@@ -624,7 +624,10 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	_overlay.show_dnf(dnf)
 	if podium.is_empty():
 		if not dnf.is_empty():
-			_confirm("reply_results", "results", "Race over:", "time is up, nobody finished.")
+			var over: String = "time is up, nobody finished."
+			if not haul.is_empty():
+				over += " Treasure: " + haul
+			_confirm("reply_results", "results", "Race over:", over)
 		return
 	Sound.play_win()
 	_confirm(

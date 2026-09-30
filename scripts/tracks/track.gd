@@ -59,11 +59,16 @@ func treasure_spots(treasure_seed: int) -> Array[Dictionary]:
 	var marker_count: int = markers.get_child_count() if markers != null else 0
 	if marker_count == 0 and length <= 0.0:
 		return spots
+	var last_index: int = -1
 	for entry: Dictionary in Treasure.plan(treasure_seed):
 		var progress: float = float(entry["progress"])
 		var at: Vector2
 		if marker_count > 0:
-			var marker: Node2D = markers.get_child(roundi(progress * float(marker_count - 1)))
+			# Each treasure gets its own marker while there are enough of them.
+			last_index = mini(
+				maxi(roundi(progress * float(marker_count - 1)), last_index + 1), marker_count - 1
+			)
+			var marker: Node2D = markers.get_child(last_index)
 			at = marker.global_position
 		else:
 			at = _centerline.to_global(curve.sample_baked(progress * length))
