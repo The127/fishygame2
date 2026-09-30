@@ -163,13 +163,13 @@ func test_settings_screen_toggles_colorblind_mode() -> void:
 	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
 	screen.settings = GameSettings.new()
 	add_child_autofree(screen)
-	assert_false(screen._colorblind.button_pressed)
+	assert_false(screen._toggles["colorblind"].button_pressed)
 	assert_true(_tab_titles(screen).has("Accessibility"))
-	screen._colorblind.button_pressed = true
+	screen._toggles["colorblind"].button_pressed = true
 	assert_true(screen.settings.colorblind)
 	screen.reset_pressed()
 	assert_false(screen.settings.colorblind)
-	assert_false(screen._colorblind.button_pressed)
+	assert_false(screen._toggles["colorblind"].button_pressed)
 
 
 func _tab_titles(screen: SettingsScreen) -> Array[String]:
@@ -258,3 +258,29 @@ func test_only_clicks_that_hit_a_fish_are_counted() -> void:
 	)
 	scene._gui_input(_click(MOUSE_BUTTON_LEFT, true, scene.size / 2.0))
 	assert_eq(scene.fish_clicks, 1)
+
+
+func test_settings_screen_saves_every_toggle() -> void:
+	var path: String = "user://test_settings_toggles.cfg"
+	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
+	screen.settings = GameSettings.new(path)
+	add_child_autofree(screen)
+	var keys: Array[String] = []
+	for row: Dictionary in SettingsScreen.TOGGLES:
+		keys.append(String(row["key"]))
+	for row: Dictionary in GameSettings.CHAT_TOGGLES:
+		keys.append(String(row["key"]))
+	assert_eq(screen._toggles.size(), keys.size(), "one checkbox per row")
+	for key: String in keys:
+		var was: bool = bool(screen.settings.get(key))
+		var check: CheckBox = screen._toggles[key]
+		assert_eq(check.button_pressed, was, "%s shows its setting" % key)
+		check.button_pressed = not was
+		assert_eq(bool(screen.settings.get(key)), not was, "%s flips the setting" % key)
+		var loaded := GameSettings.new(path)
+		loaded.load_settings()
+		assert_eq(bool(loaded.get(key)), not was, "%s is saved" % key)
+	screen.reset_pressed()
+	for key: String in keys:
+		assert_eq(screen._toggles[key].button_pressed, bool(GameSettings.new().get(key)), key)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
