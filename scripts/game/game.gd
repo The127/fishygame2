@@ -371,6 +371,11 @@ func _on_fish_eaten(marble: Marble) -> void:
 	Sound.play(Sound.Sfx.CURSE)
 	var who: String = "@" + marble.label_text if marble.label_text != "" else "A fish"
 	_overlay.show_notice("%s got eaten!" % who, 3.0)
+	# Marble ids are roster indexes.
+	var contestants: Array[Contestant] = _flow.get_contestants()
+	if marble.id >= 0 and marble.id < contestants.size():
+		_betting.points.stats.record_eaten(contestants[marble.id].user_id)
+		_betting.points.save_to_disk()
 
 
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
