@@ -10,9 +10,9 @@ extends Node2D
 ## take up, so a fish scores the same progress at the same stage of any route.
 ##
 ## After the merge a map can split again. Every Path2D under an optional `Branches` node is another
-## route from the merge point to the finish, next to `Centerline`. Give every branch the same
-## length as `Centerline` and the same first stretch, so a fish scores the same progress at the
-## same stage of any of them.
+## route from the merge point to the finish, next to `Centerline`. Each route is measured against
+## its own length and scores 1 at the finish, so routes of different lengths give a slightly
+## different progress for the same spot on a shared first stretch. Keep that stretch short.
 
 signal marble_reached_finish(marble: Node2D)
 ## A hazard event begins its telegraph. `kind` names the event.
