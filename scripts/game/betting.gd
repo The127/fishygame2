@@ -195,15 +195,18 @@ func on_podium_ready(podium: Array[Dictionary]) -> void:
 		var finisher: String = str(entry["user_id"])
 		points.add(finisher, reward)
 		points.set_name(finisher, str(entry["name"]))
-		results.append(
-			{
-				"user_id": finisher,
-				"name": entry["name"],
-				"target": entry["name"],
-				"amount": 0,
-				"payout": reward,
-				"kind": "place",
-			}
+		(
+			results
+			. append(
+				{
+					"user_id": finisher,
+					"name": entry["name"],
+					"target": entry["name"],
+					"amount": 0,
+					"payout": reward,
+					"kind": "place",
+				}
+			)
 		)
 	# Pool-style: the whole pool, doubled, shared by the winning stakes. Rounded down.
 	var pool: int = total_wagered()
