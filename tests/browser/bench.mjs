@@ -149,7 +149,7 @@ async function main() {
     results.lobby_ready_ms = Date.now() - t0;
     await act(page, "players", 20);
     await waitState(page, "20 players", (s) => s.players >= 20);
-    const maps = (process.env.MAPS ?? "zigzag,pachinko,wreck,whirlpool,jelly,abyss,vents,coral,kraken,gravity,tide,fork").split(",");
+    const maps = (process.env.MAPS ?? "zigzag,pachinko,wreck,whirlpool,jelly,abyss,vents,coral,kraken,gravity,tide,fork,city").split(",");
     results.maps = {};
     for (const map of maps) {
       log(`map ${map}`);

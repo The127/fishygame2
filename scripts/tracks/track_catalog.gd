@@ -103,6 +103,14 @@ const MAPS: Array[Dictionary] = [
 		"ambience": "res://assets/audio/ambience_fork.wav",
 		"jingle": "res://assets/audio/jingle_fork.wav",
 	},
+	{
+		"id": "city",
+		"name": "Sunken City",
+		"scene": preload("res://scenes/tracks/city_track.tscn"),
+		"music": "res://assets/audio/music_city.wav",
+		"ambience": "res://assets/audio/ambience_city.wav",
+		"jingle": "res://assets/audio/jingle_city.wav",
+	},
 ]
 
 

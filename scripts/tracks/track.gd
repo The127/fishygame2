@@ -73,6 +73,8 @@ func _ready() -> void:
 			(hazard as AnglerHazard).burst_played.connect(burst_played.emit)
 		if hazard is PlankHazard:
 			(hazard as PlankHazard).burst_played.connect(burst_played.emit)
+		if hazard is RuinHazard:
+			(hazard as RuinHazard).burst_played.connect(burst_played.emit)
 	for node: Node in find_children("*", "PortalPair", true, false):
 		(node as PortalPair).burst_played.connect(burst_played.emit)
 	var style: TrackStyle = TrackStyle.new()

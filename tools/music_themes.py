@@ -576,4 +576,34 @@ THEMES = {
              "high": 6500.0, "gain": 0.02},
         ),
     },
+    # Sunken city: slow A minor, organ-like pads under distant tolling bells and dripping stone.
+    "city": {
+        "seed": 33,
+        "chords": (
+            (33, 45, 52, 57, 60),
+            (29, 41, 48, 53, 57),
+            (36, 48, 55, 60, 64),
+            (31, 43, 50, 55, 59),
+        ),
+        "pad_partials": ((1.0, 1.0), (2.0, 0.6), (3.0, 0.25), (4.0, 0.12)),
+        "pad_gain": 0.075,
+        "trem_rate": 0.05,
+        "trem_depth": 0.3,
+        "rumble_cutoff": 200.0,
+        "rumble_gain": 0.7,
+        "layers": (
+            {"kind": "pings", "times": (1.5, 7.5, 13.5, 19.5), "freq": hz(57), "decay": 1.6,
+             "gain": 0.4, "gaps": (1.4, 2.8)},
+            {"kind": "pulse", "bpm": 40, "freq": 55.0, "decay": 0.35, "gain": 0.28},
+            {
+                "kind": "plucks",
+                "count": 9,
+                "notes": (69, 72, 76, 79, 81),
+                "decay": 0.7,
+                "gain": 0.06,
+                "bell": True,
+                "gaps": (0.7, 1.4, 2.1),
+            },
+        ),
+    },
 }

@@ -127,6 +127,14 @@ JINGLES = {
                   (0.48, 89, 1.7, 0.6), (0.48, 81, 1.7, 0.6), (0.48, 65, 1.7, 0.6)),
         "echo": (0.26, 2, 0.4),
     },
+    # Sunken city: A minor bells tolling down the old stairs, then an organ chord settles.
+    "city": {
+        "partials": BELL,
+        "notes": ((0.0, 81, 1.6, 0.6), (0.2, 76, 1.6, 0.6), (0.4, 72, 1.6, 0.6),
+                  (0.6, 69, 1.6, 0.6), (0.9, 57, 2.0, 1.0), (0.9, 64, 2.0, 1.0),
+                  (0.9, 69, 2.0, 1.0), (0.9, 45, 2.0, 1.0)),
+        "echo": (0.35, 3, 0.45),
+    },
 }
 
 
@@ -423,6 +431,14 @@ def _fork(out, rng):
     pings(out, (0.6,), 1800.0, 0.12)
 
 
+def _city(out, rng):
+    bed(out, rng, 0.0, 300.0, 0.8, swell=0.4, cycles=1)
+    thumps(out, rng, (2.3, 6.1), 70.0, 0.45)
+    drips(out, rng, (0.8, 3.9, 5.6), 1200.0, 0.12)
+    pings(out, (1.6,), 880.0, 0.1)
+    bubbles(out, rng, 4, 300.0, 700.0, 0.07)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -436,6 +452,7 @@ AMBIENCE = {
     "gravity": (40, _gravity),
     "tide": (41, _tide),
     "fork": (42, _fork),
+    "city": (43, _city),
 }
 
 

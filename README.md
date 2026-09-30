@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair and a rip current on Ebb Tide. The Jellyfish
+Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and collapsing ruined towers on Sunken City. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers. Their tentacles briefly catch and drag along any fish that
 touches them (then let go, and ignore that fish for a few seconds). The hazard is a surge that speeds them up.
@@ -257,6 +257,18 @@ a middle one with two ledges and a long safe one. The routes merge into a funnel
 finish run. Progress on a multi-start map is measured along one `Feeders` path per start for the
 first `merge_progress` of the scale and along `Centerline` (merge point to finish) for the rest.
 The debug race prints each marble's start (`starts=`) so a seed sweep can report results per start.
+
+Sunken City is a drowned ruin where the towers come down (`scripts/tracks/ruin_hazard.gd`). Each
+hazard event picks a tower that still stands, shakes it with falling dust and flaring runes, then
+the tower topples and crashes. The crash changes the floor until the race ends. On the first two
+ruins a cap stone in lane A crumbles away and leaves a gap: a shortcut to the lane below. The other
+two start with an open gap in lane B and a slab hanging above it, and the crash drops the slab
+into the gap and seals it. At most four events happen, each tower falls once, and with hazards off
+nothing moves, so every state has to stay passable. A ruin is a child of the hazard with a
+`Tower` (scenery, never collides), a `Slab` (the `AnimatableBody2D` that moves) and metadata for
+`mode`, `lie_degrees` and `height`. The collapse order and timing come from the race seed, not from
+where the fish are. The finish replay shows the shaking and falling towers, the slabs and the dust
+of the crash.
 
 ### Finish replay and moving map parts
 

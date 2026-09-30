@@ -5,7 +5,7 @@ extends Node2D
 ## The shapes are tessellated once into a single mesh (one draw call per layer) instead of
 ## thousands of canvas draw commands.
 
-enum Kind { SPIRES, KELP, SHARDS, MASTS, BLOOMS, CORAL, TENTACLES }
+enum Kind { SPIRES, KELP, SHARDS, MASTS, BLOOMS, CORAL, TENTACLES, RUINS }
 
 const WIDTH: float = 2400.0
 const FLOOR_Y: float = 1080.0
@@ -86,6 +86,8 @@ func _build() -> void:
 				_draw_coral(Vector2(x, base_y), h * flip)
 			Kind.TENTACLES:
 				_draw_tentacle(Vector2(x, base_y), h * flip)
+			Kind.RUINS:
+				_draw_ruin(Vector2(x, base_y), h * flip, i)
 	if _vertices.is_empty():
 		_mesh = null
 		return
@@ -272,6 +274,112 @@ func _draw_mast(base: Vector2, height: float, index: int) -> void:
 	_add_polygon(sail, color)
 	if highlight.a > 0.0:
 		_add_line(yard_at + Vector2(-yard, -tilt), yard_at + Vector2(yard, tilt), highlight, 2.0)
+
+
+## A drowned tower with a broken top, ledges and a few glowing runes, or every third one a
+## ruined arch on two stumps.
+func _draw_ruin(base: Vector2, height: float, index: int) -> void:
+	var rune: Color = Color(highlight, minf(highlight.a * 3.5, 1.0))
+	if index % 3 == 2:
+		_draw_arch(base, height, rune)
+		return
+	var half: float = 18.0 + absf(height) * 0.045 + _rng.randf_range(0.0, 8.0)
+	var tip: float = -height
+	_add_polygon(
+		PackedVector2Array(
+			[
+				base + Vector2(-half * 1.3, 0.0),
+				base + Vector2(half * 1.3, 0.0),
+				base + Vector2(half, tip * 0.9),
+				base + Vector2(half * 0.3, tip * 0.97),
+				base + Vector2(-half * 0.2, tip * 0.86),
+				base + Vector2(-half * 0.6, tip),
+				base + Vector2(-half, tip * 0.92),
+			]
+		),
+		color
+	)
+	for band: float in [0.34, 0.62]:
+		var y: float = tip * band
+		_add_polygon(
+			PackedVector2Array(
+				[
+					base + Vector2(-half * 1.25, y),
+					base + Vector2(half * 1.25, y),
+					base + Vector2(half * 1.25, y - 7.0),
+					base + Vector2(-half * 1.25, y - 7.0),
+				]
+			),
+			color
+		)
+		if highlight.a > 0.0:
+			_add_line(
+				base + Vector2(-half * 1.25, y - 7.0),
+				base + Vector2(half * 1.25, y - 7.0),
+				highlight,
+				2.0
+			)
+	if highlight.a > 0.0:
+		for at: float in [0.2, 0.48, 0.76]:
+			var center: Vector2 = base + Vector2(_rng.randf_range(-0.3, 0.3) * half, tip * at)
+			_add_polygon(
+				PackedVector2Array(
+					[
+						center + Vector2(0.0, -7.0),
+						center + Vector2(5.0, 0.0),
+						center + Vector2(0.0, 7.0),
+						center + Vector2(-5.0, 0.0),
+					]
+				),
+				rune
+			)
+
+
+## Two broken stumps joined by a half ring of stone.
+func _draw_arch(base: Vector2, height: float, rune: Color) -> void:
+	var stump: float = height * 0.55
+	var span: float = 34.0 + absf(height) * 0.14
+	var post: float = 13.0 + absf(height) * 0.03
+	var lift: float = signf(height)
+	for side: float in [-1.0, 1.0]:
+		var x: float = side * span
+		_add_polygon(
+			PackedVector2Array(
+				[
+					base + Vector2(x - post * 1.2, 0.0),
+					base + Vector2(x + post * 1.2, 0.0),
+					base + Vector2(x + post, -stump),
+					base + Vector2(x - post, -stump),
+				]
+			),
+			color
+		)
+	var ring: PackedVector2Array = PackedVector2Array()
+	var inner: PackedVector2Array = PackedVector2Array()
+	for s: int in 11:
+		var a: float = PI + PI * float(s) / 10.0
+		ring.append(
+			base + Vector2(cos(a) * (span + post), -stump + lift * sin(a) * (span + post) * 0.8)
+		)
+		inner.append(
+			base + Vector2(cos(a) * (span - post), -stump + lift * sin(a) * (span - post) * 0.8)
+		)
+	inner.reverse()
+	ring.append_array(inner)
+	_add_polygon(ring, color)
+	if highlight.a > 0.0:
+		_add_polyline(ring.slice(0, 11), highlight, 2.0)
+		_add_polygon(
+			PackedVector2Array(
+				[
+					base + Vector2(0.0, -stump + lift * span * 0.8 * -1.0 - 7.0),
+					base + Vector2(5.0, -stump + lift * span * 0.8 * -1.0),
+					base + Vector2(0.0, -stump + lift * span * 0.8 * -1.0 + 7.0),
+					base + Vector2(-5.0, -stump + lift * span * 0.8 * -1.0),
+				]
+			),
+			rune
+		)
 
 
 ## A giant jellyfish silhouette drifting in the murk: a dome with tentacles trailing below.
