@@ -56,6 +56,9 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "min_bet", "label": "Min bet", "min": 1, "max": 1000000, "step": 10},
 	{"key": "max_bet", "label": "Max bet (0 = no limit)", "min": 0, "max": 1000000, "step": 100},
 	{"key": "pick_reward", "label": "Free pick reward", "min": 0, "max": 1000000, "step": 10},
+	{"key": "win_reward", "label": "1st place reward", "min": 0, "max": 1000000, "step": 10},
+	{"key": "second_reward", "label": "2nd place reward", "min": 0, "max": 1000000, "step": 10},
+	{"key": "third_reward", "label": "3rd place reward", "min": 0, "max": 1000000, "step": 10},
 	{"key": "boost_cost", "label": "Boost cost", "min": 0, "max": 1000000, "step": 10},
 	{"key": "curse_cost", "label": "Curse cost", "min": 0, "max": 1000000, "step": 10},
 	{"key": "species_price", "label": "Fish species price", "min": 0, "max": 1000000, "step": 50},
@@ -118,6 +121,9 @@ var starting_balance: int = 1000
 var min_bet: int = 1
 var max_bet: int = 0
 var pick_reward: int = 50
+var win_reward: int = 100
+var second_reward: int = 50
+var third_reward: int = 25
 var boost_cost: int = 100
 var curse_cost: int = 150
 var species_price: int = 500

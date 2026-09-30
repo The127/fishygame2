@@ -10,6 +10,7 @@ extends Node
 ## aborted, every bet is refunded.
 ## A free "#pick <fish>" costs nothing: one per viewer per round, it pays [member pick_reward]
 ## if the fish wins. It works alongside a bet.
+## Podium finishers also earn a placement reward ([member place_rewards]), bet or not.
 
 signal bet_placed(msg: ChatMessage, target: Contestant, amount: int)
 signal bet_rejected(msg: ChatMessage, reason: String)
@@ -19,7 +20,7 @@ signal bets_changed(summary: String)
 signal pick_placed(msg: ChatMessage, target: Contestant)
 signal pick_rejected(msg: ChatMessage, reason: String)
 ## One entry per bet or winning pick: {user_id, name, target, amount, payout, kind}. kind is
-## "bet" or "pick". payout is 0 for a lost bet; amount is 0 for a pick.
+## "bet", "pick" or "place". payout is 0 for a lost bet; amount is 0 for a pick or a placement.
 signal payouts_settled(results: Array[Dictionary])
 
 @export var points_path: String = PointsStore.DEFAULT_PATH
@@ -30,6 +31,8 @@ signal payouts_settled(results: Array[Dictionary])
 @export var max_bet: int = 0
 ## Points a correct free pick pays.
 @export var pick_reward: int = 50
+## Points paid to 1st, 2nd, 3rd... on the podium. Missing or zero entries pay nothing.
+@export var place_rewards: Array[int] = [100, 50, 25]
 
 var points: PointsStore = null
 
@@ -182,6 +185,26 @@ func on_podium_ready(podium: Array[Dictionary]) -> void:
 	points.add_win(winner_id)
 	points.set_name(winner_id, str(podium[0]["name"]))
 	var results: Array[Dictionary] = []
+	for entry: Dictionary in podium:
+		var place: int = int(entry["place"])
+		if not bool(entry["finished"]) or place < 1 or place > place_rewards.size():
+			continue
+		var reward: int = place_rewards[place - 1]
+		if reward <= 0:
+			continue
+		var finisher: String = str(entry["user_id"])
+		points.add(finisher, reward)
+		points.set_name(finisher, str(entry["name"]))
+		results.append(
+			{
+				"user_id": finisher,
+				"name": entry["name"],
+				"target": entry["name"],
+				"amount": 0,
+				"payout": reward,
+				"kind": "place",
+			}
+		)
 	# Pool-style: the whole pool, doubled, shared by the winning stakes. Rounded down.
 	var pool: int = total_wagered()
 	var winning_stakes: int = 0
