@@ -33,6 +33,7 @@ point_count = 9
 script = ExtResource("1_track")
 view_bounds = Rect2(0, -160, 1920, 2120)
 spawn_columns = 5
+fall_zone_bottom = 1500.0
 style_id = "crystal"
 
 [node name="Backdrop" type="Polygon2D" parent="."]
