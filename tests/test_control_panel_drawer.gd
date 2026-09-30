@@ -158,6 +158,12 @@ func test_tab_bar_shows_cooldown_when_drawer_closed() -> void:
 	assert_true(_tab_bar().visible)
 	var quarter: float = _tab_bar().size.x
 	assert_almost_eq(quarter, _tab().size.x * 0.25, 0.5)
+	assert_almost_eq(_tab_bar().global_position.x, _tab().global_position.x, 0.5)
+	assert_almost_eq(
+		_tab_bar().global_position.y,
+		_tab().get_global_rect().end.y + ControlPanel.TAB_BAR_GAP,
+		0.5
+	)
 	_panel.set_power_cooldown(2.0, 8.0)
 	assert_gt(_tab_bar().size.x, quarter, "bar grows left to right")
 	_panel.set_power_cooldown(0.0, 8.0)
@@ -170,3 +176,12 @@ func test_tab_bar_appears_when_closing_during_cooldown() -> void:
 	assert_true(_tab_bar().visible)
 	_panel.set_open(true)
 	assert_false(_tab_bar().visible)
+
+
+func test_tab_bar_follows_the_tab_when_the_window_resizes() -> void:
+	_panel.set_open(false)
+	_panel.set_power_cooldown(0.0001, 1.0)
+	var gap: float = _tab().global_position.x - _tab_bar().global_position.x
+	get_tree().root.size += Vector2i(200, 0)
+	await wait_frames(2)
+	assert_almost_eq(_tab().global_position.x - _tab_bar().global_position.x, gap, 0.5)

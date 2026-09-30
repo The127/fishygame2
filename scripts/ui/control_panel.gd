@@ -83,7 +83,8 @@ func _ready() -> void:
 	_apply_style()
 	_tab.modulate.a = TAB_IDLE_ALPHA
 	_tab_bar.color = TAB_BAR_COLOR
-	_tab.resized.connect(_update_tab_bar)
+	# The tab grows to fit its text after the first layout; its offsets follow.
+	_tab.item_rect_changed.connect(_update_tab_bar)
 	_update_tab_bar()
 	_tab.pressed.connect(_on_tab_pressed)
 	_tab.mouse_entered.connect(_set_tab_hovered.bind(true))
@@ -222,11 +223,17 @@ func set_power_cooldown(left: float, total: float) -> void:
 
 
 ## Slim bar under the tab, filling left to right while the drawer is closed and a power cools down.
+## Anchored to the right edge like the tab, so it follows the tab when the window is resized.
 func _update_tab_bar() -> void:
 	_tab_bar.visible = not _open and _cooldown_fraction < 1.0
+	# The tab grows to fit its text, so read its real rect, not its offsets, and express it
+	# relative to the right edge the bar is anchored to.
 	var rect: Rect2 = _tab.get_rect()
-	_tab_bar.position = Vector2(rect.position.x, rect.end.y + TAB_BAR_GAP)
-	_tab_bar.size = Vector2(rect.size.x * _cooldown_fraction, TAB_BAR_HEIGHT)
+	var edge: float = _tab_bar.get_viewport().get_visible_rect().size.x
+	_tab_bar.offset_left = rect.position.x - edge
+	_tab_bar.offset_right = _tab_bar.offset_left + rect.size.x * _cooldown_fraction
+	_tab_bar.offset_top = rect.end.y + TAB_BAR_GAP
+	_tab_bar.offset_bottom = _tab_bar.offset_top + TAB_BAR_HEIGHT
 
 
 ## One line for the streamer under the power buttons. It is not shown to viewers.
