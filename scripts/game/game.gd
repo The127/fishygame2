@@ -71,6 +71,7 @@ var _track: Track
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _photo: PhotoFinish = PhotoFinish.new()
 var _batcher: ChatBatcher = ChatBatcher.new()
+var _meow: Meow = Meow.new()
 var _payouts: Array[Dictionary] = []
 
 @onready var _flow: GameFlow = $GameFlow
@@ -103,6 +104,7 @@ func _ready() -> void:
 	_shop.rejected.connect(_on_shop_rejected)
 	_shop.catalog_requested.connect(_on_shop_catalog_requested)
 	add_child(_batcher)
+	add_child(_meow)
 	_batcher.line_ready.connect(_on_batched_line)
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
@@ -121,11 +123,16 @@ func _ready() -> void:
 	_flow.player_joined.connect(_cheer.add_contestant)
 	_flow.state_changed.connect(_cheer.on_state_changed)
 	_cheer.cheer_requested.connect(_race.cheer_marble)
+	Chat.command_received.connect(_meow.handle_command)
+	_flow.player_joined.connect(_meow.add_contestant)
+	_flow.state_changed.connect(_meow.on_state_changed)
+	_meow.meow_requested.connect(_on_meow_requested)
 	_race.marble_finished.connect(_chaos.on_marble_finished)
 	_race.marble_finished.connect(_cheer.on_marble_finished)
 	# Before the flow's connection below, so chaos closes before the state changes.
 	_race.race_finished.connect(_chaos.on_race_finished)
 	_race.race_finished.connect(_cheer.on_race_finished)
+	_race.race_finished.connect(_meow.on_race_finished)
 	_flow.podium_ready.connect(_overlay.show_podium)
 	_flow.podium_ready.connect(_betting.on_podium_ready)
 	_betting.bets_changed.connect(_overlay.show_bets)
@@ -455,6 +462,11 @@ func _on_effect_applied(msg: ChatMessage, target: Contestant, kind: Chaos.Kind, 
 		"@%s on %s" % [_viewer_name(msg), target.display_name]
 	)
 	_overlay.show_notice("%s %s %s!" % [_viewer_name(msg), verb, target.display_name])
+
+
+func _on_meow_requested(marble_id: int) -> void:
+	if _race.meow_marble(marble_id):
+		Sound.play(Sound.Sfx.MEOW)
 
 
 func _on_effect_rejected(msg: ChatMessage, reason: String) -> void:

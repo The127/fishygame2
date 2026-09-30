@@ -15,6 +15,9 @@ const CHEER_IMPULSE: float = 40.0
 ## Largest cheer in emote units, so no setting makes a cheer as strong as a boost.
 const CHEER_MAX_STRENGTH: float = 8.0
 
+## Seconds the meow bubble stays up.
+const MEOW_SECONDS: float = 1.2
+
 var id: int = 0
 var color: Color = Color.WHITE:
 	set(value):
@@ -100,6 +103,35 @@ func cheer(forward: Vector2, strength: float) -> void:
 			70.0,
 			Vector2(0, -70)
 		)
+
+
+## A little cat noise for show: a "meow" bubble that drifts up and a few pink hearts.
+func meow() -> void:
+	var bubble: Label = Label.new()
+	bubble.top_level = true
+	bubble.text = "meow~"
+	bubble.z_index = 11
+	bubble.add_theme_font_size_override("font_size", 15)
+	bubble.add_theme_color_override("font_color", Color(0.25, 0.1, 0.2))
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(1.0, 0.92, 0.96, 0.92)
+	style.set_corner_radius_all(9)
+	style.content_margin_left = 7.0
+	style.content_margin_right = 7.0
+	bubble.add_theme_stylebox_override("normal", style)
+	bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bubble)
+	var size: Vector2 = bubble.get_minimum_size()
+	var start: Vector2 = global_position + Vector2(-size.x * 0.5, -RADIUS - size.y - 26.0)
+	bubble.global_position = start
+	var tween: Tween = bubble.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(bubble, "global_position:y", start.y - 34.0, MEOW_SECONDS)
+	tween.tween_property(bubble, "modulate:a", 0.0, MEOW_SECONDS * 0.4).set_delay(
+		MEOW_SECONDS * 0.6
+	)
+	tween.chain().tween_callback(bubble.queue_free)
+	RaceFx.burst(self, global_position, RaceFx.CHEER_COLOR, 8, 60.0, Vector2(0, -60))
 
 
 ## Knocks the marble back against `forward` and slows it for [constant CURSE_SECONDS].

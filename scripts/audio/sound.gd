@@ -7,7 +7,7 @@ extends Node
 ## resumes it on that input and the already playing music simply becomes audible, so
 ## nothing needs unlocking here. An OBS browser source can be allowed to autoplay.
 
-enum Sfx { JOIN, TICK, GO, BOOST, CURSE, SPLASH, WIN }
+enum Sfx { JOIN, TICK, GO, BOOST, CURSE, SPLASH, WIN, MEOW }
 
 const MUSIC_PATH: String = "res://assets/audio/music_ambient.wav"
 const SFX_PATHS: Dictionary = {
@@ -18,6 +18,7 @@ const SFX_PATHS: Dictionary = {
 	Sfx.CURSE: "res://assets/audio/sfx_curse.wav",
 	Sfx.SPLASH: "res://assets/audio/sfx_splash.wav",
 	Sfx.WIN: "res://assets/audio/sfx_win.wav",
+	Sfx.MEOW: "res://assets/audio/sfx_meow.wav",
 }
 const POOL_SIZE: int = 8
 ## The same effect is not restarted within this many milliseconds (20 fish can finish together).
