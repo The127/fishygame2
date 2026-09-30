@@ -28,6 +28,55 @@ func test_map_has_a_field_of_jellyfish() -> void:
 	assert_gte(_swarm().get_jellies().size(), 8)
 
 
+func test_map_is_several_screens_tall_with_jellyfish_in_every_section() -> void:
+	var track: Track = TrackCatalog.instantiate("jelly")
+	add_child_autofree(track)
+	assert_gt(track.view_bounds.size.y, 2.0 * 1080.0, "taller than two screens")
+	var sections: Dictionary = {}
+	for jelly: Jellyfish in (track.get_hazards()[0] as JellyHazard).get_jellies():
+		assert_true(track.view_bounds.has_point(jelly.position), "jellyfish inside the bounds")
+		sections[int(jelly.position.y / 600.0)] = true
+	assert_gte(sections.size(), 4, "jellyfish spread over the whole height")
+	var finish: Area2D = track.get_node("Finish")
+	assert_gt(finish.position.y, 2000.0, "the finish is at the bottom")
+
+
+func test_jellyfish_never_reach_the_walls_or_floors() -> void:
+	var track: Track = TrackCatalog.instantiate("jelly")
+	add_child_autofree(track)
+	for jelly: Jellyfish in (track.get_hazards()[0] as JellyHazard).get_jellies():
+		# Everything the bell can sweep over, with room for a fish to pass.
+		var reach: Vector2 = jelly.drift + Vector2.ONE * (jelly.radius + Marble.RADIUS)
+		var box: Rect2 = Rect2(jelly.position - reach, reach * 2.0)
+		for body: Node in track.get_children():
+			var collider: CollisionPolygon2D = (
+				body.get_node_or_null("Collider") as CollisionPolygon2D
+			)
+			if not body is StaticBody2D or collider == null:
+				continue
+			var hit: Array[PackedVector2Array] = Geometry2D.intersect_polygons(
+				collider.polygon,
+				PackedVector2Array(
+					[
+						box.position,
+						Vector2(box.end.x, box.position.y),
+						box.end,
+						Vector2(box.position.x, box.end.y)
+					]
+				)
+			)
+			assert_true(hit.is_empty(), "%s clear of %s" % [jelly.name, body.name])
+
+
+func test_centerline_runs_from_top_to_the_finish() -> void:
+	var track: Track = TrackCatalog.instantiate("jelly")
+	add_child_autofree(track)
+	var curve: Curve2D = (track.get_node("Centerline") as Path2D).curve
+	var end: Vector2 = curve.get_point_position(curve.point_count - 1)
+	var finish: Area2D = track.get_node("Finish")
+	assert_lt(end.distance_to(finish.position), 100.0)
+
+
 func test_jellyfish_stay_near_their_anchor() -> void:
 	var swarm: JellyHazard = _swarm()
 	swarm.reseed(3)

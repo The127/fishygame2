@@ -210,6 +210,11 @@ Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on K
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers. Their tentacles briefly catch and drag along any fish that
 touches them (then let go, and ignore that fish for a few seconds). The hazard is a surge that speeds them up.
+The field is four stacked sections, about 2800 px tall (the camera follows the pack down; the overview
+zooms out to fit it), joined by drops: a gap in the middle, one against the left wall, one against the right
+wall, then the finish funnel. A map taller than one screen sets `view_bounds` to its real size and
+`TrackStyle` repeats the parallax layers, extends the sky and lowers the foreground floor shapes to match.
+Keep the floors at roughly 10 degrees or steeper (fish stall on shallower ones) and the jellyfish well clear of the floors.
 Abyss has an unstable portal that throws fish back and two big anglerfish that lunge at fish in
 reach, swallow them and spit them out again at an earlier ramp a moment later (a fish is eaten at
 most once per race). Events are planned from the race seed, so a seed replays the same
