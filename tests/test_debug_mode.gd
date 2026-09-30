@@ -1,5 +1,8 @@
 extends GutTest
 
+const PANEL_SCENE: String = "res://scenes/ui/control_panel.tscn"
+const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
+
 
 func after_each() -> void:
 	DebugMode.set_enabled(OS.is_debug_build())
@@ -13,7 +16,7 @@ func test_override_round_trips() -> void:
 
 
 func test_control_panel_hides_debug_buttons_unless_enabled() -> void:
-	var scene: PackedScene = load("res://scenes/ui/control_panel.tscn")
+	var scene: PackedScene = load(PANEL_SCENE)
 	DebugMode.set_enabled(false)
 	var off: ControlPanel = scene.instantiate()
 	add_child_autofree(off)
@@ -26,9 +29,7 @@ func test_control_panel_hides_debug_buttons_unless_enabled() -> void:
 
 func test_control_panel_debug_buttons_emit_signals() -> void:
 	DebugMode.set_enabled(true)
-	var panel: ControlPanel = (
-		(load("res://scenes/ui/control_panel.tscn") as PackedScene).instantiate()
-	)
+	var panel: ControlPanel = (load(PANEL_SCENE) as PackedScene).instantiate()
 	add_child_autofree(panel)
 	watch_signals(panel)
 	(panel.get_node("Panel/Box/DebugButtons/Duck") as Button).pressed.emit()
@@ -38,7 +39,7 @@ func test_control_panel_debug_buttons_emit_signals() -> void:
 
 
 func test_home_screen_cat_ears_button_only_in_debug() -> void:
-	var scene: PackedScene = load("res://scenes/ui/home_screen.tscn")
+	var scene: PackedScene = load(HOME_SCENE)
 	DebugMode.set_enabled(false)
 	var off: HomeScreen = scene.instantiate()
 	add_child_autofree(off)
