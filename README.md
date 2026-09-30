@@ -3,6 +3,8 @@
 A Twitch-integrated marble race with fish, built in Godot 4 for the browser (OBS browser source).
 It replaces fishygame 1 (a React/Express overlay) with a real physics marble race.
 
+**Streaming with it?** See the [streamer guide](docs/STREAMER_GUIDE.md).
+
 ## Requirements
 
 - [Godot 4.7.x](https://godotengine.org/download) (standard build, GDScript only)
