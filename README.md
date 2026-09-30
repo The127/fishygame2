@@ -170,7 +170,13 @@ twice in a row). To check a map for jams, run full races headless over many seed
 ```sh
 tests/run_race_seeds.sh godot 1 100                  # every map, 10 marbles, seeds 1..100
 MARBLES=20 tests/run_race_seeds.sh godot 1 100 pachinko
+EVENT=low_gravity tests/run_race_seeds.sh godot 1 20 zigzag  # under a random event
 ```
+
+Random events (Settings, Betting & Chaos tab, off by default): a wheel spins during the countdown of every
+race and lands mostly on nothing, sometimes on a modifier (low gravity, double hazards, lights out,
+bouncy). Modifiers change rules without drawing from the race seed (`scripts/game/race_event.gd`);
+`--event=<id>` on the debug race scene replays one.
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents, a surge that spins up the vortex on

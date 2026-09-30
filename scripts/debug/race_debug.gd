@@ -3,12 +3,14 @@ extends Node2D
 ## Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7 --map=pachinko --count=20 --hazards=3
 ## --hazards is the hazard frequency (0 turns hazard events off). --limit is the race time limit in
 ## seconds (default 0, none): fish still racing then are DNF, which does not fail an autorun.
+## --event=<id> runs the race under a RaceEvent (low_gravity, double_hazards, lights_out, bouncy).
 
 @export var seed_value: int = 1
 @export var marble_count: int = 10
 @export var map_id: String = "zigzag"
 @export var hazard_frequency: int = 3
 @export var time_limit: float = 0.0
+@export var event_id: String = RaceEvent.NOTHING
 
 var _autorun: bool = false
 var _track: Track
@@ -31,8 +33,16 @@ func _ready() -> void:
 			map_id = arg.substr(6)
 		elif arg.begins_with("--limit="):
 			time_limit = maxf(0.0, float(arg.substr(8)))
+		elif arg.begins_with("--event="):
+			event_id = arg.substr(8)
 		elif arg.begins_with("--hazards="):
 			hazard_frequency = clampi(int(arg.substr(10)), 0, 5)
+	if event_id != RaceEvent.NOTHING and not RaceEvent.is_event(event_id):
+		push_error(
+			"Unknown event '%s' (known: %s)" % [event_id, ", ".join(RaceEvent.EVENTS.keys())]
+		)
+		get_tree().quit(2)
+		return
 	if not TrackCatalog.has_map(map_id):
 		push_error("Unknown map '%s' (known: %s)" % [map_id, ", ".join(TrackCatalog.ids())])
 		get_tree().quit(2)
@@ -61,13 +71,13 @@ func _start_race() -> void:
 	rng.seed = seed_value
 	print(
 		(
-			"Race start: map %s, seed %d, %d marbles, hazards %d"
-			% [map_id, seed_value, marble_count, hazard_frequency]
+			"Race start: map %s, seed %d, %d marbles, hazards %d, event '%s'"
+			% [map_id, seed_value, marble_count, hazard_frequency, event_id]
 		)
 	)
 	_hazard_events.clear()
 	_race.time_limit = time_limit
-	_race.start(_track, marble_count, rng, hazard_frequency)
+	_race.start(_track, marble_count, rng, hazard_frequency, event_id)
 
 
 func _on_hazard_started(kind: String) -> void:

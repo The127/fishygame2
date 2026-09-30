@@ -23,6 +23,8 @@ const NET_DRAG: float = 14.0
 ## Race length in seconds; fish still racing at that point are DNF. 0 or less means no limit.
 @export var time_limit: float = 0.0
 
+## The random event this race runs under (see [RaceEvent]), [constant RaceEvent.NOTHING] for none.
+var event: String = RaceEvent.NOTHING
 var elapsed: float = 0.0
 var running: bool = false
 ## Whether [signal photo_finish] fired in this race.
@@ -39,10 +41,19 @@ var _sample_velocities: PackedVector2Array = PackedVector2Array()
 
 ## Clears any previous race and spawns `count` marbles. Every random draw comes
 ## from the given rng. `hazard_frequency` (1 to 5) turns on the map's hazard events, 0 leaves them off.
-func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequency: int = 0) -> void:
+## `random_event` is a [RaceEvent] id; it changes the rules but draws nothing from `rng`.
+func start(
+	track: Track,
+	count: int,
+	rng: RandomNumberGenerator,
+	hazard_frequency: int = 0,
+	random_event: String = RaceEvent.NOTHING
+) -> void:
 	assert(marble_scene != null and count > 0, "Race needs a marble_scene and count > 0")
 	clear()
 	_track = track
+	event = random_event
+	_track.modulate = RaceEvent.track_tint(event)
 	_track.marble_reached_finish.connect(_on_marble_reached_finish)
 	var ids: Array[int] = []
 	for i: int in count:
@@ -53,13 +64,19 @@ func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequenc
 			rng.randf_range(-SPAWN_JITTER, SPAWN_JITTER),
 			rng.randf_range(-SPAWN_JITTER, SPAWN_JITTER)
 		)
-		marble.glow_boost = _track.fish_glow
+		marble.glow_boost = _track.fish_glow * RaceEvent.glow_scale(event)
+		marble.gravity_scale = RaceEvent.gravity_scale(event)
+		if RaceEvent.bounce(event) >= 0.0:
+			# The material is shared by every marble scene instance, so change a copy.
+			var material: PhysicsMaterial = marble.physics_material_override.duplicate()
+			material.bounce = RaceEvent.bounce(event)
+			marble.physics_material_override = material
 		add_child(marble)
 		marble.global_position = _track.get_spawn_position(i) + jitter
 		_marbles[i] = marble
 	_ranking = RaceRanking.new(ids)
 	_track.seed_gimmicks(rng)
-	_track.arm_hazards(rng, hazard_frequency)
+	_track.arm_hazards(rng, RaceEvent.hazard_level(event, hazard_frequency))
 	_recorder = ReplayRecorder.new(count)
 	_sample_positions.resize(count)
 	_sample_velocities.resize(count)
@@ -70,7 +87,9 @@ func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequenc
 
 func clear() -> void:
 	running = false
+	event = RaceEvent.NOTHING
 	if _track != null:
+		_track.modulate = Color.WHITE
 		_track.stop_hazards()
 		_track.stop_gimmicks()
 	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):

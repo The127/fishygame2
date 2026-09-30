@@ -37,6 +37,7 @@ const TABS: Array[Dictionary] = [
 			"curse_cost",
 			"viewer_cooldown",
 			"fish_lockout",
+			"random_events",
 		],
 	},
 	{
@@ -75,6 +76,7 @@ var _map_picker: OptionButton
 var _auto_mode: CheckBox
 var _hazards: CheckBox
 var _powers: CheckBox
+var _random_events: CheckBox
 var _chat_replies: CheckBox
 var _reply_toggles: Dictionary[String, CheckBox] = {}
 var _colorblind: CheckBox
@@ -211,6 +213,10 @@ func _build_controls() -> Dictionary[String, Control]:
 	_powers.toggled.connect(_on_powers_toggled)
 	_captions["powers_enabled"] = "Streamer powers (rod, net, bubble blast)"
 	controls["powers_enabled"] = _powers
+	_random_events = _make_check("On")
+	_random_events.toggled.connect(_on_random_events_toggled)
+	_captions["random_events"] = "Random events (a wheel before each race)"
+	controls["random_events"] = _random_events
 	_auto_mode = _make_check("On")
 	_auto_mode.toggled.connect(_on_auto_mode_toggled)
 	_captions["auto_mode"] = "Auto mode (rounds run on their own)"
@@ -299,6 +305,7 @@ func _refresh() -> void:
 	_powers.set_pressed_no_signal(settings.powers_enabled)
 	_spinners["power_cooldown"].editable = settings.powers_enabled
 	_spinners["powers_per_race"].editable = settings.powers_enabled
+	_random_events.set_pressed_no_signal(settings.random_events)
 	_auto_mode.set_pressed_no_signal(settings.auto_mode)
 	_chat_replies.set_pressed_no_signal(settings.chat_replies)
 	for key: String in _reply_toggles:
@@ -330,6 +337,11 @@ func _on_hazards_toggled(pressed: bool) -> void:
 
 func _on_powers_toggled(pressed: bool) -> void:
 	settings.powers_enabled = pressed
+	_commit()
+
+
+func _on_random_events_toggled(pressed: bool) -> void:
+	settings.random_events = pressed
 	_commit()
 
 
