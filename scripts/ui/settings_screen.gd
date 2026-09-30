@@ -218,6 +218,9 @@ func _build_controls() -> Dictionary[String, Control]:
 	for id: String in TrackCatalog.ids():
 		_map_picker.add_item(TrackCatalog.get_name_of(id))
 		_map_picker.set_item_metadata(_map_picker.item_count - 1, id)
+	# Sized by the picked name, so a long map name cannot push the tabs past the panel.
+	_map_picker.fit_to_longest_item = false
+	_map_picker.clip_text = true
 	_map_picker.item_selected.connect(_on_map_picked)
 	UiStyle.style_button(_map_picker, 20)
 	# A long map name must not widen the tab bar past the panel.

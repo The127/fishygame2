@@ -119,6 +119,14 @@ const MAPS: Array[Dictionary] = [
 		"ambience": "res://assets/audio/ambience_washer.wav",
 		"jingle": "res://assets/audio/jingle_washer.wav",
 	},
+	{
+		"id": "whale",
+		"name": "Inside the Whale",
+		"scene": preload("res://scenes/tracks/whale_track.tscn"),
+		"music": "res://assets/audio/music_whale.wav",
+		"ambience": "res://assets/audio/ambience_whale.wav",
+		"jingle": "res://assets/audio/jingle_whale.wav",
+	},
 ]
 
 
