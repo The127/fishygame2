@@ -11,6 +11,8 @@ const HOOK_KEEP_SPEED: float = 0.2
 const BLAST_IMPULSE: float = 600.0
 ## Drag per second on a fish inside a net, in units of its own velocity.
 const NET_DRAG: float = 14.0
+## Most fish that get their own small burst from one blast (web export particle budget).
+const MAX_HIT_BURSTS: int = 8
 
 ## The track of the race in progress. Set by the Race on start.
 var track: Track
@@ -70,10 +72,11 @@ func cheer(id: int, strength: float) -> bool:
 
 ## Drops a hook at `pos` and yanks the nearest fish within `radius`. Returns its id or -1.
 func hook_near(pos: Vector2, radius: float) -> int:
+	var marble: Marble = _nearest_live(pos, radius)
 	var hook: HookFx = HookFx.new()
 	_host.add_child(hook)
-	hook.global_position = pos
-	var marble: Marble = _nearest_live(pos, radius)
+	# The hook drops onto the fish it snagged, or on the spot when it found nothing.
+	hook.global_position = pos if marble == null else marble.global_position
 	if marble == null:
 		return -1
 	marble.linear_velocity *= HOOK_KEEP_SPEED
@@ -81,6 +84,7 @@ func hook_near(pos: Vector2, radius: float) -> int:
 		-track.get_forward(marble.global_position) * HOOK_IMPULSE * marble.mass
 	)
 	RaceFx.burst(marble, marble.global_position, RaceFx.SPLASH_COLOR, 12, 100.0, Vector2(0, -60))
+	ShockRing.spawn(_host, marble.global_position, 54.0, 0.35, RaceFx.WINNER_COLOR, 3.0)
 	return marble.id
 
 
@@ -92,7 +96,11 @@ func place_net(pos: Vector2, radius: float, seconds: float) -> int:
 	_host.add_child(net)
 	net.global_position = pos
 	nets.append(net)
-	return live_in(pos, radius).size()
+	var inside: Array[Marble] = live_in(pos, radius)
+	for marble: Marble in inside:
+		if net.catch_fish(marble.id):
+			net.tighten()
+	return inside.size()
 
 
 ## Shoves every fish within `radius` away from `pos`; returns how many it hit.
@@ -103,7 +111,12 @@ func blast(pos: Vector2, radius: float) -> int:
 		var direction: Vector2 = away.normalized() if away.length() > 0.001 else Vector2.UP
 		var falloff: float = 1.0 - clampf(away.length() / radius, 0.0, 1.0) * 0.6
 		marble.apply_central_impulse(direction * BLAST_IMPULSE * falloff * marble.mass)
-	RaceFx.burst(_host, pos, RaceFx.BOOST_COLOR, 28, radius, Vector2.ZERO)
+	var fx: BlastFx = BlastFx.new()
+	fx.radius = radius
+	_host.add_child(fx)
+	fx.global_position = pos
+	for marble: Marble in hit.slice(0, MAX_HIT_BURSTS):
+		RaceFx.burst(_host, marble.global_position, RaceFx.BOOST_COLOR, 4, 70.0, Vector2.ZERO)
 	return hit.size()
 
 
@@ -112,6 +125,9 @@ func hold_in_nets() -> void:
 	nets = nets.filter(func(net: NetZone) -> bool: return is_instance_valid(net))
 	for net: NetZone in nets:
 		for marble: Marble in live_in(net.global_position, net.radius):
+			if net.catch_fish(marble.id):
+				net.tighten()
+				RaceFx.burst(_host, marble.global_position, RaceFx.SPLASH_COLOR, 4, 60.0)
 			marble.apply_central_force(
 				-marble.linear_velocity * NET_DRAG * marble.mass * net.strength()
 			)

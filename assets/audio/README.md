@@ -20,6 +20,9 @@ license terms beyond the repository's own. Re-run the script and commit the WAVs
 | `sfx_meow.wav` | a viewer's fish meows (hidden chat command) |
 | `sfx_kraken_grumble.wav` | the kraken grumbles with the warning before each strike on Kraken's Lair |
 | `sfx_kraken_swoosh.wav` | the kraken's tentacles swoosh as a sweep begins |
+| `sfx_rod_cast.wav` / `sfx_rod_catch.wav` | the streamer's rod drops with a splash / yanks a fish |
+| `sfx_net_cast.wav` / `sfx_net_catch.wav` | the streamer's net is cast / tightens on a fish |
+| `sfx_blast_cast.wav` / `sfx_blast_hit.wav` | the bubble blast charges and booms / scatters fish |
 
 If you swap in downloaded sounds, only use CC0 (or similarly permissive) material and record the
 source and license in this file.

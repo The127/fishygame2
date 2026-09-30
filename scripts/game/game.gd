@@ -7,6 +7,8 @@ const RESULT_PAYOUTS: int = 3
 
 ## Seconds a cast net holds fish.
 const NET_SECONDS: float = 2.5
+## Pixels the camera shakes when the streamer blasts.
+const BLAST_PUNCH: float = 14.0
 
 ## Milliseconds a "power not available" line stays in the control panel.
 const POWER_NOTE_MSEC: int = 3000
@@ -581,15 +583,22 @@ func _on_power_used(kind: StreamerPowers.Kind, pos: Vector2) -> void:
 				if id >= 0
 				else "The streamer's hook came up empty"
 			)
+			Sound.play(Sound.Sfx.ROD_CAST)
 			if id >= 0:
-				Sound.play(Sound.Sfx.CURSE)
+				Sound.play(Sound.Sfx.ROD_CATCH)
 		StreamerPowers.Kind.NET:
 			var caught: int = _race.place_net(pos, radius, NET_SECONDS)
 			text = "The streamer cast a net over %s!" % _fish_count(caught)
+			Sound.play(Sound.Sfx.NET_CAST)
+			if caught > 0:
+				Sound.play(Sound.Sfx.NET_CATCH)
 		StreamerPowers.Kind.BLAST:
 			var hit: int = _race.blast(pos, radius)
 			text = "The streamer blasted %s!" % _fish_count(hit)
-			Sound.play(Sound.Sfx.BOOST)
+			Sound.play(Sound.Sfx.BLAST_CAST)
+			if hit > 0:
+				Sound.play(Sound.Sfx.BLAST_HIT)
+			_camera.punch(BLAST_PUNCH)
 	_overlay.show_notice(text)
 	if settings.replies_enabled("reply_powers"):
 		Chat.send_message(text)
