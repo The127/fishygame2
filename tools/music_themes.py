@@ -630,4 +630,29 @@ THEMES = {
              "glide": True, "gaps": (0.3, 0.6)},
         ),
     },
+    # Switchback: a tense A minor groove whose arpeggio keeps turning back on itself.
+    "switchback": {
+        "seed": 71,
+        "chords": (
+            (33, 45, 52, 57, 60),
+            (29, 41, 48, 53, 57),
+            (36, 48, 55, 60, 64),
+            (31, 43, 50, 55, 59),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.06,
+        "trem_rate": 0.1,
+        "trem_depth": 0.3,
+        "layers": (
+            {"kind": "arp", "bpm": 92, "div": 2, "decay": 0.25, "gain": 0.07, "accent": 4,
+             "partials": MALLET,
+             "pattern": (69, 72, 76, 81, 76, 72, 69, 64, 65, 69, 72, 77, 72, 69, 65, 60, 67, 72, 76,
+                         79, 76, 72, 67, 64, 67, 71, 74, 79, 74, 71, 67, 62)},
+            {"kind": "bass", "bpm": 92, "div": 2, "decay": 0.22, "gain": 0.3,
+             "pattern": (33, None, 45, None, 33, None, 45, 40, 29, None, 41, None, 29, None, 41, 36,
+                         36, None, 48, None, 36, None, 48, 43, 31, None, 43, None, 31, None, 43, 38)},
+            {"kind": "plucks", "count": 8, "notes": (81, 84, 88, 93), "decay": 0.35, "gain": 0.05,
+             "glide": True, "gaps": (0.4, 0.9)},
+        ),
+    },
 }

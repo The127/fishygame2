@@ -164,6 +164,15 @@ JINGLES = {
         "bell": (1.3, 96, 1.4),
         "echo": (0.3, 2, 0.4),
     },
+    # Switchback: a bright A minor run that climbs, turns around and climbs again.
+    "switchback": {
+        "partials": MALLET,
+        "notes": ((0.0, 69, 0.8, 0.25), (0.12, 72, 0.8, 0.25), (0.24, 76, 0.8, 0.25),
+                  (0.36, 81, 0.8, 0.25), (0.48, 76, 0.8, 0.25), (0.6, 72, 0.8, 0.25),
+                  (0.72, 76, 0.8, 0.25), (0.84, 81, 0.8, 0.25), (1.0, 84, 1.7, 0.7),
+                  (1.0, 57, 1.7, 0.7), (1.0, 60, 1.7, 0.7), (1.0, 64, 1.7, 0.7)),
+        "echo": (0.3, 2, 0.4),
+    },
 }
 
 
@@ -512,6 +521,13 @@ def _flush(out, rng):
     clanks(out, (1.5, 5.2), 180.0, 0.12)
 
 
+def _switchback(out, rng):
+    bed(out, rng, 0.0, 300.0, 0.9, swell=0.5, cycles=1)
+    bed(out, rng, 300.0, 1400.0, 0.25, swell=0.7, cycles=2, phase=math.pi / 4.0)
+    clanks(out, (0.9, 2.7, 4.4, 6.1), 220.0, 0.14)
+    bubbles(out, rng, 6, 250.0, 650.0, 0.1)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -529,6 +545,7 @@ AMBIENCE = {
     "washer": (50, _washer),
     "whale": (51, _whale),
     "flush": (62, _flush),
+    "switchback": (72, _switchback),
 }
 
 

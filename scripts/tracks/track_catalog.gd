@@ -135,6 +135,14 @@ const MAPS: Array[Dictionary] = [
 		"ambience": "res://assets/audio/ambience_flush.wav",
 		"jingle": "res://assets/audio/jingle_flush.wav",
 	},
+	{
+		"id": "switchback",
+		"name": "Switchback",
+		"scene": preload("res://scenes/tracks/switchback_track.tscn"),
+		"music": "res://assets/audio/music_switchback.wav",
+		"ambience": "res://assets/audio/ambience_switchback.wav",
+		"jingle": "res://assets/audio/jingle_switchback.wav",
+	},
 ]
 
 
