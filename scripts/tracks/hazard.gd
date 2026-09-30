@@ -5,6 +5,8 @@ extends Node2D
 ## [method tick], so a seed always replays the same events. Subclasses override the hooks.
 
 signal telegraph_started(kind: String)
+## The telegraph is over and the event itself begins.
+signal active_started(kind: String)
 
 enum Phase { IDLE, TELEGRAPH, ACTIVE }
 
@@ -107,6 +109,7 @@ func tick(delta: float) -> void:
 				phase = Phase.ACTIVE
 				phase_time = 0.0
 				_begin_active()
+				active_started.emit(kind)
 		Phase.ACTIVE:
 			phase_time += delta
 			_process_active(delta)

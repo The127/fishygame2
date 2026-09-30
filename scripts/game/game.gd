@@ -388,6 +388,18 @@ func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:
 	_sequence.start_photo_finish()
 
 
+## The kraken grumbles with its warning and swooshes as the tentacles go. Hazards do not run
+## during the finish replay, so it stays silent there.
+func _on_hazard_started(kind: String) -> void:
+	if kind == KrakenHazard.KIND:
+		Sound.play(Sound.Sfx.KRAKEN_GRUMBLE)
+
+
+func _on_hazard_active(kind: String) -> void:
+	if kind == KrakenHazard.KIND:
+		Sound.play(Sound.Sfx.KRAKEN_SWOOSH)
+
+
 func _on_fish_eaten(marble: Marble) -> void:
 	Sound.play(Sound.Sfx.CURSE)
 	var who: String = "@" + marble.label_text if marble.label_text != "" else "A fish"
@@ -522,6 +534,8 @@ func _load_map() -> void:
 	_map_id = id
 	_track = TrackCatalog.instantiate(id)
 	_track.fish_eaten.connect(_on_fish_eaten)
+	_track.hazard_started.connect(_on_hazard_started)
+	_track.hazard_active.connect(_on_hazard_active)
 	add_child(_track)
 	move_child(_track, 0)
 	_camera.set_bounds(_track.view_bounds)

@@ -11,7 +11,7 @@ extends Node
 ## autoplay. The web build must use stream playback (project setting audio/general/
 ## default_playback_type.web = 0): the default "sample" playback is silent with these buses.
 
-enum Sfx { JOIN, TICK, GO, BOOST, CURSE, SPLASH, WIN, MEOW }
+enum Sfx { JOIN, TICK, GO, BOOST, CURSE, SPLASH, WIN, MEOW, KRAKEN_GRUMBLE, KRAKEN_SWOOSH }
 
 ## Theme played on the home screen and whenever a theme id is unknown.
 const HOME_THEME: String = "home"
@@ -26,6 +26,8 @@ const SFX_PATHS: Dictionary = {
 	Sfx.SPLASH: "res://assets/audio/sfx_splash.wav",
 	Sfx.WIN: "res://assets/audio/sfx_win.wav",
 	Sfx.MEOW: "res://assets/audio/sfx_meow.wav",
+	Sfx.KRAKEN_GRUMBLE: "res://assets/audio/sfx_kraken_grumble.wav",
+	Sfx.KRAKEN_SWOOSH: "res://assets/audio/sfx_kraken_swoosh.wav",
 }
 const POOL_SIZE: int = 8
 ## The same effect is not restarted within this many milliseconds (20 fish can finish together).

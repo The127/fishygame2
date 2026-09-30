@@ -201,6 +201,49 @@ def sfx_meow() -> list:
     return out
 
 
+def sfx_kraken_grumble() -> list:
+    """A deep growl that swells over the telegraph: a low wobbling drone over rumbling noise."""
+    rng = random.Random(31)
+    seconds = 1.3
+    swell = lambda t: math.sin(math.pi * min(1.0, t / seconds) * 0.85) ** 1.4
+    growl = tone(
+        lambda t: 52.0 + 22.0 * (t / seconds) + 4.0 * math.sin(TAU * 3.1 * t),
+        seconds,
+        swell,
+        ((1.0, 1.0), (2.0, 0.6), (3.0, 0.35), (4.0, 0.15)),
+    )
+    rumble = lowpass(noise(seconds, rng), 260.0)
+    out = []
+    for i, (g, r) in enumerate(zip(growl, rumble)):
+        t = i / SAMPLE_RATE
+        # The throaty chop gets faster as the kraken winds up.
+        chop = 0.55 + 0.45 * math.sin(TAU * (7.0 + 6.0 * t / seconds) * t)
+        out.append((g * 0.8 + r * 3.0 * swell(t)) * chop)
+    return out
+
+
+def sfx_kraken_swoosh() -> list:
+    """A heavy swoosh: band-passed noise whose pitch rises then falls as the arm whips past."""
+    rng = random.Random(37)
+    seconds = 0.9
+    raw = noise(seconds, rng)
+    out = []
+    y = 0.0
+    low = 0.0
+    for i, sample in enumerate(raw):
+        t = i / SAMPLE_RATE
+        u = t / seconds
+        cutoff = 350.0 + 2600.0 * math.sin(math.pi * min(1.0, u * 1.1)) ** 2
+        a = 1.0 - math.exp(-TAU * cutoff / SAMPLE_RATE)
+        y += a * (sample - y)
+        low += (1.0 - math.exp(-TAU * 250.0 / SAMPLE_RATE)) * (y - low)
+        env = min(1.0, t / 0.12) * math.exp(-max(0.0, t - 0.25) / 0.3)
+        out.append((y - low) * env)
+    thump = tone(lambda t: 90.0 - 40.0 * t, 0.35, pluck_env(0.01, 0.12))
+    mix_into(out, thump, 0, 0.5)
+    return out
+
+
 def sfx_win() -> list:
     """Bright arpeggio into a held chord with a soft echo."""
     seconds = 2.4
@@ -315,6 +358,8 @@ def main() -> None:
         "sfx_splash.wav": sfx_splash,
         "sfx_win.wav": sfx_win,
         "sfx_meow.wav": sfx_meow,
+        "sfx_kraken_grumble.wav": sfx_kraken_grumble,
+        "sfx_kraken_swoosh.wav": sfx_kraken_swoosh,
     }
     for name, make in effects.items():
         write_wav(name, fade_edges(make()), SFX_PEAK)

@@ -226,9 +226,12 @@ routes.
 
 Kraken's Lair has three switchback ramps under the gaze of a huge kraken eye. Its hazard
 (`scripts/tracks/kraken_hazard.gd`) is a swat: a dashed arc and the eye snapping open warn that
-one or two of the four tentacles rooted below the frame are about to sweep across the ramps and fling
+one to three of the four tentacles rooted below the frame are about to sweep across the ramps and fling
 every fish they touch sideways, forwards or back. The sweeps are a force field rather than a solid
-body, so a fish is thrown along instead of being crushed. The eye is `scripts/tracks/kraken_eye.gd`.
+body, so a fish is thrown along instead of being crushed. The kraken strikes often (about five times
+in a typical race) and is never still in between: the eye follows the leading fish
+(`scripts/tracks/kraken_eye.gd`) and dim idle tentacles curl and probe in the deep
+(`scripts/tracks/kraken_lurkers.gd`, drawn from a clock the finish replay records).
 Gravity Flip flips gravity every 3 to 4.5 seconds (`scripts/tracks/gravity_flipper.gd`): an Area2D that
 overrides gravity between down and up, leaning slightly toward the finish. A corridor that widens
 toward the finish has baffles that grow from the floor or hang from the ceiling, alternating, so a
