@@ -12,7 +12,8 @@ extends RefCounted
 const KIND_SPECIES: String = "species"
 const KIND_COLOR: String = "color"
 const KIND_HAT: String = "hat"
-const KINDS: Array[String] = [KIND_SPECIES, KIND_COLOR, KIND_HAT]
+const KIND_TRAIL: String = "trail"
+const KINDS: Array[String] = [KIND_SPECIES, KIND_COLOR, KIND_HAT, KIND_TRAIL]
 
 ## Empty means in-memory only.
 var save_path: String = ""

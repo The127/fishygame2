@@ -99,6 +99,7 @@ Post this list in a panel or pinned message. `#help` in chat shows a short versi
 | `#fish <species>` | Buy and switch your fish species (trout, puffer, pike, angelfish). |
 | `#color <name>` | Buy and switch your fish color. |
 | `#hat <name>` | Buy and switch an accessory. `#hat none` takes it off. |
+| `#trail <name>` | Buy and switch a trail (rainbow, stars, bubbles, dust, embers, hearts). `#trail none` goes back to the plain bubbles. |
 | `#help` | The command list in chat. |
 
 Also:

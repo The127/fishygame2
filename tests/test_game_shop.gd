@@ -114,3 +114,15 @@ func test_no_welcome_hat_when_the_setting_is_off() -> void:
 	assert_true(_flow.start_race())
 	_flow.tick(float(_flow.countdown_seconds))
 	assert_eq(_shop.store.equipped("0", ShopStore.KIND_HAT), "")
+
+
+func test_bought_trail_is_used_in_the_race() -> void:
+	_say("0", "#join")
+	_say("1", "#join")
+	_say("1", "#trail rainbow")
+	assert_eq(_balance("1"), 1000 - _shop.trail_price)
+	assert_eq(_shop.trail_price, _game.settings.trail_price)
+	assert_true(_flow.start_race())
+	_flow.tick(float(_flow.countdown_seconds))
+	assert_eq(_marble(1).trail, FishTrail.Kind.RAINBOW)
+	assert_eq(_marble(0).trail, FishTrail.Kind.NONE)

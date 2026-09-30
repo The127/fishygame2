@@ -147,3 +147,18 @@ func test_equipped_hat_is_applied_and_default_is_none() -> void:
 	ShopCatalog.assign_loadouts(roster, store)
 	assert_eq(roster[1].accessory, FishAccessory.Kind.CROWN)
 	assert_eq(roster[0].accessory, FishAccessory.Kind.NONE)
+
+
+func test_trail_names_match_the_trail_kinds() -> void:
+	assert_eq(ShopCatalog.TRAIL_NAMES.size(), FishTrail.Kind.size() - 1)
+	assert_eq(ShopCatalog.trail_of("rainbow"), FishTrail.Kind.RAINBOW)
+	assert_eq(ShopCatalog.trail_of("hearts"), FishTrail.Kind.HEARTS)
+	assert_eq(ShopCatalog.trail_of("nope"), FishTrail.Kind.NONE)
+
+
+func test_equipped_trail_is_applied_and_default_is_none() -> void:
+	var store := _store_with({"1": {"trail": "stars"}})
+	var roster: Array[Contestant] = _roster(2)
+	ShopCatalog.assign_loadouts(roster, store)
+	assert_eq(roster[1].trail, FishTrail.Kind.STARS)
+	assert_eq(roster[0].trail, FishTrail.Kind.NONE)
