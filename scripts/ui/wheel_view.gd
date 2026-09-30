@@ -6,6 +6,8 @@ extends Control
 const SIZE: float = 260.0
 const TURNS: int = 4
 const ARC_STEPS: int = 10
+const LABEL_SIZE: int = 20
+const LABEL_OUTLINE: int = 6
 const IDLE_COLORS: Array[Color] = [Color(0.06, 0.16, 0.26), Color(0.09, 0.22, 0.34)]
 
 var _slices: Array[String] = []
@@ -75,13 +77,15 @@ func _draw() -> void:
 			var a: float = mid - span * 0.5 + span * float(step) / float(ARC_STEPS) - PI * 0.5
 			points.append(center + Vector2(cos(a), sin(a)) * radius)
 		draw_colored_polygon(points, color)
+		var dir: float = mid - PI * 0.5
+		# Labels on the left half would read upside down, so they are turned around and read inward.
+		var flip: bool = cos(dir) < -0.01
+		draw_set_transform(center, dir + PI if flip else dir, Vector2.ONE)
 		if RaceEvent.is_event(_slices[i]):
-			var a: float = mid - PI * 0.5
-			draw_set_transform(center + Vector2(cos(a), sin(a)) * radius * 0.6, mid, Vector2.ONE)
-			var text: String = RaceEvent.short_of(_slices[i])
-			var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
-			draw_string(font, Vector2(-width * 0.5, 6.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
-			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			_draw_label(font, RaceEvent.short_of(_slices[i]), radius, flip)
+		else:
+			draw_circle(Vector2(-radius * 0.72 if flip else radius * 0.72, 0.0), 3.0, Color(1, 1, 1, 0.22))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	draw_arc(center, radius, 0.0, TAU, 64, UiStyle.CYAN, 3.0, true)
 	# Pointer at the top, pointing down into the wheel.
 	var tip: Vector2 = center + Vector2(0.0, -radius + 18.0)
@@ -89,3 +93,15 @@ func _draw() -> void:
 		PackedVector2Array([tip, tip + Vector2(-13.0, -30.0), tip + Vector2(13.0, -30.0)]),
 		Color.WHITE
 	)
+
+
+## Draws `text` along the current +x axis (the slice's centre line), centred between the hub and
+## the rim. `flip` means the axis points at the hub, so the text starts at the rim end.
+func _draw_label(font: Font, text: String, radius: float, flip: bool) -> void:
+	var inner: float = radius * 0.3
+	var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE).x
+	var start: float = inner + (radius * 0.92 - inner - width) * 0.5
+	var pos := Vector2(-(start + width) if flip else start, float(LABEL_SIZE) * 0.35)
+	var outline: Color = Color(0, 0, 0, 0.85)
+	draw_string_outline(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, LABEL_OUTLINE, outline)
+	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, Color.WHITE)
