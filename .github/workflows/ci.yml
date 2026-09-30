@@ -117,6 +117,8 @@ jobs:
           rm templates.tpz
       - name: Import project
         run: godot --headless --import
+      - name: Stamp build info
+        run: tools/stamp_build.sh "$GITHUB_SHA"
       - name: Export Web
         run: |
           mkdir -p build/web

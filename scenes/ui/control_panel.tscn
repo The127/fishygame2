@@ -232,3 +232,7 @@ text = "Stay"
 [node name="Hint" type="Label" parent="Panel/Box"]
 layout_mode = 2
 text = "F1 or the top tab hides this panel"
+
+[node name="Version" type="Label" parent="Panel/Box"]
+layout_mode = 2
+horizontal_alignment = 2
