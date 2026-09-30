@@ -33,7 +33,6 @@ const TABS: Array[Dictionary] = [
 			"starting_balance",
 			"min_bet",
 			"max_bet",
-			"pick_reward",
 			"win_reward",
 			"second_reward",
 			"third_reward",
