@@ -2,47 +2,6 @@ class_name Game
 extends Node2D
 ## Wires chat commands, the round state machine, the race and the UI together.
 
-## Milliseconds before the same viewer gets another rejection reply.
-const REPLY_COOLDOWN_MSEC: int = 15000
-
-const BET_REJECTIONS: Dictionary = {
-	"closed": "betting is closed",
-	"usage": "use #bet <name> <amount>",
-	"already_bet": "you already bet this round",
-	"unknown_fish": "no such racer",
-	"invalid_amount": "invalid amount",
-	"below_min": "bet is below the minimum",
-	"above_max": "bet is above the maximum",
-	"insufficient": "not enough points",
-}
-
-const SHOP_REJECTIONS: Dictionary = {
-	"usage": "use #fish <species>, #color <name> or #hat <name>, see #shop",
-	"unknown_species": "no such species, see #shop",
-	"unknown_color": "no such color, see #shop",
-	"unknown_hat": "no such accessory, see #shop",
-	"insufficient": "not enough points",
-}
-
-const CHAOS_REJECTIONS: Dictionary = {
-	"closed": "chaos only works during a race",
-	"usage": "use #boost <name> or #curse <name>",
-	"unknown_fish": "no such racer",
-	"finished": "that fish already finished",
-	"self_boost": "you can't boost your own fish",
-	"self_curse": "you can't curse your own fish",
-	"cooldown": "you have to wait before another one",
-	"fish_busy": "that fish was just hit, try again shortly",
-	"insufficient": "not enough points",
-}
-
-const POWER_REJECTIONS: Dictionary = {
-	"off": "streamer powers are off in the settings",
-	"closed": "powers only work during a race",
-	"cooldown": "power is recharging",
-	"cap": "no powers left this race",
-}
-
 ## Milliseconds between "#top" replies in chat, shared by everyone.
 const TOP_COOLDOWN_MSEC: int = 30000
 
@@ -87,7 +46,6 @@ var settings: GameSettings = null
 ## for the plain slice) instead of a random one.
 var forced_event: Variant = null
 
-var _last_reply_msec: Dictionary[String, int] = {}
 var _last_top_msec: int = -TOP_COOLDOWN_MSEC
 var _last_help_msec: int = -HELP_COOLDOWN_MSEC
 var _last_stats_msec: Dictionary[String, int] = {}
@@ -104,7 +62,8 @@ var _replay: FinishReplay = FinishReplay.new()
 var _replay_intro_id: int = 0
 ## Results held back while the finish replay plays; empty when none is waiting.
 var _pending_results: Array[Dictionary] = []
-var _batcher: ChatBatcher = ChatBatcher.new()
+var _replies: ChatReplies = ChatReplies.new()
+var _batcher: ChatBatcher = _replies.batcher
 var _meow: Meow = Meow.new()
 var _payouts: Array[Dictionary] = []
 ## The streamer power waiting for a click on the track (a StreamerPowers.Kind), or -1.
@@ -149,9 +108,10 @@ func _ready() -> void:
 	_shop.equipped.connect(_on_shop_equipped)
 	_shop.rejected.connect(_on_shop_rejected)
 	_shop.catalog_requested.connect(_on_shop_catalog_requested)
-	add_child(_batcher)
+	add_child(_replies)
+	_replies.notice.connect(_overlay.show_notice)
+	_replies.chat_line.connect(Chat.send_message)
 	add_child(_meow)
-	_batcher.line_ready.connect(_on_batched_line)
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
 	_flow.join_rejected.connect(_on_join_rejected)
@@ -234,6 +194,7 @@ func _ready() -> void:
 
 
 func _apply_settings() -> void:
+	_replies.settings = settings
 	_flow.min_players = settings.min_players
 	_flow.max_players = settings.max_players
 	_flow.countdown_seconds = settings.effective_countdown()
@@ -475,7 +436,7 @@ func _show_leaderboard() -> void:
 
 func _on_player_joined(contestant: Contestant) -> void:
 	Sound.play(Sound.Sfx.JOIN)
-	_confirm("reply_joins", "joins", "Joined:", "@" + contestant.display_name)
+	_replies.player_joined(contestant)
 	_refresh_lobby()
 
 
@@ -618,10 +579,10 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 			var over: String = "time is up, nobody finished."
 			if not haul.is_empty():
 				over += " Treasure: " + haul
-			_confirm("reply_results", "results", "Race over:", over)
+			_replies.confirm("reply_results", "results", "Race over:", over)
 		return
 	Sound.play_win()
-	_confirm(
+	_replies.confirm(
 		"reply_results",
 		"results",
 		"Race over:",
@@ -689,32 +650,15 @@ func _load_map() -> void:
 func _on_join_rejected(msg: ChatMessage, reason: String) -> void:
 	if _flow.state == GameFlow.State.IDLE:
 		return
-	var text: String = GameFlow.rejection_text(reason, msg)
-	if text == "" or not settings.chat_replies:
-		return
-	var now: int = Time.get_ticks_msec()
-	if (
-		_last_reply_msec.has(msg.user_id)
-		and now - _last_reply_msec[msg.user_id] < REPLY_COOLDOWN_MSEC
-	):
-		return
-	_last_reply_msec[msg.user_id] = now
-	Chat.send_message(text)
+	_replies.join_rejected(msg, reason)
 
 
 func _on_bet_placed(msg: ChatMessage, target: Contestant, amount: int) -> void:
-	_confirm(
-		"reply_bets",
-		"bets",
-		"Bets:",
-		"@%s %d on %s" % [_viewer_name(msg), amount, target.display_name]
-	)
-	_overlay.show_notice("%s bet %d on %s" % [_viewer_name(msg), amount, target.display_name])
+	_replies.bet_placed(msg, target, amount)
 
 
 func _on_bet_rejected(msg: ChatMessage, reason: String) -> void:
-	var text: String = BET_REJECTIONS.get(reason, "bet not accepted")
-	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
+	_replies.bet_rejected(msg, reason)
 
 
 func _on_power_pressed(kind: int) -> void:
@@ -756,7 +700,7 @@ func _on_power_used(kind: StreamerPowers.Kind, pos: Vector2) -> void:
 
 
 func _on_power_rejected(_kind: StreamerPowers.Kind, reason: String) -> void:
-	_power_note = POWER_REJECTIONS.get(reason, "power not available")
+	_power_note = ChatReplies.power_rejection(reason)
 	_power_note_until_msec = Time.get_ticks_msec() + POWER_NOTE_MSEC
 
 
@@ -796,15 +740,7 @@ func _on_effect_requested(marble_id: int, kind: Chaos.Kind) -> void:
 
 func _on_effect_applied(msg: ChatMessage, target: Contestant, kind: Chaos.Kind, _cost: int) -> void:
 	Sound.play(Sound.Sfx.BOOST if kind == Chaos.Kind.BOOST else Sound.Sfx.CURSE)
-	var verb: String = "boosted" if kind == Chaos.Kind.BOOST else "cursed"
-	var label: String = "Boosted:" if kind == Chaos.Kind.BOOST else "Cursed:"
-	_confirm(
-		"reply_chaos",
-		"boost" if kind == Chaos.Kind.BOOST else "curse",
-		label,
-		"@%s on %s" % [_viewer_name(msg), target.display_name]
-	)
-	_overlay.show_notice("%s %s %s!" % [_viewer_name(msg), verb, target.display_name])
+	_replies.effect_applied(msg, target, kind)
 
 
 ## Debug button: a rubber duck drifts through the current map right now.
@@ -829,21 +765,15 @@ func _on_meow_requested(marble_id: int) -> void:
 
 
 func _on_effect_rejected(msg: ChatMessage, reason: String) -> void:
-	var text: String = CHAOS_REJECTIONS.get(reason, "not accepted")
-	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
+	_replies.effect_rejected(msg, reason)
 
 
 func _on_shop_equipped(msg: ChatMessage, kind: String, item: String, price: int) -> void:
-	_confirm("reply_shop", "shop", "Shop:", "@%s %s %s" % [_viewer_name(msg), kind, item])
-	if price > 0:
-		_overlay.show_notice("%s bought %s for %d" % [_viewer_name(msg), item, price])
-	else:
-		_overlay.show_notice("%s switched to %s" % [_viewer_name(msg), item])
+	_replies.shop_equipped(msg, kind, item, price)
 
 
 func _on_shop_rejected(msg: ChatMessage, reason: String) -> void:
-	var text: String = SHOP_REJECTIONS.get(reason, "not accepted")
-	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
+	_replies.shop_rejected(msg, reason)
 
 
 func _on_shop_catalog_requested(_msg: ChatMessage) -> void:
@@ -854,7 +784,7 @@ func _on_shop_catalog_requested(_msg: ChatMessage) -> void:
 
 
 func _on_balance_reported(msg: ChatMessage, balance: int) -> void:
-	_overlay.show_notice("%s has %d points" % [_viewer_name(msg), balance])
+	_replies.balance_reported(msg, balance)
 
 
 func _on_payouts_settled(results: Array[Dictionary]) -> void:
@@ -899,19 +829,8 @@ func _result_text(
 	return text
 
 
-## Queues a chat confirmation when replies and the kind's own toggle are on.
-func _confirm(toggle: String, kind: String, prefix: String, item: String) -> void:
-	if settings.replies_enabled(toggle):
-		_batcher.add(kind, prefix, item)
-
-
-func _on_batched_line(text: String) -> void:
-	if settings.chat_replies:
-		Chat.send_message(text)
-
-
 func _viewer_name(msg: ChatMessage) -> String:
-	return msg.display_name if msg.display_name != "" else msg.login
+	return ChatReplies.viewer_name(msg)
 
 
 func _on_race_started(contestants: Array[Contestant]) -> void:
@@ -923,8 +842,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 			contestants, _betting.points.stats, rng
 		):
 			var name: String = (welcome["contestant"] as Contestant).display_name
-			_confirm("reply_shop", "welcome", "Welcome!", "@%s (free %s)" % [name, welcome["hat"]])
-			_overlay.show_notice("Welcome %s! Here's a free %s" % [name, welcome["hat"]])
+			_replies.welcome(name, welcome["hat"])
 	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
 	_haul.clear()
 	_haul_text = ""
