@@ -31,7 +31,7 @@ point_count = 7
 [node name="Track" type="Node2D"]
 script = ExtResource("1_track")
 view_bounds = Rect2(0, 0, 1920, 1080)
-spawn_columns = 5
+spawn_columns = 4
 style_id = "washer"
 
 [node name="Backdrop" type="Polygon2D" parent="."]
@@ -132,6 +132,32 @@ base_gap = 16.0
 [node name="Drum" type="AnimatableBody2D" parent="SpinCycle"]
 physics_material_override = SubResource("PM_drum")
 script = ExtResource("3_drum")
+outer_radius = 290.0
+thickness = 26.0
+tumble_degrees = 250.0
+door_segments = 5
+tumble_seconds = 7.0
+
+[node name="DrumMiddle" type="AnimatableBody2D" parent="SpinCycle"]
+physics_material_override = SubResource("PM_drum")
+script = ExtResource("3_drum")
+outer_radius = 220.0
+thickness = 22.0
+door_degrees = 90.0
+tumble_degrees = 280.0
+direction = -1
+spin_multiplier = -1
+door_segments = 7
+tumble_seconds = 5.0
+
+[node name="DrumInner" type="AnimatableBody2D" parent="SpinCycle"]
+physics_material_override = SubResource("PM_drum")
+script = ExtResource("3_drum")
+outer_radius = 150.0
+thickness = 22.0
+tumble_degrees = 300.0
+door_segments = 8
+tumble_seconds = 3.5
 
 [node name="Centerline" type="Path2D" parent="."]
 curve = SubResource("Curve_center")
@@ -143,12 +169,12 @@ default_color = Color(1, 1, 1, 0.12)
 points = PackedVector2Array(600, 617, 960, 670, 1600, 735, 1700, 795, 1600, 830, 700, 940, 370, 1010)
 
 [node name="SpawnOrigin" type="Marker2D" parent="."]
-position = Vector2(892, 535)
+position = Vector2(909, 432)
 
 [node name="StartArea" type="Polygon2D" parent="."]
 z_index = -5
 color = Color(0.3, 0.7, 0.4, 0.25)
-polygon = PackedVector2Array(900, 400, 1020, 400, 1020, 560, 900, 560)
+polygon = PackedVector2Array(900, 340, 1020, 340, 1020, 448, 900, 448)
 
 [node name="Finish" type="Area2D" parent="."]
 position = Vector2(370, 1010)
@@ -164,7 +190,7 @@ polygon = PackedVector2Array(-340, -55, 340, -55, 340, 55, -340, 55)
 [node name="TreasureSpots" type="Node2D" parent="."]
 
 [node name="Spot1" type="Marker2D" parent="TreasureSpots"]
-position = Vector2(900, 552)
+position = Vector2(960, 498)
 
 [node name="Spot2" type="Marker2D" parent="TreasureSpots"]
 position = Vector2(1040, 540)

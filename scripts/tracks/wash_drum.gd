@@ -1,10 +1,11 @@
 class_name WashDrum
 extends AnimatableBody2D
-## The drum of the Washing Machine map: a ring of steel with a door gap in the rim. It is built
-## from its exported numbers in [method _ready]. Once a race has [method reseed]ed it, it tumbles
-## like a real washer: it swings one way, slows and swings back, so the load never rides the wall
-## for long. Fish start inside, slide back and forth with the swing, and leave through the door
-## when it sweeps past the bottom.
+## One steel ring of the Washing Machine map, with a door gap in the rim. The map nests several
+## of them around one centre, each with its own size, swing and direction. A ring is built from
+## its exported numbers in [method _ready]. Once a race has [method reseed]ed it, it tumbles like
+## a real washer: it swings one way, slows and swings back, so the load never rides the wall for
+## long. Fish slide back and forth with the swing and drop through the door when it sweeps past
+## the bottom, into the next ring out, and finally onto the lanes.
 
 ## Sides of the drawn and collidable rim.
 const SEGMENTS: int = 48
@@ -22,8 +23,13 @@ const SUDS: int = 26
 @export var door_segments: int = 4
 ## Where the door sits on the drum when it has not turned, in degrees (-90 is the top).
 @export var door_degrees: float = -90.0
-## How far the drum swings clockwise from where it rests before it swings back, in degrees.
+## How far the drum swings from where it rests before it swings back, in degrees.
 @export var tumble_degrees: float = 260.0
+## 1 swings the drum clockwise, -1 counterclockwise.
+@export_range(-1, 1, 2) var direction: int = 1
+## Whole-turn multiplier for the spin cycle (negative turns the other way). It stays a whole
+## number so the ring lands where it began.
+@export var spin_multiplier: int = 1
 ## Seconds one swing out and back takes.
 @export var tumble_seconds: float = 8.0
 ## The drum waits a moment at the start of a race, somewhere between these two times in seconds,
@@ -89,7 +95,7 @@ func _physics_process(delta: float) -> void:
 		_delay -= delta
 		return
 	_phase = fposmod(_phase + TAU * delta / tumble_seconds, TAU)
-	angle = deg_to_rad(tumble_degrees) * 0.5 * (1.0 - cos(_phase)) + spin
+	angle = float(direction) * deg_to_rad(tumble_degrees) * 0.5 * (1.0 - cos(_phase)) + spin
 	rotation = angle
 
 
@@ -140,7 +146,7 @@ func _build() -> void:
 		add_child(lamp)
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 5
-	for i: int in SUDS:
+	for i: int in maxi(int(float(SUDS) * outer_radius / 290.0), 6):
 		var bubble_angle: float = rng.randf() * TAU
 		var depth: float = rng.randf_range(0.0, 0.75)
 		_suds.append(Vector3(bubble_angle, inner - 4.0 - depth * 26.0, rng.randf_range(3.0, 9.0)))
