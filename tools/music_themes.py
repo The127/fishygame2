@@ -606,4 +606,32 @@ THEMES = {
             },
         ),
     },
+    # Washing machine: cheerful C major, a steady thump like a tumbling load, swishing water and
+    # a marimba arpeggio.
+    "washer": {
+        "seed": 50,
+        "chords": (
+            (36, 48, 55, 60, 64),
+            (41, 48, 53, 57, 60),
+            (43, 50, 55, 59, 62),
+            (33, 45, 52, 57, 60),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.07,
+        "trem_rate": 0.11,
+        "trem_depth": 0.3,
+        "rumble_cutoff": 210.0,
+        "rumble_gain": 0.45,
+        "layers": (
+            {"kind": "arp", "bpm": 120, "div": 2, "decay": 0.16, "gain": 0.08, "accent": 4,
+             "partials": MALLET,
+             "pattern": (72, 76, 79, 76, 72, 76, 79, 84,
+                         77, 81, 84, 81, 77, 81, 84, 89,
+                         74, 79, 83, 79, 74, 79, 83, 86,
+                         69, 72, 76, 72, 69, 72, 76, 81)},
+            {"kind": "pulse", "bpm": 60, "freq": 58.0, "decay": 0.3, "gain": 0.3},
+            {"kind": "hiss", "bpm": 120, "every": 4, "offset": 2, "decay": 0.3, "low": 800.0,
+             "high": 3500.0, "gain": 0.05},
+        ),
+    },
 }

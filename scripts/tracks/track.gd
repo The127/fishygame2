@@ -157,13 +157,16 @@ func stop_hazards() -> void:
 		hazard.disarm()
 
 
-## Puts the map's geysers back to sleep, its gravity back to down and its tide full again.
+## Puts the map's geysers back to sleep, its gravity back to down, its tide full again and any
+## other seeded gimmick (a turning drum) back to rest.
 func stop_gimmicks() -> void:
 	for geyser: Geyser in get_geysers():
 		geyser.disarm()
 	for child: Node in get_children():
 		if child is GravityFlipper:
 			(child as GravityFlipper).disarm()
+		elif child.has_method("stop_gimmick"):
+			child.call("stop_gimmick")
 	if _tide != null:
 		_tide.stop()
 
