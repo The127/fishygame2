@@ -24,7 +24,7 @@ func test_default_limit_is_a_minute_and_reaches_the_race() -> void:
 func test_limit_is_clamped_and_zero_means_none() -> void:
 	var settings := GameSettings.new()
 	settings.set_number("race_time_limit", 100000.0)
-	assert_eq(settings.race_time_limit, 600)
+	assert_eq(settings.race_time_limit, 90, "never above the race safety timeout")
 	settings.set_number("race_time_limit", 0.0)
 	assert_eq(settings.race_time_limit, 0)
 
@@ -95,9 +95,7 @@ func test_nobody_finished_refunds_and_says_so() -> void:
 	_time_up()
 	_batcher.flush()
 	assert_eq(_balance("100"), 1000)
-	assert_eq(
-		_source.sent, ["Race over: time is up, nobody finished. Bets refunded."] as Array[String]
-	)
+	assert_eq(_source.sent, ["Race over: time is up, nobody finished."] as Array[String])
 
 
 func test_bet_on_a_dnf_fish_loses() -> void:
@@ -132,7 +130,7 @@ func test_overlay_timer_shows_only_in_the_last_ten_seconds() -> void:
 	assert_eq(_overlay._timer_label.text, "0:01")
 
 
-func test_overlay_timer_hides_when_the_race_ends() -> void:
+func test_overlay_timer_hides_when_the_podium_shows() -> void:
 	_start_race(2)
 	_race.elapsed = 55.0
 	_game._process(0.0)

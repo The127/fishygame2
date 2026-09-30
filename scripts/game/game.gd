@@ -530,12 +530,7 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	_overlay.show_dnf(dnf)
 	if podium.is_empty():
 		if not dnf.is_empty():
-			_confirm(
-				"reply_results",
-				"results",
-				"Race over:",
-				"time is up, nobody finished. Bets refunded."
-			)
+			_confirm("reply_results", "results", "Race over:", "time is up, nobody finished.")
 		return
 	Sound.play_win()
 	_confirm(

@@ -28,6 +28,7 @@ var _dnf_panel: PanelContainer
 var _dnf_label: Label
 var _timer_panel: PanelContainer
 var _timer_label: Label
+var _timer_shown: int = -1
 var _payouts_panel: PanelContainer
 var _payouts_box: VBoxContainer
 var _bets_panel: PanelContainer
@@ -79,6 +80,7 @@ func clear() -> void:
 	_podium_panel.visible = false
 	_dnf_panel.visible = false
 	_timer_panel.visible = false
+	_timer_shown = -1
 	_payouts_panel.visible = false
 	_set_bets_text("")
 
@@ -137,6 +139,9 @@ func show_podium(podium: Array[Dictionary]) -> void:
 
 ## Shows the seconds left before the race time limit, or hides the timer for a negative value.
 func show_race_timer(seconds_left: int) -> void:
+	if seconds_left == _timer_shown:
+		return
+	_timer_shown = seconds_left
 	_timer_panel.visible = seconds_left >= 0
 	if seconds_left < 0:
 		return

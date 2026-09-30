@@ -35,7 +35,7 @@ const FIELDS: Array[Dictionary] = [
 		"key": "race_time_limit",
 		"label": "Race time limit (s, 0 = none)",
 		"min": 0,
-		"max": 600,
+		"max": 90,
 		"step": 5
 	},
 	{
