@@ -40,6 +40,7 @@ var _target_pitch: float = 0.0
 var _wander_left: float = 0.0
 var _rng: RandomNumberGenerator
 var _trail: CPUParticles2D
+## The emitter's particle scale range at depth scale 1, as (min, max).
 var _trail_base_scale: Vector2 = Vector2.ONE
 var _trail_depth_scale: float = 1.0
 
