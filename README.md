@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko (a tall machine with three peg levels: a dense field, a sparse one with pulsing bumpers and one of spinners) and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback and overgrowth on Coral Garden. The Jellyfish
+Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback, overgrowth on Coral Garden and a tilt on Pinball Reef (somebody bumps the cabinet and every fish is shoved back and forth sideways, `scripts/tracks/tilt_hazard.gd`). The Jellyfish
 
 Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
@@ -390,6 +390,19 @@ second, and a second hazard, a surge, pushes the pack along one of the two lanes
 The duck's starting point comes from the race seed and both the duck and the lever are replayed in
 the finish replay. The finish zone starts on the last stretch of the second lane and covers the pit
 at the end, so a pile of finished fish does not hold back the ones still to arrive.
+
+Pinball Reef is the map chat plays. A plunger shoots the pack up the lane on the right, a current at
+the top carries it out over the table, and the fish work down through ten bumpers that pop them away
+and three banks of flippers (`scripts/tracks/pinball_table.gd`, `pinball_flipper.gd`) to the drain,
+which is the finish. Any viewer, joined or not, types `#left` or `#right` to fire that side's
+flippers, which fling every fish lying on the blades up and toward the middle (`FlipperCommands`
+turns the chat line into a request, `Game` passes it to the map, which owns the cooldowns). A side
+can fire once every 0.6 s, every press counts on a small tally in the top left, and when chat has
+been quiet for a few seconds the flippers fire by themselves on a schedule drawn from the race seed.
+With no chat input a seed replays the same race, so the seed sweeps and CI run on auto-fire only.
+The finish replay records the blade angles, the plunger and the bumper glow through the generic
+replay hook; the tally and the fish names on it are not replayed. Fish sometimes get flung back up a
+bank, so races take 10 to 45 seconds with auto-fire only.
 
 ### Finish replay and moving map parts
 

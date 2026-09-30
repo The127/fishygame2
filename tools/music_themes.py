@@ -678,4 +678,29 @@ THEMES = {
              "glide": True, "gaps": (0.4, 0.9)},
         ),
     },
+    # Pinball reef: A minor arcade, a bouncy marimba arpeggio over a walking bass and hats.
+    "pinball": {
+        "seed": 34,
+        "chords": (
+            (45, 57, 60, 64, 67),
+            (41, 53, 57, 60, 64),
+            (36, 48, 55, 60, 64),
+            (43, 55, 59, 62, 67),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.06,
+        "trem_rate": 0.25,
+        "trem_depth": 0.2,
+        "rumble_cutoff": 220.0,
+        "rumble_gain": 0.3,
+        "layers": (
+            {"kind": "arp", "bpm": 120, "div": 2, "pattern": (69, 72, 76, 72, 77, 81, 77, 72,
+             72, 76, 79, 76, 74, 71, 74, 79), "decay": 0.12, "gain": 0.14, "accent": 4},
+            {"kind": "bass", "bpm": 120, "div": 1, "pattern": (45, 45, 41, 41, 36, 36, 43, 43),
+             "decay": 0.2, "gain": 0.3},
+            {"kind": "hiss", "bpm": 120, "every": 2, "offset": 1, "low": 4000.0, "high": 7000.0,
+             "decay": 0.04, "gain": 0.06},
+            {"kind": "pulse", "bpm": 120, "freq": 60.0, "decay": 0.12, "gain": 0.25},
+        ),
+    },
 }

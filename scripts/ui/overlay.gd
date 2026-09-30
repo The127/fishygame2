@@ -46,6 +46,8 @@ var _wheel: WheelView
 var _wheel_result: Label
 var _event_panel: PanelContainer
 var _event_label: Label
+var _tally_panel: PanelContainer
+var _tally: Label
 
 
 func _ready() -> void:
@@ -66,6 +68,7 @@ func _ready() -> void:
 	_build_replay_badge()
 	_build_timer()
 	_build_event()
+	_build_tally()
 	_build_fader()
 	_notice_timer = Timer.new()
 	_notice_timer.one_shot = true
@@ -101,6 +104,7 @@ func clear() -> void:
 	_set_bets_text("")
 	hide_event_wheel()
 	show_event_badge("")
+	show_flipper_tally("")
 
 
 func show_idle() -> void:
@@ -176,6 +180,12 @@ func hide_event_wheel() -> void:
 func show_event_badge(text: String) -> void:
 	_event_label.text = text
 	_event_panel.visible = text != ""
+
+
+## The chat tally of a map with flippers (presses per side and the latest viewers). Empty hides it.
+func show_flipper_tally(text: String) -> void:
+	_tally.text = text
+	_tally_panel.visible = text != ""
 
 
 func show_racing() -> void:
@@ -492,6 +502,17 @@ func _build_event() -> void:
 	# Top-centered strips like the notice: both below the notice line.
 	_frame.add_child(_top_strip(_wheel_panel, 96.0))
 	_frame.add_child(_top_strip(_event_panel, 90.0))
+
+
+func _build_tally() -> void:
+	_tally_panel = _make_panel(false)
+	_tally = _make_label("", 26, 800, UiStyle.TEXT, 2)
+	_tally_panel.add_child(_tally)
+	_frame.add_child(_tally_panel)
+	# Top-left corner, growing right and down with its text.
+	_tally_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	_tally_panel.offset_left = MARGIN
+	_tally_panel.offset_top = MARGIN
 
 
 func _top_strip(child: Control, top: float) -> HBoxContainer:

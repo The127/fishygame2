@@ -181,6 +181,15 @@ JINGLES = {
                   (1.0, 57, 1.7, 0.7), (1.0, 60, 1.7, 0.7), (1.0, 64, 1.7, 0.7)),
         "echo": (0.3, 2, 0.4),
     },
+    # Pinball reef: a replay knocker (two hard low knocks), then a bright A minor bell run.
+    "pinball": {
+        "partials": BELL,
+        "notes": ((0.0, 33, 0.25, 0.04), (0.0, 45, 0.25, 0.04), (0.2, 33, 0.25, 0.04),
+                  (0.2, 45, 0.25, 0.04), (0.55, 81, 1.4, 0.5), (0.67, 84, 1.4, 0.5),
+                  (0.79, 88, 1.4, 0.5), (0.91, 93, 1.8, 0.8), (0.91, 69, 1.8, 0.8),
+                  (0.91, 57, 1.8, 0.8)),
+        "echo": (0.25, 2, 0.4),
+    },
 }
 
 
@@ -546,6 +555,15 @@ def _switchback(out, rng):
     bubbles(out, rng, 6, 250.0, 650.0, 0.1)
 
 
+def _pinball(out, rng):
+    # A low hum of the machine with arcade blips, bumper pops and a faint ball rattle.
+    bed(out, rng, 0.0, 300.0, 0.8, swell=0.4, cycles=2)
+    bed(out, rng, 1800.0, 3200.0, 0.06, swell=0.9, cycles=4, phase=1.0)
+    bubbles(out, rng, 7, 900.0, 1800.0, 0.1)
+    pops(out, rng, 9, 0.16)
+    tinkles(out, rng, (0.8, 4.3), 1500.0, 2400.0, 0.06)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -565,6 +583,7 @@ AMBIENCE = {
     "whale": (51, _whale),
     "flush": (62, _flush),
     "switchback": (72, _switchback),
+    "pinball": (44, _pinball),
 }
 
 
