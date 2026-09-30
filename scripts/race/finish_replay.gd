@@ -5,6 +5,8 @@ extends Node
 
 signal started
 signal ended
+## Emitted once, a moment before the clip runs out, so the picture can fade out under it.
+signal ending
 
 ## Playback speed around the crossing, and how long that stretch lasts.
 const SLOW_RATE: float = 0.3
@@ -16,6 +18,8 @@ const EASE_SECONDS: float = 0.3
 const CLOSE_GAP: float = 0.5
 ## Consecutive frames this far apart are a teleport (portal): snap instead of sliding.
 const TELEPORT_DISTANCE: float = 250.0
+## Clip seconds before the end at which [signal ending] fires.
+const OUTRO_SECONDS: float = 0.3
 
 var active: bool = false
 
@@ -24,6 +28,7 @@ var _marbles: Dictionary = {}
 var _clock: float = 0.0
 var _frame: int = 0
 var _event_index: int = 0
+var _ending_sent: bool = false
 var _crossed: Dictionary = {}
 ## Where each marble really ended up, put back when the replay ends.
 var _home_positions: Dictionary = {}
@@ -79,6 +84,7 @@ func start(recorder: ReplayRecorder, marbles: Array[Marble]) -> bool:
 	_clock = recorder.start_time()
 	_frame = 0
 	_event_index = 0
+	_ending_sent = false
 	active = true
 	_apply()
 	started.emit()
@@ -129,6 +135,9 @@ func _process(delta: float) -> void:
 		return
 	_clock += delta * rate_at(_clock, _recorder.finish_time())
 	_apply()
+	if not _ending_sent and _clock >= _recorder.end_time() - OUTRO_SECONDS:
+		_ending_sent = true
+		ending.emit()
 	if _clock >= _recorder.end_time():
 		stop()
 

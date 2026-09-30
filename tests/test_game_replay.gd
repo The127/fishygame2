@@ -24,8 +24,12 @@ func _run_race_with_clip(order: Array[int]) -> void:
 		)
 		t += ReplayRecorder.SAMPLE_INTERVAL
 	_finish_marbles(order)
-	# The replay starts a frame later, outside the physics callback.
-	await get_tree().process_frame
+	# The replay starts after a beat and a fade, outside the physics callback.
+	await _wait_for_replay()
+
+
+func _wait_for_replay() -> void:
+	await wait_seconds(Game.REPLAY_BEAT + Game.REPLAY_FADE + 0.1)
 
 
 func _replay_node() -> FinishReplay:
@@ -102,7 +106,7 @@ func _run_race_with_clip_from_running(order: Array[int]) -> void:
 		)
 		t += ReplayRecorder.SAMPLE_INTERVAL
 	_finish_marbles(order)
-	await get_tree().process_frame
+	await _wait_for_replay()
 
 
 func test_no_replay_without_a_recorded_clip() -> void:
@@ -125,3 +129,40 @@ func test_stats_are_recorded_when_the_replay_ends() -> void:
 	)
 	_replay_node().stop()
 	assert_eq(_betting.points.stats.get_counter("0", "races"), 1)
+
+
+func test_replay_cuts_in_after_a_beat_not_at_once() -> void:
+	_start_race(2)
+	var recorder: ReplayRecorder = _race.get_recorder()
+	var t: float = -2.0
+	while t < 0.0:
+		recorder.sample(
+			t,
+			PackedVector2Array([Vector2(t * 50.0, 0.0), Vector2(t * 50.0, 40.0)]),
+			PackedVector2Array([Vector2(50.0, 0.0), Vector2(50.0, 0.0)])
+		)
+		t += ReplayRecorder.SAMPLE_INTERVAL
+	_finish_marbles([0, 1])
+	await wait_frames(2)
+	assert_false(_replay_node().active, "the finish plays on live first")
+	await _wait_for_replay()
+	assert_true(_replay_node().active)
+
+
+func test_leaving_the_round_during_the_beat_cancels_the_replay() -> void:
+	_start_race(2)
+	var recorder: ReplayRecorder = _race.get_recorder()
+	recorder.sample(
+		-1.0,
+		PackedVector2Array([Vector2.ZERO, Vector2.ZERO]),
+		PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
+	)
+	recorder.sample(
+		0.0,
+		PackedVector2Array([Vector2.ZERO, Vector2.ZERO]),
+		PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
+	)
+	_finish_marbles([0, 1])
+	_flow.stop()
+	await _wait_for_replay()
+	assert_false(_replay_node().active)
