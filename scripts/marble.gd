@@ -64,6 +64,13 @@ var pattern: int = 0:
 		if _fish != null:
 			_fish.pattern = value
 
+## A [enum FishSkin.Kind], a premium animated look; 0 wears `color`.
+var skin: int = 0:
+	set(value):
+		skin = value
+		if _fish != null:
+			_fish.skin = value
+
 ## A [enum FishAccessory.Kind].
 var accessory: int = 0:
 	set(value):
@@ -117,6 +124,7 @@ func _ready() -> void:
 	_fish.species = species if species >= 0 else id
 	_fish.pattern = pattern
 	_fish.accessory = accessory
+	_fish.skin = skin
 	_fish.glow_boost = glow_boost
 	add_child(_fish)
 	# Top level so the name stays upright and unscaled while the marble rolls.

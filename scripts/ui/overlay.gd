@@ -115,7 +115,7 @@ func set_leaderboard(points_rows: Array[Dictionary], wins_rows: Array[Dictionary
 
 
 ## [param players] holds one dictionary per joined player: "name", plus the "color",
-## "species", "pattern" and "accessory" of the fish they will race with.
+## "species", "pattern", "accessory" and "skin" of the fish they will race with.
 func show_lobby(players: Array[Dictionary], max_players: int, seconds_left: float) -> void:
 	_big.text = ""
 	_podium_panel.visible = false
@@ -128,13 +128,14 @@ func show_lobby(players: Array[Dictionary], max_players: int, seconds_left: floa
 	var key: String = header + status
 	for player: Dictionary in players:
 		key += (
-			"\n%s|%s|%s|%s|%s"
+			"\n%s|%s|%s|%s|%s|%s"
 			% [
 				player["name"],
 				player["color"].to_html(),
 				player["species"],
 				player["pattern"],
 				player["accessory"],
+				player.get("skin", 0),
 			]
 		)
 	if key == _lobby_key and _lobby_panel.visible:

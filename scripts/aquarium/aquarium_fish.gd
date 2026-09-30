@@ -51,6 +51,7 @@ func assign(who: Contestant) -> void:
 	visual.species = who.species
 	visual.pattern = who.pattern
 	visual.accessory = who.accessory
+	visual.skin = who.skin
 	world_x = _rng.randf()
 	depth_y = _rng.randf_range(0.12, 0.8)
 	z = _rng.randf()

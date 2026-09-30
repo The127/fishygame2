@@ -62,6 +62,13 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "curse_cost", "label": "Curse cost", "min": 0, "max": 1000000, "step": 10},
 	{"key": "species_price", "label": "Fish species price", "min": 0, "max": 1000000, "step": 50},
 	{"key": "color_price", "label": "Fish color price", "min": 0, "max": 1000000, "step": 50},
+	{
+		"key": "premium_color_price",
+		"label": "Premium color price",
+		"min": 0,
+		"max": 1000000,
+		"step": 50
+	},
 	{"key": "hat_price", "label": "Fish accessory price", "min": 0, "max": 1000000, "step": 50},
 	{"key": "viewer_cooldown", "label": "Viewer cooldown (s)", "min": 0, "max": 600, "step": 1},
 	{"key": "fish_lockout", "label": "Fish lockout (s)", "min": 0, "max": 60, "step": 1},
@@ -126,6 +133,7 @@ var boost_cost: int = 100
 var curse_cost: int = 150
 var species_price: int = 500
 var color_price: int = 250
+var premium_color_price: int = 1000
 var hat_price: int = 200
 var viewer_cooldown: int = 20
 var fish_lockout: int = 5

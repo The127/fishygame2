@@ -42,6 +42,9 @@ const COLOR_NAMES: Array[String] = [
 	"navy",
 	"grey",
 ]
+## Chat names of the premium colors: animated looks, see [FishSkin]. They are sold as colors
+## but wear no palette slot, so the palette stays unique whatever a lobby wears.
+const PREMIUM_NAMES: Array[String] = FishSkin.NAMES
 
 
 ## The color names as the shop lists them. With [param colorblind] each name is followed by
@@ -65,7 +68,21 @@ static func accessory_of(item: String) -> int:
 
 ## Whether [param item] (case does not matter) is on sale as a [param kind].
 static func has_item(kind: String, item: String) -> bool:
-	return index_of(kind, item) >= 0
+	return index_of(kind, item) >= 0 or is_premium(kind, item)
+
+
+## Whether [param item] is a premium color (a [FishSkin]) and [param kind] is the color kind.
+static func is_premium(kind: String, item: String) -> bool:
+	return kind == ShopStore.KIND_COLOR and FishSkin.kind_of(item) > 0
+
+
+## The name an item is stored and equipped under: aliases of premium colors ("missing
+## texture") resolve to their chat name, everything else is just lowercased.
+static func canonical(kind: String, item: String) -> String:
+	var lowered: String = item.strip_edges().to_lower()
+	if is_premium(kind, lowered):
+		return FishSkin.canonical(lowered)
+	return lowered
 
 
 ## Index into the species list or the palette, or -1 for an unknown name.
@@ -83,6 +100,7 @@ static func index_of(kind: String, item: String) -> int:
 ## Gives every contestant the species and color they equipped in [param store], in the
 ## colorblind look (see [FishPalette]) when [param colorblind] is set. The color names and
 ## what viewers own stay the same either way.
+## A premium color ([FishSkin]) is worn on top and uses no palette slot.
 ## A viewer keeps their color unless an earlier joiner already holds it; then, like
 ## everyone without a bought color, they get their join slot color or, if that is taken,
 ## the first palette color nobody has. So no two fish share a color while the palette lasts.
@@ -101,15 +119,23 @@ static func assign_loadouts(
 		var color: int = index_of(
 			ShopStore.KIND_COLOR, store.equipped(contestant.user_id, ShopStore.KIND_COLOR)
 		)
+		var skin: int = FishSkin.kind_of(store.equipped(contestant.user_id, ShopStore.KIND_COLOR))
+		contestant.skin = skin
 		contestant.accessory = (
 			index_of(ShopStore.KIND_HAT, store.equipped(contestant.user_id, ShopStore.KIND_HAT)) + 1
 		)
+		if skin > 0:
+			continue
 		if color >= 0 and not taken.has(color):
 			taken[color] = true
 			settled[i] = true
 			contestant.set_look(color, colorblind)
 	for i: int in contestants.size():
 		if settled.has(i):
+			continue
+		if contestants[i].skin > 0:
+			# A premium look needs no palette color of its own, so it takes none from the rest.
+			contestants[i].set_look(i, false)
 			continue
 		var slot_color: int = i if i < Contestant.PALETTE.size() else -1
 		if slot_color >= 0 and not taken.has(slot_color):

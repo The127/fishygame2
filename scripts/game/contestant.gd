@@ -35,6 +35,8 @@ var species: int = 0
 var palette_slot: int = 0
 ## A [enum FishVisual.Pattern]; only marked in the colorblind look.
 var pattern: int = 0
+## A [enum FishSkin.Kind] from the shop's premium colors; 0 wears the palette color.
+var skin: int = 0
 ## A [enum FishAccessory.Kind] from the shop; 0 is none.
 var accessory: int = 0
 

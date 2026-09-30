@@ -191,6 +191,7 @@ func _apply_settings() -> void:
 	_betting.place_rewards = [settings.win_reward, settings.second_reward, settings.third_reward]
 	_shop.species_price = settings.species_price
 	_shop.color_price = settings.color_price
+	_shop.premium_color_price = settings.premium_color_price
 	_shop.hat_price = settings.hat_price
 	_shop.colorblind = settings.colorblind
 	_chaos.boost_cost = settings.boost_cost
@@ -676,6 +677,7 @@ func _on_shop_catalog_requested(_msg: ChatMessage) -> void:
 	_overlay.show_notice("Shop: #fish <species>, #color <name> or #hat <name>")
 	if settings.chat_replies:
 		Chat.send_message(_shop.catalog_text())
+		Chat.send_message(_shop.premium_catalog_text())
 		Chat.send_message(_shop.hat_catalog_text())
 
 
@@ -749,6 +751,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 		marble.species = contestants[marble.id].species
 		marble.pattern = contestants[marble.id].pattern
 		marble.accessory = contestants[marble.id].accessory
+		marble.skin = contestants[marble.id].skin
 		marble.label_text = contestants[marble.id].display_name
 
 
@@ -767,6 +770,7 @@ func _refresh_lobby() -> void:
 					"species": contestant.species,
 					"pattern": contestant.pattern,
 					"accessory": contestant.accessory,
+					"skin": contestant.skin,
 				}
 			)
 		)

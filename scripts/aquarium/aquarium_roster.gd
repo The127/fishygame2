@@ -42,9 +42,11 @@ static func build(
 
 ## What a fish is, for the hover label: "angelfish, red, tophat".
 static func describe(who: Contestant) -> String:
+	var color_name: String = FishSkin.name_of(who.skin)
+	if color_name.is_empty():
+		color_name = ShopCatalog.COLOR_NAMES[posmod(who.palette_slot, ShopCatalog.COLOR_NAMES.size())]
 	var parts: Array[String] = [
-		ShopCatalog.SPECIES_NAMES[posmod(who.species, ShopCatalog.SPECIES_NAMES.size())],
-		ShopCatalog.COLOR_NAMES[posmod(who.palette_slot, ShopCatalog.COLOR_NAMES.size())],
+		ShopCatalog.SPECIES_NAMES[posmod(who.species, ShopCatalog.SPECIES_NAMES.size())], color_name
 	]
 	if who.accessory > 0:
 		parts.append(ShopCatalog.HAT_NAMES[(who.accessory - 1) % ShopCatalog.HAT_NAMES.size()])
