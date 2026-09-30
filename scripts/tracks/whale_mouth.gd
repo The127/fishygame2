@@ -31,13 +31,6 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 
-## Called by [method Track.stop_gimmicks].
-func stop_gimmick() -> void:
-	_clock = 0.0
-	yawn = 0.0
-	queue_redraw()
-
-
 ## How far the jaws are open at race time `t` (0 to 1) when the whale is not yawning: a slow
 ## breath.
 static func breath_at(t: float) -> float:

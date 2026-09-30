@@ -345,8 +345,8 @@ and a hazard can make it yawn by setting `WhaleMouth.yawn`. The two long stretch
 slope it lies on, so the floor never turns uphill and no dip can trap a fish, and it fades to nothing
 at both ends so it joins the acid pit hatches and the rest of the floor. The floor builds its colliders
 from a top line (`surface`), so a new rippling stretch is one `WigglingFloor` node with a `Visual`
-Polygon2D. Mouth and floor run on the physics clock, are seeded where needed and are part of the
-finish replay.
+Polygon2D. Mouth and floor run on the physics clock, the wave is seeded and both are part of the finish
+replay.
 
 Toilet Flush starts with a slide into a porcelain bowl (`scripts/tracks/flush_bowl.gd`, a `Whirlpool`
 with one drain at the bottom and a shorter dwell). Its hazard is the flush: the lever on the cistern

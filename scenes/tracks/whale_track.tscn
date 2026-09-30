@@ -124,7 +124,7 @@ polygon = PackedVector2Array(1896, 385, 1300, 485, 1300, 511, 1896, 411)
 [node name="StomachFloorLeft" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
-[node name="Collider2" type="CollisionPolygon2D" parent="StomachFloorLeft"]
+[node name="Collider" type="CollisionPolygon2D" parent="StomachFloorLeft"]
 polygon = PackedVector2Array(934, 597.784, 960, 591.619, 960, 694, 934, 694)
 
 [node name="Collider3" type="CollisionPolygon2D" parent="StomachFloorLeft"]
@@ -140,7 +140,7 @@ polygon = PackedVector2Array(934, 584.784, 934, 694, 1036, 694, 1036, 560.598, 1
 [node name="StomachWaveA" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 script = ExtResource("8_wiggling_floor")
-surface = PackedVector2Array(1300, 485, 1010, 553.763)
+surface = PackedVector2Array(1300, 485, 1008, 554.237)
 
 [node name="Visual" type="Polygon2D" parent="StomachWaveA"]
 color = Color(0.45, 0.16, 0.3, 1)

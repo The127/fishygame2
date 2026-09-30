@@ -30,6 +30,8 @@ var _points: PackedVector2Array = PackedVector2Array()
 var _along: PackedFloat32Array = PackedFloat32Array()
 var _length: float = 0.0
 var _shapes: Array[ConvexPolygonShape2D] = []
+## Clock the floor was last shaped at, so a frame that changes nothing costs nothing.
+var _shaped_at: float = -1.0
 var _visual: Polygon2D
 
 
@@ -39,6 +41,7 @@ func _ready() -> void:
 	for i: int in _points.size() - 1:
 		var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 		var owner_node: CollisionShape2D = CollisionShape2D.new()
+		owner_node.name = "Collider" if i == 0 else "Collider%d" % (i + 1)
 		owner_node.shape = shape
 		add_child(owner_node)
 		_shapes.append(shape)
@@ -103,8 +106,9 @@ func _resample() -> void:
 
 
 func _shape_floor() -> void:
-	if _shapes.is_empty():
+	if _shapes.is_empty() or _clock + _offset == _shaped_at:
 		return
+	_shaped_at = _clock + _offset
 	var top: PackedVector2Array = PackedVector2Array()
 	for i: int in _points.size():
 		top.append(_points[i] + Vector2(0.0, lift_at(_along[i], _clock)))

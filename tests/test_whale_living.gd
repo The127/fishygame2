@@ -118,5 +118,3 @@ func test_the_mouth_follows_the_replay_state() -> void:
 	mouth.replay_apply(PackedFloat32Array([1.0, 0.0]), PackedFloat32Array([2.0, 1.0]), 0.5)
 	assert_almost_eq(mouth.replay_state()[0], 1.5, 0.001)
 	assert_almost_eq(mouth.replay_state()[1], 0.5, 0.001)
-	mouth.stop_gimmick()
-	assert_eq(mouth.yawn, 0.0)
