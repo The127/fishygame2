@@ -26,7 +26,9 @@ func test_control_panel_hides_debug_buttons_unless_enabled() -> void:
 
 func test_control_panel_debug_buttons_emit_signals() -> void:
 	DebugMode.set_enabled(true)
-	var panel: ControlPanel = (load("res://scenes/ui/control_panel.tscn") as PackedScene).instantiate()
+	var panel: ControlPanel = (
+		(load("res://scenes/ui/control_panel.tscn") as PackedScene).instantiate()
+	)
 	add_child_autofree(panel)
 	watch_signals(panel)
 	(panel.get_node("Panel/Box/DebugButtons/Duck") as Button).pressed.emit()
