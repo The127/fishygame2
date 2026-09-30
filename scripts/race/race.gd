@@ -22,11 +22,16 @@ const NET_DRAG: float = 14.0
 
 var elapsed: float = 0.0
 var running: bool = false
+## Whether [signal photo_finish] fired in this race.
+var had_photo_finish: bool = false
 
 var _track: Track
 var _ranking: RaceRanking
 var _marbles: Dictionary = {}
 var _nets: Array[NetZone] = []
+var _recorder: ReplayRecorder
+var _sample_positions: PackedVector2Array = PackedVector2Array()
+var _sample_velocities: PackedVector2Array = PackedVector2Array()
 
 
 ## Clears any previous race and spawns `count` marbles. Every random draw comes
@@ -52,6 +57,10 @@ func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequenc
 	_ranking = RaceRanking.new(ids)
 	_track.seed_gimmicks(rng)
 	_track.arm_hazards(rng, hazard_frequency)
+	_recorder = ReplayRecorder.new(count)
+	_sample_positions.resize(count)
+	_sample_velocities.resize(count)
+	had_photo_finish = false
 	elapsed = 0.0
 	running = true
 
@@ -77,6 +86,11 @@ func clear() -> void:
 	_marbles.clear()
 
 
+## The recorded finish of this race, for [FinishReplay]. Null before the first race.
+func get_recorder() -> ReplayRecorder:
+	return _recorder
+
+
 func get_marbles() -> Array[Marble]:
 	var result: Array[Marble] = []
 	for marble: Marble in _marbles.values():
@@ -89,6 +103,7 @@ func boost_marble(id: int) -> bool:
 	var marble: Marble = _live_marble(id)
 	if marble == null:
 		return false
+	_record_event(ReplayRecorder.Kind.BOOST, marble)
 	marble.boost(_track.get_forward(marble.global_position))
 	return true
 
@@ -98,6 +113,7 @@ func curse_marble(id: int) -> bool:
 	var marble: Marble = _live_marble(id)
 	if marble == null:
 		return false
+	_record_event(ReplayRecorder.Kind.CURSE, marble)
 	marble.curse(_track.get_forward(marble.global_position))
 	return true
 
@@ -233,6 +249,8 @@ func _physics_process(delta: float) -> void:
 		return
 	_hold_in_nets()
 	elapsed += delta
+	if _recorder != null and _recorder.should_sample(elapsed):
+		_record_sample()
 	if elapsed >= timeout_seconds:
 		_finish_race()
 
@@ -247,6 +265,11 @@ func _on_marble_reached_finish(body: Node2D) -> void:
 	if place == 0:
 		return
 	marble.has_finished = true
+	if place == 1:
+		# A frame right at the crossing, so the replay is centred on it.
+		_record_sample()
+		_recorder.mark_finish(elapsed, marble.id)
+	_record_event(ReplayRecorder.Kind.SPLASH, marble)
 	marble.splash()
 	if place == 1:
 		marble.celebrate()
@@ -275,7 +298,21 @@ func _check_photo_finish(winner_id: int) -> void:
 			best_eta = PhotoFinish.eta(distance, speed)
 			chaser_id = id
 	if chaser_id >= 0:
+		had_photo_finish = true
 		photo_finish.emit(winner_id, chaser_id)
+
+
+func _record_sample() -> void:
+	for id: int in _marbles:
+		var marble: Marble = _marbles[id]
+		_sample_positions[id] = marble.global_position
+		_sample_velocities[id] = marble.linear_velocity
+	_recorder.sample(elapsed, _sample_positions, _sample_velocities)
+
+
+func _record_event(kind: ReplayRecorder.Kind, marble: Marble) -> void:
+	if _recorder != null:
+		_recorder.add_event(elapsed, marble.id, kind, marble.global_position)
 
 
 func _finish_race() -> void:

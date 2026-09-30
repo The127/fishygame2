@@ -21,6 +21,7 @@ const TABS: Array[Dictionary] = [
 			"hazard_frequency",
 			"auto_mode",
 			"auto_join_seconds",
+			"finish_replay",
 		],
 	},
 	{

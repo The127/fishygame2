@@ -29,6 +29,7 @@ var _bets: Label
 var _notice_panel: PanelContainer
 var _notice: Label
 var _notice_timer: Timer
+var _replay_badge: PanelContainer
 
 
 func _ready() -> void:
@@ -44,6 +45,7 @@ func _ready() -> void:
 	_build_results()
 	_build_bets()
 	_build_notice()
+	_build_replay_badge()
 	_notice_timer = Timer.new()
 	_notice_timer.one_shot = true
 	_notice_timer.timeout.connect(_clear_notice)
@@ -64,6 +66,7 @@ func set_play_fraction(fraction: Rect2) -> void:
 
 
 func clear() -> void:
+	_replay_badge.visible = false
 	_clear_lobby()
 	_big.text = ""
 	_podium_panel.visible = false
@@ -160,6 +163,18 @@ func show_notice(text: String, seconds: float = 4.0) -> void:
 	_notice.text = text
 	_notice_panel.visible = text != ""
 	_notice_timer.start(seconds)
+
+
+## The REPLAY badge while a finish replay plays.
+func show_replay(shown: bool) -> void:
+	_replay_badge.visible = shown
+
+
+func _build_replay_badge() -> void:
+	_replay_badge = _make_panel(false)
+	_replay_badge.position = Vector2(float(MARGIN), float(MARGIN))
+	_replay_badge.add_child(_make_label("REPLAY", 44, 800, UiStyle.CYAN, 4))
+	_frame.add_child(_replay_badge)
 
 
 func _clear_notice() -> void:

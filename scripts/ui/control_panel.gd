@@ -17,6 +17,8 @@ signal auto_mode_toggled(enabled: bool)
 signal mute_toggled(muted: bool)
 ## Streamer picked a streamer power (button or hotkey 1 to 3): a [enum StreamerPowers.Kind].
 signal power_pressed(kind: int)
+## Streamer wants to skip the finish replay (button or Space).
+signal skip_replay_pressed
 ## Streamer wants to leave for the home screen (button or Esc).
 signal home_pressed
 ## Streamer confirmed leaving after [method ask_leave].
@@ -79,6 +81,7 @@ func _ready() -> void:
 	($Panel/Box/Home as Button).pressed.connect(home_pressed.emit)
 	for i: int in _power_buttons.size():
 		_power_buttons[i].pressed.connect(power_pressed.emit.bind(i))
+	($Panel/Box/SkipReplay as Button).pressed.connect(skip_replay_pressed.emit)
 	($Panel/Box/LeaveConfirm/Answers/Leave as Button).pressed.connect(_on_leave_pressed)
 	($Panel/Box/LeaveConfirm/Answers/Stay as Button).pressed.connect(cancel_leave)
 	($Panel/Box/DebugButtons as Control).visible = DebugMode.is_enabled()
@@ -175,6 +178,11 @@ func cancel_leave() -> void:
 	_confirm.visible = false
 
 
+## Shows or hides the skip button. Space skips too, even with the panel hidden.
+func show_skip_replay(shown: bool) -> void:
+	($Panel/Box/SkipReplay as Control).visible = shown
+
+
 func set_status(text: String) -> void:
 	_status.text = text
 
@@ -227,6 +235,7 @@ func _apply_style() -> void:
 		$Panel/Box/PowerButtons/Net,
 		$Panel/Box/PowerButtons/Blast,
 		$Panel/Box/Home,
+		$Panel/Box/SkipReplay,
 		$Panel/Box/LeaveConfirm/Answers/Leave,
 		$Panel/Box/LeaveConfirm/Answers/Stay,
 		$Panel/Box/DebugButtons/AddOne,

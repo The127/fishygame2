@@ -77,7 +77,7 @@ func _process(delta: float) -> void:
 
 
 func _on_body_entered(body: Node2D) -> void:
-	if not body is Marble or is_cooling_down(body as Marble):
+	if not body is Marble or (body as Marble).replaying or is_cooling_down(body as Marble):
 		return
 	_cooldowns[body.get_instance_id()] = COOLDOWN
 	# Bodies can only be moved safely outside the physics callback.

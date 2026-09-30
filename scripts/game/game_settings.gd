@@ -20,6 +20,11 @@ const CHAT_TOGGLES: Array[Dictionary] = [
 	{"key": "reply_powers", "label": "Announce streamer powers"},
 ]
 
+## Values of [member finish_replay].
+const REPLAY_OFF: int = 0
+const REPLAY_CLOSE: int = 1
+const REPLAY_ALWAYS: int = 2
+
 ## Numeric settings, in the order the settings screen shows them. "max" of max_players is
 ## what the maps are tested with. max_bet 0 means no limit.
 const FIELDS: Array[Dictionary] = [
@@ -32,6 +37,13 @@ const FIELDS: Array[Dictionary] = [
 		"min": 5,
 		"max": 600,
 		"step": 5
+	},
+	{
+		"key": "finish_replay",
+		"label": "Finish replay (0 off, 1 close, 2 all)",
+		"min": 0,
+		"max": 2,
+		"step": 1
 	},
 	{"key": "starting_balance", "label": "Starting points", "min": 0, "max": 1000000, "step": 100},
 	{"key": "min_bet", "label": "Min bet", "min": 1, "max": 1000000, "step": 10},
@@ -90,6 +102,8 @@ var min_players: int = 1
 var max_players: int = 20
 var countdown_seconds: int = 3
 var auto_join_seconds: int = 60
+## Replay of the finish before the podium: REPLAY_OFF, REPLAY_CLOSE or REPLAY_ALWAYS.
+var finish_replay: int = 1
 var starting_balance: int = 1000
 var min_bet: int = 1
 var max_bet: int = 0
