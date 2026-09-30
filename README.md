@@ -277,6 +277,10 @@ off nothing moves, so every state has to stay passable. A ruin is a child of the
 `Tower` (scenery, never collides), a `Slab` (the `AnimatableBody2D` that moves), a `Trigger`, a
 `Sweep` and metadata for `mode` (`open`, `close` or `topple`), `lie_degrees` and `height`. The finish
 replay shows the shaking and falling towers, the slabs, the rubble and the dust of the crash.
+The city also has two permanent set pieces: three bronze bells hung above the lanes (`PulsingBumper`,
+seeded like the stomach lobes of Inside the Whale) that swell and shove nearby fish, and a flooded
+plaza on the first lane (`scripts/tracks/drift_zone.gd`) whose slow current only ever pushes along
+the lane. Neither can block a fish: the bells hang clear of the lanes and the current never pushes back.
 
 Washing Machine starts the fish inside a steel drum (`scripts/tracks/wash_drum.gd`) that tumbles like
 a real washer: it swings clockwise about 260 degrees, slows and swings back, over and over, so the
