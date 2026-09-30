@@ -41,6 +41,10 @@ const FADE_SECONDS: float = 0.15
 ## Seconds without the mouse over the tab or drawer before a tab-opened drawer closes.
 const AUTO_HIDE_SECONDS: float = 4.0
 const TAB_IDLE_ALPHA: float = 0.2
+## Slim bar under the tab that shows the power cooldown while the drawer is closed.
+const TAB_BAR_HEIGHT: float = 4.0
+const TAB_BAR_GAP: float = 3.0
+const TAB_BAR_COLOR: Color = Color(UiStyle.CYAN, 0.7)
 ## Top of the open drawer, just below the tab.
 const OPEN_TOP: float = 64.0
 
@@ -51,11 +55,13 @@ var _auto_hide: bool = false
 var _idle_seconds: float = 0.0
 var _tab_hovered: bool = false
 var _hidden_before_ask: bool = false
+var _cooldown_fraction: float = 1.0
 var _slide_tween: Tween
 var _fade_tween: Tween
 
 @onready var _panel: PanelContainer = $Panel
 @onready var _tab: Button = $Handle
+@onready var _tab_bar: ColorRect = $HandleCooldown
 @onready var _status: Label = $Panel/Box/Status
 @onready var _map_picker: OptionButton = $Panel/Box/MapRow/MapPicker
 @onready var _power_status: Label = $Panel/Box/PowerStatus
@@ -76,6 +82,9 @@ var _fade_tween: Tween
 func _ready() -> void:
 	_apply_style()
 	_tab.modulate.a = TAB_IDLE_ALPHA
+	_tab_bar.color = TAB_BAR_COLOR
+	_tab.resized.connect(_update_tab_bar)
+	_update_tab_bar()
 	_tab.pressed.connect(_on_tab_pressed)
 	_tab.mouse_entered.connect(_set_tab_hovered.bind(true))
 	_tab.mouse_exited.connect(_set_tab_hovered.bind(false))
@@ -152,6 +161,7 @@ func set_open(open: bool, auto_hide: bool = false) -> void:
 	if not open:
 		_slide_tween.tween_callback(_hide_if_closed)
 	_refresh_tab()
+	_update_tab_bar()
 
 
 func toggle_drawer() -> void:
@@ -205,8 +215,18 @@ func set_armed_power(kind: int) -> void:
 ## what remains; 0 left means ready. All powers share one cooldown.
 func set_power_cooldown(left: float, total: float) -> void:
 	var fraction: float = 1.0 if left <= 0.0 or total <= 0.0 else 1.0 - left / total
+	_cooldown_fraction = fraction
+	_update_tab_bar()
 	for button: PowerButton in _power_buttons:
 		button.set_cooldown_progress(fraction)
+
+
+## Slim bar under the tab, filling left to right while the drawer is closed and a power cools down.
+func _update_tab_bar() -> void:
+	_tab_bar.visible = not _open and _cooldown_fraction < 1.0
+	var rect: Rect2 = _tab.get_rect()
+	_tab_bar.position = Vector2(rect.position.x, rect.end.y + TAB_BAR_GAP)
+	_tab_bar.size = Vector2(rect.size.x * _cooldown_fraction, TAB_BAR_HEIGHT)
 
 
 ## One line for the streamer under the power buttons. It is not shown to viewers.

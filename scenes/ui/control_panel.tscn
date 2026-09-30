@@ -29,6 +29,10 @@ grow_horizontal = 0
 focus_mode = 0
 text = "Controls"
 
+[node name="HandleCooldown" type="ColorRect" parent="."]
+visible = false
+mouse_filter = 2
+
 [node name="Box" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
 theme_override_constants/separation = 10

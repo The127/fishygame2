@@ -140,3 +140,33 @@ func test_hotkey_ignored_while_cooling() -> void:
 	event.pressed = true
 	_panel._unhandled_input(event)
 	assert_signal_not_emitted(_panel, "power_pressed")
+
+
+func _tab_bar() -> ColorRect:
+	return _panel.get_node("HandleCooldown") as ColorRect
+
+
+func test_tab_bar_hidden_while_drawer_open() -> void:
+	_panel.set_power_cooldown(4.0, 8.0)
+	assert_false(_tab_bar().visible)
+
+
+func test_tab_bar_shows_cooldown_when_drawer_closed() -> void:
+	_panel.set_open(false)
+	assert_false(_tab_bar().visible, "nothing cooling yet")
+	_panel.set_power_cooldown(6.0, 8.0)
+	assert_true(_tab_bar().visible)
+	var quarter: float = _tab_bar().size.x
+	assert_almost_eq(quarter, _tab().size.x * 0.25, 0.5)
+	_panel.set_power_cooldown(2.0, 8.0)
+	assert_gt(_tab_bar().size.x, quarter, "bar grows left to right")
+	_panel.set_power_cooldown(0.0, 8.0)
+	assert_false(_tab_bar().visible)
+
+
+func test_tab_bar_appears_when_closing_during_cooldown() -> void:
+	_panel.set_power_cooldown(4.0, 8.0)
+	_panel.set_open(false)
+	assert_true(_tab_bar().visible)
+	_panel.set_open(true)
+	assert_false(_tab_bar().visible)
