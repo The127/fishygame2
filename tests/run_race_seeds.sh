@@ -5,7 +5,7 @@
 GODOT="${1:-godot}"
 FIRST="${2:-1}"
 LAST="${3:-10}"
-MAPS="${4:-zigzag pachinko wreck whirlpool jelly abyss vents coral kraken}"
+MAPS="${4:-zigzag pachinko wreck whirlpool jelly abyss vents coral kraken gravity}"
 MARBLES="${MARBLES:-10}"
 EVENT="${EVENT:-}"
 status=0

@@ -167,6 +167,24 @@ const PALETTES: Dictionary = {
 		"far_kind": EnvLayer.Kind.SPIRES,
 		"sway_scale": 1.3,
 	},
+	"gravity":
+	{
+		"sky_top": Color(0.05, 0.05, 0.2),
+		"sky_bottom": Color(0.01, 0.01, 0.06),
+		"far": Color(0.07, 0.07, 0.25),
+		"mid": Color(0.05, 0.05, 0.18),
+		"near": Color(0.01, 0.01, 0.04),
+		"plant": Color(0.09, 0.08, 0.3),
+		"stone_dark": Color(0.05, 0.05, 0.12),
+		"stone_light": Color(0.2, 0.2, 0.42),
+		"rim": Color(0.6, 0.65, 1.0),
+		"ray": Color(0.5, 0.55, 1.0),
+		"fog": Color(0.14, 0.12, 0.4),
+		"mote": Color(0.8, 0.85, 1.0),
+		"layer_kind": EnvLayer.Kind.SHARDS,
+		"far_kind": EnvLayer.Kind.SPIRES,
+		"sway_scale": 0.3,
+	},
 }
 const DEFAULT_STYLE: String = "kelp"
 
@@ -181,6 +199,7 @@ const FOREGROUND: Dictionary = {
 	"volcanic": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SPIRES],
 	"coral": [EnvLayer.Kind.CORAL, EnvLayer.Kind.CORAL],
 	"kraken": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.TENTACLES],
+	"gravity": [EnvLayer.Kind.SHARDS, EnvLayer.Kind.SHARDS],
 }
 ## Foreground sits over the fish (z 5) and their trails, under bursts (z 8) and names (z 10).
 const FOREGROUND_Z: int = 7

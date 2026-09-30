@@ -189,7 +189,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 `--event=<id>` on the debug race scene replays one.
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
-collapsing planks on Shipwreck, a cross current on Volcanic Vents, a surge that spins up the vortex on
+collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
 Whirlpool, a tide that sloshes the flip gates on Coral Maze and tentacle swats on Kraken's Lair. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers. Their tentacles briefly catch and drag along any fish that
@@ -215,6 +215,12 @@ Kraken's Lair has three switchback ramps under the gaze of a huge kraken eye. It
 one or two of the four tentacles rooted below the frame are about to sweep across the ramps and fling
 every fish they touch sideways, forwards or back. The sweeps are a force field rather than a solid
 body, so a fish is thrown along instead of being crushed. The eye is `scripts/tracks/kraken_eye.gd`.
+Gravity Flip flips gravity every 3 to 4.5 seconds (`scripts/tracks/gravity_flipper.gd`): an Area2D that
+overrides gravity between down and up, leaning slightly toward the finish. A corridor that widens
+toward the finish has baffles that grow from the floor or hang from the ceiling, alternating, so a
+fish can only get past each one while gravity points the right way, and a flip can send the leader
+back behind the pack. The arrows flash for a second before each flip. The flip times come from
+the race seed, and the finish spans the whole corridor so both orientations reach it.
 
 ### Finish replay and moving map parts
 
