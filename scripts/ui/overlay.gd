@@ -10,6 +10,7 @@ const MARGIN: int = 48
 const DNF_SHOWN: int = 8
 const LOBBY_COLUMNS: int = 2
 
+var _mask: BlockedMask
 var _frame: Control
 var _lobby_panel: PanelContainer
 var _lobby_header: Label
@@ -45,6 +46,8 @@ var _event_label: Label
 
 
 func _ready() -> void:
+	_mask = BlockedMask.new()
+	add_child(_mask)
 	# Everything is laid out inside this frame, which streamer padding shrinks.
 	_frame = Control.new()
 	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -69,6 +72,7 @@ func _ready() -> void:
 
 ## Keeps the UI inside `fraction` of the screen (fractions of the viewport).
 func set_play_fraction(fraction: Rect2) -> void:
+	_mask.set_play_fraction(fraction)
 	_frame.anchor_left = fraction.position.x
 	_frame.anchor_top = fraction.position.y
 	_frame.anchor_right = fraction.end.x
