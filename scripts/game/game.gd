@@ -893,10 +893,26 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 
 
 func _refresh_lobby() -> void:
-	var names: PackedStringArray = []
-	for contestant: Contestant in _flow.get_contestants():
-		names.append(contestant.display_name)
-	_overlay.show_lobby(names, _flow.max_players, _flow.timer if _flow.lobby_seconds > 0.0 else 0.0)
+	var contestants: Array[Contestant] = _flow.get_contestants()
+	# Same look the race will give them, so the list previews the fish that swims.
+	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
+	var players: Array[Dictionary] = []
+	for contestant: Contestant in contestants:
+		(
+			players
+			. append(
+				{
+					"name": contestant.display_name,
+					"color": contestant.color,
+					"species": contestant.species,
+					"pattern": contestant.pattern,
+					"accessory": contestant.accessory,
+				}
+			)
+		)
+	_overlay.show_lobby(
+		players, _flow.max_players, _flow.timer if _flow.lobby_seconds > 0.0 else 0.0
+	)
 
 
 func _status_text() -> String:
