@@ -4,9 +4,9 @@ extends Node
 ## it a forward kick, "#curse <name>" knocks it back and slows it.
 ##
 ## Rules: only while racing, and only on a fish that has not finished and is not the
-## viewer's own (matched by user id). Points are
-## taken when the effect is applied. Each viewer has a cooldown between uses and
-## each fish has a lockout between effects, so nobody decides a race alone.
+## viewer's own (matched by user id). Points are taken when the effect is applied.
+## Each viewer has a cooldown between uses and each fish has a lockout between
+## effects, so nobody decides a race alone.
 ## The node emits [signal effect_requested] for the race to apply; it touches no physics.
 
 signal effect_requested(marble_id: int, kind: Kind)
