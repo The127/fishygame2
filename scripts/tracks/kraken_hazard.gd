@@ -105,11 +105,13 @@ func _process_active(_delta: float) -> void:
 func _end_event() -> void:
 	_park()
 	_update_eye(0.0)
+	queue_redraw()
 
 
 func _reset() -> void:
 	_park()
 	_update_eye(0.0)
+	queue_redraw()
 
 
 func _park() -> void:

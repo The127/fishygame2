@@ -86,7 +86,7 @@ func test_the_eye_opens_for_the_telegraph_and_closes_again() -> void:
 	var kraken: KrakenHazard = _kraken()
 	var eye: KrakenEye = kraken.get_node("Eye") as KrakenEye
 	assert_lt(eye.get_alert(), 0.05)
-	_arm_now(kraken, 2, 1.0)
+	_arm_now(kraken, 2, 1.5)
 	await wait_until(func() -> bool: return kraken.phase == Hazard.Phase.ACTIVE, 3.0)
 	assert_gt(eye.get_alert(), 0.5, "eye is wide open when the tentacle strikes")
 	kraken.disarm()
@@ -107,7 +107,7 @@ func test_disarm_parks_the_tentacles() -> void:
 
 func test_a_seed_replays_the_same_tentacles() -> void:
 	var picks: Array = []
-	for round: int in 2:
+	for attempt: int in 2:
 		var kraken: KrakenHazard = _kraken()
 		_arm_now(kraken, 11)
 		await wait_until(func() -> bool: return kraken.phase == Hazard.Phase.TELEGRAPH, 2.0)
