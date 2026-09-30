@@ -11,9 +11,9 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -420.0
-offset_top = 56.0
+offset_top = 64.0
 offset_right = -24.0
-offset_bottom = 452.0
+offset_bottom = 460.0
 grow_horizontal = 0
 
 [node name="Handle" type="Button" parent="."]

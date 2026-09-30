@@ -33,7 +33,7 @@ const FADE_SECONDS: float = 0.15
 const AUTO_HIDE_SECONDS: float = 4.0
 const TAB_IDLE_ALPHA: float = 0.2
 ## Top of the open drawer, just below the tab.
-const OPEN_TOP: float = 56.0
+const OPEN_TOP: float = 64.0
 
 var _open: bool = true
 var _slide: float = 1.0
@@ -262,6 +262,9 @@ func _hide_if_closed() -> void:
 
 
 func _pointer_over_drawer() -> bool:
+	# A held button means a slider drag, which may wander off the panel.
+	if _open and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		return true
 	var mouse: Vector2 = _panel.get_viewport().get_mouse_position()
 	return (
 		_tab.get_global_rect().has_point(mouse)
