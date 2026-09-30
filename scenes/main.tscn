@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/game/chaos.gd" id="9_chaos"]
 [ext_resource type="Script" path="res://scripts/game/shop.gd" id="11_shop"]
 [ext_resource type="Script" path="res://scripts/game/cheer.gd" id="11_cheer"]
+[ext_resource type="Script" path="res://scripts/game/streamer_powers.gd" id="12_powers"]
 [ext_resource type="Script" path="res://scripts/race/race.gd" id="4_race"]
 [ext_resource type="PackedScene" path="res://scenes/marble.tscn" id="5_marble"]
 [ext_resource type="Script" path="res://scripts/camera/race_camera.gd" id="10_camera"]
@@ -29,6 +30,9 @@ script = ExtResource("11_shop")
 
 [node name="Cheer" type="Node" parent="."]
 script = ExtResource("11_cheer")
+
+[node name="StreamerPowers" type="Node" parent="."]
+script = ExtResource("12_powers")
 
 [node name="Race" type="Node2D" parent="."]
 script = ExtResource("4_race")

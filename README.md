@@ -74,6 +74,16 @@ just smoke                                                       # or: npm run s
 `CHROMIUM_PATH` uses an installed Chromium instead of Playwright's. The test reloads right after
 the podium, so it also checks that points survive a quick reload.
 
+## Streamer powers
+
+During a race the streamer has three powers of their own, free but rationed: a fishing rod that
+yanks the nearest fish back up the track, a net that holds fish in an area for a moment, and a
+bubble blast that shoves nearby fish away. Press 1, 2 or 3 (or the panel buttons) to arm one, then
+left click the spot; right click or the same key cancels. A shared cooldown and a cap per race
+apply, and everything is in the settings (Streamer powers tab). Using a power shows an overlay
+notice and a chat line. Races where the streamer used a power can't be replayed from their seed;
+seed-only races (the debug race and the CI seed sweeps) never use powers.
+
 ## Sound
 
 `Sound` (autoload) plays an ambient music loop and effects for join, countdown, race start,

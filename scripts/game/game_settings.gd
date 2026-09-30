@@ -17,6 +17,7 @@ const CHAT_TOGGLES: Array[Dictionary] = [
 	{"key": "reply_chaos", "label": "Confirm #boost and #curse"},
 	{"key": "reply_shop", "label": "Confirm #fish and #color"},
 	{"key": "reply_results", "label": "Announce race results"},
+	{"key": "reply_powers", "label": "Announce streamer powers"},
 ]
 
 ## Numeric settings, in the order the settings screen shows them. "max" of max_players is
@@ -43,6 +44,14 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "viewer_cooldown", "label": "Viewer cooldown (s)", "min": 0, "max": 600, "step": 1},
 	{"key": "fish_lockout", "label": "Fish lockout (s)", "min": 0, "max": 60, "step": 1},
 	{"key": "hazard_frequency", "label": "Hazard frequency (1-5)", "min": 1, "max": 5, "step": 1},
+	{
+		"key": "power_cooldown",
+		"label": "Streamer power cooldown (s)",
+		"min": 0,
+		"max": 120,
+		"step": 1
+	},
+	{"key": "powers_per_race", "label": "Streamer powers per race", "min": 1, "max": 20, "step": 1},
 	{"key": "pad_left", "label": "Blocked left (%)", "min": 0, "max": 40, "step": 1},
 	{"key": "pad_right", "label": "Blocked right (%)", "min": 0, "max": 40, "step": 1},
 	{"key": "pad_top", "label": "Blocked top (%)", "min": 0, "max": 40, "step": 1},
@@ -98,6 +107,8 @@ var pad_left: int = 0
 var pad_right: int = 0
 var pad_top: int = 0
 var pad_bottom: int = 0
+var power_cooldown: int = 8
+var powers_per_race: int = 6
 var cheer_strength: int = 100
 var cheer_viewer_cooldown: int = 10
 var cheer_fish_cooldown: int = 2
@@ -114,8 +125,11 @@ var reply_bets: bool = true
 var reply_chaos: bool = true
 var reply_shop: bool = true
 var reply_results: bool = true
+var reply_powers: bool = true
 ## Whether fish wear the colorblind palette and a marking each (see [FishPalette]).
 var colorblind: bool = false
+## Whether the streamer can use their own powers (rod, net, bubble blast) during a race.
+var powers_enabled: bool = true
 ## Whether maps run their hazard events (currents, eels, collapsing planks).
 var hazards_enabled: bool = true
 ## Empty means in-memory only.
@@ -171,6 +185,7 @@ func reset_to_defaults() -> void:
 	auto_mode = fresh.auto_mode
 	colorblind = fresh.colorblind
 	hazards_enabled = fresh.hazards_enabled
+	powers_enabled = fresh.powers_enabled
 
 
 ## Loads the saved values; missing or malformed ones keep their current value.
@@ -205,6 +220,9 @@ func load_settings() -> void:
 	var hazards: Variant = file.get_value(SECTION, "hazards_enabled", hazards_enabled)
 	if hazards is bool:
 		hazards_enabled = hazards
+	var powers: Variant = file.get_value(SECTION, "powers_enabled", powers_enabled)
+	if powers is bool:
+		powers_enabled = powers
 	sanitize()
 
 
@@ -224,6 +242,7 @@ func save() -> bool:
 	file.set_value(SECTION, "auto_mode", auto_mode)
 	file.set_value(SECTION, "colorblind", colorblind)
 	file.set_value(SECTION, "hazards_enabled", hazards_enabled)
+	file.set_value(SECTION, "powers_enabled", powers_enabled)
 	return file.save(save_path) == OK
 
 

@@ -37,6 +37,10 @@ const TABS: Array[Dictionary] = [
 			"fish_lockout",
 		],
 	},
+	{
+		"title": "Streamer powers",
+		"items": ["powers_enabled", "power_cooldown", "powers_per_race", "reply_powers"],
+	},
 	{"title": "Shop", "items": ["species_price", "color_price"]},
 	{
 		"title": "Chat",
@@ -68,6 +72,7 @@ var _captions: Dictionary[String, String] = {}
 var _map_picker: OptionButton
 var _auto_mode: CheckBox
 var _hazards: CheckBox
+var _powers: CheckBox
 var _chat_replies: CheckBox
 var _reply_toggles: Dictionary[String, CheckBox] = {}
 var _colorblind: CheckBox
@@ -200,6 +205,10 @@ func _build_controls() -> Dictionary[String, Control]:
 	_hazards.toggled.connect(_on_hazards_toggled)
 	_captions["hazards_enabled"] = "Map hazards (currents, eels, planks)"
 	controls["hazards_enabled"] = _hazards
+	_powers = _make_check("On")
+	_powers.toggled.connect(_on_powers_toggled)
+	_captions["powers_enabled"] = "Streamer powers (rod, net, bubble blast)"
+	controls["powers_enabled"] = _powers
 	_auto_mode = _make_check("On")
 	_auto_mode.toggled.connect(_on_auto_mode_toggled)
 	_captions["auto_mode"] = "Auto mode (rounds run on their own)"
@@ -285,6 +294,9 @@ func _refresh() -> void:
 			_map_picker.select(i)
 	_hazards.set_pressed_no_signal(settings.hazards_enabled)
 	_spinners["hazard_frequency"].editable = settings.hazards_enabled
+	_powers.set_pressed_no_signal(settings.powers_enabled)
+	_spinners["power_cooldown"].editable = settings.powers_enabled
+	_spinners["powers_per_race"].editable = settings.powers_enabled
 	_auto_mode.set_pressed_no_signal(settings.auto_mode)
 	_chat_replies.set_pressed_no_signal(settings.chat_replies)
 	for key: String in _reply_toggles:
@@ -311,6 +323,11 @@ func _on_map_picked(index: int) -> void:
 
 func _on_hazards_toggled(pressed: bool) -> void:
 	settings.hazards_enabled = pressed
+	_commit()
+
+
+func _on_powers_toggled(pressed: bool) -> void:
+	settings.powers_enabled = pressed
 	_commit()
 
 
