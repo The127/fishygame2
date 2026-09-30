@@ -222,3 +222,19 @@ func test_after_the_collapses_the_shortcuts_work_and_the_sealed_gaps_hold() -> v
 	assert_gt(shortcut, 100.0, "a fish falls through the gap the floor patch left")
 	var sealed: float = await _drop_fish_over(2)
 	assert_lt(sealed, 45.0, "a fish stays on the slab that sealed the gap")
+
+
+func test_a_cut_short_event_leaves_every_floor_patch_solid() -> void:
+	_arm()
+	var spent: float = 0.0
+	while _hazard.phase != Hazard.Phase.TELEGRAPH and spent < 100.0:
+		_hazard.tick(STEP)
+		spent += STEP
+	# Cut the event short and start over, all in one frame, like the next race starting.
+	_hazard.disarm()
+	_arm()
+	for i: int in 3:
+		await get_tree().physics_frame
+	for ruin: Node2D in _hazard.get_ruins():
+		var collider: CollisionPolygon2D = ruin.get_node("Slab/Collider") as CollisionPolygon2D
+		assert_false(collider.disabled, "every slab collides again")

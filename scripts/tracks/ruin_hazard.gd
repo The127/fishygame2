@@ -21,7 +21,7 @@ const TOPPLE_SECONDS: float = 1.1
 ## Seconds a cap stone takes to crumble away after the crash.
 const CRUMBLE_SECONDS: float = 0.7
 ## Seconds a hanging slab takes to drop into its gap after the crash.
-const DROP_SECONDS: float = 0.3
+const DROP_SECONDS: float = 0.45
 ## How far a crumbling cap stone sinks, in pixels.
 const CRUMBLE_DROP: float = 150.0
 const SHAKE_ANGLE: float = deg_to_rad(1.4)
@@ -43,6 +43,8 @@ var _tower_fall: PackedFloat32Array = PackedFloat32Array()
 var _glow: PackedFloat32Array = PackedFloat32Array()
 var _slab_move: PackedFloat32Array = PackedFloat32Array()
 var _fallen: Array[bool] = []
+## Whether each slab's collider is switched on, as last asked for.
+var _collider_on: Array[bool] = []
 var _current: int = -1
 var _crashed: bool = false
 var _dust_timer: float = 0.0
@@ -72,6 +74,7 @@ func _ready() -> void:
 		_glow.append(0.0)
 		_slab_move.append(0.0)
 		_fallen.append(false)
+		_collider_on.append(true)
 	for i: int in _ruins.size():
 		_pose(i)
 
@@ -128,7 +131,7 @@ func get_ruins() -> Array[Node2D]:
 
 ## Whether the gap of ruin `index` lets fish through right now.
 func is_gap_open(index: int) -> bool:
-	return _opens[index] == (_slab_move[index] > 0.5)
+	return _opens[index] == (_slab_move[index] >= 0.05)
 
 
 func _begin_telegraph(rng: RandomNumberGenerator) -> void:
@@ -253,8 +256,11 @@ func _pose(index: int) -> void:
 			(chain as Line2D).default_color = Color(0.4, 0.45, 0.6).lerp(RIM_COLOR, glow)
 
 
+## Remembers what was asked for: `disabled` only changes at the end of the frame, so reading it
+## back is stale when a ruin is posed twice in one frame (an event cut short, then reset).
 func _set_collider(index: int, enabled: bool) -> void:
-	if _colliders[index].disabled == enabled:
+	if _collider_on[index] != enabled:
+		_collider_on[index] = enabled
 		_colliders[index].set_deferred("disabled", not enabled)
 
 
