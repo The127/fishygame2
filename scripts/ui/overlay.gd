@@ -38,6 +38,9 @@ var _notice_panel: PanelContainer
 var _notice: Label
 var _notice_timer: Timer
 var _replay_badge: PanelContainer
+var _fader: ColorRect
+var _fade_tween: Tween
+var _badge_tween: Tween
 var _wheel_panel: PanelContainer
 var _wheel: WheelView
 var _wheel_result: Label
@@ -63,6 +66,7 @@ func _ready() -> void:
 	_build_replay_badge()
 	_build_timer()
 	_build_event()
+	_build_fader()
 	_notice_timer = Timer.new()
 	_notice_timer.one_shot = true
 	_notice_timer.timeout.connect(_clear_notice)
@@ -85,6 +89,8 @@ func set_play_fraction(fraction: Rect2) -> void:
 
 func clear() -> void:
 	_replay_badge.visible = false
+	_kill_fade()
+	_fader.modulate.a = 0.0
 	_clear_lobby()
 	_big.text = ""
 	_podium_panel.visible = false
@@ -233,9 +239,65 @@ func show_notice(text: String, seconds: float = 4.0) -> void:
 	_notice_timer.start(seconds)
 
 
-## The REPLAY badge while a finish replay plays.
+## The REPLAY badge while a finish replay plays. It slides in and pops when shown.
 func show_replay(shown: bool) -> void:
+	if _badge_tween != null:
+		_badge_tween.kill()
 	_replay_badge.visible = shown
+	if not shown:
+		return
+	var badge_size: Vector2 = _replay_badge.get_combined_minimum_size()
+	_replay_badge.pivot_offset = badge_size * 0.5
+	_replay_badge.position = Vector2(-badge_size.x - 40.0, float(MARGIN))
+	_replay_badge.scale = Vector2(1.3, 1.3)
+	_badge_tween = create_tween().set_parallel(true)
+	(
+		_badge_tween
+		. tween_property(_replay_badge, "position:x", float(MARGIN), 0.45)
+		. set_trans(Tween.TRANS_BACK)
+		. set_ease(Tween.EASE_OUT)
+	)
+	(
+		_badge_tween
+		. tween_property(_replay_badge, "scale", Vector2.ONE, 0.45)
+		. set_trans(Tween.TRANS_CUBIC)
+		. set_ease(Tween.EASE_OUT)
+	)
+
+
+## Fades the whole picture to dark over `seconds`. Returns the tween to await.
+func fade_out(seconds: float) -> Tween:
+	return _fade_to(1.0, seconds)
+
+
+## Fades back in from dark over `seconds`, starting fully dark.
+func fade_in(seconds: float) -> Tween:
+	_kill_fade()
+	_fader.modulate.a = 1.0
+	return _fade_to(0.0, seconds)
+
+
+func _fade_to(alpha: float, seconds: float) -> Tween:
+	_kill_fade()
+	_fade_tween = create_tween()
+	_fade_tween.tween_property(_fader, "modulate:a", alpha, seconds)
+	return _fade_tween
+
+
+func _kill_fade() -> void:
+	if _fade_tween != null:
+		_fade_tween.kill()
+		_fade_tween = null
+
+
+func _build_fader() -> void:
+	_fader = ColorRect.new()
+	_fader.color = Color(0.0, 0.02, 0.05)
+	_fader.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fader.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_fader.modulate.a = 0.0
+	# Not in the padded frame: the dip covers the whole screen.
+	add_child(_fader)
 
 
 func _build_replay_badge() -> void:
