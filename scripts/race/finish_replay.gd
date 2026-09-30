@@ -60,7 +60,7 @@ static func end_of(finish_time: float) -> float:
 
 
 ## Real seconds the whole clip takes to play.
-static func duration_of(start_time: float, _end_time: float, finish_time: float) -> float:
+static func duration_of(start_time: float, finish_time: float) -> float:
 	var step: float = 1.0 / 60.0
 	var clock: float = start_time
 	var real: float = 0.0

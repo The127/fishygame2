@@ -47,7 +47,7 @@ func test_rate_is_slow_around_the_finish_and_normal_elsewhere() -> void:
 
 func test_clip_is_short_enough_for_auto_mode() -> void:
 	var rec := _recording(10.0)
-	var seconds: float = FinishReplay.duration_of(rec.start_time(), rec.end_time(), 10.0)
+	var seconds: float = FinishReplay.duration_of(rec.start_time(), 10.0)
 	assert_true(seconds <= 8.0, "replay takes %.1f s" % seconds)
 	assert_true(seconds > 2.0)
 
@@ -162,8 +162,11 @@ func test_a_portal_jump_snaps_instead_of_sliding() -> void:
 
 func test_fade_starts_after_the_crossing() -> void:
 	var rec := _recording(10.0)
-	assert_true(FinishReplay.ending_time(10.0) >= 10.0 + FinishReplay.CROSS_HOLD)
-	assert_true(FinishReplay.end_of(10.0) <= rec.end_time() + 0.0001, "clip covers the hold")
+	assert_true(FinishReplay.ending_time(10.0) > 10.0)
+	assert_almost_eq(
+		FinishReplay.end_of(10.0) - FinishReplay.ending_time(10.0), FinishReplay.OUTRO_SECONDS, 0.0001
+	)
+	assert_true(FinishReplay.end_of(10.0) <= rec.end_time() + 0.0001, "tail covers hold and outro")
 
 
 func test_ending_waits_for_the_hold_even_when_the_clip_is_short() -> void:

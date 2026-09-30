@@ -542,7 +542,7 @@ func _begin_replay() -> void:
 	_overlay.fade_in(REPLAY_FADE)
 
 
-## The clip is about to run out: dip to dark so the podium does not cut in.
+## The crossing has been shown: dip to dark so the podium does not cut in.
 func _on_replay_ending() -> void:
 	_overlay.fade_out(REPLAY_FADE)
 
@@ -572,7 +572,7 @@ func _on_replay_ended() -> void:
 	var still_racing: bool = _flow.state == GameFlow.State.RACING
 	if not results.is_empty():
 		_report_results(results)
-	# Fully dark already when the clip ran out; a skip dips quickly from wherever it was. After
+	# Fully dark already when the replay ran out; a skip dips quickly from wherever it was. After
 	# the report, because showing the podium resets the overlay.
 	if still_racing:
 		_overlay.fade_in(REPLAY_FADE)
