@@ -181,9 +181,16 @@ func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weigh
 		)
 		if piece.kind != shown:
 			piece.show_as(shown)
-		piece.global_position = Replayable.mix_vector(from, to, weight, base + 1)
-		piece.rotation = lerp_angle(from[base + 3], to[base + 3], weight)
-		_ages[i] = Replayable.mix(from, to, weight, base + 5)
+		# A side where the piece is off holds zeros, so blend only when both sides have it.
+		if from[base] > 0.5 and to[base] > 0.5:
+			piece.global_position = Replayable.mix_vector(from, to, weight, base + 1)
+			piece.rotation = lerp_angle(from[base + 3], to[base + 3], weight)
+			_ages[i] = Replayable.mix(from, to, weight, base + 5)
+		else:
+			var src: PackedFloat32Array = from if from[base] > 0.5 else to
+			piece.global_position = Vector2(src[base + 1], src[base + 2])
+			piece.rotation = src[base + 3]
+			_ages[i] = src[base + 5]
 
 
 ## Replay: the live bodies stand still while the clip plays.
