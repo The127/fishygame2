@@ -6,7 +6,8 @@ license terms beyond the repository's own. Re-run the script and commit the WAVs
 
 | File | Use |
 | --- | --- |
-| `music_ambient.wav` | 32 s seamless underwater ambient loop (pads, water rumble, sparse bubble plucks) |
+| `music_ambient.wav` | 32 s seamless underwater ambient loop for the home screen (pads, water rumble, sparse bubble plucks) |
+| `music_<map id>.wav` | 24 s seamless loop per map (zigzag, pachinko, wreck, whirlpool, jelly, abyss, vents, coral), defined in `tools/music_themes.py`; the `Sound` autoload crossfades to it when a map loads |
 | `sfx_join.wav` | a viewer joins the lobby |
 | `sfx_tick.wav` | countdown tick |
 | `sfx_go.wav` | race start |

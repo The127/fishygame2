@@ -97,9 +97,10 @@ func test_every_effect_has_a_stream_and_music_loops() -> void:
 	for sfx: int in Sound.SFX_PATHS:
 		var stream: AudioStreamWAV = load(Sound.SFX_PATHS[sfx]) as AudioStreamWAV
 		assert_not_null(stream, "effect %d should load" % sfx)
-	var music: AudioStreamWAV = load(Sound.MUSIC_PATH) as AudioStreamWAV
-	assert_not_null(music)
-	assert_true(music.get_length() > 10.0, "music should be a long loop")
+	for id: String in Sound.MUSIC_PATHS:
+		var music: AudioStreamWAV = load(Sound.MUSIC_PATHS[id]) as AudioStreamWAV
+		assert_not_null(music, "theme %s should load" % id)
+		assert_true(music.get_length() > 10.0, "theme %s should be a long loop" % id)
 
 
 func test_play_never_crashes_for_any_effect() -> void:
@@ -109,7 +110,24 @@ func test_play_never_crashes_for_any_effect() -> void:
 
 
 func test_music_loop_covers_the_whole_clip() -> void:
-	var music: AudioStreamWAV = Sound.make_loop(load(Sound.MUSIC_PATH) as AudioStreamWAV)
-	assert_eq(music.loop_mode, AudioStreamWAV.LOOP_FORWARD)
-	assert_eq(music.loop_begin, 0)
-	assert_eq(music.loop_end, roundi(music.get_length() * music.mix_rate))
+	for id: String in Sound.MUSIC_PATHS:
+		var music: AudioStreamWAV = Sound.make_loop(load(Sound.MUSIC_PATHS[id]) as AudioStreamWAV)
+		assert_eq(music.loop_mode, AudioStreamWAV.LOOP_FORWARD)
+		assert_eq(music.loop_begin, 0)
+		assert_eq(music.loop_end, roundi(music.get_length() * music.mix_rate), id)
+
+
+func test_every_map_has_a_music_theme() -> void:
+	for id: String in TrackCatalog.ids():
+		assert_true(Sound.MUSIC_PATHS.has(id), "no music theme for map %s" % id)
+	for id: String in Sound.MUSIC_PATHS:
+		assert_true(ResourceLoader.exists(Sound.MUSIC_PATHS[id]), "missing file for %s" % id)
+
+
+func test_music_theme_switch_and_fallback() -> void:
+	Sound.set_music_theme("abyss")
+	assert_eq(Sound.get_music_theme(), "abyss")
+	Sound.set_music_theme("no_such_map")
+	assert_eq(Sound.get_music_theme(), Sound.HOME_THEME)
+	Sound.set_music_theme(Sound.HOME_THEME)
+	assert_eq(Sound.get_music_theme(), Sound.HOME_THEME)

@@ -27,6 +27,7 @@ var _board: LeaderboardPanel
 
 
 func _ready() -> void:
+	Sound.set_music_theme(Sound.HOME_THEME)
 	_board = LeaderboardPanel.new()
 	_board.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_box.add_child(_board)
