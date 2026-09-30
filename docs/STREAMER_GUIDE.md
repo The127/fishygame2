@@ -58,6 +58,7 @@ Open **Settings** on the home screen (through Interact). Changes save by themsel
 | Min players | 1 | Fish needed before a round can start. Raise to 2 or 3 for real races. |
 | Max players | 20 | Lobby size. |
 | Countdown (s) | 3 | Seconds between Start and the race. |
+| Race time limit (s) | 60 | A race that runs longer ends by itself; fish still on the track count as unfinished. |
 | Map | Random | Pick one map, or let the game choose. Random never repeats the last map. |
 | Auto mode | off | Rounds run without you. |
 | Auto mode join window (s) | 60 | How long the lobby stays open in auto mode. |
@@ -83,14 +84,14 @@ Press 1, 2 or 3 (or the panel button), then left-click the spot on the track. Ri
 
 ## 6. Chat commands for viewers
 
-Post this list in a panel or pinned message. `#help` in chat also shows it.
+Post this list in a panel or pinned message. `#help` in chat shows a short version.
 
 | Command | What it does |
 | --- | --- |
 | `#join` | Join the open lobby with a fish. |
 | `#bet <name> <amount>` | Bet points on a fish by its name (the viewer name on it). `#bet <name> all` bets everything. One bet per round. Winning bets share the pool. |
-| `#boost <name>` | Costs points. Gives that fish a push during the race. Not on your own fish. |
-| `#curse <name>` | Costs points. Hinders that fish. Not on your own fish. |
+| `#boost <name>` | Only during a race. Costs points. Gives that fish a push during the race. Not on your own fish. |
+| `#curse <name>` | Only during a race. Costs points. Hinders that fish. Not on your own fish. |
 | `#points` | Shows your points. |
 | `#stats` | Shows your record. `#stats @name` shows someone else's. |
 | `#top` | The points leaderboard. |
@@ -108,7 +109,7 @@ Also:
 
 ## 7. Debug mode (testing without viewers)
 
-To try everything alone, add `?debug=1` to the address: `https://the127.github.io/fishygame2/?debug=1`. The control panel then has **+1 player** and **+5 players** buttons that add fake fish, plus fake chat.
+To try everything alone, add `?debug=1` to the address: `https://the127.github.io/fishygame2/?debug=1`. The control panel then has **+1 player** and **+5 players** buttons that add fake fish, plus fake chat (only while you are not logged in).
 
 Use it in a private test source, **never on the source you stream with**: fake players and fake chat would show up on stream.
 
