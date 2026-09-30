@@ -205,6 +205,8 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
 Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and collapsing ruined towers on Sunken City. The Jellyfish
+
+Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers. Their tentacles briefly catch and drag along any fish that
 touches them (then let go, and ignore that fish for a few seconds). The hazard is a surge that speeds them up.
@@ -269,6 +271,16 @@ nothing moves, so every state has to stay passable. A ruin is a child of the haz
 `mode`, `lie_degrees` and `height`. The collapse order and timing come from the race seed, not from
 where the fish are. The finish replay shows the shaking and falling towers, the slabs and the dust
 of the crash.
+
+Washing Machine starts the fish inside a steel drum (`scripts/tracks/wash_drum.gd`) that tumbles like
+a real washer: it swings clockwise about 260 degrees, slows and swings back, over and over, so the
+load never rides the wall for long. A gap in the rim is the door, and each time it sweeps past the
+bottom a few fish drop out onto two drain lanes that lead to the finish. There are deliberately no
+baffles inside: a pocket carries its fish round with the door and they never meet, which trapped
+fish for minutes in testing. The drum waits a seeded moment before it starts and never jumps, so the
+rim can not hit a fish. Its hazard is a spin cycle (`scripts/tracks/spin_cycle_hazard.gd`): the drum
+whirls through one or two whole laps, sometimes counterclockwise, then drops back into its tumble
+exactly where it was. The drum keeps tumbling when hazards are off.
 
 ### Finish replay and moving map parts
 

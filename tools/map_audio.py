@@ -135,6 +135,15 @@ JINGLES = {
                   (0.9, 69, 2.0, 1.0), (0.9, 45, 2.0, 1.0)),
         "echo": (0.35, 3, 0.45),
     },
+    # Washing machine: the end-of-cycle beep, three short beeps and a happy C major chord.
+    "washer": {
+        "partials": ((1.0, 1.0), (3.0, 0.3), (5.0, 0.15)),
+        "attack": 0.004,
+        "notes": ((0.0, 88, 0.2, 0.12), (0.3, 88, 0.2, 0.12), (0.6, 88, 0.2, 0.12),
+                  (1.0, 72, 1.7, 0.8), (1.0, 76, 1.7, 0.8), (1.0, 79, 1.7, 0.8),
+                  (1.0, 84, 1.7, 0.8)),
+        "echo": (0.3, 1, 0.3),
+    },
 }
 
 
@@ -439,6 +448,14 @@ def _city(out, rng):
     bubbles(out, rng, 4, 300.0, 700.0, 0.07)
 
 
+def _washer(out, rng):
+    # The hum of the motor, water sloshing around the drum and the load tumbling over.
+    bed(out, rng, 0.0, 300.0, 0.9, swell=0.3, cycles=2)
+    bed(out, rng, 400.0, 1800.0, 0.3, swell=0.8, cycles=2, phase=math.pi)
+    thumps(out, rng, (0.8, 2.9, 4.6, 6.5), 180.0, 0.5)
+    bubbles(out, rng, 8, 500.0, 1100.0, 0.1)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -453,6 +470,7 @@ AMBIENCE = {
     "tide": (41, _tide),
     "fork": (42, _fork),
     "city": (43, _city),
+    "washer": (50, _washer),
 }
 
 

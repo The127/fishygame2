@@ -237,6 +237,24 @@ const PALETTES: Dictionary = {
 		"far_kind": EnvLayer.Kind.RUINS,
 		"sway_scale": 0.2,
 	},
+	"washer":
+	{
+		"sky_top": Color(0.13, 0.23, 0.33),
+		"sky_bottom": Color(0.02, 0.05, 0.09),
+		"far": Color(0.16, 0.28, 0.4),
+		"mid": Color(0.11, 0.2, 0.3),
+		"near": Color(0.02, 0.05, 0.08),
+		"plant": Color(0.2, 0.36, 0.5),
+		"stone_dark": Color(0.1, 0.14, 0.2),
+		"stone_light": Color(0.42, 0.52, 0.62),
+		"rim": Color(0.85, 0.97, 1.0),
+		"ray": Color(0.8, 0.95, 1.0),
+		"fog": Color(0.2, 0.35, 0.5),
+		"mote": Color(1.0, 1.0, 1.0),
+		"layer_kind": EnvLayer.Kind.MASTS,
+		"far_kind": EnvLayer.Kind.SPIRES,
+		"sway_scale": 0.6,
+	},
 }
 const DEFAULT_STYLE: String = "kelp"
 
@@ -255,4 +273,5 @@ const FOREGROUND: Dictionary = {
 	"tide": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
 	"reef": [EnvLayer.Kind.KELP, EnvLayer.Kind.CORAL],
 	"city": [EnvLayer.Kind.RUINS, EnvLayer.Kind.RUINS],
+	"washer": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.MASTS],
 }
