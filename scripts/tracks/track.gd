@@ -36,9 +36,33 @@ func _ready() -> void:
 ## Lets the map's seeded gimmicks (drifting obstacles and the like) choose their layout for a
 ## race. Draws nothing from `rng` on maps that have none.
 func seed_gimmicks(rng: RandomNumberGenerator) -> void:
+	# Read before any draw and never advanced, so the duck cannot shift a race's layout.
+	var duck_seed: int = hash(rng.state)
 	for child: Node in get_children():
 		if child.has_method("reseed"):
 			child.call("reseed", rng.randi())
+	_float_duck(duck_seed)
+
+
+## Easter egg: on rare races a rubber duck drifts through the background. Purely visual.
+func _float_duck(duck_seed: int) -> void:
+	var old: Node = get_node_or_null("RubberDuck")
+	if old != null:
+		remove_child(old)
+		old.queue_free()
+	if RubberDuck.appears(duck_seed):
+		add_child(RubberDuck.create(duck_seed, view_bounds))
+
+
+## Puts a duck on the map right now, whatever the odds. Used by tests and the debug tools.
+func force_duck(duck_seed: int) -> RubberDuck:
+	var old: Node = get_node_or_null("RubberDuck")
+	if old != null:
+		remove_child(old)
+		old.queue_free()
+	var duck: RubberDuck = RubberDuck.create(duck_seed, view_bounds)
+	add_child(duck)
+	return duck
 
 
 ## Plans this map's hazard events for a race. Each hazard draws its own seed from `rng`.
