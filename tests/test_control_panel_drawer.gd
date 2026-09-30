@@ -160,9 +160,7 @@ func test_tab_bar_shows_cooldown_when_drawer_closed() -> void:
 	assert_almost_eq(quarter, _tab().size.x * 0.25, 0.5)
 	assert_almost_eq(_tab_bar().global_position.x, _tab().global_position.x, 0.5)
 	assert_almost_eq(
-		_tab_bar().global_position.y,
-		_tab().get_global_rect().end.y + ControlPanel.TAB_BAR_GAP,
-		0.5
+		_tab_bar().global_position.y, _tab().get_global_rect().end.y + ControlPanel.TAB_BAR_GAP, 0.5
 	)
 	_panel.set_power_cooldown(2.0, 8.0)
 	assert_gt(_tab_bar().size.x, quarter, "bar grows left to right")
