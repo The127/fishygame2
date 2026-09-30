@@ -4,7 +4,7 @@ extends RefCounted
 
 
 ## "Ann: 12 races, 3 wins, 5 podiums | best 18.4s on Zigzag | bets 4 won, 6 lost (-120) | 7 boosts,
-## 2 curses". Parts with nothing to show are left out. [param points] supplies the wins.
+## 2 curses, 3 treasures (+75)". Parts with nothing to show are left out. [param points] supplies the wins.
 static func chat_text(points: PointsStore, user_id: String) -> String:
 	var stats: ViewerStats = points.stats
 	var who: String = points.get_name(user_id)
@@ -34,6 +34,14 @@ static func chat_text(points: PointsStore, user_id: String) -> String:
 		parts.append(_count(boosts, "boost"))
 	if curses > 0:
 		parts.append(_count(curses, "curse"))
+	var treasures: int = stats.get_counter(user_id, "treasures")
+	if treasures > 0:
+		parts.append(
+			(
+				"%s (+%d)"
+				% [_count(treasures, "treasure"), stats.get_counter(user_id, "treasure_points")]
+			)
+		)
 	var eaten: int = stats.get_counter(user_id, "eaten")
 	if eaten > 0:
 		parts.append("eaten %s" % ("once" if eaten == 1 else "%d times" % eaten))

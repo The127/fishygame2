@@ -587,3 +587,92 @@ shape = SubResource("Rect_finish")
 z_index = -5
 color = Color(0.95, 0.85, 0.2, 0.3)
 polygon = PackedVector2Array(-395, -70, 395, -70, 395, 70, -395, 70)
+
+[node name="TreasureSpots" type="Node2D" parent="."]
+
+[node name="S0" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(323, 70)
+
+[node name="S1" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(407, 96)
+
+[node name="S2" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(496, 120)
+
+[node name="S3" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(599, 152)
+
+[node name="S4" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(784, 340)
+
+[node name="S5" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(667, 429)
+
+[node name="S6" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(509, 409)
+
+[node name="S7" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(517, 546)
+
+[node name="S8" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(321, 478)
+
+[node name="S9" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(253, 550)
+
+[node name="S10" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(209, 636)
+
+[node name="S11" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(133, 672)
+
+[node name="S12" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(73, 745)
+
+[node name="S13" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(69, 827)
+
+[node name="S14" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(138, 847)
+
+[node name="S15" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(229, 860)
+
+[node name="S16" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(321, 865)
+
+[node name="S17" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(406, 868)
+
+[node name="S18" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(500, 889)
+
+[node name="S19" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(580, 903)
+
+[node name="S20" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(697, 768)
+
+[node name="S21" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(764, 911)
+
+[node name="S22" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(850, 919)
+
+[node name="S23" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(976, 680)
+
+[node name="S24" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1033, 960)
+
+[node name="S25" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1124, 978)
+
+[node name="S26" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1219, 990)
+
+[node name="S27" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1304, 1039)
+
+[node name="S28" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1384, 1041)

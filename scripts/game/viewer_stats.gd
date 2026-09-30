@@ -12,7 +12,16 @@ const MAX_MAPS: int = 64
 const MAX_MAP_ID_LENGTH: int = 64
 ## Counters stored as plain non-negative integers.
 const COUNTERS: PackedStringArray = [
-	"races", "podiums", "dnfs", "bets_won", "bets_lost", "boosts", "curses", "eaten"
+	"races",
+	"podiums",
+	"dnfs",
+	"bets_won",
+	"bets_lost",
+	"boosts",
+	"curses",
+	"eaten",
+	"treasures",
+	"treasure_points"
 ]
 
 ## user_id -> {counters..., "bet_net": int, "best_times": {map_id: seconds}}
@@ -110,6 +119,13 @@ func record_curse(user_id: String) -> void:
 ## The viewer's fish was eaten (by an Abyss anglerfish).
 func record_eaten(user_id: String) -> void:
 	_bump(user_id, "eaten")
+
+
+## The viewer's fish collected `count` treasures worth `points` in total.
+func record_treasure(user_id: String, count: int, points: int) -> void:
+	var row: Dictionary = _ensure(user_id)
+	row["treasures"] = clampi(int(row.get("treasures", 0)) + count, 0, MAX_VALUE)
+	row["treasure_points"] = clampi(int(row.get("treasure_points", 0)) + points, 0, MAX_VALUE)
 
 
 func to_dict() -> Dictionary:

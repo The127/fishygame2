@@ -121,6 +121,10 @@ var _power_note: String = ""
 var _power_note_until_msec: int = 0
 ## Names of the fish that did not finish the last race, in results order.
 var _dnf_names: PackedStringArray = []
+## user_id -> {"name": String, "count": int, "points": int} for the treasures found this race.
+var _haul: Dictionary = {}
+## The treasure part of the result line, "@a +50, @b +25", or empty.
+var _haul_text: String = ""
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
@@ -225,6 +229,7 @@ func _ready() -> void:
 	_replay.ending.connect(_on_replay_ending)
 	_race.photo_finish.connect(_on_photo_finish)
 	_race.fish_snapped.connect(_on_fish_snapped)
+	_race.treasure_collected.connect(_on_treasure_collected)
 	_photo.ended.connect(_camera.release_hold)
 	# After Betting.on_podium_ready, which settles the payouts this handler reports.
 	_flow.podium_ready.connect(_on_podium_ready)
@@ -242,6 +247,7 @@ func _apply_settings() -> void:
 	_flow.max_players = settings.max_players
 	_flow.countdown_seconds = settings.effective_countdown()
 	_race.time_limit = float(settings.race_time_limit)
+	_race.treasures_enabled = settings.treasures_enabled
 	_flow.set_auto_mode(settings.auto_mode, float(settings.auto_join_seconds))
 	_betting.starting_balance = settings.starting_balance
 	_betting.points.starting_balance = settings.starting_balance
@@ -393,6 +399,47 @@ func _reply_stats(msg: ChatMessage, args: PackedStringArray) -> void:
 
 ## Feed it Race.race_finished: counts the race for everyone on the field and keeps the times
 ## and podium places. Ids are roster indexes.
+func _on_treasure_collected(id: int, kind: int, value: int) -> void:
+	Sound.play(Sound.Sfx.BOOST)
+	var contestants: Array[Contestant] = _flow.get_contestants()
+	if id < 0 or id >= contestants.size():
+		return
+	var found: Contestant = contestants[id]
+	var entry: Dictionary = _haul.get(
+		found.user_id, {"name": found.display_name, "count": 0, "points": 0}
+	)
+	entry["count"] = int(entry["count"]) + 1
+	entry["points"] = int(entry["points"]) + value
+	_haul[found.user_id] = entry
+	_overlay.show_notice(
+		"%s found a %s! +%d" % [found.display_name, Treasure.name_of(kind as Treasure.Kind), value]
+	)
+
+
+## Pays out the treasures found this race and builds the result-line text. Only runs when the
+## race really ends, so a stopped round pays nothing.
+func _settle_treasures() -> void:
+	var points: PointsStore = _betting.points
+	var entries: Array[Dictionary] = []
+	for user_id: String in _haul:
+		var entry: Dictionary = _haul[user_id]
+		points.add(user_id, int(entry["points"]))
+		points.stats.record_treasure(user_id, int(entry["count"]), int(entry["points"]))
+		entries.append(entry)
+	_haul = {}
+	entries.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool: return a["points"] > b["points"]
+	)
+	var parts: PackedStringArray = []
+	for entry: Dictionary in entries.slice(0, RESULT_PAYOUTS):
+		parts.append("@%s +%d" % [entry["name"], entry["points"]])
+	if entries.size() > RESULT_PAYOUTS:
+		parts.append("+%d more" % (entries.size() - RESULT_PAYOUTS))
+	_haul_text = ", ".join(parts)
+	if not entries.is_empty():
+		points.save_to_disk()
+
+
 func _record_race_stats(results: Array[Dictionary]) -> void:
 	var points: PointsStore = _betting.points
 	var contestants: Array[Contestant] = _flow.get_contestants()
@@ -551,6 +598,7 @@ func _on_replay_ending() -> void:
 ## race really ends, so a round stopped during the replay leaves no stats behind.
 func _report_results(results: Array[Dictionary]) -> void:
 	_record_race_stats(results)
+	_settle_treasures()
 	_flow.report_race_finished(results)
 
 
@@ -597,8 +645,10 @@ func _follow_replay() -> void:
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	var payouts: Array[Dictionary] = _payouts
 	var dnf: PackedStringArray = _dnf_names
+	var haul: String = _haul_text
 	_payouts = []
 	_dnf_names = []
+	_haul_text = ""
 	_overlay.show_dnf(dnf)
 	if podium.is_empty():
 		if not dnf.is_empty():
@@ -606,7 +656,10 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 		return
 	Sound.play_win()
 	_confirm(
-		"reply_results", "results", "Race over:", _result_text(str(podium[0]["name"]), payouts, dnf)
+		"reply_results",
+		"results",
+		"Race over:",
+		_result_text(str(podium[0]["name"]), payouts, dnf, haul)
 	)
 
 
@@ -857,7 +910,7 @@ func _on_payouts_settled(results: Array[Dictionary]) -> void:
 ## "Bubbles won. Payouts: @a +300, @b +200. DNF: c, d", with at most three payouts, biggest
 ## first, and at most three DNF names.
 func _result_text(
-	winner: String, payouts: Array[Dictionary], dnf: PackedStringArray = []
+	winner: String, payouts: Array[Dictionary], dnf: PackedStringArray = [], treasure: String = ""
 ) -> String:
 	var paid: Array[Dictionary] = payouts.filter(
 		func(r: Dictionary) -> bool: return r["payout"] > 0
@@ -866,13 +919,19 @@ func _result_text(
 	var parts: PackedStringArray = []
 	for r: Dictionary in paid.slice(0, RESULT_PAYOUTS):
 		parts.append("@%s +%d" % [r["name"], r["payout"]])
-	var text: String = "%s won." % winner
+	var sections: PackedStringArray = []
 	if not parts.is_empty():
-		text += " Payouts: " + ", ".join(parts)
+		sections.append("Payouts: " + ", ".join(parts))
+	if not treasure.is_empty():
+		sections.append("Treasure: " + treasure)
 	if not dnf.is_empty():
-		text += (" " if parts.is_empty() else ". ") + "DNF: " + ", ".join(dnf.slice(0, RESULT_DNF))
+		var names: String = "DNF: " + ", ".join(dnf.slice(0, RESULT_DNF))
 		if dnf.size() > RESULT_DNF:
-			text += " +%d more" % (dnf.size() - RESULT_DNF)
+			names += " +%d more" % (dnf.size() - RESULT_DNF)
+		sections.append(names)
+	var text: String = "%s won." % winner
+	if not sections.is_empty():
+		text += " " + ". ".join(sections)
 	return text
 
 
@@ -903,6 +962,8 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 			_confirm("reply_shop", "welcome", "Welcome!", "@%s (free %s)" % [name, welcome["hat"]])
 			_overlay.show_notice("Welcome %s! Here's a free %s" % [name, welcome["hat"]])
 	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
+	_haul = {}
+	_haul_text = ""
 	_race.start(_track, contestants.size(), rng, settings.hazard_level(), _event)
 	_overlay.show_event_badge(_event_badge_text())
 	# Marble ids are roster ids, so match on id rather than on list order.

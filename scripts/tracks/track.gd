@@ -48,6 +48,29 @@ func seed_gimmicks(rng: RandomNumberGenerator) -> void:
 	_float_duck(duck_seed)
 
 
+## Global positions of the race's treasures, one `{kind, position}` each. They lie on the map's
+## `TreasureSpots` markers (ordered along the route the fish really take) when it has them, else on
+## the centerline. A pure function of `treasure_seed`.
+func treasure_spots(treasure_seed: int) -> Array[Dictionary]:
+	var spots: Array[Dictionary] = []
+	var markers: Node = get_node_or_null("TreasureSpots")
+	var curve: Curve2D = _centerline.curve
+	var length: float = curve.get_baked_length()
+	var marker_count: int = markers.get_child_count() if markers != null else 0
+	if marker_count == 0 and length <= 0.0:
+		return spots
+	for entry: Dictionary in Treasure.plan(treasure_seed):
+		var progress: float = float(entry["progress"])
+		var at: Vector2
+		if marker_count > 0:
+			var marker: Node2D = markers.get_child(roundi(progress * float(marker_count - 1)))
+			at = marker.global_position
+		else:
+			at = _centerline.to_global(curve.sample_baked(progress * length))
+		spots.append({"kind": entry["kind"], "position": at})
+	return spots
+
+
 ## Easter egg: on rare races a rubber duck drifts through the background. Purely visual.
 func _float_duck(duck_seed: int) -> void:
 	var old: Node = get_node_or_null("RubberDuck")
