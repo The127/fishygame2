@@ -26,7 +26,7 @@ size = Vector2(1100, 90)
 size = Vector2(1300, 90)
 [sub_resource type="Curve2D" id="Curve_center"]
 _data = {
-"points": PackedVector2Array(0, 0, 0, 0, 60, 100, 0, 0, 0, 0, 1560, 320, 0, 0, 0, 0, 1750, 395, 0, 0, 0, 0, 1770, 450, 0, 0, 0, 0, 330, 700, 0, 0, 0, 0, 180, 760, 0, 0, 0, 0, 200, 830, 0, 0, 0, 0, 1300, 980, 0, 0, 0, 0, 1600, 1005)
+"points": PackedVector2Array(0, 0, 0, 0, 60, 100, 0, 0, 0, 0, 1560, 320, 0, 0, 0, 0, 1600, 420, 0, 0, 0, 0, 1600, 505, 0, 0, 0, 0, 330, 700, 0, 0, 0, 0, 300, 750, 0, 0, 0, 0, 900, 750, 0, 0, 0, 0, 1300, 935, 0, 0, 0, 0, 1600, 1005)
 }
 point_count = 9
 [node name="Track" type="Node2D"]
@@ -226,7 +226,7 @@ curve = SubResource("Curve_center")
 z_index = -5
 width = 2.0
 default_color = Color(1, 1, 1, 0.12)
-points = PackedVector2Array(60, 100, 1560, 320, 1750, 395, 1770, 450, 330, 700, 180, 760, 200, 830, 1300, 980, 1600, 1005)
+points = PackedVector2Array(60, 100, 1560, 320, 1600, 420, 1600, 505, 330, 700, 300, 750, 900, 750, 1300, 935, 1600, 1005)
 
 [node name="SpawnOrigin" type="Marker2D" parent="."]
 position = Vector2(60, 60)
