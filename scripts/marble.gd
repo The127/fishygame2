@@ -81,6 +81,8 @@ var accessory: int = 0:
 ## A [enum FishTrail.Kind]; 0 is the plain bubble trail.
 var trail: int = 0:
 	set(value):
+		if value == trail:
+			return
 		trail = value
 		if _trail != null:
 			_build_trail()
