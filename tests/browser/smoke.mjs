@@ -152,8 +152,10 @@ async function main() {
     const stake = 100;
     const kept = 1000 - stake;
     const expected = podium.podium[0] === "bob" ? kept + 2 * stake : kept;
-    if (settled !== expected) {
-      fail(`alice ended with ${settled}, expected ${expected} (winner: ${podium.podium[0]})`);
+    // Her fish may also have picked up treasures: at most 4 chests of 50 points each.
+    const maxTreasure = 4 * 50;
+    if (settled < expected || settled > expected + maxTreasure) {
+      fail(`alice ended with ${settled}, expected ${expected} plus treasure up to ${maxTreasure} (winner: ${podium.podium[0]})`);
     }
 
     log(`reload with alice at ${settled}`);

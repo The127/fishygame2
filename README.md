@@ -84,6 +84,16 @@ apply, and everything is in the settings (Streamer powers tab). Using a power sh
 notice and a chat line. Races where the streamer used a power can't be replayed from their seed;
 seed-only races (the debug race and the CI seed sweeps) never use powers.
 
+## Treasures
+
+Each race scatters 2 to 4 glowing treasures on the map: a coin (15 points), a pearl (25) or a chest
+(50). The first fish to touch one takes it, with a sparkle and the amount floating up, and its
+viewer is paid when the race ends normally (a stopped round pays nothing). Finders show in the chat
+result line and count in `#stats`. Purely visual: a treasure never pushes a fish. Where they lie is
+a function of the race seed. A map lists its spots as `Marker2D` children of a `TreasureSpots` node,
+ordered along the route fish really take; maps without one use the centerline. Turn them off in the
+settings (Race tab).
+
 ## Sound
 
 `Sound` (autoload) plays an ambient music loop and effects for join, countdown, race start,

@@ -20,6 +20,7 @@ const TABS: Array[Dictionary] = [
 			"default_map",
 			"hazards_enabled",
 			"hazard_frequency",
+			"treasures_enabled",
 			"auto_mode",
 			"auto_join_seconds",
 			"finish_replay",
@@ -77,6 +78,7 @@ var _auto_mode: CheckBox
 var _hazards: CheckBox
 var _powers: CheckBox
 var _random_events: CheckBox
+var _treasures: CheckBox
 var _chat_replies: CheckBox
 var _reply_toggles: Dictionary[String, CheckBox] = {}
 var _colorblind: CheckBox
@@ -214,6 +216,10 @@ func _build_controls() -> Dictionary[String, Control]:
 	_powers.toggled.connect(_on_powers_toggled)
 	_captions["powers_enabled"] = "Streamer powers (rod, net, bubble blast)"
 	controls["powers_enabled"] = _powers
+	_treasures = _make_check("On")
+	_treasures.toggled.connect(_on_treasures_toggled)
+	_captions["treasures_enabled"] = "Treasures (fish earn points)"
+	controls["treasures_enabled"] = _treasures
 	_random_events = _make_check("On")
 	_random_events.toggled.connect(_on_random_events_toggled)
 	_captions["random_events"] = "Random events (a wheel before each race)"
@@ -310,6 +316,7 @@ func _refresh() -> void:
 	_powers.set_pressed_no_signal(settings.powers_enabled)
 	_spinners["power_cooldown"].editable = settings.powers_enabled
 	_spinners["powers_per_race"].editable = settings.powers_enabled
+	_treasures.set_pressed_no_signal(settings.treasures_enabled)
 	_random_events.set_pressed_no_signal(settings.random_events)
 	_auto_mode.set_pressed_no_signal(settings.auto_mode)
 	_chat_replies.set_pressed_no_signal(settings.chat_replies)
@@ -343,6 +350,11 @@ func _on_hazards_toggled(pressed: bool) -> void:
 
 func _on_powers_toggled(pressed: bool) -> void:
 	settings.powers_enabled = pressed
+	_commit()
+
+
+func _on_treasures_toggled(pressed: bool) -> void:
+	settings.treasures_enabled = pressed
 	_commit()
 
 

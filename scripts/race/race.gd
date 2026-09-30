@@ -8,6 +8,8 @@ signal race_finished(results: Array[Dictionary])
 signal fish_snapped(ids: Array[int])
 ## The winner just crossed with `chaser_id` about to follow. Visual cue only.
 signal photo_finish(winner_id: int, chaser_id: int)
+## A fish picked up a treasure worth `value` points. `kind` is a [enum Treasure.Kind].
+signal treasure_collected(id: int, kind: int, value: int)
 
 const SPAWN_JITTER: float = 3.0
 ## Impulse per unit of mass with which the streamer's hook yanks a fish back up the track.
@@ -25,6 +27,9 @@ const NET_DRAG: float = 14.0
 ## Race length in seconds; fish still racing at that point are DNF. 0 or less means no limit.
 @export var time_limit: float = 0.0
 
+## Whether treasures lie on the map. Set before [method start].
+@export var treasures_enabled: bool = true
+
 ## The random event this race runs under (see [RaceEvent]), [constant RaceEvent.NOTHING] for none.
 var event: String = RaceEvent.NOTHING
 var elapsed: float = 0.0
@@ -36,6 +41,7 @@ var _track: Track
 var _ranking: RaceRanking
 var _marbles: Dictionary = {}
 var _nets: Array[NetZone] = []
+var _treasures: Array[Treasure] = []
 var _snap_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _snap_pending: bool = false
 var _snap_time: float = 0.0
@@ -85,6 +91,8 @@ func start(
 		_marbles[i] = marble
 	_ranking = RaceRanking.new(ids)
 	_track.seed_gimmicks(rng)
+	# Read before any later draw and never advanced, so treasures cannot shift a race's layout.
+	_place_treasures(hash(rng.state) if treasures_enabled else 0)
 	_track.arm_hazards(rng, RaceEvent.hazard_level(event, hazard_frequency))
 	_recorder = ReplayRecorder.new(count)
 	_sample_positions.resize(count)
@@ -111,6 +119,11 @@ func clear() -> void:
 			remove_child(net)
 			net.queue_free()
 	_nets.clear()
+	for treasure: Treasure in _treasures:
+		if is_instance_valid(treasure):
+			remove_child(treasure)
+			treasure.queue_free()
+	_treasures.clear()
 	for marble: Marble in _marbles.values():
 		# Leave the tree now so a stale marble can't trigger the finish area this frame.
 		remove_child(marble)
@@ -282,6 +295,41 @@ func _live_in(pos: Vector2, radius: float) -> Array[Marble]:
 	return found
 
 
+func _place_treasures(treasure_seed: int) -> void:
+	if not treasures_enabled:
+		return
+	for spot: Dictionary in _track.treasure_spots(treasure_seed):
+		var treasure: Treasure = Treasure.new()
+		treasure.kind = spot["kind"]
+		add_child(treasure)
+		treasure.global_position = spot["position"]
+		_treasures.append(treasure)
+
+
+## Treasures still lying on the map.
+func treasures_left() -> int:
+	return _treasures.filter(func(t: Treasure) -> bool: return not t.collected).size()
+
+
+## The first fish within reach takes each treasure (the lowest id if several touch at once).
+func _collect_treasures() -> void:
+	for treasure: Treasure in _treasures:
+		if treasure.collected:
+			continue
+		var finder: Marble = null
+		for id: int in _marbles:
+			var marble: Marble = _live_marble(id)
+			if (
+				marble != null
+				and marble.global_position.distance_to(treasure.global_position) <= Treasure.REACH
+			):
+				finder = marble
+				break
+		if finder != null:
+			treasure.collect()
+			treasure_collected.emit(finder.id, treasure.kind, treasure.value())
+
+
 func _hold_in_nets() -> void:
 	_nets = _nets.filter(func(net: NetZone) -> bool: return is_instance_valid(net))
 	for net: NetZone in _nets:
@@ -295,6 +343,7 @@ func _physics_process(delta: float) -> void:
 	if not running:
 		return
 	_hold_in_nets()
+	_collect_treasures()
 	elapsed += delta
 	if _snap_pending and elapsed >= _snap_time:
 		_snap()

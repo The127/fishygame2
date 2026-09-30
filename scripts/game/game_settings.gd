@@ -159,6 +159,8 @@ var welcome_hat: bool = true
 var powers_enabled: bool = true
 ## Whether maps run their hazard events (currents, eels, collapsing planks).
 var hazards_enabled: bool = true
+## Whether treasures lie on the maps for the fish to collect.
+var treasures_enabled: bool = true
 ## Whether a wheel is spun before every race, landing on a modifier now and then (see
 ## [RaceEvent]).
 var random_events: bool = false
@@ -217,6 +219,7 @@ func reset_to_defaults() -> void:
 	welcome_hat = fresh.welcome_hat
 	hazards_enabled = fresh.hazards_enabled
 	powers_enabled = fresh.powers_enabled
+	treasures_enabled = fresh.treasures_enabled
 	random_events = fresh.random_events
 
 
@@ -258,6 +261,9 @@ func load_settings() -> void:
 	var powers: Variant = file.get_value(SECTION, "powers_enabled", powers_enabled)
 	if powers is bool:
 		powers_enabled = powers
+	var treasures: Variant = file.get_value(SECTION, "treasures_enabled", treasures_enabled)
+	if treasures is bool:
+		treasures_enabled = treasures
 	var events: Variant = file.get_value(SECTION, "random_events", random_events)
 	if events is bool:
 		random_events = events
@@ -282,6 +288,7 @@ func save() -> bool:
 	file.set_value(SECTION, "welcome_hat", welcome_hat)
 	file.set_value(SECTION, "hazards_enabled", hazards_enabled)
 	file.set_value(SECTION, "powers_enabled", powers_enabled)
+	file.set_value(SECTION, "treasures_enabled", treasures_enabled)
 	file.set_value(SECTION, "random_events", random_events)
 	return file.save(save_path) == OK
 
