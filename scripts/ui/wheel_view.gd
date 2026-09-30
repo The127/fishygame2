@@ -84,7 +84,9 @@ func _draw() -> void:
 		if RaceEvent.is_event(_slices[i]):
 			_draw_label(font, RaceEvent.short_of(_slices[i]), radius, flip)
 		else:
-			draw_circle(Vector2(-radius * 0.72 if flip else radius * 0.72, 0.0), 3.0, Color(1, 1, 1, 0.22))
+			draw_circle(
+				Vector2(-radius * 0.72 if flip else radius * 0.72, 0.0), 3.0, Color(1, 1, 1, 0.22)
+			)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	draw_arc(center, radius, 0.0, TAU, 64, UiStyle.CYAN, 3.0, true)
 	# Pointer at the top, pointing down into the wheel.
@@ -100,8 +102,10 @@ func _draw() -> void:
 func _draw_label(font: Font, text: String, radius: float, flip: bool) -> void:
 	var inner: float = radius * 0.3
 	var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE).x
-	var start: float = inner + (radius * 0.92 - inner - width) * 0.5
-	var pos := Vector2(-(start + width) if flip else start, float(LABEL_SIZE) * 0.35)
+	var start: float = inner + (radius * 0.86 - inner - width) * 0.5
+	var pos: Vector2 = Vector2(-(start + width) if flip else start, float(LABEL_SIZE) * 0.35)
 	var outline: Color = Color(0, 0, 0, 0.85)
-	draw_string_outline(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, LABEL_OUTLINE, outline)
+	draw_string_outline(
+		font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, LABEL_OUTLINE, outline
+	)
 	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, Color.WHITE)
