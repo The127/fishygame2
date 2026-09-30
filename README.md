@@ -176,7 +176,9 @@ Whirlpool and a tide that sloshes the flip gates on Coral Maze. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers. Their tentacles briefly catch and drag along any fish that
 touches them (then let go, and ignore that fish for a few seconds). The hazard is a surge that speeds them up.
-Abyss has an unstable portal that throws fish back. Events are planned from the race seed, so a seed replays the same
+Abyss has an unstable portal that throws fish back and two big anglerfish that lunge at fish in
+reach, swallow them and spit them out again at an earlier ramp a moment later (a fish is eaten at
+most once per race). Events are planned from the race seed, so a seed replays the same
 ones, and the seed runs above have them on (frequency 3). Pass `--hazards=0` to
 `scenes/debug/race_debug.tscn` to run without them. Streamers turn them off or change how often
 they strike in Settings > Race.

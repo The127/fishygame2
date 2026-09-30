@@ -144,3 +144,13 @@ func test_stats_does_not_share_other_cooldowns() -> void:
 	_say("0", "#help")
 	_say("0", "#stats")
 	assert_eq(_source.sent.size(), 2)
+
+
+func test_an_eaten_fish_is_counted_and_announced() -> void:
+	_start_race(3)
+	var marble: Marble = _race.get_marbles()[1]
+	_game._track.fish_eaten.emit(marble)
+	assert_eq(_stats().get_counter("1", "eaten"), 1)
+	assert_eq(_stats().get_counter("0", "eaten"), 0)
+	assert_string_contains(_game._overlay._notice.text, "got eaten")
+	assert_string_contains(_game._overlay._notice.text, "@" + marble.label_text)

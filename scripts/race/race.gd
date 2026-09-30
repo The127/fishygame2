@@ -176,6 +176,8 @@ func get_position_map() -> Dictionary:
 		if _ranking != null and _ranking.is_finished(id):
 			continue
 		var marble: Marble = _marbles[id]
+		if marble.eaten:
+			continue
 		positions[id] = marble.global_position
 	return positions
 
@@ -192,7 +194,7 @@ func get_progress_map() -> Dictionary:
 func _live_marble(id: int) -> Marble:
 	if not running or _ranking == null or not _marbles.has(id):
 		return null
-	if _ranking.is_finished(id):
+	if _ranking.is_finished(id) or (_marbles[id] as Marble).eaten:
 		return null
 	return _marbles[id]
 
@@ -244,6 +246,7 @@ func _on_marble_reached_finish(body: Node2D) -> void:
 	var place: int = _ranking.record_finish(marble.id, elapsed)
 	if place == 0:
 		return
+	marble.has_finished = true
 	marble.splash()
 	if place == 1:
 		marble.celebrate()

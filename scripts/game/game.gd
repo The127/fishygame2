@@ -412,6 +412,17 @@ func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:
 	_photo.start()
 
 
+func _on_fish_eaten(marble: Marble) -> void:
+	Sound.play(Sound.Sfx.CURSE)
+	var who: String = "@" + marble.label_text if marble.label_text != "" else "A fish"
+	_overlay.show_notice("%s got eaten!" % who, 3.0)
+	# Marble ids are roster indexes.
+	var contestants: Array[Contestant] = _flow.get_contestants()
+	if marble.id >= 0 and marble.id < contestants.size():
+		_betting.points.stats.record_eaten(contestants[marble.id].user_id)
+		_betting.points.save_to_disk()
+
+
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	var payouts: Array[Dictionary] = _payouts
 	_payouts = []
@@ -465,6 +476,7 @@ func _load_map() -> void:
 		_track.queue_free()
 	_map_id = id
 	_track = TrackCatalog.instantiate(id)
+	_track.fish_eaten.connect(_on_fish_eaten)
 	add_child(_track)
 	move_child(_track, 0)
 	_camera.set_bounds(_track.view_bounds)

@@ -101,7 +101,7 @@ func record_curse(user_id: String) -> void:
 	_bump(user_id, "curses")
 
 
-## The viewer's fish was eaten (the Abyss anglerfish). Nothing calls this until that lands.
+## The viewer's fish was eaten (by an Abyss anglerfish).
 func record_eaten(user_id: String) -> void:
 	_bump(user_id, "eaten")
 
