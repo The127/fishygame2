@@ -118,7 +118,7 @@ Use it in a private test source, **never on the source you stream with**: fake p
 1. Open the game, log in if the home screen asks for it.
 2. Check the version tag in the corner of the control panel (see "Stale version" below).
 3. Start a test round with `?debug=1` on a separate source, or just `#join` yourself.
-4. Check that you hear the music in the OBS audio mixer.
+4. Check that the source moves in the OBS Audio Mixer. If the "Click anywhere to enable sound" note is showing, click once through Interact.
 
 ## Troubleshooting
 
@@ -126,7 +126,7 @@ Use it in a private test source, **never on the source you stream with**: fake p
 
 1. On the source, tick **Control audio via OBS** (right-click the source > Properties).
 2. In the OBS **Audio Mixer** the source should appear and not be muted. Move its slider up.
-3. Browsers only start sound after a click or key press. Open **Interact** on the source and click anywhere once, for example on **Open lobby**.
+3. Browsers only start sound after a click or key press. While they block it, the game shows a small "Click anywhere to enable sound" note at the bottom. Right-click the source, choose **Interact** and click anywhere once (for example on **Open lobby**). The note disappears.
 4. In the game's control panel, check that **Mute all sound** is off and the Master, Music and Effects sliders are up.
 5. Still nothing: right-click the source and choose **Refresh cache of current page**, then click once more.
 
