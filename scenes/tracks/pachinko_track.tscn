@@ -839,17 +839,6 @@ shape = SubResource("Circle_peg")
 color = Color(0.95, 0.75, 0.25, 1)
 polygon = PackedVector2Array(1677, 770, 1676.168, 775.253, 1673.753, 779.992, 1669.992, 783.753, 1665.253, 786.168, 1660, 787, 1654.747, 786.168, 1650.008, 783.753, 1646.247, 779.992, 1643.832, 775.253, 1643, 770, 1643.832, 764.747, 1646.247, 760.008, 1650.008, 756.247, 1654.747, 753.832, 1660, 753, 1665.253, 753.832, 1669.992, 756.247, 1673.753, 760.008, 1676.168, 764.747)
 
-[node name="Peg60" type="StaticBody2D" parent="."]
-physics_material_override = SubResource("PM_peg")
-
-[node name="Collider" type="CollisionShape2D" parent="Peg60"]
-position = Vector2(160, 840)
-shape = SubResource("Circle_peg")
-
-[node name="Visual" type="Polygon2D" parent="Peg60"]
-color = Color(0.95, 0.75, 0.25, 1)
-polygon = PackedVector2Array(177, 840, 176.168, 845.253, 173.753, 849.992, 169.992, 853.753, 165.253, 856.168, 160, 857, 154.747, 856.168, 150.008, 853.753, 146.247, 849.992, 143.832, 845.253, 143, 840, 143.832, 834.747, 146.247, 830.008, 150.008, 826.247, 154.747, 823.832, 160, 823, 165.253, 823.832, 169.992, 826.247, 173.753, 830.008, 176.168, 834.747)
-
 [node name="Peg61" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
 
@@ -926,17 +915,6 @@ shape = SubResource("Circle_peg")
 [node name="Visual" type="Polygon2D" parent="Peg67"]
 color = Color(0.95, 0.75, 0.25, 1)
 polygon = PackedVector2Array(1577, 840, 1576.168, 845.253, 1573.753, 849.992, 1569.992, 853.753, 1565.253, 856.168, 1560, 857, 1554.747, 856.168, 1550.008, 853.753, 1546.247, 849.992, 1543.832, 845.253, 1543, 840, 1543.832, 834.747, 1546.247, 830.008, 1550.008, 826.247, 1554.747, 823.832, 1560, 823, 1565.253, 823.832, 1569.992, 826.247, 1573.753, 830.008, 1576.168, 834.747)
-
-[node name="Peg68" type="StaticBody2D" parent="."]
-physics_material_override = SubResource("PM_peg")
-
-[node name="Collider" type="CollisionShape2D" parent="Peg68"]
-position = Vector2(1760, 840)
-shape = SubResource("Circle_peg")
-
-[node name="Visual" type="Polygon2D" parent="Peg68"]
-color = Color(0.95, 0.75, 0.25, 1)
-polygon = PackedVector2Array(1777, 840, 1776.168, 845.253, 1773.753, 849.992, 1769.992, 853.753, 1765.253, 856.168, 1760, 857, 1754.747, 856.168, 1750.008, 853.753, 1746.247, 849.992, 1743.832, 845.253, 1743, 840, 1743.832, 834.747, 1746.247, 830.008, 1750.008, 826.247, 1754.747, 823.832, 1760, 823, 1765.253, 823.832, 1769.992, 826.247, 1773.753, 830.008, 1776.168, 834.747)
 
 [node name="Pulser1" type="AnimatableBody2D" parent="."]
 position = Vector2(860, 770)
