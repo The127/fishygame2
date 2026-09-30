@@ -5,6 +5,10 @@ extends Hazard
 ## exactly where it was. The door lamp flashes during the telegraph. It also carries the drum's
 ## race start and stop, since the drum turns whatever the hazard setting is.
 
+## A burst of suds: what [method RaceFx.burst] was given, so the finish replay can play the same
+## burst.
+signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
+
 const SUDS_COLOR: Color = Color(0.9, 0.98, 1.0)
 ## Whole turns a burst makes, at least and at most.
 const TURNS_MIN: int = 1
@@ -55,7 +59,9 @@ func _begin_active() -> void:
 	if _drum == null:
 		return
 	_drum.alarm = 0.0
-	RaceFx.burst(self, _drum.global_position, SUDS_COLOR, 40, 260.0, Vector2(0, 60))
+	var at: Vector2 = _drum.global_position
+	RaceFx.burst(self, at, SUDS_COLOR, 40, 260.0, Vector2(0, 60))
+	burst_played.emit(at, SUDS_COLOR, 40, 260.0, Vector2(0, 60))
 
 
 func _process_active(_delta: float) -> void:
