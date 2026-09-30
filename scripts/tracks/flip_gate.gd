@@ -38,6 +38,7 @@ var _over: Dictionary = {}
 
 
 func _ready() -> void:
+	Replayable.join(self)
 	state = initial_state
 	_paddle.rotation = target_angle()
 	var material: CanvasItemMaterial = CanvasItemMaterial.new()
@@ -84,6 +85,20 @@ func _draw() -> void:
 
 
 ## The paddle angle for the current state, in radians (positive is clockwise, right end down).
+## Part of the finish replay ([Replayable]).
+func replay_state() -> PackedFloat32Array:
+	return PackedFloat32Array([float(state), _alarm, _flash, _paddle.rotation, _time])
+
+
+func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	state = int(Replayable.step(from, to, weight, 0))
+	_alarm = Replayable.mix(from, to, weight, 1)
+	_flash = Replayable.mix(from, to, weight, 2)
+	_paddle.rotation = Replayable.mix(from, to, weight, 3)
+	_time = Replayable.mix(from, to, weight, 4)
+	queue_redraw()
+
+
 func target_angle() -> float:
 	return float(state) * deg_to_rad(tilt_degrees)
 

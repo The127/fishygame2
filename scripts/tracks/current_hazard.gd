@@ -35,6 +35,20 @@ func get_direction() -> Vector2:
 	return _zone.global_transform.x.normalized() * _flow
 
 
+## Which zone is running (-1 for none) and which way the water flows.
+func _replay_extra() -> PackedFloat32Array:
+	return PackedFloat32Array([float(_zones.find(_zone)), _flow])
+
+
+func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	var index: int = int(Replayable.step(from, to, weight, REPLAY_BASE))
+	_zone = _zones[index] if index >= 0 and index < _zones.size() else null
+	_flow = Replayable.step(from, to, weight, REPLAY_BASE + 1)
+	if _zone != null:
+		var shape: CollisionShape2D = _zone.get_node("CollisionShape2D") as CollisionShape2D
+		_size = (shape.shape as RectangleShape2D).size
+
+
 func _begin_telegraph(rng: RandomNumberGenerator) -> void:
 	if _zones.is_empty():
 		return

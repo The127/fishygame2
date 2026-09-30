@@ -182,6 +182,16 @@ func _try_release(marble: Marble, dwell: float, needed: float) -> bool:
 	return true
 
 
+func _replay_extra() -> PackedFloat32Array:
+	return PackedFloat32Array([_turn, _spin, _surge])
+
+
+func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	_turn = Replayable.mix(from, to, weight, REPLAY_BASE)
+	_spin = Replayable.step(from, to, weight, REPLAY_BASE + 1)
+	_surge = Replayable.mix(from, to, weight, REPLAY_BASE + 2)
+
+
 func _begin_telegraph(rng: RandomNumberGenerator) -> void:
 	_spin = -1.0 if rng.randf() < REVERSE_CHANCE else 1.0
 

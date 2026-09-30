@@ -17,6 +17,9 @@ const MAX_EVENTS: int = 6
 const FIRST_EVENT_MIN: float = 3.0
 ## Mean pause between events at frequency 1, in seconds. Divided by the frequency.
 const BASE_GAP: float = 20.0
+## Floats [method replay_state] starts with: clock, phase and time in the phase. A subclass's
+## own values ([method _replay_extra]) follow at this index.
+const REPLAY_BASE: int = 3
 
 ## Name of the event, sent with [signal telegraph_started].
 @export var kind: String = "hazard"
@@ -38,6 +41,10 @@ var _schedule: Array[float] = []
 var _next_event: int = 0
 var _armed: bool = false
 var _needs_redraw: bool = false
+
+
+func _enter_tree() -> void:
+	Replayable.join(self)
 
 
 ## Plans the events for a race. A frequency of 0 or less arms nothing.
@@ -141,6 +148,38 @@ func _end_event() -> void:
 
 ## Called when arming and disarming: put the map back as it was.
 func _reset() -> void:
+	pass
+
+
+## Part of the finish replay ([Replayable]): the event clock and phase, then whatever the
+## subclass adds in [method _replay_extra].
+func replay_state() -> PackedFloat32Array:
+	var state: PackedFloat32Array = PackedFloat32Array([clock, float(phase), phase_time])
+	state.append_array(_replay_extra())
+	return state
+
+
+func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	clock = Replayable.mix(from, to, weight, 0)
+	phase = int(Replayable.step(from, to, weight, 1)) as Phase
+	# Across a phase change the timers belong to different phases, so they are not blended.
+	var blend: float = weight if from[1] == to[1] else roundf(weight)
+	phase_time = lerpf(from[2], to[2], blend)
+	_apply_replay_extra(from, to, weight)
+	queue_redraw()
+
+
+## Replay: everything a subclass draws from beyond [member clock] and [member phase], as floats
+## (a fixed number). Empty when the base values are enough.
+func _replay_extra() -> PackedFloat32Array:
+	return PackedFloat32Array()
+
+
+## Replay: shows the state `weight` of the way from `from` to `to`. Both hold the base values,
+## then the subclass's own starting at [constant REPLAY_BASE].
+func _apply_replay_extra(
+	_from: PackedFloat32Array, _to: PackedFloat32Array, _weight: float
+) -> void:
 	pass
 
 

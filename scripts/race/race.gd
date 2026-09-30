@@ -48,6 +48,7 @@ var _snap_time: float = 0.0
 var _recorder: ReplayRecorder
 var _sample_positions: PackedVector2Array = PackedVector2Array()
 var _sample_velocities: PackedVector2Array = PackedVector2Array()
+var _sample_alphas: PackedFloat32Array = PackedFloat32Array()
 
 
 ## Clears any previous race and spawns `count` marbles. Every random draw comes
@@ -95,8 +96,10 @@ func start(
 	_place_treasures(hash(rng.state) if treasures_enabled else 0)
 	_track.arm_hazards(rng, RaceEvent.hazard_level(event, hazard_frequency))
 	_recorder = ReplayRecorder.new(count)
+	_recorder.bind_nodes(Replayable.find_in(_track))
 	_sample_positions.resize(count)
 	_sample_velocities.resize(count)
+	_sample_alphas.resize(count)
 	had_photo_finish = false
 	elapsed = 0.0
 	running = true
@@ -445,7 +448,9 @@ func _record_sample() -> void:
 		var marble: Marble = _marbles[id]
 		_sample_positions[id] = marble.global_position
 		_sample_velocities[id] = marble.linear_velocity
-	_recorder.sample(elapsed, _sample_positions, _sample_velocities)
+		# Swallowed and snapped fish are hidden (snapped ones fade out first).
+		_sample_alphas[id] = marble.modulate.a if marble.visible else 0.0
+	_recorder.sample(elapsed, _sample_positions, _sample_velocities, _sample_alphas)
 
 
 func _record_event(kind: ReplayRecorder.Kind, marble: Marble) -> void:

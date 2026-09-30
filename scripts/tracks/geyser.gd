@@ -33,6 +33,7 @@ var _offset: float = 0.0
 
 
 func _ready() -> void:
+	Replayable.join(self)
 	_column = get_node("Column") as Area2D
 	var shape: CollisionShape2D = _column.get_node("CollisionShape2D") as CollisionShape2D
 	_size = (shape.shape as RectangleShape2D).size
@@ -49,6 +50,19 @@ func reseed(seed_value: int) -> void:
 	_offset = rng.randf_range(0.0, _cycle)
 	clock = 0.0
 	_armed = true
+	queue_redraw()
+
+
+## Part of the finish replay ([Replayable]).
+func replay_state() -> PackedFloat32Array:
+	return PackedFloat32Array([clock, 1.0 if _armed else 0.0, _offset, _cycle])
+
+
+func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	clock = Replayable.mix(from, to, weight, 0)
+	_armed = Replayable.step(from, to, weight, 1) > 0.5
+	_offset = from[2]
+	_cycle = from[3]
 	queue_redraw()
 
 

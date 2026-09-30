@@ -10,6 +10,8 @@ const HUNT_COLOR: Color = Color(1.0, 0.25, 0.2)
 ## Hinge of the lower jaw and its widest opening, in radians.
 const JAW_PIVOT: Vector2 = Vector2(30.0, 30.0)
 const JAW_OPEN_ANGLE: float = 0.75
+## Floats in a [method snapshot].
+const SNAPSHOT_FLOATS: int = 5
 
 @export var tint: Color = Color(0.4, 1.0, 0.85)
 @export var stalk_length: float = 90.0
@@ -39,6 +41,19 @@ func _process(delta: float) -> void:
 
 
 ## The bulb's position in this node's local space.
+## What the finish replay needs to draw this lure: position, glow, jaw and animation clock.
+func snapshot() -> PackedFloat32Array:
+	return PackedFloat32Array([position.x, position.y, excite, mouth_open, _time])
+
+
+func show_snapshot(values: PackedFloat32Array) -> void:
+	position = Vector2(values[0], values[1])
+	excite = values[2]
+	mouth_open = values[3]
+	_time = values[4]
+	queue_redraw()
+
+
 func bulb_position() -> Vector2:
 	return _stalk()[STALK_POINTS]
 

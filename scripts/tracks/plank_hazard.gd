@@ -44,6 +44,32 @@ func _physics_process(delta: float) -> void:
 			plank.rotation = 0.0
 
 
+## Per plank: its angle, and how hard its crack glows (-1 when it looks normal).
+func _replay_extra() -> PackedFloat32Array:
+	var state: PackedFloat32Array = PackedFloat32Array()
+	for plank: AnimatableBody2D in _planks:
+		var cracked: bool = _cracks.has(plank) and _cracks[plank].visible
+		state.append(plank.rotation)
+		state.append(_cracks[plank].modulate.a if cracked else -1.0)
+	return state
+
+
+func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	for i: int in _planks.size():
+		var plank: AnimatableBody2D = _planks[i]
+		var at: int = REPLAY_BASE + i * 2
+		plank.rotation = Replayable.mix(from, to, weight, at)
+		if not _cracks.has(plank):
+			continue
+		var glow: float = Replayable.step(from, to, weight, at + 1)
+		if glow < 0.0:
+			_restore_look(plank)
+			continue
+		(plank.get_node("Visual") as Polygon2D).color = _wood[plank].lerp(RIM_COLOR, 0.5 * glow)
+		_cracks[plank].modulate.a = glow
+		_cracks[plank].visible = true
+
+
 func _begin_telegraph(rng: RandomNumberGenerator) -> void:
 	if _planks.is_empty():
 		return

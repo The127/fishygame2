@@ -31,6 +31,7 @@ var _time: float = 0.0
 
 
 func _ready() -> void:
+	Replayable.join(self)
 	z_index = 2
 	_area = Area2D.new()
 	var shape: CollisionShape2D = CollisionShape2D.new()
@@ -44,6 +45,18 @@ func _ready() -> void:
 
 
 ## Puts the portal back as it was before a race.
+## Part of the finish replay ([Replayable]).
+func replay_state() -> PackedFloat32Array:
+	return PackedFloat32Array([1.0 if diverted else 0.0, unstable, _time])
+
+
+func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	diverted = Replayable.step(from, to, weight, 0) > 0.5
+	unstable = Replayable.mix(from, to, weight, 1)
+	_time = Replayable.mix(from, to, weight, 2)
+	queue_redraw()
+
+
 func reset() -> void:
 	diverted = false
 	unstable = 0.0

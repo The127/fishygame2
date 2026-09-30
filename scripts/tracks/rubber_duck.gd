@@ -52,7 +52,19 @@ static func create(seed_value: int, bounds: Rect2) -> RubberDuck:
 
 
 func _ready() -> void:
+	Replayable.join(self)
 	queue_redraw()
+
+
+## Part of the finish replay ([Replayable]).
+func replay_state() -> PackedFloat32Array:
+	return PackedFloat32Array([position.x, position.y, rotation, _time])
+
+
+func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	position = Replayable.mix_vector(from, to, weight, 0)
+	rotation = Replayable.mix(from, to, weight, 2)
+	_time = Replayable.mix(from, to, weight, 3)
 
 
 func _process(delta: float) -> void:

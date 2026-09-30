@@ -54,6 +54,23 @@ func _physics_process(delta: float) -> void:
 		jelly.advance(delta, lerpf(1.0, SURGE_SPEED, _level))
 
 
+func _replay_extra() -> PackedFloat32Array:
+	var state: PackedFloat32Array = PackedFloat32Array([_level])
+	for jelly: Jellyfish in _jellies:
+		state.append_array(jelly.snapshot())
+	return state
+
+
+func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	_level = Replayable.mix(from, to, weight, REPLAY_BASE)
+	for i: int in _jellies.size():
+		var start: int = REPLAY_BASE + 1 + i * Jellyfish.SNAPSHOT_FLOATS
+		_jellies[i].show_snapshot(
+			Replayable.blend(from, to, weight, start, Jellyfish.SNAPSHOT_FLOATS)
+		)
+		_jellies[i].kick_scale = lerpf(1.0, SURGE_KICK, _level)
+
+
 func _reset() -> void:
 	_level = 0.0
 	for jelly: Jellyfish in _jellies:

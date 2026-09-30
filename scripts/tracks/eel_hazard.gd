@@ -54,6 +54,25 @@ func event_seconds() -> float:
 	return telegraph_seconds + longest / speed
 
 
+func _replay_extra() -> PackedFloat32Array:
+	return PackedFloat32Array(
+		[1.0 if _on_route else 0.0, _start.x, _start.y, _end.x, _end.y, _angle, _head.x, _head.y]
+	)
+
+
+func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	var at: int = REPLAY_BASE
+	_on_route = Replayable.step(from, to, weight, at) > 0.5
+	_start = Vector2(
+		Replayable.step(from, to, weight, at + 1), Replayable.step(from, to, weight, at + 2)
+	)
+	_end = Vector2(
+		Replayable.step(from, to, weight, at + 3), Replayable.step(from, to, weight, at + 4)
+	)
+	_angle = Replayable.step(from, to, weight, at + 5)
+	_head = Replayable.mix_vector(from, to, weight, at + 6)
+
+
 func _begin_telegraph(rng: RandomNumberGenerator) -> void:
 	var count: int = mini(route_starts.size(), route_ends.size())
 	if count == 0:
