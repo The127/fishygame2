@@ -108,6 +108,16 @@ func test_crossed_marbles_leave_the_position_map() -> void:
 	assert_true(map.has(1))
 
 
+func test_winner_position_is_kept_after_the_crossing() -> void:
+	var marbles: Array[Marble] = _marbles(2)
+	_replay.start(_recording(5.0), marbles)
+	while _replay.clock() < 5.0:
+		_replay._process(1.0 / 60.0)
+	_replay._process(1.0 / 60.0)
+	assert_false(_replay.get_position_map().has(0))
+	assert_eq(_replay.winner_position(), marbles[0].global_position)
+
+
 func test_stop_ends_right_away_once() -> void:
 	var marbles: Array[Marble] = _marbles(2)
 	_replay.start(_recording(5.0), marbles)

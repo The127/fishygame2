@@ -72,8 +72,6 @@ const NET_SECONDS: float = 2.5
 
 ## Milliseconds a "power not available" line stays in the control panel.
 const POWER_NOTE_MSEC: int = 3000
-## Seconds before the winner crosses in the replay when the camera settles on the gate.
-const REPLAY_GATE_LEAD: float = 0.6
 ## Seconds the finish plays on live before the replay cuts in.
 const REPLAY_BEAT: float = 0.8
 ## Seconds of each fade to dark around the replay.
@@ -565,13 +563,16 @@ func _wants_replay(results: Array[Dictionary]) -> bool:
 
 func _on_replay_ended() -> void:
 	_overlay.show_replay(false)
-	# Fully dark already when the clip ran out; a skip dips quickly from wherever it was.
-	_overlay.fade_in(REPLAY_FADE)
 	_panel.show_skip_replay(false)
 	var results: Array[Dictionary] = _pending_results
 	_pending_results = []
+	var still_racing: bool = _flow.state == GameFlow.State.RACING
 	if not results.is_empty():
 		_report_results(results)
+	# Fully dark already when the clip ran out; a skip dips quickly from wherever it was. After
+	# the report, because showing the podium resets the overlay.
+	if still_racing:
+		_overlay.fade_in(REPLAY_FADE)
 
 
 ## Space starts the race, or skips the replay while one plays.
@@ -582,19 +583,12 @@ func _on_start_pressed() -> void:
 		_flow.start_race()
 
 
-## Camera during the replay: the pack that has not crossed yet, then the gate itself.
+## Camera during the replay: tight on the winner, centred on them through the crossing.
 func _follow_replay() -> void:
 	if _track == null:
 		return
-	if _replay.clock() >= _replay.finish_time() - REPLAY_GATE_LEAD:
-		if not _camera.is_holding():
-			_camera.hold_on(_track.get_finish_position())
-		return
-	var positions: Dictionary = _replay.get_position_map()
-	var progress: Dictionary = {}
-	for id: int in positions:
-		progress[id] = _track.get_progress(positions[id])
-	_camera.follow(positions, progress)
+	var at: Vector2 = _replay.winner_position()
+	_camera.follow({0: at}, {0: _track.get_progress(at)})
 
 
 func _on_podium_ready(podium: Array[Dictionary]) -> void:

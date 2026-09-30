@@ -121,6 +121,14 @@ func finish_time() -> float:
 	return _recorder.finish_time() if _recorder != null else 0.0
 
 
+## Where the winner is in the replay, also after they crossed the gate.
+func winner_position() -> Vector2:
+	var winner: Marble = _marbles.get(_recorder.winner_id()) if _recorder != null else null
+	if winner == null or not is_instance_valid(winner):
+		return Vector2.ZERO
+	return winner.global_position
+
+
 ## Position of every marble that has not crossed the gate yet in the replay, id -> Vector2.
 func get_position_map() -> Dictionary:
 	var positions: Dictionary = {}
