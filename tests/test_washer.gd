@@ -143,3 +143,14 @@ func _rng(seed_value: int) -> RandomNumberGenerator:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed_value
 	return rng
+
+
+func test_fish_dropping_onto_the_left_of_the_first_lane_are_not_ahead() -> void:
+	# The lane reaches left of the drum, well above the finish at the far end of the route.
+	# Progress must not read the finish as the nearest point there (the follow cam chased it).
+	var dropped: float = _track.get_progress(Vector2(540, 600))
+	var rolling: float = _track.get_progress(Vector2(1200, 705))
+	var home_run: float = _track.get_progress(Vector2(700, 925))
+	assert_lt(dropped, 0.2, "a fish on the left of the first lane has barely started")
+	assert_lt(dropped, rolling)
+	assert_lt(rolling, home_run)
