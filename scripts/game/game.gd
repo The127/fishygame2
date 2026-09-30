@@ -121,8 +121,8 @@ var _power_note: String = ""
 var _power_note_until_msec: int = 0
 ## Names of the fish that did not finish the last race, in results order.
 var _dnf_names: PackedStringArray = []
-## user_id -> {"name": String, "count": int, "points": int} for the treasures found this race.
-var _haul: Dictionary = {}
+## The treasures found this race, paid when it ends.
+var _haul: TreasureHaul = TreasureHaul.new()
 ## The treasure part of the result line, "@a +50, @b +25", or empty.
 var _haul_text: String = ""
 
@@ -405,39 +405,10 @@ func _on_treasure_collected(id: int, kind: int, value: int) -> void:
 	if id < 0 or id >= contestants.size():
 		return
 	var found: Contestant = contestants[id]
-	var entry: Dictionary = _haul.get(
-		found.user_id, {"name": found.display_name, "count": 0, "points": 0}
-	)
-	entry["count"] = int(entry["count"]) + 1
-	entry["points"] = int(entry["points"]) + value
-	_haul[found.user_id] = entry
+	_haul.add(found.user_id, found.display_name, value)
 	_overlay.show_notice(
 		"%s found a %s! +%d" % [found.display_name, Treasure.name_of(kind as Treasure.Kind), value]
 	)
-
-
-## Pays out the treasures found this race and builds the result-line text. Only runs when the
-## race really ends, so a stopped round pays nothing.
-func _settle_treasures() -> void:
-	var points: PointsStore = _betting.points
-	var entries: Array[Dictionary] = []
-	for user_id: String in _haul:
-		var entry: Dictionary = _haul[user_id]
-		points.add(user_id, int(entry["points"]))
-		points.stats.record_treasure(user_id, int(entry["count"]), int(entry["points"]))
-		entries.append(entry)
-	_haul = {}
-	entries.sort_custom(
-		func(a: Dictionary, b: Dictionary) -> bool: return a["points"] > b["points"]
-	)
-	var parts: PackedStringArray = []
-	for entry: Dictionary in entries.slice(0, RESULT_PAYOUTS):
-		parts.append("@%s +%d" % [entry["name"], entry["points"]])
-	if entries.size() > RESULT_PAYOUTS:
-		parts.append("+%d more" % (entries.size() - RESULT_PAYOUTS))
-	_haul_text = ", ".join(parts)
-	if not entries.is_empty():
-		points.save_to_disk()
 
 
 func _record_race_stats(results: Array[Dictionary]) -> void:
@@ -597,8 +568,9 @@ func _on_replay_ending() -> void:
 ## Counts the race for the viewers' stats and hands the results to the flow. Only runs when the
 ## race really ends, so a round stopped during the replay leaves no stats behind.
 func _report_results(results: Array[Dictionary]) -> void:
+	# Before the stats, whose save covers the treasure points too.
+	_haul_text = _haul.settle(_betting.points)
 	_record_race_stats(results)
-	_settle_treasures()
 	_flow.report_race_finished(results)
 
 
@@ -962,7 +934,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 			_confirm("reply_shop", "welcome", "Welcome!", "@%s (free %s)" % [name, welcome["hat"]])
 			_overlay.show_notice("Welcome %s! Here's a free %s" % [name, welcome["hat"]])
 	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
-	_haul = {}
+	_haul.clear()
 	_haul_text = ""
 	_race.start(_track, contestants.size(), rng, settings.hazard_level(), _event)
 	_overlay.show_event_badge(_event_badge_text())
