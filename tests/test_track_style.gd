@@ -89,8 +89,11 @@ func test_foreground_keeps_spawn_and_finish_clear() -> void:
 		for layer: EnvLayer in group.get_children():
 			for at: Vector2 in layer.placements:
 				var from_spawn: float = at.x - spawn_x
-				assert_false(from_spawn > -50.0 and from_spawn < 170.0, "%s spawn column" % id)
-				assert_gt(absf(at.x - finish_x), 100.0, "%s finish zone" % id)
+				assert_false(
+					from_spawn > -TrackStyle.FOREGROUND_MARGIN and from_spawn < 170.0 + TrackStyle.FOREGROUND_MARGIN,
+					"%s spawn column" % id
+				)
+				assert_gt(absf(at.x - finish_x), TrackStyle.FOREGROUND_MARGIN, "%s finish zone" % id)
 
 
 func test_foreground_leaves_colliders_alone() -> void:

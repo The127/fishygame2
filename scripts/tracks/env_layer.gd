@@ -23,7 +23,8 @@ var max_height: float = 320.0
 var from_top: bool = false
 ## Sideways sway in pixels at the far end, done in a shader. Zero keeps the layer static.
 var sway: float = 0.0
-## Fixed shapes as Vector2(x, height), replacing the seeded scatter. Empty scatters `count`.
+## Fixed shapes as Vector2(x, height), replacing the seeded scatter. Heights are total lengths from the
+## anchor line (they include CEILING_EXTRA or the floor offset). Empty scatters `count`.
 var placements: Array[Vector2] = []
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()

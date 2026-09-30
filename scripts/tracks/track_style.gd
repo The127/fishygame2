@@ -163,11 +163,11 @@ const FOREGROUND: Dictionary = {
 	"volcanic": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SPIRES],
 	"coral": [EnvLayer.Kind.CORAL, EnvLayer.Kind.CORAL],
 }
-## Foreground sits over the fish (z 5) and their effects, under the names (z 10).
+## Foreground sits over the fish (z 5) and their trails, under bursts (z 8) and names (z 10).
 const FOREGROUND_Z: int = 7
 const FOREGROUND_ALPHA: float = 0.82
 ## Keeps the foreground out of the spawn column and the finish zone, in world pixels.
-const FOREGROUND_MARGIN: float = 110.0
+const FOREGROUND_MARGIN: float = 170.0
 ## Bottom shapes are rooted this far below the frame (EnvLayer's floor line).
 const FLOOR_BELOW_FRAME: float = 60.0
 
@@ -334,6 +334,8 @@ func _add_foreground(track: Track, style_id: String) -> void:
 	var blocked: Array[Vector2] = _foreground_blocked_ranges(track)
 	var group: CanvasGroup = CanvasGroup.new()
 	group.name = "Foreground"
+	# Room for the sway shader to push shapes sideways without clipping them.
+	group.fit_margin = 48.0
 	group.z_index = FOREGROUND_Z
 	group.modulate = Color(1.0, 1.0, 1.0, FOREGROUND_ALPHA)
 	add_child(group)
@@ -373,7 +375,7 @@ func _add_foreground_layer(
 	layer.highlight = Color(_palette["rim"], 0.22)
 	layer.seed_value = seed_value
 	layer.min_height = min_height
-	layer.max_height = max_height
+	layer.max_height = max_height + (0.0 if from_top else FLOOR_BELOW_FRAME)
 	layer.from_top = from_top
 	layer.sway = 16.0 * float(_palette["sway_scale"])
 	layer.placements = placements
