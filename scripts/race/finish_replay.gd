@@ -5,7 +5,8 @@ extends Node
 
 signal started
 signal ended
-## Emitted once, a moment before the clip runs out, so the picture can fade out under it.
+## Emitted once, after the winner's crossing has been shown, so the picture can fade out under
+## the last moments.
 signal ending
 
 ## Playback speed around the crossing, and how long that stretch lasts.
@@ -18,7 +19,9 @@ const EASE_SECONDS: float = 0.3
 const CLOSE_GAP: float = 0.5
 ## Consecutive frames this far apart are a teleport (portal): snap instead of sliding.
 const TELEPORT_DISTANCE: float = 250.0
-## Clip seconds before the end at which [signal ending] fires.
+## Clip seconds the crossing stays on screen before [signal ending] fires.
+const CROSS_HOLD: float = 0.5
+## Clip seconds between [signal ending] and the end of the replay (the fade to dark).
 const OUTRO_SECONDS: float = 0.3
 
 var active: bool = false
@@ -51,11 +54,23 @@ static func rate_at(time: float, finish_time: float) -> float:
 	return lerpf(1.0, SLOW_RATE, slow_in * slow_out)
 
 
+## Clip time at which [signal ending] fires: a short hold after the winner's crossing.
+static func ending_time(finish_time: float) -> float:
+	return finish_time + CROSS_HOLD
+
+
+## Clip time at which the replay stops. Always after the crossing, even when the race ended
+## before a full tail was recorded (the last frame is then held).
+static func end_of(finish_time: float) -> float:
+	return ending_time(finish_time) + OUTRO_SECONDS
+
+
 ## Real seconds the whole clip takes to play.
-static func duration_of(start_time: float, end_time: float, finish_time: float) -> float:
+static func duration_of(start_time: float, finish_time: float) -> float:
 	var step: float = 1.0 / 60.0
 	var clock: float = start_time
 	var real: float = 0.0
+	var end_time: float = end_of(finish_time)
 	while clock < end_time:
 		clock += step * rate_at(clock, finish_time)
 		real += step
@@ -157,10 +172,11 @@ func _process(delta: float) -> void:
 		return
 	_clock += delta * rate_at(_clock, _recorder.finish_time())
 	_apply()
-	if not _ending_sent and _clock >= _recorder.end_time() - OUTRO_SECONDS:
+	var finish: float = _recorder.finish_time()
+	if not _ending_sent and _clock >= ending_time(finish):
 		_ending_sent = true
 		ending.emit()
-	if _clock >= _recorder.end_time():
+	if _clock >= end_of(finish):
 		stop()
 
 

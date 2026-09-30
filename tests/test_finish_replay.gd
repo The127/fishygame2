@@ -47,7 +47,7 @@ func test_rate_is_slow_around_the_finish_and_normal_elsewhere() -> void:
 
 func test_clip_is_short_enough_for_auto_mode() -> void:
 	var rec := _recording(10.0)
-	var seconds: float = FinishReplay.duration_of(rec.start_time(), rec.end_time(), 10.0)
+	var seconds: float = FinishReplay.duration_of(rec.start_time(), 10.0)
 	assert_true(seconds <= 8.0, "replay takes %.1f s" % seconds)
 	assert_true(seconds > 2.0)
 
@@ -158,3 +158,38 @@ func test_a_portal_jump_snaps_instead_of_sliding() -> void:
 	_replay.start(rec, marbles)
 	_replay._process(0.03)
 	assert_true(marbles[0].global_position.x < 1.0 or marbles[0].global_position.x >= 999.0)
+
+
+func test_fade_starts_after_the_crossing() -> void:
+	var rec := _recording(10.0)
+	assert_true(FinishReplay.ending_time(10.0) > 10.0)
+	assert_almost_eq(
+		FinishReplay.end_of(10.0) - FinishReplay.ending_time(10.0),
+		FinishReplay.OUTRO_SECONDS,
+		0.0001
+	)
+	assert_true(FinishReplay.end_of(10.0) <= rec.end_time() + 0.0001, "tail covers hold and outro")
+
+
+func test_ending_waits_for_the_hold_even_when_the_clip_is_short() -> void:
+	# The race ended right at the crossing: no tail was recorded.
+	var rec := ReplayRecorder.new(2)
+	for i: int in 10:
+		var t: float = 9.0 + i * ReplayRecorder.SAMPLE_INTERVAL
+		rec.sample(
+			t,
+			PackedVector2Array([Vector2(100.0 * t, 0.0), Vector2(100.0 * t, 50.0)]),
+			PackedVector2Array([Vector2(100.0, 0.0), Vector2(100.0, 0.0)])
+		)
+	var finish: float = rec.end_time()
+	rec.mark_finish(finish, 0)
+	var seen: Array[float] = []
+	_replay.ending.connect(func() -> void: seen.append(_replay.clock()))
+	assert_true(_replay.start(rec, _marbles(2)))
+	var guard: int = 0
+	while _replay.active and guard < 2000:
+		_replay._process(1.0 / 60.0)
+		guard += 1
+	assert_eq(seen.size(), 1)
+	assert_true(seen[0] >= finish + FinishReplay.CROSS_HOLD - 0.0001, "fade after the hold")
+	assert_false(_replay.active)
