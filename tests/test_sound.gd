@@ -13,6 +13,12 @@ func after_each() -> void:
 	Sound.settings.save_path = ""
 
 
+func _theme_ids() -> PackedStringArray:
+	var ids: PackedStringArray = [Sound.HOME_THEME]
+	ids.append_array(TrackCatalog.ids())
+	return ids
+
+
 func test_defaults() -> void:
 	var settings := AudioSettings.new()
 	assert_false(settings.muted)
@@ -97,8 +103,8 @@ func test_every_effect_has_a_stream_and_music_loops() -> void:
 	for sfx: int in Sound.SFX_PATHS:
 		var stream: AudioStreamWAV = load(Sound.SFX_PATHS[sfx]) as AudioStreamWAV
 		assert_not_null(stream, "effect %d should load" % sfx)
-	for id: String in Sound.MUSIC_PATHS:
-		var music: AudioStreamWAV = load(Sound.MUSIC_PATHS[id]) as AudioStreamWAV
+	for id: String in _theme_ids():
+		var music: AudioStreamWAV = load(Sound.music_path(id)) as AudioStreamWAV
 		assert_not_null(music, "theme %s should load" % id)
 		assert_true(music.get_length() > 10.0, "theme %s should be a long loop" % id)
 
@@ -110,18 +116,11 @@ func test_play_never_crashes_for_any_effect() -> void:
 
 
 func test_music_loop_covers_the_whole_clip() -> void:
-	for id: String in Sound.MUSIC_PATHS:
-		var music: AudioStreamWAV = Sound.make_loop(load(Sound.MUSIC_PATHS[id]) as AudioStreamWAV)
+	for id: String in _theme_ids():
+		var music: AudioStreamWAV = Sound.make_loop(load(Sound.music_path(id)) as AudioStreamWAV)
 		assert_eq(music.loop_mode, AudioStreamWAV.LOOP_FORWARD)
 		assert_eq(music.loop_begin, 0)
 		assert_eq(music.loop_end, roundi(music.get_length() * music.mix_rate), id)
-
-
-func test_every_map_has_a_music_theme() -> void:
-	for id: String in TrackCatalog.ids():
-		assert_true(Sound.MUSIC_PATHS.has(id), "no music theme for map %s" % id)
-	for id: String in Sound.MUSIC_PATHS:
-		assert_true(ResourceLoader.exists(Sound.MUSIC_PATHS[id]), "missing file for %s" % id)
 
 
 func test_music_theme_switch_and_fallback() -> void:
@@ -133,21 +132,15 @@ func test_music_theme_switch_and_fallback() -> void:
 	assert_eq(Sound.get_music_theme(), Sound.HOME_THEME)
 
 
-func test_every_map_has_a_jingle_and_an_ambience_bed() -> void:
-	for id: String in TrackCatalog.ids():
-		assert_true(Sound.JINGLE_PATHS.has(id), "no jingle for map %s" % id)
-		assert_true(Sound.AMBIENCE_PATHS.has(id), "no ambience for map %s" % id)
-	for path: String in Sound.JINGLE_PATHS.values() + Sound.AMBIENCE_PATHS.values():
-		assert_true(ResourceLoader.exists(path), "missing file %s" % path)
-
-
 func test_ambience_beds_loop_and_jingles_are_short() -> void:
-	for id: String in Sound.AMBIENCE_PATHS:
-		var bed: AudioStreamWAV = Sound.make_loop(load(Sound.AMBIENCE_PATHS[id]) as AudioStreamWAV)
+	for id: String in TrackCatalog.ids():
+		var bed: AudioStreamWAV = Sound.make_loop(
+			load(TrackCatalog.ambience_path(id)) as AudioStreamWAV
+		)
 		assert_eq(bed.loop_mode, AudioStreamWAV.LOOP_FORWARD)
 		assert_gt(bed.get_length(), 4.0, "ambience %s should be a real loop" % id)
-	for id: String in Sound.JINGLE_PATHS:
-		var jingle: AudioStreamWAV = load(Sound.JINGLE_PATHS[id]) as AudioStreamWAV
+	for id: String in TrackCatalog.ids():
+		var jingle: AudioStreamWAV = load(TrackCatalog.jingle_path(id)) as AudioStreamWAV
 		assert_lt(jingle.get_length(), 4.0, "jingle %s should be a short sting" % id)
 
 
@@ -158,7 +151,7 @@ func test_ambience_volume_reaches_its_bus() -> void:
 
 
 func test_play_win_never_crashes_for_any_theme() -> void:
-	for id: String in Sound.MUSIC_PATHS:
+	for id: String in _theme_ids():
 		Sound.set_music_theme(id)
 		Sound.play_win()
 	Sound.set_music_theme(Sound.HOME_THEME)

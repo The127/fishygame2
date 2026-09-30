@@ -57,13 +57,38 @@ jobs:
         run: tools/run_tests.sh
 
   # One job per map so the seed sweeps run in parallel. Pull requests run a shorter sweep; main runs the full one.
+  map-ids:
+    # The matrix comes from TrackCatalog, so a new map needs no CI edit.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      maps: ${{ steps.ids.outputs.maps }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot
+        run: |
+          curl -fsSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          echo "${GODOT_SHA512}  godot.zip" | sha512sum -c -
+          unzip -q godot.zip
+          sudo install -m 755 "Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+          rm godot.zip
+      - name: Import project
+        run: godot --headless --import
+      - name: List map ids
+        id: ids
+        run: |
+          maps="$(godot --headless -s tools/print_map_ids.gd -- --json | tail -n 1)"
+          echo "$maps"
+          echo "maps=$maps" >> "$GITHUB_OUTPUT"
+
   race-seeds:
+    needs: map-ids
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        map: [zigzag, pachinko, wreck, whirlpool, jelly, abyss, vents, coral, kraken, gravity]
+        map: ${{ fromJSON(needs.map-ids.outputs.maps) }}
     env:
       LAST_SEED: ${{ github.event_name == 'pull_request' && '8' || '20' }}
       MAP: ${{ matrix.map }}
