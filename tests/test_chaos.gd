@@ -181,4 +181,3 @@ func test_marble_effects_change_velocity() -> void:
 	assert_lt(marble.linear_velocity.x, -50.0)
 	assert_true(marble.is_cursed())
 	assert_gt(marble.linear_damp, 1.0)
-
