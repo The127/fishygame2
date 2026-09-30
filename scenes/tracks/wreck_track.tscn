@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
 [ext_resource type="Script" path="res://scripts/tracks/spinner.gd" id="2_spinner"]
 [ext_resource type="Script" path="res://scripts/tracks/plank_hazard.gd" id="3_plank"]
+[ext_resource type="Script" path="res://scripts/tracks/ship_sinking.gd" id="4_sinking"]
 
 [sub_resource type="PhysicsMaterial" id="PM_track"]
 friction = 0.6
@@ -11,6 +12,24 @@ bounce = 0.3
 [sub_resource type="PhysicsMaterial" id="PM_peg"]
 friction = 0.2
 bounce = 0.7
+
+[sub_resource type="RectangleShape2D" id="Rect_gravity"]
+size = Vector2(2200, 1800)
+
+[sub_resource type="RectangleShape2D" id="Rect_flood"]
+size = Vector2(3600, 1600)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone_a"]
+size = Vector2(50, 340)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone_b"]
+size = Vector2(520, 50)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone_c"]
+size = Vector2(50, 230)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone_d"]
+size = Vector2(50, 260)
 
 [sub_resource type="CircleShape2D" id="Circle_peg"]
 radius = 17.0
@@ -206,6 +225,48 @@ polygon = PackedVector2Array(171.6, -17.6, 0, 0, 2.245, 21.885, 173.845, 4.285)
 [node name="Visual" type="Polygon2D" parent="Planks/PlankD"]
 color = Color(0.5, 0.34, 0.17, 1)
 polygon = PackedVector2Array(171.6, -17.6, 0, 0, 2.245, 21.885, 173.845, 4.285)
+
+[node name="Sinking" type="Node2D" parent="."]
+script = ExtResource("4_sinking")
+
+[node name="Zones" type="Node2D" parent="Sinking"]
+
+[node name="Zone1" type="Area2D" parent="Sinking/Zones"]
+position = Vector2(1000, 300)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sinking/Zones/Zone1"]
+shape = SubResource("Rect_zone_a")
+
+[node name="Zone2" type="Area2D" parent="Sinking/Zones"]
+position = Vector2(1600, 590)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sinking/Zones/Zone2"]
+shape = SubResource("Rect_zone_b")
+
+[node name="Zone3" type="Area2D" parent="Sinking/Zones"]
+position = Vector2(850, 670)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sinking/Zones/Zone3"]
+shape = SubResource("Rect_zone_c")
+
+[node name="Zone4" type="Area2D" parent="Sinking/Zones"]
+position = Vector2(700, 880)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sinking/Zones/Zone4"]
+shape = SubResource("Rect_zone_d")
+
+[node name="Gravity" type="Area2D" parent="Sinking"]
+position = Vector2(960, 350)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sinking/Gravity"]
+shape = SubResource("Rect_gravity")
+
+[node name="Flood" type="Area2D" parent="Sinking"]
+position = Vector2(960, 1160)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sinking/Flood"]
+position = Vector2(0, 800)
+shape = SubResource("Rect_flood")
 
 [node name="Propeller" type="AnimatableBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")

@@ -222,6 +222,15 @@ ones, and the seed runs above have them on (frequency 3). Pass `--hazards=0` to
 `scenes/debug/race_debug.tscn` to run without them. Streamers turn them off or change how often
 they strike in Settings > Race.
 
+Shipwreck's ship sinks while the fish race (`scripts/tracks/ship_sinking.gd`). Four trigger zones
+along the route (the `Zones` under `Sinking` in `scenes/tracks/wreck_track.tscn`) start the stages:
+the first fish into a zone brings the next stage, and a fish that skips a zone brings every stage up
+to its own. Each stage leans gravity a little further over (toward a side the race seed picks; the
+hull behind the decks leans with it, exaggerated) and raises the floodwater, which damps every fish
+under it. Stages are never undone, so the lean and the water only grow. The water hurts whoever
+gets down there first, which gives the pack a chance to catch up. The finish replay records the
+lean, the waterline and the stage, and ignores the replayed fish crossing the zones.
+
 Volcanic Vents also has timed geysers (`scripts/tracks/geyser.gd`) that throw marbles upward and
 sideways. They belong to the map, so they erupt whatever the hazard setting is. Each vent's phase and
 period come from the race seed, so a seed replays the same eruptions.
