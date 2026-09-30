@@ -65,3 +65,44 @@ func test_moving_bodies_do_not_get_the_world_anchored_stone_texture() -> void:
 	assert_null(blades.material)
 	var deck: Polygon2D = track.get_node("DeckA/Visual")
 	assert_true(deck.material is ShaderMaterial)
+
+
+func test_every_map_has_a_translucent_foreground_over_the_fish() -> void:
+	for id: String in TrackCatalog.ids():
+		var track: Track = TrackCatalog.instantiate(id)
+		add_child_autofree(track)
+		var group: CanvasGroup = track.find_child("Foreground", true, false)
+		assert_not_null(group, "%s foreground" % id)
+		assert_gt(group.z_index, 5, "%s foreground is in front of the fish" % id)
+		assert_lt(group.z_index, 10, "%s foreground stays under the names" % id)
+		assert_lt(group.modulate.a, 1.0, "%s foreground is translucent" % id)
+		assert_gt(group.get_child_count(), 0, "%s has foreground shapes" % id)
+
+
+func test_foreground_keeps_spawn_and_finish_clear() -> void:
+	for id: String in TrackCatalog.ids():
+		var track: Track = TrackCatalog.instantiate(id)
+		add_child_autofree(track)
+		var group: CanvasGroup = track.find_child("Foreground", true, false)
+		var spawn_x: float = track.get_node("SpawnOrigin").global_position.x
+		var finish_x: float = track.get_node("Finish").global_position.x
+		for layer: EnvLayer in group.get_children():
+			for at: Vector2 in layer.placements:
+				var from_spawn: float = at.x - spawn_x
+				assert_false(
+					(
+						from_spawn > -TrackStyle.FOREGROUND_MARGIN
+						and from_spawn < 170.0 + TrackStyle.FOREGROUND_MARGIN
+					),
+					"%s spawn column" % id
+				)
+				assert_gt(
+					absf(at.x - finish_x), TrackStyle.FOREGROUND_MARGIN, "%s finish zone" % id
+				)
+
+
+func test_foreground_leaves_colliders_alone() -> void:
+	var track: Track = TrackCatalog.instantiate("wreck")
+	add_child_autofree(track)
+	var group: CanvasGroup = track.find_child("Foreground", true, false)
+	assert_eq(group.find_children("*", "CollisionObject2D", true, false).size(), 0)

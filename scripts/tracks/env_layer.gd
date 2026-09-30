@@ -23,6 +23,9 @@ var max_height: float = 320.0
 var from_top: bool = false
 ## Sideways sway in pixels at the far end, done in a shader. Zero keeps the layer static.
 var sway: float = 0.0
+## Fixed shapes as Vector2(x, height), replacing the seeded scatter. Heights are total lengths from the
+## anchor line (they include CEILING_EXTRA or the floor offset). Empty scatters `count`.
+var placements: Array[Vector2] = []
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
@@ -42,12 +45,16 @@ func _draw() -> void:
 	_rng.seed = seed_value
 	var flip: float = -1.0 if from_top else 1.0
 	var base_y: float = CEILING_Y if from_top else FLOOR_Y + 60.0
-	for i: int in count:
+	var total: int = placements.size() if not placements.is_empty() else count
+	for i: int in total:
 		var x: float = -200.0 + WIDTH * (float(i) + _rng.randf_range(0.1, 0.9)) / float(count)
 		var h: float = _rng.randf_range(min_height, max_height)
 		if from_top:
 			h += CEILING_EXTRA
 		var w: float = _rng.randf_range(0.5, 1.0)
+		if not placements.is_empty():
+			x = placements[i].x
+			h = placements[i].y
 		match kind:
 			Kind.SPIRES:
 				_draw_spire(Vector2(x, base_y), h * flip, w)
