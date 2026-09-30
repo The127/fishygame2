@@ -126,6 +126,21 @@ func test_sides_pull_toward_their_wall() -> void:
 		)
 
 
+func test_a_lean_of_minus_one_tilts_the_sideways_pulls_up() -> void:
+	assert_lt(GravityFlipper.direction_of(GravityFlipper.Pull.RIGHT, -1.0).y, 0.0)
+	assert_gt(GravityFlipper.direction_of(GravityFlipper.Pull.RIGHT, 1.0).y, 0.0)
+
+
+func test_the_pull_away_from_the_finish_is_weaker() -> void:
+	var flipper: GravityFlipper = _flipper(_track())
+	flipper.turn_to(GravityFlipper.Pull.LEFT)
+	flipper.tick(0.0)
+	var base: float = float(ProjectSettings.get_setting("physics/2d/default_gravity", 980.0))
+	assert_lt(
+		_zone_gravity(flipper), base * GravityFlipper.STRENGTH[GravityFlipper.Pull.LEFT] + 0.01
+	)
+
+
 func test_flip_is_announced_by_a_signal() -> void:
 	var flipper: GravityFlipper = _flipper(_track())
 	watch_signals(flipper)

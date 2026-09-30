@@ -238,8 +238,8 @@ Gravity Flip turns the whole room every 3 to 4 seconds (`scripts/tracks/gravity_
 that points gravity at the floor, the ceiling, the wall toward the finish or (rarely, and weaker) the wall
 behind the start, so walls become floors and the ceiling becomes the floor. The course is three
 partitions with one-way valve doors (fish pass toward the finish, never back), each room split into an
-upper and a lower lane by a tilted shelf. A door is in the top or the bottom of its partition, so a fish
-has to change lane in every room, and only some pulls carry it there: a shelf that funnels fish to the
+upper and a lower lane by a tilted shelf. A door is in the top or the bottom of its partition (the last one has both), so a fish
+has to change lane in most rooms, and only some pulls carry it there: a shelf that funnels fish to the
 gap under one pull is a hill under the other. Pulls toward the finish lean up or down by seed. There is
 no countdown or arrow: for the last 1.2 seconds gravity thins out to a weightless beat, the debris
 hangs still and the wall that is about to become the floor charges with light. Flip times, sides and

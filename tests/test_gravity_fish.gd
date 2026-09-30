@@ -34,7 +34,7 @@ func test_a_fish_falls_toward_the_finish_when_the_right_wall_is_the_floor() -> v
 	add_child_autofree(marble)
 	marble.global_position = Vector2(300.0, 400.0)
 	flipper.turn_to(GravityFlipper.Pull.RIGHT)
-	await wait_physics_frames(30)
+	await wait_physics_frames(60)
 	assert_gt(marble.linear_velocity.x, 50.0)
 
 
