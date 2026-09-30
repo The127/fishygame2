@@ -13,7 +13,10 @@ func _rng(seed_value: int) -> RandomNumberGenerator:
 
 func _look(kraken: KrakenHazard) -> Dictionary:
 	var eye: KrakenEye = kraken.get_node("Eye") as KrakenEye
+	var lurkers: KrakenLurkers = kraken.get_node("Lurkers") as KrakenLurkers
 	return {
+		"lurk_time": lurkers._time,
+		"hidden": lurkers._hidden.duplicate(),
 		"active": kraken.get_active_tentacles(),
 		"swing": kraken._swing.duplicate(),
 		"phase": kraken.phase,
@@ -27,11 +30,14 @@ func test_kraken_and_eye_are_replayable() -> void:
 	add_child_autofree(track)
 	var has_hazard: bool = false
 	var has_eye: bool = false
+	var has_lurkers: bool = false
 	for node: Node in Replayable.find_in(track):
 		has_hazard = has_hazard or node is KrakenHazard
 		has_eye = has_eye or node is KrakenEye
+		has_lurkers = has_lurkers or node is KrakenLurkers
 	assert_true(has_hazard)
 	assert_true(has_eye)
+	assert_true(has_lurkers)
 
 
 func test_armed_race_replays_the_recorded_tentacles_and_eye() -> void:
@@ -80,6 +86,11 @@ func test_armed_race_replays_the_recorded_tentacles_and_eye() -> void:
 		assert_eq(got["active"], want["active"], "tentacles at %s" % stamp)
 		assert_eq(got["swing"], want["swing"], "swing at %s" % stamp)
 		assert_eq(got["phase"], want["phase"], "phase at %s" % stamp)
+		assert_almost_eq(got["lurk_time"] as float, want["lurk_time"] as float, 0.001)
+		var got_hidden: PackedFloat32Array = got["hidden"]
+		var want_hidden: PackedFloat32Array = want["hidden"]
+		for i: int in want_hidden.size():
+			assert_almost_eq(got_hidden[i], want_hidden[i], 0.001, "hidden %d at %s" % [i, stamp])
 		assert_almost_eq(got["alert"] as float, want["alert"] as float, 0.001)
 		assert_almost_eq((got["look"] as Vector2).x, (want["look"] as Vector2).x, 0.001)
 		compared += 1

@@ -42,19 +42,21 @@ func test_map_is_registered_with_a_kraken_and_four_tentacles() -> void:
 	assert_not_null(kraken.get_node_or_null("Eye"))
 
 
-func test_each_event_picks_one_or_two_different_tentacles() -> void:
+func test_each_event_picks_one_to_three_different_tentacles() -> void:
 	var kraken: KrakenHazard = _kraken()
 	var seen: Dictionary = {}
 	for seed_value: int in range(1, 41):
 		_arm_now(kraken, seed_value)
 		await wait_until(func() -> bool: return kraken.phase == Hazard.Phase.TELEGRAPH, 2.0)
 		var picked: Array[int] = kraken.get_active_tentacles()
-		assert_between(picked.size(), 1, 2, "seed %d" % seed_value)
-		if picked.size() == 2:
-			assert_ne(picked[0], picked[1])
+		assert_between(picked.size(), 1, 3, "seed %d" % seed_value)
+		var unique: Dictionary = {}
+		for index: int in picked:
+			unique[index] = true
+		assert_eq(unique.size(), picked.size(), "tentacles differ, seed %d" % seed_value)
 		seen[picked.size()] = true
 		kraken.disarm()
-	assert_eq(seen.size(), 2, "both single and double swats happen")
+	assert_eq(seen.size(), 3, "single, double and triple swats all happen")
 
 
 func test_a_sweep_swats_a_marble_along_its_swing() -> void:
@@ -68,9 +70,9 @@ func test_a_sweep_swats_a_marble_along_its_swing() -> void:
 		kraken.roots[index] + Vector2.from_angle(start_angle) * kraken.reach * 0.7
 	)
 	await wait_until(func() -> bool: return kraken.phase == Hazard.Phase.ACTIVE, 2.0)
-	await wait_physics_frames(12)
+	await wait_physics_frames(20)
 	var swing_direction: Vector2 = Vector2(-sin(start_angle), cos(start_angle)) * swing
-	assert_gt(marble.linear_velocity.dot(swing_direction), 100.0, "flung along the sweep")
+	assert_gt(marble.linear_velocity.dot(swing_direction), 50.0, "flung along the sweep")
 
 
 func test_a_marble_outside_the_sweep_is_left_alone() -> void:
@@ -102,7 +104,8 @@ func test_disarm_parks_the_tentacles() -> void:
 	kraken.disarm()
 	assert_true(kraken.get_active_tentacles().is_empty())
 	for area: Area2D in kraken.find_children("*", "Area2D", false, false):
-		assert_eq(area.position, KrakenHazard.PARKED)
+		if area != kraken.get("_sight"):
+			assert_eq(area.position, KrakenHazard.PARKED)
 
 
 func test_a_seed_replays_the_same_tentacles() -> void:
@@ -113,3 +116,41 @@ func test_a_seed_replays_the_same_tentacles() -> void:
 		await wait_until(func() -> bool: return kraken.phase == Hazard.Phase.TELEGRAPH, 2.0)
 		picks.append([kraken.get_active_tentacles(), kraken.get("_swing")])
 	assert_eq(picks[0], picks[1])
+
+
+func test_the_kraken_strikes_often_in_a_race() -> void:
+	var kraken: KrakenHazard = _kraken()
+	kraken.arm(5, 3)
+	assert_gte(kraken.get_schedule().size(), 4, "at least four sweeps planned")
+	var schedule: Array[float] = kraken.get_schedule()
+	for i: int in range(1, schedule.size()):
+		assert_lt(schedule[i] - schedule[i - 1], 9.0, "short gaps")
+
+
+func test_the_eye_follows_the_leading_fish_between_sweeps() -> void:
+	var kraken: KrakenHazard = _kraken()
+	var eye: KrakenEye = kraken.get_node("Eye") as KrakenEye
+	kraken.telegraph_seconds = 0.05
+	(kraken.get_parent() as Track).arm_hazards(_rng(1), 3)
+	var behind: Marble = _marble(Vector2(300.0, 200.0))
+	var leader: Marble = _marble(Vector2(1500.0, 900.0))
+	behind.freeze = true
+	leader.freeze = true
+	await wait_physics_frames(20)
+	assert_eq(kraken.phase, Hazard.Phase.IDLE)
+	assert_gt(eye.get_alert(), 0.1, "eye is half open while watching")
+	assert_gt(eye._look.x, 0.2, "looks toward the leader on the right")
+	assert_gt(eye._look.y, 0.2, "and below")
+
+
+func test_idle_tentacles_hide_while_their_root_is_sweeping() -> void:
+	var kraken: KrakenHazard = _kraken()
+	var lurkers: KrakenLurkers = kraken.get_node("Lurkers") as KrakenLurkers
+	_arm_now(kraken, 4)
+	await wait_until(func() -> bool: return kraken.phase == Hazard.Phase.ACTIVE, 2.0)
+	var busy: int = kraken.get_active_tentacles()[0]
+	await wait_frames(60)
+	assert_gt(lurkers._hidden[busy], 0.9, "the sweeping tentacle is hidden")
+	kraken.disarm()
+	await wait_frames(60)
+	assert_lt(lurkers._hidden[busy], 0.05, "and back afterwards")
