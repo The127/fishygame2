@@ -64,6 +64,14 @@ func test_the_first_fish_into_a_zone_brings_the_next_stage() -> void:
 	assert_signal_emit_count(_ship, "stage_reached", 2)
 
 
+func test_a_stage_bursts_bubbles_the_track_forwards() -> void:
+	_make_track()
+	_ship.reseed(3)
+	watch_signals(_track)
+	_ship.reach_stage(1)
+	assert_signal_emitted(_track, "burst_played")
+
+
 func test_only_fish_trigger_a_zone() -> void:
 	_make_track()
 	_ship.reseed(3)
@@ -177,6 +185,10 @@ func test_the_replay_shows_the_lean_and_the_flood_and_leaves_the_stage_alone() -
 	var nodes: Array[Node] = recorder.nodes()
 	var index: int = nodes.find(_ship)
 	assert_gt(index, -1, "the sinking is recorded")
+	_ship.stage = 2
+	_zone(3).body_entered.emit(_race.get_marbles()[0])
+	assert_eq(_ship.stage, 2, "replayed fish crossing a zone do not sink the ship")
+	_ship.stage = 4
 	var bad: int = 0
 	for k: int in recorder.frame_count():
 		replay._clock = recorder.frame_time(k)

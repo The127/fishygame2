@@ -84,6 +84,8 @@ func _ready() -> void:
 	for node: Node in find_children("*", "AcidPit", true, false):
 		(node as AcidPit).burst_played.connect(burst_played.emit)
 		(node as AcidPit).fish_dissolved.connect(fish_dissolved.emit)
+	for node: Node in find_children("*", "ShipSinking", true, false):
+		(node as ShipSinking).burst_played.connect(burst_played.emit)
 	var style: TrackStyle = TrackStyle.new()
 	add_child(style)
 	style.dress(self, style_id)
