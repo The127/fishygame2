@@ -6,7 +6,7 @@ extends Button
 const FLASH_SECONDS: float = 0.35
 const BAR_COLOR: Color = Color(UiStyle.CYAN, 0.35)
 ## Gap between the button border and the bar.
-const INSET: float = 2.0
+const INSET: float = 3.0
 
 var _bar: ColorRect
 var _cooling: bool = false
