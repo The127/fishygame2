@@ -164,7 +164,9 @@ func test_fade_starts_after_the_crossing() -> void:
 	var rec := _recording(10.0)
 	assert_true(FinishReplay.ending_time(10.0) > 10.0)
 	assert_almost_eq(
-		FinishReplay.end_of(10.0) - FinishReplay.ending_time(10.0), FinishReplay.OUTRO_SECONDS, 0.0001
+		FinishReplay.end_of(10.0) - FinishReplay.ending_time(10.0),
+		FinishReplay.OUTRO_SECONDS,
+		0.0001
 	)
 	assert_true(FinishReplay.end_of(10.0) <= rec.end_time() + 0.0001, "tail covers hold and outro")
 
