@@ -116,6 +116,14 @@ func test_home_screen_builds_the_3d_backdrop() -> void:
 	assert_eq(home.get_node("Center").mouse_filter, Control.MOUSE_FILTER_IGNORE)
 
 
+func test_home_screen_has_an_opaque_backdrop_under_the_3d_view() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	var backdrop: ColorRect = home.get_node("Backdrop")
+	assert_eq(backdrop.color.a, 1.0, "no transparent frame can show the page behind")
+	assert_lt(backdrop.get_index(), home.get_node("Scene3D").get_index())
+
+
 func _click(button: int, pressed: bool, pos: Vector2) -> InputEventMouseButton:
 	var event: InputEventMouseButton = InputEventMouseButton.new()
 	event.button_index = button
