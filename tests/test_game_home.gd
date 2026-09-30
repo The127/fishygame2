@@ -75,12 +75,11 @@ func test_confirmed_leave_refunds_bets_and_chaos_and_stops_auto_mode() -> void:
 
 func test_stay_puts_a_hidden_panel_back_out_of_sight() -> void:
 	_start_race(2)
-	var box: Control = _panel.get_node("Panel") as Control
-	box.visible = false
+	_panel.set_open(false)
 	_panel.home_pressed.emit()
-	assert_true(box.visible, "question must be visible")
+	assert_true(_panel.is_open(), "question must be visible")
 	(_panel.get_node("Panel/Box/LeaveConfirm/Answers/Stay") as Button).pressed.emit()
-	assert_false(box.visible)
+	assert_false(_panel.is_open())
 
 
 func test_question_goes_away_when_the_round_ends_on_its_own() -> void:

@@ -11,10 +11,22 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -420.0
+offset_top = 64.0
+offset_right = -24.0
+offset_bottom = 460.0
+grow_horizontal = 0
+
+[node name="Handle" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
 offset_top = 24.0
 offset_right = -24.0
-offset_bottom = 420.0
+offset_bottom = 48.0
 grow_horizontal = 0
+focus_mode = 0
+text = "Controls"
 
 [node name="Box" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
@@ -158,4 +170,4 @@ text = "Stay"
 
 [node name="Hint" type="Label" parent="Panel/Box"]
 layout_mode = 2
-text = "F1 hides this panel"
+text = "F1 or the top tab hides this panel"
