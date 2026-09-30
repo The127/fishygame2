@@ -422,6 +422,33 @@ THEMES = {
              "gain": 0.06, "bell": True, "gaps": (0.5, 1.0, 1.5)},
         ),
     },
+    # Coral garden: bright D major, a bubbling marimba arpeggio over a bouncy bass.
+    "garden": {
+        "seed": 64,
+        "chords": (
+            (38, 50, 54, 57, 61),
+            (43, 55, 59, 62, 66),
+            (45, 57, 61, 64, 69),
+            (40, 52, 55, 59, 64),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.07,
+        "trem_rate": 0.11,
+        "trem_depth": 0.25,
+        "layers": (
+            {"kind": "arp", "bpm": 120, "div": 2, "decay": 0.16, "gain": 0.09, "accent": 4,
+             "partials": MALLET,
+             "pattern": (74, 78, 81, 78, 86, 81, 78, 74,
+                         76, 79, 83, 79, 88, 83, 79, 76,
+                         78, 81, 85, 81, 90, 85, 81, 78,
+                         73, 76, 81, 76, 85, 81, 76, 73)},
+            {"kind": "bass", "bpm": 120, "div": 1, "decay": 0.3, "gain": 0.30,
+             "pattern": (38, None, 45, None, 43, None, 50, None, 45, None, 52, None, 40, None,
+                         47, None)},
+            {"kind": "plucks", "count": 14, "notes": (86, 90, 93, 95), "decay": 0.12,
+             "gain": 0.05, "glide": True, "gaps": (0.25, 0.5)},
+        ),
+    },
     # Kraken's lair: D minor brass drone, slow war drum and a low tolling bell.
     "kraken": {
         "seed": 29,

@@ -59,6 +59,7 @@ func test_maps_with_moving_parts_register_them() -> void:
 		"abyss": AnglerHazard,
 		"wreck": PlankHazard,
 		"cave": FlipGate,
+		"garden": CoralHazard,
 		"flush": DuckBumper,
 		"switchback": SwitchbackRamp,
 	}

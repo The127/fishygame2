@@ -147,6 +147,24 @@ const PALETTES: Dictionary = {
 		"far_kind": EnvLayer.Kind.CRYSTALS,
 		"sway_scale": 0.0,
 	},
+	"garden":
+	{
+		"sky_top": Color(0.02, 0.15, 0.22),
+		"sky_bottom": Color(0.0, 0.035, 0.07),
+		"far": Color(0.03, 0.18, 0.26),
+		"mid": Color(0.03, 0.13, 0.19),
+		"near": Color(0.01, 0.04, 0.06),
+		"plant": Color(0.5, 0.17, 0.24),
+		"stone_dark": Color(0.08, 0.06, 0.09),
+		"stone_light": Color(0.42, 0.22, 0.26),
+		"rim": Color(1.0, 0.62, 0.4),
+		"ray": Color(0.6, 0.95, 1.0),
+		"fog": Color(0.04, 0.3, 0.36),
+		"mote": Color(1.0, 0.85, 0.65),
+		"layer_kind": EnvLayer.Kind.CORAL,
+		"far_kind": EnvLayer.Kind.SPIRES,
+		"sway_scale": 1.0,
+	},
 	"kraken":
 	{
 		"sky_top": Color(0.1, 0.03, 0.16),
@@ -322,6 +340,7 @@ const FOREGROUND: Dictionary = {
 	"abyss": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
 	"volcanic": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SPIRES],
 	"cave": [EnvLayer.Kind.CRYSTALS, EnvLayer.Kind.CRYSTALS],
+	"garden": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.CORAL],
 	"kraken": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.TENTACLES],
 	"gravity": [EnvLayer.Kind.SHARDS, EnvLayer.Kind.SHARDS],
 	"tide": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
