@@ -89,6 +89,17 @@ var celebrating: bool = false:
 		celebrating = value
 		_glow_dirty = true
 
+## A still fish (e.g. a list icon): drawn once in a neutral pose, no per-frame work.
+var frozen: bool = false:
+	set(value):
+		frozen = value
+		set_process(not frozen)
+		if frozen:
+			_time = 0.0
+			if _stripe_layer != null:
+				_stripe_layer.queue_redraw()
+				queue_redraw()
+
 var _time: float = randf() * TAU
 var _speed: float = 0.0
 var _flash_color: Color = Color.WHITE
@@ -118,6 +129,7 @@ func _ready() -> void:
 	_head_layer = _add_layer(_draw_head)
 	_refresh_palette()
 	_update_glow()
+	set_process(not frozen)
 
 
 func _add_layer(painter: Callable) -> Node2D:

@@ -108,16 +108,29 @@ func set_leaderboard(points_rows: Array[Dictionary], wins_rows: Array[Dictionary
 		_board_panel.visible = _board_has_rows
 
 
-func show_lobby(names: PackedStringArray, max_players: int, seconds_left: float) -> void:
+## [param players] holds one dictionary per joined player: "name", plus the "color",
+## "species", "pattern" and "accessory" of the fish they will race with.
+func show_lobby(players: Array[Dictionary], max_players: int, seconds_left: float) -> void:
 	_big.text = ""
 	_podium_panel.visible = false
 	_payouts_panel.visible = false
 	var header: String = "TYPE #JOIN TO RACE"
-	var status: String = "%d/%d PLAYERS" % [names.size(), max_players]
+	var status: String = "%d/%d PLAYERS" % [players.size(), max_players]
 	if seconds_left > 0.0:
 		status += "   STARTS IN %d s" % ceili(seconds_left)
 	# Called every frame while the lobby is open, so only rebuild when something changed.
-	var key: String = header + status + "\n" + "\n".join(names)
+	var key: String = header + status
+	for player: Dictionary in players:
+		key += (
+			"\n%s|%s|%s|%s|%s"
+			% [
+				player["name"],
+				player["color"].to_html(),
+				player["species"],
+				player["pattern"],
+				player["accessory"],
+			]
+		)
 	if key == _lobby_key and _lobby_panel.visible:
 		return
 	_lobby_key = key
@@ -126,9 +139,9 @@ func show_lobby(names: PackedStringArray, max_players: int, seconds_left: float)
 	for child: Node in _lobby_names.get_children():
 		_lobby_names.remove_child(child)
 		child.queue_free()
-	for player: String in names:
-		_lobby_names.add_child(_make_label(player, 26, 600, UiStyle.TEXT))
-	_lobby_names.visible = not names.is_empty()
+	for player: Dictionary in players:
+		_lobby_names.add_child(_make_lobby_row(player))
+	_lobby_names.visible = not players.is_empty()
 	_lobby_panel.visible = true
 	_board_panel.visible = _board_has_rows
 	_help_panel.visible = true
@@ -442,6 +455,16 @@ func _make_panel(start_visible: bool = true) -> PanelContainer:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.visible = start_visible
 	return panel
+
+
+func _make_lobby_row(player: Dictionary) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.add_child(FishIcon.new(player))
+	var label: Label = _make_label(str(player["name"]), 26, 600, UiStyle.TEXT)
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(label)
+	return row
 
 
 func _make_label(text: String, size: int, weight: int, color: Color, spacing: int = 0) -> Label:
