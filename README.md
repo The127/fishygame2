@@ -239,12 +239,17 @@ body, so a fish is thrown along instead of being crushed. The kraken strikes oft
 in a typical race) and is never still in between: the eye follows the leading fish
 (`scripts/tracks/kraken_eye.gd`) and dim idle tentacles curl and probe in the deep
 (`scripts/tracks/kraken_lurkers.gd`, drawn from a clock the finish replay records).
-Gravity Flip flips gravity every 3 to 4.5 seconds (`scripts/tracks/gravity_flipper.gd`): an Area2D that
-overrides gravity between down and up, leaning slightly toward the finish. A corridor that widens
-toward the finish has baffles that grow from the floor or hang from the ceiling, alternating, so a
-fish can only get past each one while gravity points the right way, and a flip can send the leader
-back behind the pack. The arrows flash for a second before each flip. The flip times come from
-the race seed, and the finish spans the whole corridor so both orientations reach it.
+Gravity Flip turns the whole room every 3 to 4 seconds (`scripts/tracks/gravity_flipper.gd`): an Area2D
+that points gravity at the floor, the ceiling, the wall toward the finish or (rarely, and weaker) the wall
+behind the start, so walls become floors and the ceiling becomes the floor. The course is three
+partitions with one-way valve doors (fish pass toward the finish, never back), each room split into an
+upper and a lower lane by a tilted shelf. A door is in the top or the bottom of its partition (the last one has both), so a fish
+has to change lane in most rooms, and only some pulls carry it there: a shelf that funnels fish to the
+gap under one pull is a hill under the other. Pulls toward the finish lean up or down by seed. There is
+no countdown or arrow: for the last 1.2 seconds gravity thins out to a weightless beat, the debris
+hangs still and the wall that is about to become the floor charges with light. Flip times, sides and
+leans come from the race seed. The finish spans the whole height, so every orientation reaches it.
+The flipper joins the finish replay (the side, the charge, the wave and the debris are replayed).
 
 Switchback is three long ramps that pivot about their middle (`scripts/tracks/switchback_ramp.gd`).
 Somewhere along each ramp, at a spot drawn from the race seed, sits an invisible trigger zone: the
