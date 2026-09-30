@@ -16,6 +16,8 @@ const DUST_COLOR: Color = Color(0.85, 0.65, 0.4)
 
 var _planks: Array[AnimatableBody2D] = []
 var _plank: AnimatableBody2D = null
+## The plank of the previous event, so the same trapdoor never breaks twice in a row.
+var _last_plank: AnimatableBody2D = null
 ## Wood color of each plank's Visual, by plank.
 var _wood: Dictionary[AnimatableBody2D, Color] = {}
 var _cracks: Dictionary[AnimatableBody2D, Line2D] = {}
@@ -45,7 +47,11 @@ func _physics_process(delta: float) -> void:
 func _begin_telegraph(rng: RandomNumberGenerator) -> void:
 	if _planks.is_empty():
 		return
-	_plank = _planks[rng.randi_range(0, _planks.size() - 1)]
+	var choices: Array[AnimatableBody2D] = _planks.duplicate()
+	if choices.size() > 1:
+		choices.erase(_last_plank)
+	_plank = choices[rng.randi_range(0, choices.size() - 1)]
+	_last_plank = _plank
 	var free_end: Vector2 = _centroid(_plank)
 	_open_sign = 1.0 if free_end.x > 0.0 else -1.0
 
@@ -100,6 +106,7 @@ func _reset() -> void:
 		plank.rotation = 0.0
 	_settle = true
 	_plank = null
+	_last_plank = null
 
 
 func _restore_look(plank: AnimatableBody2D) -> void:

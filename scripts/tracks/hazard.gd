@@ -22,6 +22,11 @@ const BASE_GAP: float = 20.0
 @export var kind: String = "hazard"
 @export var telegraph_seconds: float = 1.5
 @export var active_seconds: float = 3.0
+## Mean pause between events at frequency 1, in seconds. A map can tighten it for a hazard that
+## should strike often. Divided by the frequency.
+@export var base_gap: float = BASE_GAP
+## Most events one race plans. At most [constant MAX_EVENTS].
+@export_range(1, 6) var max_events: int = MAX_EVENTS
 
 var phase: Phase = Phase.IDLE
 var phase_time: float = 0.0
@@ -41,9 +46,9 @@ func arm(seed_value: int, frequency: int) -> void:
 	if frequency <= 0:
 		return
 	_rng.seed = seed_value
-	var gap: float = BASE_GAP / float(frequency)
+	var gap: float = base_gap / float(frequency)
 	var t: float = _rng.randf_range(FIRST_EVENT_MIN, FIRST_EVENT_MIN + gap)
-	while t < HORIZON and _schedule.size() < MAX_EVENTS:
+	while t < HORIZON and _schedule.size() < mini(max_events, MAX_EVENTS):
 		_schedule.append(t)
 		t += event_seconds() + _rng.randf_range(0.6, 1.4) * gap
 	_armed = true

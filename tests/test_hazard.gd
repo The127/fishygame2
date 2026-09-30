@@ -200,6 +200,32 @@ func test_plank_swings_down_then_closes() -> void:
 	assert_eq(plank.rotation, 0.0, "shut again")
 
 
+func test_wreck_has_at_least_three_trapdoors_that_break_often() -> void:
+	var track: Track = _track("wreck")
+	var hazard: PlankHazard = track.get_hazards()[0] as PlankHazard
+	var planks: int = 0
+	for child: Node in hazard.get_children():
+		if child is AnimatableBody2D:
+			planks += 1
+	assert_gte(planks, 3)
+	for seed_value: int in range(1, 9):
+		track.arm_hazards(_rng(seed_value), 3)
+		assert_gte(hazard.get_schedule().size(), 4, "seed %d" % seed_value)
+
+
+func test_a_trapdoor_never_breaks_twice_in_a_row() -> void:
+	var track: Track = _track("wreck")
+	var hazard: PlankHazard = track.get_hazards()[0] as PlankHazard
+	for seed_value: int in range(1, 13):
+		track.arm_hazards(_rng(seed_value), 5)
+		var last: AnimatableBody2D = null
+		for i: int in hazard.get_schedule().size():
+			assert_true(_run_until(hazard, Hazard.Phase.TELEGRAPH))
+			assert_ne(hazard._plank, last, "seed %d event %d" % [seed_value, i])
+			last = hazard._plank
+			assert_true(_run_until(hazard, Hazard.Phase.IDLE))
+
+
 func test_open_planks_stay_clear_of_the_decks_below() -> void:
 	var track: Track = _track("wreck")
 	var hazard: PlankHazard = track.get_hazards()[0] as PlankHazard

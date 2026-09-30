@@ -40,22 +40,42 @@ physics_material_override = SubResource("PM_track")
 
 
 [node name="Collider" type="CollisionPolygon2D" parent="DeckA"]
-polygon = PackedVector2Array(30, 160, 1345.8, 332, 1342.948, 353.814, 27.148, 181.814)
+polygon = PackedVector2Array(30, 160, 771.7, 256.954, 768.848, 278.768, 27.148, 181.814)
 
 [node name="Visual" type="Polygon2D" parent="DeckA"]
 color = Color(0.35, 0.24, 0.14, 1)
-polygon = PackedVector2Array(30, 160, 1345.8, 332, 1342.948, 353.814, 27.148, 181.814)
+polygon = PackedVector2Array(30, 160, 771.7, 256.954, 768.848, 278.768, 27.148, 181.814)
 
 [node name="DeckB" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 
 [node name="Collider" type="CollisionPolygon2D" parent="DeckB"]
-polygon = PackedVector2Array(1890, 600, 548.4, 737.6, 550.645, 759.485, 1892.245, 621.885)
+polygon = PackedVector2Array(1890, 600, 1321.6, 658.297, 1323.845, 680.182, 1892.245, 621.885)
 
 [node name="Visual" type="Polygon2D" parent="DeckB"]
 color = Color(0.35, 0.24, 0.14, 1)
-polygon = PackedVector2Array(1890, 600, 548.4, 737.6, 550.645, 759.485, 1892.245, 621.885)
+polygon = PackedVector2Array(1890, 600, 1321.6, 658.297, 1323.845, 680.182, 1892.245, 621.885)
+
+[node name="DeckAMid" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="DeckAMid"]
+polygon = PackedVector2Array(940, 278.954, 1345.8, 332, 1342.948, 353.814, 937.148, 300.768)
+
+[node name="Visual" type="Polygon2D" parent="DeckAMid"]
+color = Color(0.35, 0.24, 0.14, 1)
+polygon = PackedVector2Array(940, 278.954, 1345.8, 332, 1342.948, 353.814, 937.148, 300.768)
+
+[node name="DeckBMid" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="DeckBMid"]
+polygon = PackedVector2Array(1150, 675.897, 548.4, 737.6, 550.645, 759.485, 1152.245, 697.782)
+
+[node name="Visual" type="Polygon2D" parent="DeckBMid"]
+color = Color(0.35, 0.24, 0.14, 1)
+polygon = PackedVector2Array(1150, 675.897, 548.4, 737.6, 550.645, 759.485, 1152.245, 697.782)
 
 [node name="DeckATail" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
@@ -135,8 +155,9 @@ polygon = PackedVector2Array(-60, -460, 1980, -460, 1980, -400, -60, -400)
 [node name="Planks" type="Node2D" parent="."]
 script = ExtResource("3_plank")
 kind = "plank"
-telegraph_seconds = 1.5
-active_seconds = 2.2
+telegraph_seconds = 1.2
+active_seconds = 2.0
+base_gap = 7.0
 
 [node name="PlankA" type="AnimatableBody2D" parent="Planks"]
 physics_material_override = SubResource("PM_track")
@@ -159,6 +180,30 @@ metadata/open_degrees = 25.0
 polygon = PackedVector2Array(171.6, -17.6, 0, 0, 2.245, 21.885, 173.845, 4.285)
 
 [node name="Visual" type="Polygon2D" parent="Planks/PlankB"]
+color = Color(0.5, 0.34, 0.17, 1)
+polygon = PackedVector2Array(171.6, -17.6, 0, 0, 2.245, 21.885, 173.845, 4.285)
+
+[node name="PlankC" type="AnimatableBody2D" parent="Planks"]
+physics_material_override = SubResource("PM_track")
+position = Vector2(940, 278.954)
+metadata/open_degrees = 70.0
+
+[node name="Collider" type="CollisionPolygon2D" parent="Planks/PlankC"]
+polygon = PackedVector2Array(-168.3, -22, 0, 0, -2.852, 21.814, -171.152, -0.186)
+
+[node name="Visual" type="Polygon2D" parent="Planks/PlankC"]
+color = Color(0.5, 0.34, 0.17, 1)
+polygon = PackedVector2Array(-168.3, -22, 0, 0, -2.852, 21.814, -171.152, -0.186)
+
+[node name="PlankD" type="AnimatableBody2D" parent="Planks"]
+physics_material_override = SubResource("PM_track")
+position = Vector2(1150, 675.897)
+metadata/open_degrees = 60.0
+
+[node name="Collider" type="CollisionPolygon2D" parent="Planks/PlankD"]
+polygon = PackedVector2Array(171.6, -17.6, 0, 0, 2.245, 21.885, 173.845, 4.285)
+
+[node name="Visual" type="Polygon2D" parent="Planks/PlankD"]
 color = Color(0.5, 0.34, 0.17, 1)
 polygon = PackedVector2Array(171.6, -17.6, 0, 0, 2.245, 21.885, 173.845, 4.285)
 
