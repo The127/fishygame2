@@ -57,3 +57,17 @@ func test_tentacles_are_the_same_for_a_seed_and_differ_between_seeds() -> void:
 	var c: EnvLayer = _layer(EnvLayer.Kind.TENTACLES, 6)
 	assert_eq(_vertices(a), _vertices(b))
 	assert_ne(_vertices(a), _vertices(c))
+
+
+func test_floor_shapes_are_rooted_at_the_layers_floor_line() -> void:
+	var low: EnvLayer = _layer(EnvLayer.Kind.SPIRES)
+	var high: EnvLayer = _layer(EnvLayer.Kind.SPIRES)
+	high.floor_y = EnvLayer.FLOOR_Y + 800.0
+	high.call("_build")
+	var low_bottom: float = 0.0
+	var high_bottom: float = 0.0
+	for v: Vector2 in _vertices(low):
+		low_bottom = maxf(low_bottom, v.y)
+	for v: Vector2 in _vertices(high):
+		high_bottom = maxf(high_bottom, v.y)
+	assert_almost_eq(high_bottom - low_bottom, 800.0, 0.01)

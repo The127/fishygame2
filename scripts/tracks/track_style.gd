@@ -22,6 +22,8 @@ const FINISH_COLOR: Color = Color(1.0, 0.86, 0.3)
 static var _glow_texture: GradientTexture2D
 
 var _palette: Dictionary = {}
+## World y of the bottom of the map's camera bounds (1080 on a one-screen map).
+var _floor_y: float = EnvLayer.FLOOR_Y
 var _time: float = 0.0
 var _pegs: Array[Dictionary] = []
 var _finish_glows: Array[Node2D] = []
@@ -34,6 +36,7 @@ func dress(track: Track, style_id: String) -> void:
 	_palette = TrackPalettes.PALETTES.get(
 		style_id, TrackPalettes.PALETTES[TrackPalettes.DEFAULT_STYLE]
 	)
+	_floor_y = maxf(track.view_bounds.end.y, EnvLayer.FLOOR_Y)
 	_hide_flat_artwork(track)
 	_add_background()
 	_add_rays()
@@ -98,7 +101,12 @@ func _parallax(scroll_scale: float, z: int) -> Parallax2D:
 func _add_background() -> void:
 	var sky: Polygon2D = Polygon2D.new()
 	sky.polygon = PackedVector2Array(
-		[Vector2(-500, -500), Vector2(2420, -500), Vector2(2420, 1580), Vector2(-500, 1580)]
+		[
+			Vector2(-500, -500),
+			Vector2(2420, -500),
+			Vector2(2420, _floor_y + 500.0),
+			Vector2(-500, _floor_y + 500.0)
+		]
 	)
 	var top: Color = _palette["sky_top"]
 	var bottom: Color = _palette["sky_bottom"]
@@ -225,6 +233,7 @@ func _add_foreground_layer(
 	layer.min_height = min_height
 	layer.max_height = max_height + (0.0 if from_top else FLOOR_BELOW_FRAME)
 	layer.from_top = from_top
+	layer.floor_y = _floor_y
 	layer.sway = 16.0 * float(_palette["sway_scale"])
 	layer.placements = placements
 	group.add_child(layer)
