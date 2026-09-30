@@ -111,6 +111,8 @@ func _physics_process(delta: float) -> void:
 			var marble: Marble = body as Marble
 			if not marble.eaten and not marble.has_finished and not marble.freeze:
 				_dissolve(marble)
+		elif body.is_in_group(GulpDebris.GROUP):
+			(body as GulpDebris).fizzle()
 
 
 ## Called by [method Track.stop_gimmicks]: the pit is clean again.

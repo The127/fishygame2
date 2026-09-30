@@ -408,12 +408,12 @@ func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:
 ## The kraken grumbles with its warning and swooshes as the tentacles go. Hazards do not run
 ## during the finish replay, so it stays silent there.
 func _on_hazard_started(kind: String) -> void:
-	if kind == KrakenHazard.KIND:
+	if kind == KrakenHazard.KIND or kind == GulpHazard.KIND:
 		Sound.play(Sound.Sfx.KRAKEN_GRUMBLE)
 
 
 func _on_hazard_active(kind: String) -> void:
-	if kind == KrakenHazard.KIND:
+	if kind == KrakenHazard.KIND or kind == GulpHazard.KIND:
 		Sound.play(Sound.Sfx.KRAKEN_SWOOSH)
 
 

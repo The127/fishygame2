@@ -31,6 +31,11 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 
+## Makes the whale yawn `amount` wide (0 to 1). A gulp hazard calls it through a signal.
+func set_yawn(amount: float) -> void:
+	yawn = clampf(amount, 0.0, 1.0)
+
+
 ## How far the jaws are open at race time `t` (0 to 1) when the whale is not yawning: a slow
 ## breath.
 static func breath_at(t: float) -> float:
