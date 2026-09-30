@@ -10,7 +10,7 @@ static func chat_text(points: PointsStore, user_id: String) -> String:
 	var who: String = points.get_name(user_id)
 	var wins: int = points.get_wins(user_id)
 	if not stats.has_stats(user_id) and wins == 0:
-		return "%s has no stats yet, join a race with #join." % who
+		return "%s has no stats yet." % who
 	var parts: PackedStringArray = []
 	parts.append(_count(stats.get_counter(user_id, "races"), "race"))
 	parts.append(_count(wins, "win"))

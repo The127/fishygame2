@@ -107,7 +107,7 @@ func test_stats_can_look_up_another_viewer() -> void:
 func test_stats_for_an_unknown_name() -> void:
 	_say("0", "#stats @nobody")
 	assert_eq(_source.sent.size(), 1)
-	assert_string_contains(_source.sent[0], "No stats for @nobody")
+	assert_string_contains(_source.sent[0], "No stats found")
 
 
 func test_stats_cooldown_is_per_viewer() -> void:

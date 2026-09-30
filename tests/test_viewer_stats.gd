@@ -159,6 +159,23 @@ func test_damaged_rows_lose_only_themselves() -> void:
 	assert_false(store.stats.has_stats("3"))
 
 
+func test_huge_counter_is_clamped_not_dropped() -> void:
+	_write(PATH, '{"balances": {}, "stats": {"1": {"races": 1e300, "bet_net": -1e300}}}')
+	var store := PointsStore.new(PATH, 100)
+	assert_true(store.load_from_disk())
+	assert_eq(store.stats.get_counter("1", "races"), ViewerStats.MAX_VALUE)
+	assert_eq(store.stats.get_bet_net("1"), -ViewerStats.MAX_VALUE)
+
+
+func test_map_limits() -> void:
+	var stats := ViewerStats.new()
+	assert_false(stats.record_finish_time("1", "x".repeat(ViewerStats.MAX_MAP_ID_LENGTH + 1), 5.0))
+	for i: int in ViewerStats.MAX_MAPS:
+		assert_true(stats.record_finish_time("1", "map%d" % i, 5.0))
+	assert_false(stats.record_finish_time("1", "one_too_many", 5.0))
+	assert_true(stats.record_finish_time("1", "map0", 4.0), "known maps can still improve")
+
+
 func test_reload_replaces_old_stats() -> void:
 	var store := PointsStore.new(PATH, 100)
 	store.stats.record_race("9")

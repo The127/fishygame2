@@ -276,12 +276,7 @@ func _reply_stats(msg: ChatMessage, args: PackedStringArray) -> void:
 		var asked: String = " ".join(args)
 		user_id = points.find_by_name(asked)
 		if user_id.is_empty():
-			Chat.send_message(
-				(
-					"No stats for %s, they have to join a race first."
-					% asked.left(PointsStore.MAX_NAME_LENGTH)
-				)
-			)
+			Chat.send_message("No stats found for that name.")
 			return
 	Chat.send_message(StatsText.chat_text(points, user_id))
 

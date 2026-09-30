@@ -152,10 +152,10 @@ func _clean_row(raw: Dictionary) -> Dictionary:
 	var row: Dictionary = {}
 	for key: String in COUNTERS:
 		var value: Variant = raw.get(key)
-		if _is_number(value) and int(value) > 0:
+		if _is_number(value) and float(value) > 0.0:
 			row[key] = mini(int(clampf(float(value), 0.0, float(MAX_VALUE))), MAX_VALUE)
 	var net: Variant = raw.get("bet_net")
-	if _is_number(net) and int(net) != 0:
+	if _is_number(net) and float(net) != 0.0:
 		row["bet_net"] = clampi(
 			int(clampf(float(net), -float(MAX_VALUE), float(MAX_VALUE))), -MAX_VALUE, MAX_VALUE
 		)
