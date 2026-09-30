@@ -28,8 +28,8 @@ func test_every_kind_has_a_name_an_accent_and_a_material() -> void:
 
 
 func test_names_do_not_clash_with_palette_colors() -> void:
-	for name: String in FishSkin.NAMES:
-		assert_false(ShopCatalog.COLOR_NAMES.has(name))
+	for skin_name: String in FishSkin.NAMES:
+		assert_false(ShopCatalog.COLOR_NAMES.has(skin_name))
 
 
 func test_aliases_and_case_resolve() -> void:
@@ -68,8 +68,8 @@ func test_premium_is_bought_once_and_needs_the_points() -> void:
 
 func test_listing_names_every_premium_color_in_one_message() -> void:
 	var text: String = _shop(0).premium_catalog_text()
-	for name: String in FishSkin.NAMES:
-		assert_string_contains(text, name)
+	for skin_name: String in FishSkin.NAMES:
+		assert_string_contains(text, skin_name)
 	assert_lt(text.length(), 500)
 
 

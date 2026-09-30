@@ -44,7 +44,9 @@ static func build(
 static func describe(who: Contestant) -> String:
 	var color_name: String = FishSkin.name_of(who.skin)
 	if color_name.is_empty():
-		color_name = ShopCatalog.COLOR_NAMES[posmod(who.palette_slot, ShopCatalog.COLOR_NAMES.size())]
+		color_name = ShopCatalog.COLOR_NAMES[posmod(
+			who.palette_slot, ShopCatalog.COLOR_NAMES.size()
+		)]
 	var parts: Array[String] = [
 		ShopCatalog.SPECIES_NAMES[posmod(who.species, ShopCatalog.SPECIES_NAMES.size())], color_name
 	]

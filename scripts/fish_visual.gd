@@ -120,6 +120,8 @@ var _glow_dirty: bool = true
 var _body_layer: Node2D
 var _stripe_layer: Node2D
 var _head_layer: Node2D
+## Hats and other accessories keep their own colors, so the skin shader skips this layer.
+var _accessory_layer: Node2D
 var _fin_col: Color = Color.WHITE
 var _accent: Color = Color.WHITE
 ## The color the body, fins and glow are built from: `color`, or the skin's accent.
@@ -137,6 +139,7 @@ func _ready() -> void:
 	_body_layer = _add_layer(_draw_body)
 	_stripe_layer = _add_layer(_draw_stripe)
 	_head_layer = _add_layer(_draw_head)
+	_accessory_layer = _add_layer(_draw_accessory)
 	_refresh_palette()
 	_apply_skin()
 	_update_glow()
@@ -171,6 +174,7 @@ func _redraw_static() -> void:
 	if _body_layer != null:
 		_body_layer.queue_redraw()
 		_head_layer.queue_redraw()
+		_accessory_layer.queue_redraw()
 
 
 func _process(delta: float) -> void:
@@ -291,7 +295,15 @@ func _draw_head(canvas: CanvasItem) -> void:
 	canvas.draw_circle(eye, 3.2, OUTLINE)
 	canvas.draw_circle(eye, 2.2, _accent.lightened(0.5))
 	canvas.draw_circle(eye + Vector2(0.6, 0), 1.0, OUTLINE)
+
+
+## The accessory, in its own layer so a premium skin does not repaint it.
+func _draw_accessory(canvas: CanvasItem) -> void:
 	if accessory != FishAccessory.Kind.NONE:
+		var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
+		var length: float = sp["length"]
+		var height: float = sp["height"]
+		var eye := Vector2(length * 0.5, -height * 0.25)
 		var head_x: float = length - 2.0 * length * 0.3
 		var head_top := Vector2(head_x, -_body_half_height(sp, 0.3))
 		var chin := Vector2(length - 2.0 * length * 0.22, _body_half_height(sp, 0.22) * 0.9)
