@@ -224,7 +224,9 @@ func _process(_delta: float) -> void:
 	_panel.set_status(_status_text())
 	_panel.set_power_status(_power_status_text())
 	var racing: bool = _flow.state == GameFlow.State.RACING
-	_panel.set_power_cooldown(_powers.cooldown_left() if racing else 0.0, _powers.cooldown)
+	_panel.set_power_cooldown(
+		_powers.cooldown_left() if racing else 0.0, _powers.cooldown, not racing
+	)
 
 
 ## Left click fires the armed streamer power at the mouse; right click puts it away.

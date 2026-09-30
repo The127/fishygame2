@@ -34,6 +34,8 @@ var _glow: StyleBoxFlat = StyleBoxFlat.new()
 var _time: float = 0.0
 var _bubble_clock: float = 0.0
 var _hovered: bool = false
+var _pressing: bool = false
+var _punching: bool = false
 var _ring_age: float = -1.0
 var _ring_color: Color = Color.WHITE
 var _was_animating: bool = false
@@ -134,19 +136,19 @@ func apply_style() -> void:
 	add_theme_color_override("font_hover_pressed_color", Color.WHITE)
 
 
-## Shows the cooldown as [param fraction] done, 0..1. Use 1 for ready.
-func set_cooldown_progress(fraction: float) -> void:
+## Shows the cooldown as [param fraction] done, 0..1. Use 1 for ready. [param quiet] skips the
+## ready cue, for a cooldown that was cut off rather than run out.
+func set_cooldown_progress(fraction: float, quiet: bool = false) -> void:
 	_fraction = clampf(fraction, 0.0, 1.0)
 	var cooling: bool = _fraction < 1.0
 	if cooling != _cooling:
 		_cooling = cooling
 		disabled = cooling
 		_bar.visible = cooling
-		if cooling:
-			_scale_to(1.0)
-		else:
+		if not cooling and not quiet:
 			_flash()
 			_pulse_ready()
+		_refresh_scale()
 	_update_bar()
 
 
@@ -157,9 +159,11 @@ func play_activate() -> void:
 	_bubbles.burst(size * 0.5, 10, 150.0, 0.7, 3.0)
 	if _scale_tween != null:
 		_scale_tween.kill()
+	_punching = true
 	scale = Vector2.ONE * 1.14
 	_scale_tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.3)
+	_scale_tween.tween_property(self, "scale", Vector2.ONE * _target_scale(), 0.3)
+	_scale_tween.tween_callback(_end_punch)
 
 
 func _update_bar() -> void:
@@ -195,18 +199,47 @@ func _on_resized() -> void:
 
 func _set_hovered(hovered: bool) -> void:
 	_hovered = hovered
-	if not disabled and not button_pressed:
-		_scale_to(HOVER_SCALE if hovered else 1.0)
+	_refresh_scale()
 	queue_redraw()
 
 
 func _on_button_down() -> void:
-	if not disabled:
-		_scale_to(PRESS_SCALE)
+	_pressing = true
+	_refresh_scale()
 
 
 func _on_button_up() -> void:
-	_scale_to(HOVER_SCALE if _hovered and not disabled else 1.0)
+	_pressing = false
+	_refresh_scale()
+
+
+## Call after the armed state changed without a signal (set_pressed_no_signal).
+func armed_changed() -> void:
+	_refresh_scale()
+	queue_redraw()
+
+
+## The size the button rests at: swollen under the mouse, squashed while held, plain when
+## disabled or armed and left alone.
+func _target_scale() -> float:
+	if disabled:
+		return 1.0
+	if _pressing:
+		return PRESS_SCALE
+	return HOVER_SCALE if _hovered else 1.0
+
+
+func _end_punch() -> void:
+	_punching = false
+	_scale_to(_target_scale())
+
+
+## Eases to the current resting size, unless the activate punch is still settling into it.
+func _refresh_scale() -> void:
+	if _punching and not _pressing:
+		return
+	_punching = false
+	_scale_to(_target_scale())
 
 
 func _scale_to(target: float) -> void:

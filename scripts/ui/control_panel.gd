@@ -217,16 +217,17 @@ func set_status(text: String) -> void:
 func set_armed_power(kind: int) -> void:
 	for i: int in _power_buttons.size():
 		_power_buttons[i].set_pressed_no_signal(i == kind)
+		_power_buttons[i].armed_changed()
 
 
 ## Fills the power buttons' cooldown bars. [param total] is the cooldown length, [param left]
 ## what remains; 0 left means ready. All powers share one cooldown.
-func set_power_cooldown(left: float, total: float) -> void:
+func set_power_cooldown(left: float, total: float, quiet: bool = false) -> void:
 	var fraction: float = 1.0 if left <= 0.0 or total <= 0.0 else 1.0 - left / total
 	_cooldown_fraction = fraction
 	_update_tab_bar()
 	for button: PowerButton in _power_buttons:
-		button.set_cooldown_progress(fraction)
+		button.set_cooldown_progress(fraction, quiet)
 
 
 ## Slim bar under the tab, filling left to right while the drawer is closed and a power cools down.
@@ -371,8 +372,9 @@ static func slide_alpha(amount: float) -> float:
 
 ## Plays the burst of the power [param kind] firing on its button.
 func play_power_activate(kind: int) -> void:
-	if kind >= 0 and kind < _power_buttons.size():
-		_power_buttons[kind].play_activate()
+	for button: PowerButton in _power_buttons:
+		if button.kind == kind:
+			button.play_activate()
 
 
 func _hide_if_closed() -> void:
