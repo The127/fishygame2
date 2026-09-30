@@ -103,6 +103,15 @@ JINGLES = {
         "bell": (1.2, 74, 1.6),
         "echo": (0.5, 2, 0.4),
     },
+    # Gravity flip: D minor arpeggio that climbs, then falls back into a low chord.
+    "gravity": {
+        "partials": GLASS,
+        "glide": 0.5,
+        "notes": ((0.0, 62, 0.6, 0.25), (0.14, 69, 0.6, 0.25), (0.28, 74, 0.6, 0.25),
+                  (0.42, 77, 0.6, 0.25), (0.56, 74, 0.6, 0.25), (0.7, 69, 0.6, 0.25),
+                  (0.84, 62, 1.7, 0.7), (0.84, 65, 1.7, 0.7), (0.84, 57, 1.7, 0.7)),
+        "echo": (0.3, 2, 0.4),
+    },
 }
 
 
@@ -377,6 +386,12 @@ def _kraken(out, rng):
     thumps(out, rng, (1.0, 4.6), 90.0, 0.6)
     moan(out, 2.6, 55.0, 85.0, 0.3)
     bubbles(out, rng, 6, 250.0, 600.0, 0.1)
+def _gravity(out, rng):
+    # Two slow swells per loop, like the water sloshing one way then the other.
+    bed(out, rng, 60.0, 500.0, 0.9, swell=0.8, cycles=2)
+    bed(out, rng, 300.0, 1800.0, 0.3, swell=0.9, cycles=2, phase=math.pi)
+    pings(out, (1.2, 5.2), 1100.0, 0.12)
+    bubbles(out, rng, 6, 500.0, 1100.0, 0.08)
 
 
 AMBIENCE = {
@@ -389,6 +404,7 @@ AMBIENCE = {
     "vents": (37, _vents),
     "coral": (38, _coral),
     "kraken": (39, _kraken),
+    "gravity": (40, _gravity),
 }
 
 

@@ -496,4 +496,29 @@ THEMES = {
              "gain": 0.07},
         ),
     },
+    # Gravity flip: D minor, a slow pulse and an arpeggio that climbs then falls back.
+    "gravity": {
+        "seed": 30,
+        "chords": (
+            (38, 50, 53, 57, 62),
+            (34, 46, 50, 53, 58),
+            (31, 43, 46, 50, 55),
+            (33, 45, 49, 52, 57),
+        ),
+        "pad_partials": GLASS,
+        "pad_gain": 0.08,
+        "trem_rate": 0.2,
+        "trem_depth": 0.35,
+        "rumble_cutoff": 180.0,
+        "rumble_gain": 0.5,
+        "layers": (
+            {"kind": "arp", "bpm": 100, "div": 2, "decay": 0.3, "gain": 0.08, "accent": 4,
+             "partials": GLASS,
+             "pattern": (74, 77, 81, 86, 89, 86, 81, 77,
+                         70, 74, 77, 82, 86, 82, 77, 74,
+                         67, 70, 74, 79, 82, 79, 74, 70,
+                         69, 73, 76, 81, 85, 81, 76, 73)},
+            {"kind": "pulse", "bpm": 50, "freq": 65.0, "decay": 0.2, "gain": 0.3},
+        ),
+    },
 }

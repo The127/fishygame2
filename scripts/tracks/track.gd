@@ -84,10 +84,13 @@ func stop_hazards() -> void:
 		hazard.disarm()
 
 
-## Puts the map's geysers back to sleep.
+## Puts the map's geysers back to sleep and its gravity back to down.
 func stop_gimmicks() -> void:
 	for geyser: Geyser in get_geysers():
 		geyser.disarm()
+	for child: Node in get_children():
+		if child is GravityFlipper:
+			(child as GravityFlipper).disarm()
 
 
 func get_geysers() -> Array[Geyser]:
