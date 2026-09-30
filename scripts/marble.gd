@@ -19,6 +19,15 @@ const CHEER_MAX_STRENGTH: float = 8.0
 const SNAP_FADE_SECONDS: float = 1.0
 const SNAP_DUST: Color = Color(0.9, 0.75, 0.35)
 
+## Seconds a fish can lie above the waterline before it is stranded (see [method update_dryness]).
+const DRY_GRACE: float = 2.0
+## Dry time at which a fish starts to gasp (flashes), in seconds.
+const DRY_WARNING: float = 0.6
+## Seconds a stranded fish flops, then seconds it takes to fade away.
+const FLOP_SECONDS: float = 1.3
+const STRAND_FADE_SECONDS: float = 0.9
+const FLOP_TINT: Color = Color(0.85, 0.75, 0.5)
+
 ## Seconds the meow bubble stays up.
 const MEOW_SECONDS: float = 1.2
 
@@ -29,6 +38,10 @@ var has_finished: bool = false
 var eaten: bool = false
 ## True once a Thanos snap turned the fish to dust. It stays out of the race for good.
 var snapped: bool = false
+## True once the tide left the fish high and dry. It stays out of the race for good.
+var stranded: bool = false
+## Seconds the fish has lain above the waterline without getting wet again.
+var dry_time: float = 0.0
 ## How often anglerfish have swallowed this fish in the current race.
 var times_eaten: int = 0
 var color: Color = Color.WHITE:
@@ -238,9 +251,67 @@ func snap() -> void:
 	tween.tween_callback(func() -> void: visible = false)
 
 
+## Whether the fish is out of the race for good (snapped or stranded). It counts as unfinished.
+func is_out() -> bool:
+	return snapped or stranded
+
+
+## Tracks how long the fish has been above the waterline at `waterline_y` (world pixels, the
+## fish counts as dry while its center is above it). The fish gasps once it has been dry a
+## while and is stranded after [constant DRY_GRACE] seconds. Getting wet again dries it out
+## twice as fast as it gathered. Returns true on the call that strands the fish.
+func update_dryness(waterline_y: float, delta: float) -> bool:
+	if eaten:
+		return false
+	if global_position.y >= waterline_y:
+		dry_time = maxf(dry_time - delta * 2.0, 0.0)
+		return false
+	var before: float = dry_time
+	dry_time += delta
+	if dry_time >= DRY_GRACE:
+		strand()
+		return true
+	# Flash at the warning mark and then roughly every half second.
+	if _fish != null and dry_time >= DRY_WARNING and floorf(dry_time * 2.0) != floorf(before * 2.0):
+		_fish.flash(FLOP_TINT, 0.4)
+	return false
+
+
+## The tide leaves the fish behind: it flops on the spot, fades away and is out of the race for
+## good (it counts as unfinished). Also sets [member eaten], so the race and the hazards leave
+## it alone.
+func strand() -> void:
+	if eaten:
+		return
+	eaten = true
+	stranded = true
+	collision_layer = 0
+	collision_mask = 0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	freeze = true
+	RaceFx.burst(get_parent(), global_position, RaceFx.SPLASH_COLOR, 10, 70.0, Vector2(0, -40))
+	var base: Vector2 = global_position
+	var heading_before: float = _fish.heading if _fish != null else 0.0
+	var tween: Tween = create_tween()
+	tween.tween_method(
+		func(t: float) -> void: _flop(base, heading_before, t), 0.0, 1.0, FLOP_SECONDS
+	)
+	tween.tween_property(self, "modulate:a", 0.0, STRAND_FADE_SECONDS)
+	tween.tween_callback(func() -> void: visible = false)
+
+
+## One frame of the stranded flop: hops and rocks side to side, tiring as it goes.
+func _flop(base: Vector2, heading_before: float, t: float) -> void:
+	var tiring: float = 1.0 - 0.6 * t
+	global_position = base + Vector2(0.0, -absf(sin(t * TAU * 2.0)) * 10.0 * tiring)
+	if _fish != null:
+		_fish.heading = heading_before + sin(t * TAU * 3.0) * 0.7 * tiring
+
+
 ## Brings a swallowed fish back at `at`, moving with `velocity`.
 func release(at: Vector2, velocity: Vector2) -> void:
-	if not eaten or snapped:
+	if not eaten or is_out():
 		return
 	eaten = false
 	collision_layer = _layer_before_eaten

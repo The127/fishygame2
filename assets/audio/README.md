@@ -7,7 +7,7 @@ license terms beyond the repository's own. Re-run the script and commit the WAVs
 | File | Use |
 | --- | --- |
 | `music_ambient.wav` | 32 s seamless underwater ambient loop for the home screen (pads, water rumble, sparse bubble plucks) |
-| `music_<map id>.wav` | 24 s seamless loop per map (zigzag, pachinko, wreck, whirlpool, jelly, abyss, vents, coral, kraken, gravity), defined in `tools/music_themes.py`; the `Sound` autoload crossfades to it when a map loads |
+| `music_<map id>.wav` | 24 s seamless loop per map (zigzag, pachinko, wreck, whirlpool, jelly, abyss, vents, coral, kraken, gravity, tide), defined in `tools/music_themes.py`; the `Sound` autoload crossfades to it when a map loads |
 | `ambience_<map id>.wav` | 8 s seamless 8 kHz ambience bed per map (timber creaks, geyser rumble, sonar, shimmer...), defined in `tools/map_audio.py`; plays on the Ambience bus under the music |
 | `jingle_<map id>.wav` | 2.8 s win jingle per map in that map's key, played at the podium instead of `sfx_win.wav` |
 | `sfx_join.wav` | a viewer joins the lobby |
