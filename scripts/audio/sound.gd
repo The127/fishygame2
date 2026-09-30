@@ -132,9 +132,12 @@ func set_music_theme(id: String) -> void:
 	_music.stream = _music_stream(id)
 	_music.volume_db = SILENT_DB
 	_music.play()
-	_music_tween = create_tween().set_parallel(true)
-	_music_tween.tween_property(_music, "volume_db", 0.0, MUSIC_CROSSFADE)
-	_music_tween.tween_property(_music_fading, "volume_db", SILENT_DB, MUSIC_CROSSFADE)
+	# Quad easing keeps both themes audible mid-fade instead of dipping to silence.
+	_music_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_QUAD)
+	_music_tween.tween_property(_music, "volume_db", 0.0, MUSIC_CROSSFADE).set_ease(Tween.EASE_OUT)
+	_music_tween.tween_property(_music_fading, "volume_db", SILENT_DB, MUSIC_CROSSFADE).set_ease(
+		Tween.EASE_IN
+	)
 	_music_tween.chain().tween_callback(_music_fading.stop)
 
 

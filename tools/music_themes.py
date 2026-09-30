@@ -212,7 +212,12 @@ def render_creaks(out: list, rng: random.Random, spec: dict) -> None:
 
 def render_swirl(out: list, rng: random.Random, spec: dict) -> None:
     """Filtered noise swelling in and out like rushing water."""
-    raw = bandpass(noise(N, rng), spec["low"], spec["high"])
+    fade = int(2.0 * RATE)
+    long = bandpass(noise(N + fade, rng), spec["low"], spec["high"])
+    raw = long[:N]
+    for i in range(fade):  # crossfade the tail into the head so the loop has no tick
+        g = i / fade
+        raw[i] = raw[i] * g + long[N + i] * (1.0 - g)
     lfo = snap(spec["rate"])
     for i in range(N):
         t = i / RATE
