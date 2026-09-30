@@ -160,6 +160,7 @@ async function main() {
       await waitState(page, "racing", (s) => s.flow === "RACING");
       await page.waitForTimeout(2000);
       results.maps[map] = await sample(page, SAMPLE_MS);
+      await shot(page, `race-${map}`);
       log(JSON.stringify(results.maps[map]));
       await act(page, "stop");
       await waitState(page, "idle", (s) => s.flow === "IDLE");
