@@ -23,6 +23,8 @@ var count: int = 12
 var min_height: float = 120.0
 var max_height: float = 320.0
 var from_top: bool = false
+## World y of the frame's bottom edge that floor shapes are rooted below. Taller maps raise it.
+var floor_y: float = FLOOR_Y
 ## Sideways sway in pixels at the far end, done in a shader. Zero keeps the layer static.
 var sway: float = 0.0
 ## Fixed shapes as Vector2(x, height), replacing the seeded scatter. Heights are total lengths from the
@@ -41,7 +43,7 @@ func _ready() -> void:
 		var material: ShaderMaterial = ShaderMaterial.new()
 		material.shader = SWAY_SHADER
 		material.set_shader_parameter("amplitude", sway)
-		material.set_shader_parameter("anchor_y", CEILING_Y if from_top else FLOOR_Y + 60.0)
+		material.set_shader_parameter("anchor_y", CEILING_Y if from_top else floor_y + 60.0)
 		material.set_shader_parameter("reach", max_height)
 		self.material = material
 	_build()
@@ -60,7 +62,7 @@ func _build() -> void:
 	_indices.clear()
 	_rng.seed = seed_value
 	var flip: float = -1.0 if from_top else 1.0
-	var base_y: float = CEILING_Y if from_top else FLOOR_Y + 60.0
+	var base_y: float = CEILING_Y if from_top else floor_y + 60.0
 	var total: int = placements.size() if not placements.is_empty() else count
 	for i: int in total:
 		var x: float = -200.0 + WIDTH * (float(i) + _rng.randf_range(0.1, 0.9)) / float(count)

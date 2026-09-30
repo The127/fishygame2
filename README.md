@@ -202,7 +202,7 @@ race and lands mostly on nothing, sometimes on a modifier (low gravity, double h
 bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers change rules without drawing from the race seed (`scripts/game/race_event.gd`);
 `--event=<id>` on the debug race scene replays one.
 
-Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
+Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko (a tall machine with three peg levels: a dense field, a sparse one with pulsing bumpers and one of spinners) and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
 Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush. The Jellyfish
 

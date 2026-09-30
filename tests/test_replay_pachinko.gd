@@ -45,6 +45,11 @@ func _hazard_active_long_enough() -> bool:
 	return _hazard.phase == Hazard.Phase.ACTIVE and _hazard.phase_time >= FINISH_AFTER_ACTIVE
 
 
+## The eel is one of several replayed parts (spinners and bumpers join too).
+func _node_index(recorder: ReplayRecorder) -> int:
+	return recorder.nodes().find(_hazard)
+
+
 func _start_replay(recorder: ReplayRecorder) -> FinishReplay:
 	var replay: FinishReplay = FinishReplay.new()
 	add_child_autofree(replay)
@@ -55,7 +60,7 @@ func _start_replay(recorder: ReplayRecorder) -> FinishReplay:
 func _phases(recorder: ReplayRecorder) -> Array[int]:
 	var phases: Array[int] = []
 	for k: int in recorder.frame_count():
-		phases.append(int(recorder.node_state_at(k, 0)[1]))
+		phases.append(int(recorder.node_state_at(k, _node_index(recorder))[1]))
 	return phases
 
 
@@ -72,12 +77,14 @@ func _check_every_recorded_frame_replays_as_recorded(recorder: ReplayRecorder) -
 	for k: int in recorder.frame_count():
 		replay._clock = recorder.frame_time(k)
 		replay._apply()
-		var recorded: PackedFloat32Array = recorder.node_state_at(replay._frame, 0)
+		var recorded: PackedFloat32Array = recorder.node_state_at(
+			replay._frame, _node_index(recorder)
+		)
 		var blend: float = 0.0
 		if replay._frame != k:
 			# Landed on the closing frame of the last pair.
 			blend = 1.0
-			recorded = recorder.node_state_at(replay._frame + 1, 0)
+			recorded = recorder.node_state_at(replay._frame + 1, _node_index(recorder))
 		assert_eq(_hazard.replay_state(), recorded, "frame %d (%.2f)" % [k, blend])
 		_assert_looks_like_recorded(recorded)
 	replay.stop()
@@ -104,8 +111,8 @@ func _check_frames_between_recordings_follow_the_nearer_one_across_the_boundary(
 	var replay: FinishReplay = _start_replay(recorder)
 	var crossed: bool = false
 	for k: int in recorder.frame_count() - 1:
-		var from: PackedFloat32Array = recorder.node_state_at(k, 0)
-		var to: PackedFloat32Array = recorder.node_state_at(k + 1, 0)
+		var from: PackedFloat32Array = recorder.node_state_at(k, _node_index(recorder))
+		var to: PackedFloat32Array = recorder.node_state_at(k + 1, _node_index(recorder))
 		for weight: float in [0.25, 0.75]:
 			replay._frame = k
 			replay._clock = lerpf(recorder.frame_time(k), recorder.frame_time(k + 1), weight)
