@@ -98,6 +98,14 @@ func cheer_marble(id: int, strength: float) -> bool:
 	return true
 
 
+## Makes a marble meow, purely for show. Returns false if the race is not running or the id is unknown.
+func meow_marble(id: int) -> bool:
+	if not running or not _marbles.has(id):
+		return false
+	(_marbles[id] as Marble).meow()
+	return true
+
+
 ## Current global position of every marble still racing, id -> Vector2.
 func get_position_map() -> Dictionary:
 	var positions: Dictionary = {}

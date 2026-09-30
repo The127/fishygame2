@@ -174,6 +174,27 @@ def sfx_splash() -> list:
     return out
 
 
+def sfx_meow() -> list:
+    """A short cat meow: a rising then falling pitch through a vowel-like formant sweep."""
+    seconds = 0.5
+    out = []
+    phase = 0.0
+    for i in range(n_samples(seconds)):
+        t = i / SAMPLE_RATE
+        u = t / seconds
+        # Pitch glides up into the "mee" and falls away in the "ow".
+        freq = 430.0 + 330.0 * math.sin(math.pi * min(1.0, u * 1.25)) - 90.0 * u
+        phase += TAU * freq / SAMPLE_RATE
+        # The harmonics that sit near a moving formant get boosted: "ee" (bright) to "ow" (dark).
+        formant = 2600.0 - 1900.0 * u
+        v = 0.0
+        for h in range(1, 13):
+            v += math.sin(phase * h) * math.exp(-(((h * freq - formant) / 900.0) ** 2)) / h**0.6
+        env = min(1.0, t / 0.03) * math.exp(-max(0.0, u - 0.55) * 4.5) * (0.85 + 0.15 * math.sin(TAU * 7.0 * t))
+        out.append(v * env)
+    return out
+
+
 def sfx_win() -> list:
     """Bright arpeggio into a held chord with a soft echo."""
     seconds = 2.4
@@ -274,6 +295,7 @@ def main() -> None:
         "sfx_curse.wav": sfx_curse,
         "sfx_splash.wav": sfx_splash,
         "sfx_win.wav": sfx_win,
+        "sfx_meow.wav": sfx_meow,
     }
     for name, make in effects.items():
         write_wav(name, fade_edges(make()), SFX_PEAK)
