@@ -107,3 +107,36 @@ func test_stay_leaves_an_open_drawer_open() -> void:
 	_panel.ask_leave()
 	_panel.cancel_leave()
 	assert_true(_panel.is_open())
+
+
+func _power(index: int) -> PowerButton:
+	return _panel.get_node("Panel/Box/PowerButtons").get_child(index) as PowerButton
+
+
+func test_power_buttons_gray_out_and_fill_while_cooling() -> void:
+	_panel.set_power_cooldown(4.0, 8.0)
+	for i: int in 3:
+		assert_true(_power(i).disabled)
+		assert_true(_power(i).is_cooling())
+	var bar: ColorRect = _power(0).get_child(0) as ColorRect
+	assert_true(bar.visible)
+	var half: float = bar.offset_right
+	_panel.set_power_cooldown(2.0, 8.0)
+	assert_gt(bar.offset_right, half, "bar grows left to right")
+
+
+func test_power_buttons_return_to_normal_when_ready() -> void:
+	_panel.set_power_cooldown(4.0, 8.0)
+	_panel.set_power_cooldown(0.0, 8.0)
+	assert_false(_power(0).disabled)
+	assert_false((_power(0).get_child(0) as ColorRect).visible)
+
+
+func test_hotkey_ignored_while_cooling() -> void:
+	watch_signals(_panel)
+	_panel.set_power_cooldown(4.0, 8.0)
+	var event: InputEventKey = InputEventKey.new()
+	event.keycode = KEY_1
+	event.pressed = true
+	_panel._unhandled_input(event)
+	assert_signal_not_emitted(_panel, "power_pressed")

@@ -54,6 +54,15 @@ static func button_box(hover: bool) -> StyleBoxFlat:
 	return box
 
 
+## Grayed-out look for a button that cannot be pressed right now.
+static func disabled_button_box() -> StyleBoxFlat:
+	var box: StyleBoxFlat = button_box(false)
+	box.bg_color = Color(MUTED, 0.12)
+	box.border_color = Color(MUTED, 0.5)
+	box.shadow_size = 0
+	return box
+
+
 static func gradient_material() -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = load(GRADIENT_SHADER_PATH)

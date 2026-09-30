@@ -226,6 +226,7 @@ func _process(_delta: float) -> void:
 		_follow_replay()
 	_panel.set_status(_status_text())
 	_panel.set_power_status(_power_status_text())
+	_panel.set_power_cooldown(_powers.cooldown_left(), _powers.cooldown)
 
 
 ## Left click fires the armed streamer power at the mouse; right click puts it away.

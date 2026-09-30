@@ -59,7 +59,7 @@ var _fade_tween: Tween
 @onready var _status: Label = $Panel/Box/Status
 @onready var _map_picker: OptionButton = $Panel/Box/MapRow/MapPicker
 @onready var _power_status: Label = $Panel/Box/PowerStatus
-@onready var _power_buttons: Array[Button] = [
+@onready var _power_buttons: Array[PowerButton] = [
 	$Panel/Box/PowerButtons/Rod, $Panel/Box/PowerButtons/Net, $Panel/Box/PowerButtons/Blast
 ]
 @onready var _confirm: Control = $Panel/Box/LeaveConfirm
@@ -116,7 +116,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if key.keycode == KEY_F1:
 		toggle_drawer()
 	elif key.keycode >= KEY_1 and key.keycode < KEY_1 + _power_buttons.size():
-		power_pressed.emit(key.keycode - KEY_1)
+		var index: int = key.keycode - KEY_1
+		if not _power_buttons[index].is_cooling():
+			power_pressed.emit(index)
 	elif key.keycode == KEY_SPACE:
 		start_pressed.emit()
 	elif key.keycode == KEY_ESCAPE:
@@ -199,6 +201,14 @@ func set_armed_power(kind: int) -> void:
 		_power_buttons[i].set_pressed_no_signal(i == kind)
 
 
+## Fills the power buttons' cooldown bars. [param total] is the cooldown length, [param left]
+## what remains; 0 left means ready. All powers share one cooldown.
+func set_power_cooldown(left: float, total: float) -> void:
+	var fraction: float = 1.0 if left <= 0.0 or total <= 0.0 else 1.0 - left / total
+	for button: PowerButton in _power_buttons:
+		button.set_cooldown_progress(fraction)
+
+
 ## One line for the streamer under the power buttons. It is not shown to viewers.
 func set_power_status(text: String) -> void:
 	_power_status.text = text
@@ -255,6 +265,8 @@ func _apply_style() -> void:
 		_map_picker,
 	]:
 		UiStyle.style_button(button, 20)
+	for power: PowerButton in _power_buttons:
+		power.add_theme_stylebox_override("disabled", UiStyle.disabled_button_box())
 	# Popup menu of the map picker: dark panel and the same font.
 	var popup: PopupMenu = _map_picker.get_popup()
 	popup.add_theme_font_override("font", UiStyle.font(600))
