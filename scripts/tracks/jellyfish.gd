@@ -16,6 +16,8 @@ const IMMUNE_SECONDS: float = 2.5
 ## sinks while held, in pixels per second.
 const GRIP: float = 9.0
 const SAG_SPEED: float = 30.0
+## Floats in a [method snapshot].
+const SNAPSHOT_FLOATS: int = 5
 
 ## Radius of the bell (the part marbles bounce off).
 @export var radius: float = 42.0
@@ -113,6 +115,20 @@ func advance(delta: float, speed_scale: float = 1.0) -> void:
 	if delta > 0.0:
 		_velocity = (position - before) / delta
 	_update_catches(delta)
+
+
+## What the finish replay needs to draw this jellyfish: position, drift clock, glow and sting.
+func snapshot() -> PackedFloat32Array:
+	return PackedFloat32Array([position.x, position.y, _clock, excite, _sting])
+
+
+## Shows the jellyfish as a [method snapshot] recorded it. Does not move it along its path.
+func show_snapshot(values: PackedFloat32Array) -> void:
+	position = Vector2(values[0], values[1])
+	_clock = values[2]
+	excite = values[3]
+	_sting = values[4]
+	queue_redraw()
 
 
 ## True while the tentacles are holding `marble`.

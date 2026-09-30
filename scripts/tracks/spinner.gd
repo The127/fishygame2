@@ -9,3 +9,16 @@ extends AnimatableBody2D
 
 func _physics_process(delta: float) -> void:
 	rotation += speed * delta
+
+
+func _ready() -> void:
+	Replayable.join(self)
+
+
+## Part of the finish replay ([Replayable]).
+func replay_state() -> PackedFloat32Array:
+	return PackedFloat32Array([rotation])
+
+
+func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	rotation = Replayable.mix(from, to, weight, 0)

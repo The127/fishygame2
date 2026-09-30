@@ -103,6 +103,24 @@ func tick(delta: float) -> void:
 	_digest(delta)
 
 
+func _replay_extra() -> PackedFloat32Array:
+	var state: PackedFloat32Array = PackedFloat32Array([float(_lair), float(_stage), _stage_time])
+	for lure: AnglerLure in _lures:
+		state.append_array(lure.snapshot())
+	return state
+
+
+func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	_lair = int(Replayable.step(from, to, weight, REPLAY_BASE))
+	_stage = int(Replayable.step(from, to, weight, REPLAY_BASE + 1)) as Stage
+	_stage_time = Replayable.mix(from, to, weight, REPLAY_BASE + 2)
+	for i: int in _lures.size():
+		var start: int = REPLAY_BASE + 3 + i * AnglerLure.SNAPSHOT_FLOATS
+		_lures[i].show_snapshot(
+			Replayable.blend(from, to, weight, start, AnglerLure.SNAPSHOT_FLOATS)
+		)
+
+
 func _begin_telegraph(rng_for_event: RandomNumberGenerator) -> void:
 	if _lures.is_empty():
 		return

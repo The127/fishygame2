@@ -32,6 +32,11 @@ var _ending_sent: bool = false
 var _crossed: Dictionary = {}
 ## Where each marble really ended up, put back when the replay ends.
 var _home_positions: Dictionary = {}
+## Visibility each marble had, and the state of each replayable map node, before the replay.
+var _home_looks: Dictionary = {}
+var _home_states: Array[PackedFloat32Array] = []
+## Moving bodies under the replayable nodes, and whether each one synced to physics before.
+var _home_sync: Dictionary[AnimatableBody2D, bool] = {}
 
 
 ## Playback speed at clip time `time` for a winner crossing at `finish_time`.
@@ -75,12 +80,17 @@ func start(recorder: ReplayRecorder, marbles: Array[Marble]) -> bool:
 	_marbles.clear()
 	_crossed.clear()
 	_home_positions.clear()
+	_home_looks.clear()
+	_home_states.clear()
+	_home_sync.clear()
 	for marble: Marble in marbles:
 		if marble.id >= 0 and marble.id < recorder.marble_count:
 			_marbles[marble.id] = marble
 			marble.set_deferred("freeze", true)
 			_home_positions[marble.id] = marble.global_position
+			_home_looks[marble.id] = [marble.visible, marble.modulate.a]
 			marble.replaying = true
+	_begin_nodes()
 	_clock = recorder.start_time()
 	_frame = 0
 	_event_index = 0
@@ -107,6 +117,9 @@ func _finish(restore: bool) -> void:
 		marble.replaying = false
 		if restore and marble.is_inside_tree():
 			marble.global_position = _home_positions[id]
+			marble.visible = _home_looks[id][0]
+			marble.modulate.a = _home_looks[id][1]
+	_end_nodes()
 	_marbles.clear()
 	if restore:
 		ended.emit()
@@ -175,7 +188,66 @@ func _apply() -> void:
 		marble.replay_velocity = _recorder.velocity_at(_frame, id).lerp(
 			_recorder.velocity_at(_frame + 1, id), weight
 		)
+		var alpha: float = _recorder.alpha_at(_frame, id)
+		alpha = lerpf(alpha, _recorder.alpha_at(_frame + 1, id), weight)
+		marble.visible = alpha > 0.01
+		marble.modulate.a = alpha
+	_apply_nodes(weight)
 	_play_events()
+
+
+## Stops the live simulation of the map's replayable nodes, remembering how they stood.
+func _begin_nodes() -> void:
+	for node: Node in _recorder.nodes():
+		if not is_instance_valid(node):
+			_home_states.append(PackedFloat32Array())
+			continue
+		_home_states.append(node.call(Replayable.STATE_METHOD))
+		node.set_physics_process(false)
+		_free_moving_bodies(node)
+		if node.has_method("replay_begin"):
+			node.call("replay_begin")
+
+
+func _apply_nodes(weight: float) -> void:
+	var nodes: Array[Node] = _recorder.nodes()
+	for n: int in nodes.size():
+		if is_instance_valid(nodes[n]):
+			nodes[n].call(
+				Replayable.APPLY_METHOD,
+				_recorder.node_state_at(_frame, n),
+				_recorder.node_state_at(_frame + 1, n),
+				weight
+			)
+
+
+## A body synced to physics ignores being moved outside a physics frame, but the replay moves
+## things every rendered frame, so it is switched off while the replay plays.
+func _free_moving_bodies(node: Node) -> void:
+	if node is AnimatableBody2D and not _home_sync.has(node as AnimatableBody2D):
+		var body: AnimatableBody2D = node as AnimatableBody2D
+		_home_sync[body] = body.sync_to_physics
+		body.sync_to_physics = false
+	for child: Node in node.get_children():
+		_free_moving_bodies(child)
+
+
+## Puts the replayable nodes back as they were and lets them run again.
+func _end_nodes() -> void:
+	var nodes: Array[Node] = _recorder.nodes() if _recorder != null else []
+	for n: int in mini(nodes.size(), _home_states.size()):
+		var node: Node = nodes[n]
+		if not is_instance_valid(node):
+			continue
+		node.call(Replayable.APPLY_METHOD, _home_states[n], _home_states[n], 0.0)
+		node.set_physics_process(true)
+		if node.has_method("replay_end"):
+			node.call("replay_end")
+	_home_states.clear()
+	for body: AnimatableBody2D in _home_sync:
+		if is_instance_valid(body):
+			body.sync_to_physics = _home_sync[body]
+	_home_sync.clear()
 
 
 func _play_events() -> void:

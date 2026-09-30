@@ -206,6 +206,38 @@ one or two of the four tentacles rooted below the frame are about to sweep acros
 every fish they touch sideways, forwards or back. The sweeps are a force field rather than a solid
 body, so a fish is thrown along instead of being crushed. The eye is `scripts/tracks/kraken_eye.gd`.
 
+### Finish replay and moving map parts
+
+The finish replay (`scripts/race/finish_replay.gd`) plays back a short recorded clip around the
+winner's crossing. Besides the fish it replays everything on the map that moves, so a new map
+must make its moving parts replayable or they will stand wherever they ended up during playback.
+Hazards (anything extending `Hazard`) are replayable already: the event clock and phase are
+recorded for free, and a hazard that draws more than that overrides `_replay_extra()` and
+`_apply_replay_extra()` (see `scripts/tracks/whirlpool.gd` for a small example).
+
+Any other moving node opts in with the hook in `scripts/race/replayable.gd`:
+
+```gdscript
+func _ready() -> void:
+	Replayable.join(self)
+
+## Everything that decides how the node looks right now, as a fixed number of floats.
+func replay_state() -> PackedFloat32Array:
+	return PackedFloat32Array([position.x, position.y, _phase])
+
+## Show the state `weight` (0 to 1) of the way from recorded state `from` to the next one, `to`.
+func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	position = Replayable.mix_vector(from, to, weight, 0)
+	_phase = Replayable.step(from, to, weight, 2)  # `step` for flags and indices, `mix` for smooth values
+```
+
+Put the state on the node that owns it (a hazard records its jellyfish, lures and so on itself).
+While a replay plays, the node's `_physics_process` is switched off and `AnimatableBody2D`s stop
+syncing to physics, so nothing moves on its own; afterwards the node gets back the state it had
+before. Keep the state small (a few dozen floats): it is stored about 30 times a second. Fish
+that vanish during the clip (swallowed by an anglerfish, Thanos snap) are replayed too. Particle
+bursts are not: add a `ReplayRecorder.Kind` event if one matters.
+
 Basic sanity checks:
 
 ```sh
