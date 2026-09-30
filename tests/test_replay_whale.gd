@@ -32,6 +32,14 @@ func _record_race() -> ReplayRecorder:
 	_burps.clock = _burps.get_schedule()[0] - (ANCHOR - 2.0)
 	while _race.elapsed < ANCHOR:
 		await get_tree().physics_frame
+	# A fish in the acid, so a skeleton is in the clip.
+	var victim: Marble = _race.get_marbles()[1]
+	var pit: AcidPit = _track.find_child("AcidA") as AcidPit
+	PhysicsServer2D.body_set_state(
+		victim.get_rid(),
+		PhysicsServer2D.BODY_STATE_TRANSFORM,
+		Transform2D(0.0, pit.global_position)
+	)
 	# A finished fish in the blowhole, so the plume is up in the clip.
 	var winner: Marble = _race.get_marbles()[0]
 	var hole: Blowhole = _track.find_child("Blowhole") as Blowhole
@@ -68,10 +76,13 @@ func test_the_whale_replay_matches_the_recording_at_every_frame() -> void:
 		assert_true(nodes.has(lobe), "%s is recorded" % lobe.name)
 	assert_true(nodes.has(_track.find_child("Blowhole")), "the blowhole is recorded")
 	assert_true(nodes.has(_burps), "the burp jet is recorded")
+	assert_true(nodes.has(_track.find_child("AcidA")), "the acid pit is recorded")
+	assert_true(nodes.has(_track.find_child("AcidB")), "the second acid pit is recorded")
 	var bad: Array[String] = []
 	var swells: Array[float] = []
 	var plume: float = 0.0
 	var blowhole: Blowhole = _track.find_child("Blowhole") as Blowhole
+	var skeletons: int = 0
 	var lobe_a: PulsingBumper = _track.find_child("Pulser1") as PulsingBumper
 	for k: int in recorder.frame_count():
 		replay._clock = recorder.frame_time(k)
@@ -82,7 +93,9 @@ func test_the_whale_replay_matches_the_recording_at_every_frame() -> void:
 				bad.append("%s@%d" % [nodes[n].name, k])
 		swells.append(lobe_a.scale.x)
 		plume = maxf(plume, blowhole.replay_state()[0])
+		skeletons = maxi(skeletons, (_track.find_child("AcidA") as AcidPit).skeleton_count())
 	assert_eq(bad, [] as Array[String], "every node shows what was recorded")
 	assert_gt(swells.max() - swells.min(), 0.1, "the lobe pulses during the replay")
 	assert_gt(plume, 0.5, "the blowhole spouts during the replay")
+	assert_eq(skeletons, 1, "the skeleton is shown during the replay")
 	replay.stop()

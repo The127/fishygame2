@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/tracks/digestive_pool.gd" id="4_digestive_pool"]
 [ext_resource type="Script" path="res://scripts/tracks/blowhole.gd" id="5_blowhole"]
 [ext_resource type="Script" path="res://scripts/tracks/peristalsis.gd" id="6_peristalsis"]
+[ext_resource type="Script" path="res://scripts/tracks/acid_pit.gd" id="7_acid_pit"]
 
 [sub_resource type="PhysicsMaterial" id="PM_track"]
 friction = 0.5
@@ -35,6 +36,12 @@ size = Vector2(1450, 110)
 
 [sub_resource type="RectangleShape2D" id="Rect_gut"]
 size = Vector2(1300, 90)
+
+[sub_resource type="RectangleShape2D" id="Rect_acid_a"]
+size = Vector2(48, 90)
+
+[sub_resource type="RectangleShape2D" id="Rect_acid_b"]
+size = Vector2(48, 78.2759)
 
 [sub_resource type="RectangleShape2D" id="Rect_pool"]
 size = Vector2(300, 56)
@@ -109,42 +116,108 @@ physics_material_override = SubResource("PM_track")
 polygon = PackedVector2Array(1896, 385, 1300, 485, 1300, 511, 1896, 411)
 
 [node name="Collider2" type="CollisionPolygon2D" parent="StomachFloor"]
-polygon = PackedVector2Array(1300, 485, 330, 715, 330, 741, 1300, 511)
+polygon = PackedVector2Array(1300, 485, 1008, 554.237, 1008, 580.237, 1300, 511)
 
 [node name="Visual" type="Polygon2D" parent="StomachFloor"]
 color = Color(0.45, 0.16, 0.3, 1)
-polygon = PackedVector2Array(1896, 385, 1300, 485, 330, 715, 330, 741, 1300, 511, 1896, 411)
+polygon = PackedVector2Array(1896, 385, 1300, 485, 1008, 554.237, 1008, 580.237, 1300, 511, 1896, 411)
+
+[node name="StomachFloorLeft" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="StomachFloorLeft"]
+polygon = PackedVector2Array(960, 565.619, 330, 715, 330, 741, 960, 591.619)
+
+[node name="Collider2" type="CollisionPolygon2D" parent="StomachFloorLeft"]
+polygon = PackedVector2Array(934, 597.784, 960, 591.619, 960, 694, 934, 694)
+
+[node name="Collider3" type="CollisionPolygon2D" parent="StomachFloorLeft"]
+polygon = PackedVector2Array(934, 668, 1034, 668, 1034, 694, 934, 694)
+
+[node name="Collider4" type="CollisionPolygon2D" parent="StomachFloorLeft"]
+polygon = PackedVector2Array(1008, 580.237, 1034, 574.072, 1034, 694, 1008, 694)
+
+[node name="Visual" type="Polygon2D" parent="StomachFloorLeft"]
+color = Color(0.45, 0.16, 0.3, 1)
+polygon = PackedVector2Array(960, 565.619, 330, 715, 330, 741, 934, 597.784, 934, 694, 1034, 694, 1034, 574.072, 1008, 580.237, 1008, 668, 960, 668)
+
+[node name="AcidA" type="Area2D" parent="."]
+position = Vector2(984, 623)
+script = ExtResource("7_acid_pit")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AcidA"]
+shape = SubResource("Rect_acid_a")
+
+[node name="Lid" type="AnimatableBody2D" parent="AcidA"]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="AcidA/Lid"]
+polygon = PackedVector2Array(-23.5, -57.381, 23.5, -68.763, 23.5, -42.763, -23.5, -31.381)
 
 [node name="Intestine" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="Intestine"]
-polygon = PackedVector2Array(24, 850, 430, 872, 430, 898, 24, 876)
-
-[node name="Collider2" type="CollisionPolygon2D" parent="Intestine"]
-polygon = PackedVector2Array(430, 872, 560, 918, 560, 944, 430, 898)
-
-[node name="Collider3" type="CollisionPolygon2D" parent="Intestine"]
-polygon = PackedVector2Array(560, 918, 930, 945, 930, 971, 560, 944)
-
-[node name="Collider4" type="CollisionPolygon2D" parent="Intestine"]
-polygon = PackedVector2Array(930, 945, 1060, 985, 1060, 1011, 930, 971)
-
-[node name="Collider5" type="CollisionPolygon2D" parent="Intestine"]
-polygon = PackedVector2Array(1060, 985, 1420, 1000, 1420, 1026, 1060, 1011)
-
-[node name="Collider6" type="CollisionPolygon2D" parent="Intestine"]
-polygon = PackedVector2Array(1420, 1000, 1620, 1045, 1620, 1071, 1420, 1026)
-
-[node name="Collider7" type="CollisionPolygon2D" parent="Intestine"]
-polygon = PackedVector2Array(1620, 1045, 1760, 1045, 1760, 1071, 1620, 1071)
-
-[node name="Collider8" type="CollisionPolygon2D" parent="Intestine"]
-polygon = PackedVector2Array(1760, 1045, 1896, 1000, 1896, 1026, 1760, 1071)
+polygon = PackedVector2Array(24, 850, 340, 867.123, 340, 893.123, 24, 876)
 
 [node name="Visual" type="Polygon2D" parent="Intestine"]
 color = Color(0.45, 0.16, 0.3, 1)
-polygon = PackedVector2Array(24, 850, 430, 872, 560, 918, 930, 945, 1060, 985, 1420, 1000, 1620, 1045, 1760, 1045, 1896, 1000, 1896, 1026, 1760, 1071, 1620, 1071, 1420, 1026, 1060, 1011, 930, 971, 560, 944, 430, 898, 24, 876)
+polygon = PackedVector2Array(24, 850, 340, 867.123, 340, 893.123, 24, 876)
+
+[node name="IntestineRight" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(388, 869.724, 430, 872, 430, 898, 388, 895.724)
+
+[node name="Collider2" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(430, 872, 560, 918, 560, 944, 430, 898)
+
+[node name="Collider3" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(560, 918, 930, 945, 930, 971, 560, 944)
+
+[node name="Collider4" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(930, 945, 1060, 985, 1060, 1011, 930, 971)
+
+[node name="Collider5" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(1060, 985, 1420, 1000, 1420, 1026, 1060, 1011)
+
+[node name="Collider6" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(1420, 1000, 1620, 1045, 1620, 1071, 1420, 1026)
+
+[node name="Collider7" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(1620, 1045, 1760, 1045, 1760, 1071, 1620, 1071)
+
+[node name="Collider8" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(1760, 1045, 1896, 1000, 1896, 1026, 1760, 1071)
+
+[node name="Collider9" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(314, 891.714, 340, 893.123, 340, 986, 314, 986)
+
+[node name="Collider10" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(314, 960, 414, 960, 414, 986, 314, 986)
+
+[node name="Collider11" type="CollisionPolygon2D" parent="IntestineRight"]
+polygon = PackedVector2Array(388, 895.724, 414, 897.133, 414, 986, 388, 986)
+
+[node name="Visual" type="Polygon2D" parent="IntestineRight"]
+color = Color(0.45, 0.16, 0.3, 1)
+polygon = PackedVector2Array(388, 869.724, 430, 872, 560, 918, 930, 945, 1060, 985, 1420, 1000, 1620, 1045, 1760, 1045, 1896, 1000, 1896, 1026, 1760, 1071, 1620, 1071, 1420, 1026, 1060, 1011, 930, 971, 560, 944, 430, 898, 414, 897.133, 414, 986, 314, 986, 314, 891.714, 340, 893.123, 340, 960, 388, 960)
+
+[node name="AcidB" type="Area2D" parent="."]
+position = Vector2(364, 920.862)
+script = ExtResource("7_acid_pit")
+period = 8.0
+open_seconds = 0.8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AcidB"]
+shape = SubResource("Rect_acid_b")
+
+[node name="Lid" type="AnimatableBody2D" parent="AcidB"]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="AcidB/Lid"]
+polygon = PackedVector2Array(-23.5, -53.739, 23.5, -51.138, 23.5, -25.138, -23.5, -27.739)
 
 [node name="Villus1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_bump")
@@ -208,7 +281,7 @@ color = Color(1, 0.4, 0.6, 1)
 polygon = PackedVector2Array(17, 0, 16.421, 4.4, 14.722, 8.5, 12.021, 12.021, 8.5, 14.722, 4.4, 16.421, 0, 17, -4.4, 16.421, -8.5, 14.722, -12.021, 12.021, -14.722, 8.5, -16.421, 4.4, -17, 0, -16.421, -4.4, -14.722, -8.5, -12.021, -12.021, -8.5, -14.722, -4.4, -16.421, 0, -17, 4.4, -16.421, 8.5, -14.722, 12.021, -12.021, 14.722, -8.5, 16.421, -4.4)
 
 [node name="Pool1" type="Area2D" parent="."]
-position = Vector2(1043.54, 517.034)
+position = Vector2(790, 577.128)
 rotation = -0.233
 script = ExtResource("4_digestive_pool")
 
@@ -216,7 +289,7 @@ script = ExtResource("4_digestive_pool")
 shape = SubResource("Rect_pool")
 
 [node name="Pool2" type="Area2D" parent="."]
-position = Vector2(593.54, 623.735)
+position = Vector2(480, 650.633)
 rotation = -0.233
 script = ExtResource("4_digestive_pool")
 

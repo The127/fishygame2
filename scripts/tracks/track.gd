@@ -16,6 +16,8 @@ signal hazard_started(kind: String)
 signal hazard_active(kind: String)
 ## An anglerfish just swallowed `marble`.
 signal fish_eaten(marble: Marble)
+## Stomach acid just dissolved `marble`: it is out of the race.
+signal fish_dissolved(marble: Marble)
 ## A map part (anglerfish, portal) let off a particle burst. The finish replay plays it again.
 signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
 
@@ -79,6 +81,9 @@ func _ready() -> void:
 			(hazard as SpinCycleHazard).burst_played.connect(burst_played.emit)
 	for node: Node in find_children("*", "PortalPair", true, false):
 		(node as PortalPair).burst_played.connect(burst_played.emit)
+	for node: Node in find_children("*", "AcidPit", true, false):
+		(node as AcidPit).burst_played.connect(burst_played.emit)
+		(node as AcidPit).fish_dissolved.connect(fish_dissolved.emit)
 	var style: TrackStyle = TrackStyle.new()
 	add_child(style)
 	style.dress(self, style_id)
