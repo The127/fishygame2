@@ -243,7 +243,9 @@ so that a few of the slowest fish are caught in a normal field and takes a littl
 fields. If the tide strands everyone, the race ends as a normal "nobody finished". Its hazard is a
 rip current that only ever flows with the lane. The debug race prints `stranded=N` and the
 seed sweeps do not count stranded fish as a jam, so check a map change with the drain turned off
-(set `drain_seconds` very high) to be sure no fish really gets stuck.
+(set `drain_seconds` very high) to be sure no fish really gets stuck. The finish replay shows the
+waterline, the rip current and stranded fish (hop and fade) as they were; the rocking of a flopping
+fish and its gasp flashes are not replayed.
 
 ### Finish replay and moving map parts
 
