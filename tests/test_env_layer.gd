@@ -79,3 +79,40 @@ func test_crystal_clusters_are_the_same_for_a_seed_and_differ_between_seeds() ->
 	var c: EnvLayer = _layer(EnvLayer.Kind.CRYSTALS, 6)
 	assert_eq(_vertices(a), _vertices(b))
 	assert_ne(_vertices(a), _vertices(c))
+
+
+func _colors(layer: EnvLayer) -> PackedColorArray:
+	var arrays: Array = (layer.get("_mesh") as ArrayMesh).surface_get_arrays(0)
+	return arrays[Mesh.ARRAY_COLOR]
+
+
+func test_faded_shapes_are_clear_at_the_anchor_line_and_solid_above_it() -> void:
+	var layer: EnvLayer = EnvLayer.new()
+	layer.kind = EnvLayer.Kind.SPIRES
+	layer.color = Color(0.2, 0.1, 0.3)
+	layer.seed_value = 3
+	layer.count = 4
+	layer.min_height = 300.0
+	layer.max_height = 400.0
+	layer.fade_base = 100.0
+	add_child_autofree(layer)
+	var base_y: float = EnvLayer.FLOOR_Y + 60.0
+	var vertices: PackedVector2Array = _vertices(layer)
+	var colors: PackedColorArray = _colors(layer)
+	var faded: int = 0
+	var solid: int = 0
+	for i: int in vertices.size():
+		if is_equal_approx(vertices[i].y, base_y):
+			assert_eq(colors[i].a, 0.0, "base vertex is clear")
+			faded += 1
+		elif base_y - vertices[i].y >= 100.0:
+			assert_eq(colors[i].a, 1.0, "above the fade it is solid")
+			solid += 1
+	assert_gt(faded, 0)
+	assert_gt(solid, 0)
+
+
+func test_layers_without_a_fade_stay_solid() -> void:
+	var layer: EnvLayer = _layer(EnvLayer.Kind.SPIRES)
+	for color: Color in _colors(layer):
+		assert_gt(color.a, 0.0)

@@ -18,6 +18,8 @@ const VIEW: Vector2 = Vector2(1920.0, 1080.0)
 ## Height of the scenery a parallax layer paints (ceiling shapes to floor line). A map taller
 ## than the base frame repeats it vertically so the layers never run out.
 const LAYER_PERIOD: float = 1360.0
+## Background shapes of a repeated (tall map) layer fade out over this many pixels at their base.
+const SEAM_FADE: float = 140.0
 const FOG_RECT: Rect2 = Rect2(-160.0, -260.0, 2240.0, 1500.0)
 const PEG_GLOW_SIZE: float = 128.0
 const FINISH_COLOR: Color = Color(1.0, 0.86, 0.3)
@@ -184,6 +186,8 @@ func _add_layer(
 	layer.max_height = max_height
 	layer.from_top = from_top
 	layer.sway = sway * float(_palette["sway_scale"])
+	if _extra_height > 0.0:
+		layer.fade_base = SEAM_FADE
 	parent.add_child(layer)
 
 

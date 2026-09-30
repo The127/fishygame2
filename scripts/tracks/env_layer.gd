@@ -25,6 +25,10 @@ var max_height: float = 320.0
 var from_top: bool = false
 ## World y of the frame's bottom edge that floor shapes are rooted below. Taller maps raise it.
 var floor_y: float = FLOOR_Y
+## Shapes fade to nothing over this many pixels next to their anchor line. A layer that repeats
+## down a tall map sets it so the seam between two copies (floor shapes meeting the next copy's
+## ceiling shapes) does not show as a hard horizontal edge.
+var fade_base: float = 0.0
 ## Sideways sway in pixels at the far end, done in a shader. Zero keeps the layer static.
 var sway: float = 0.0
 ## Fixed shapes as Vector2(x, height), replacing the seeded scatter. Heights are total lengths from the
@@ -95,6 +99,8 @@ func _build() -> void:
 	if _vertices.is_empty():
 		_mesh = null
 		return
+	if fade_base > 0.0:
+		_fade_toward(base_y, flip)
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = _vertices
@@ -105,6 +111,16 @@ func _build() -> void:
 	_vertices = PackedVector2Array()
 	_colors = PackedColorArray()
 	_indices = PackedInt32Array()
+
+
+## Fades the alpha of every vertex out toward the anchor line `base_y`. `flip` is -1 for shapes
+## hanging from it and 1 for shapes rising from it.
+func _fade_toward(base_y: float, flip: float) -> void:
+	for i: int in _vertices.size():
+		var reach: float = (base_y - _vertices[i].y) * flip
+		var color: Color = _colors[i]
+		color.a *= smoothstep(0.0, fade_base, reach)
+		_colors[i] = color
 
 
 func _draw_spire(base: Vector2, height: float, width_scale: float) -> void:
