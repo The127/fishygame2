@@ -72,6 +72,14 @@ const MAPS: Array[Dictionary] = [
 		"jingle": "res://assets/audio/jingle_cave.wav",
 	},
 	{
+		"id": "garden",
+		"name": "Coral Garden",
+		"scene": preload("res://scenes/tracks/garden_track.tscn"),
+		"music": "res://assets/audio/music_garden.wav",
+		"ambience": "res://assets/audio/ambience_garden.wav",
+		"jingle": "res://assets/audio/jingle_garden.wav",
+	},
+	{
 		"id": "kraken",
 		"name": "Kraken's Lair",
 		"scene": preload("res://scenes/tracks/kraken_track.tscn"),

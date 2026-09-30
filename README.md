@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko (a tall machine with three peg levels: a dense field, a sparse one with pulsing bumpers and one of spinners) and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush and a backwash that tips a ramp on Switchback. The Jellyfish
+Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback and overgrowth on Coral Garden. The Jellyfish
 
 Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
@@ -239,6 +239,17 @@ Crystal Cave's gimmick is the flip gate (`scripts/tracks/flip_gate.gd`): a tilti
 ledge that flips every time a fish rolls off it, so the order fish arrive in decides which of the
 four routes each one takes. Gates start in the same state every race, so a seed replays the same
 routes.
+
+Coral Garden is about living coral (`scripts/tracks/coral_hazard.gd`, one `scripts/tracks/coral_bed.gd`
+per opening). The lanes have openings in them that drop fish to the lane below, and the first fish
+into the trigger zone on the lane just above an opening wakes the coral there: the polyps glow,
+then the coral grows across the opening over a few seconds and stays until the race is over. So
+the way the leader took closes behind it, and the fish further back drop through the openings that
+are still free or ride the lane to its end, which is never closed. The growth belongs to the map and
+runs whatever the hazard setting is (like geysers). The hazard is overgrowth: now and then a bed that still sleeps wakes and
+grows shut without any fish. The plugs are thin and slide in along the lane (`AnimatableBody2D`), so a fish is brushed
+on, never crushed. Seeds decide how long each bed hesitates and when overgrowth strikes; the finish
+replay shows the beds mid growth.
 
 Kraken's Lair has three switchback ramps under the gaze of a huge kraken eye. Its hazard
 (`scripts/tracks/kraken_hazard.gd`) is a swat: a dashed arc and the eye snapping open warn that

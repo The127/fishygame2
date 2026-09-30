@@ -93,6 +93,14 @@ JINGLES = {
                   (0.55, 57, 2.0, 0.8)),
         "echo": (0.3, 3, 0.45),
     },
+    # Coral garden: D major marimba run with a bubbly top note.
+    "garden": {
+        "partials": MALLET,
+        "notes": ((0.0, 74, 0.7, 0.2), (0.1, 78, 0.7, 0.2), (0.2, 81, 0.7, 0.2),
+                  (0.3, 86, 0.7, 0.2), (0.4, 90, 0.7, 0.2), (0.55, 93, 1.7, 0.6),
+                  (0.55, 78, 1.7, 0.6), (0.55, 62, 1.7, 0.6)),
+        "echo": (0.22, 2, 0.4),
+    },
     # Kraken's lair: D minor brass swell, a dread bell and one more toll.
     "kraken": {
         "partials": BRASS,
@@ -443,6 +451,13 @@ def _cave(out, rng):
     pings(out, (3.0,), 1900.0, 0.08)
 
 
+def _garden(out, rng):
+    bed(out, rng, 100.0, 700.0, 0.4, swell=0.5, cycles=2)
+    bubbles(out, rng, 9, 800.0, 1600.0, 0.1)
+    pops(out, rng, 8, 0.14)
+    shimmer(out, rng, (1.4, 5.0), 1500.0, 3000.0, 0.025)
+
+
 def _kraken(out, rng):
     bed(out, rng, 0.0, 140.0, 0.9, swell=0.3, cycles=1)
     thumps(out, rng, (1.0, 4.6), 90.0, 0.6)
@@ -540,6 +555,7 @@ AMBIENCE = {
     "abyss": (36, _abyss),
     "vents": (37, _vents),
     "cave": (38, _cave),
+    "garden": (63, _garden),
     "kraken": (39, _kraken),
     "gravity": (40, _gravity),
     "tide": (41, _tide),
