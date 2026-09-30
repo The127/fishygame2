@@ -33,6 +33,7 @@ func _ready() -> void:
 	_box.add_child(_board)
 	_box.move_child(_board, _settings.get_index() + 1)
 	show_leaderboard(_load_store())
+	_add_version_tag()
 	_open_lobby.pressed.connect(_on_open_lobby_pressed)
 	_settings.pressed.connect(_on_settings_pressed)
 	UiStyle.style_button(_settings, 28)
@@ -49,6 +50,18 @@ func _ready() -> void:
 	# Only when this is the running scene, so tests that instantiate the screen stay put.
 	if get_tree().current_scene == self and not OnboardingStore.new().is_done():
 		get_tree().change_scene_to_file.call_deferred(ONBOARDING_SCENE)
+
+
+## Small build tag in the bottom right corner.
+func _add_version_tag() -> void:
+	var tag: Label = Label.new()
+	tag.name = "Version"
+	tag.text = BuildInfo.label()
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiStyle.style_label(tag, 14, 600, UiStyle.MUTED)
+	tag.modulate.a = 0.6
+	add_child(tag)
+	tag.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 12)
 
 
 ## Fills the all-time board from [param store]; hidden while nobody is ranked.

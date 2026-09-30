@@ -219,6 +219,10 @@ func _apply_style() -> void:
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiStyle.style_label($Panel/Box/MapRow/MapLabel as Label, 22, 600, UiStyle.MUTED)
 	UiStyle.style_label($Panel/Box/Hint as Label, 18, 600, UiStyle.MUTED)
+	var version: Label = $Panel/Box/Version
+	UiStyle.style_label(version, 14, 600, UiStyle.MUTED)
+	version.modulate.a = 0.6
+	version.text = BuildInfo.label()
 	UiStyle.style_label(_power_status, 18, 600, UiStyle.MUTED)
 	_power_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiStyle.style_label($Panel/Box/LeaveConfirm/Question as Label, 20, 600, UiStyle.TEXT)
