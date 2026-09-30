@@ -2,6 +2,7 @@ extends GutTest
 ## The jellyfish map: drifting bumpers on seeded paths and the surge event.
 
 const STEP: float = 1.0 / 60.0
+const MARBLE_SCENE: PackedScene = preload("res://scenes/marble.tscn")
 
 
 func _rng(seed_value: int) -> RandomNumberGenerator:
@@ -81,7 +82,7 @@ func test_maps_without_gimmicks_draw_nothing_from_the_rng() -> void:
 func test_marble_touching_a_jellyfish_is_kicked_away() -> void:
 	var swarm: JellyHazard = _swarm()
 	var jelly: Jellyfish = swarm.get_jellies()[0]
-	var marble: Marble = (load("res://scenes/marble.tscn") as PackedScene).instantiate() as Marble
+	var marble: Marble = MARBLE_SCENE.instantiate() as Marble
 	add_child_autofree(marble)
 	marble.global_position = jelly.global_position + Vector2(jelly.radius + 10.0, 0.0)
 	marble.linear_velocity = Vector2.ZERO
@@ -110,3 +111,82 @@ func test_surge_speeds_the_jellyfish_up_then_settles() -> void:
 	assert_eq(swarm.surge_level(), 0.0)
 	assert_eq(jelly.kick_scale, 1.0)
 	assert_eq(jelly.excite, 0.0)
+
+
+func _marble() -> Marble:
+	var marble: Marble = MARBLE_SCENE.instantiate() as Marble
+	add_child_autofree(marble)
+	return marble
+
+
+func test_tentacles_catch_a_fish_then_release_it() -> void:
+	var jelly: Jellyfish = _swarm().get_jellies()[0]
+	var marble: Marble = _marble()
+	assert_true(jelly.catch_marble(marble))
+	assert_true(jelly.is_holding(marble))
+	for i: int in int((Jellyfish.CATCH_SECONDS - 0.1) / STEP):
+		jelly.advance(STEP)
+	assert_true(jelly.is_holding(marble), "still held before the time is up")
+	for i: int in int(0.3 / STEP):
+		jelly.advance(STEP)
+	assert_false(jelly.is_holding(marble))
+	assert_true(jelly.is_immune(marble))
+
+
+func test_a_held_fish_is_dragged_along_and_slowed() -> void:
+	var jelly: Jellyfish = _swarm().get_jellies()[0]
+	var marble: Marble = _marble()
+	marble.global_position = jelly.global_position + Vector2(0.0, jelly.radius * 1.5)
+	marble.linear_velocity = Vector2(0.0, 600.0)
+	jelly.catch_marble(marble)
+	for i: int in 20:
+		jelly.advance(STEP)
+		await wait_physics_frames(1)
+	assert_lt(marble.linear_velocity.length(), 300.0)
+
+
+func test_a_released_fish_is_not_caught_again_until_its_immunity_ends() -> void:
+	var jelly: Jellyfish = _swarm().get_jellies()[0]
+	var marble: Marble = _marble()
+	jelly.catch_marble(marble)
+	for i: int in int((Jellyfish.CATCH_SECONDS + 0.1) / STEP):
+		jelly.advance(STEP)
+	assert_false(jelly.catch_marble(marble))
+	for i: int in int(Jellyfish.IMMUNE_SECONDS / STEP):
+		jelly.advance(STEP)
+	assert_false(jelly.is_immune(marble))
+	assert_true(jelly.catch_marble(marble))
+
+
+func test_a_held_fish_cannot_be_caught_twice() -> void:
+	var jelly: Jellyfish = _swarm().get_jellies()[0]
+	var marble: Marble = _marble()
+	assert_true(jelly.catch_marble(marble))
+	assert_false(jelly.catch_marble(marble))
+	assert_eq(jelly.held_count(), 1)
+
+
+func test_reseeding_lets_go_of_every_fish() -> void:
+	var swarm: JellyHazard = _swarm()
+	var jelly: Jellyfish = swarm.get_jellies()[0]
+	var marble: Marble = _marble()
+	jelly.catch_marble(marble)
+	swarm.reseed(2)
+	assert_false(jelly.is_holding(marble))
+	assert_false(jelly.is_immune(marble))
+
+
+func test_a_fish_freed_while_held_is_forgotten() -> void:
+	var jelly: Jellyfish = _swarm().get_jellies()[0]
+	var marble: Marble = _marble()
+	jelly.catch_marble(marble)
+	marble.free()
+	jelly.advance(STEP)
+	assert_eq(jelly.held_count(), 0)
+
+
+func test_a_frozen_fish_is_not_held() -> void:
+	var jelly: Jellyfish = _swarm().get_jellies()[0]
+	var marble: Marble = _marble()
+	marble.freeze = true
+	assert_false(jelly.catch_marble(marble))
