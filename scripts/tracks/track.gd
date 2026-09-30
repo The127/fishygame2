@@ -8,6 +8,11 @@ extends Node2D
 ## from that start to the point where the routes merge, and `Centerline` then runs from the
 ## merge point to the finish. `merge_progress` is the share of the progress scale the feeders
 ## take up, so a fish scores the same progress at the same stage of any route.
+##
+## After the merge a map can split again. Every Path2D under an optional `Branches` node is another
+## route from the merge point to the finish, next to `Centerline`. Give every branch the same
+## length as `Centerline` and the same first stretch, so a fish scores the same progress at the
+## same stage of any of them.
 
 signal marble_reached_finish(marble: Node2D)
 ## A hazard event begins its telegraph. `kind` names the event.
@@ -37,6 +42,7 @@ const FORWARD_SAMPLE: float = 30.0
 
 var _starts: Array[Marker2D] = []
 var _feeders: Array[Path2D] = []
+var _branches: Array[Path2D] = []
 ## Start index and slot within that start, by marble index, for the current race.
 var _start_of: Array[int] = []
 var _slot_of: Array[int] = []
@@ -61,6 +67,11 @@ func _ready() -> void:
 		for child: Node in feeders.get_children():
 			if child is Path2D:
 				_feeders.append(child as Path2D)
+	var branches: Node = get_node_or_null("Branches")
+	if branches != null:
+		for child: Node in branches.get_children():
+			if child is Path2D:
+				_branches.append(child as Path2D)
 	assert(
 		_feeders.is_empty() or _feeders.size() == _starts.size(), "every start needs a feeder route"
 	)
@@ -324,19 +335,25 @@ func get_forward(global_pos: Vector2) -> Vector2:
 	return direction.normalized()
 
 
-## Routes are the feeders in start order, then the centerline.
+## Routes are the feeders in start order, then the centerline, then the branches.
 func _route_path(route: int) -> Path2D:
-	return _feeders[route] if route < _feeders.size() else _centerline
+	if route < _feeders.size():
+		return _feeders[route]
+	if route == _feeders.size():
+		return _centerline
+	return _branches[route - _feeders.size() - 1]
 
 
 ## Index of the route whose line passes closest to a global position.
 func _nearest_route(global_pos: Vector2) -> int:
 	var best: int = _feeders.size()
-	if _feeders.is_empty():
+	if _feeders.is_empty() and _branches.is_empty():
 		return best
 	var best_distance: float = _distance_to(_centerline, global_pos)
-	for i: int in _feeders.size():
-		var distance: float = _distance_to(_feeders[i], global_pos)
+	for i: int in _feeders.size() + 1 + _branches.size():
+		if i == _feeders.size():
+			continue
+		var distance: float = _distance_to(_route_path(i), global_pos)
 		if distance < best_distance:
 			best_distance = distance
 			best = i

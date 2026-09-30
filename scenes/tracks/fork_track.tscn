@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
 [ext_resource type="Script" path="res://scripts/tracks/current_hazard.gd" id="2_current"]
 [ext_resource type="Script" path="res://scripts/tracks/geyser.gd" id="3_geyser"]
+[ext_resource type="Script" path="res://scripts/tracks/flip_gate.gd" id="5_gate"]
+[ext_resource type="Script" path="res://scripts/tracks/trap_door.gd" id="6_door"]
 
 [sub_resource type="PhysicsMaterial" id="PM_track"]
 friction = 0.6
@@ -12,11 +14,21 @@ bounce = 0.3
 friction = 0.2
 bounce = 0.7
 
+[sub_resource type="PhysicsMaterial" id="PM_paddle"]
+friction = 0.4
+bounce = 0.2
+
+[sub_resource type="RectangleShape2D" id="Rect_sensor"]
+size = Vector2(70, 80)
+
 [sub_resource type="CircleShape2D" id="Circle_peg"]
 radius = 17.0
 
 [sub_resource type="RectangleShape2D" id="Rect_finish"]
 size = Vector2(600, 120)
+
+[sub_resource type="RectangleShape2D" id="Rect_finish_left"]
+size = Vector2(620, 95)
 
 [sub_resource type="RectangleShape2D" id="Rect_column"]
 size = Vector2(110, 160)
@@ -31,7 +43,7 @@ size = Vector2(372.146, 90)
 size = Vector2(488.535, 90)
 
 [sub_resource type="RectangleShape2D" id="Rect_ZoneTail"]
-size = Vector2(681.061, 90)
+size = Vector2(320, 90)
 
 [sub_resource type="Curve2D" id="Curve_FeederLeft"]
 _data = {
@@ -53,9 +65,15 @@ point_count = 7
 
 [sub_resource type="Curve2D" id="Curve_center"]
 _data = {
-"points": PackedVector2Array(0, 0, 0, 0, 1165, 640, 0, 0, 0, 0, 1165, 780, 0, 0, 0, 0, 1580, 850, 0, 0, 0, 0, 1640, 955, 0, 0, 0, 0, 950, 1020)
+"points": PackedVector2Array(0, 0, 0, 0, 1165, 640, 0, 0, 0, 0, 1165, 780, 0, 0, 0, 0, 1490, 860, 0, 0, 0, 0, 1560, 935, 0, 0, 0, 0, 950, 1020)
 }
 point_count = 5
+
+[sub_resource type="Curve2D" id="Curve_Rapids"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 1165, 640, 0, 0, 0, 0, 1165, 780, 0, 0, 0, 0, 1000, 815.691, 0, 0, 0, 0, 150, 945, 0, 0, 0, 0, 110, 1040, 0, 0, 0, 0, 950, 1020)
+}
+point_count = 6
 
 [node name="Track" type="Node2D"]
 script = ExtResource("1_track")
@@ -199,45 +217,25 @@ polygon = PackedVector2Array(1890, 536, 1220, 650, 1223.69, 671.688, 1893.69, 55
 color = Color(0.12, 0.26, 0.3, 1)
 polygon = PackedVector2Array(1890, 536, 1220, 650, 1223.69, 671.688, 1893.69, 557.688)
 
-[node name="TailA" type="StaticBody2D" parent="."]
-physics_material_override = SubResource("PM_track")
-
-[node name="Collider" type="CollisionPolygon2D" parent="TailA"]
-polygon = PackedVector2Array(880, 707, 1580, 880, 1574.722, 901.357, 874.722, 728.357)
-
-[node name="Visual" type="Polygon2D" parent="TailA"]
-color = Color(0.12, 0.26, 0.3, 1)
-polygon = PackedVector2Array(880, 707, 1580, 880, 1574.722, 901.357, 874.722, 728.357)
-
 [node name="TailB" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="TailB"]
-polygon = PackedVector2Array(1890, 940, 700, 1040, 701.842, 1061.923, 1891.842, 961.923)
+polygon = PackedVector2Array(1600, 918.992, 700, 1040, 702.932, 1061.804, 1602.932, 940.795)
 
 [node name="Visual" type="Polygon2D" parent="TailB"]
 color = Color(0.12, 0.26, 0.3, 1)
-polygon = PackedVector2Array(1890, 940, 700, 1040, 701.842, 1061.923, 1891.842, 961.923)
+polygon = PackedVector2Array(1600, 918.992, 700, 1040, 702.932, 1061.804, 1602.932, 940.795)
 
-[node name="TailAStop" type="StaticBody2D" parent="."]
+[node name="TailB2" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
-[node name="Collider" type="CollisionPolygon2D" parent="TailAStop"]
-polygon = PackedVector2Array(858, 665, 880, 665, 880, 735, 858, 735)
+[node name="Collider" type="CollisionPolygon2D" parent="TailB2"]
+polygon = PackedVector2Array(1890, 845, 1600, 918.992, 1605.439, 940.309, 1895.439, 866.317)
 
-[node name="Visual" type="Polygon2D" parent="TailAStop"]
-color = Color(0.06, 0.14, 0.18, 1)
-polygon = PackedVector2Array(858, 665, 880, 665, 880, 735, 858, 735)
-
-[node name="ShaftLeft" type="StaticBody2D" parent="."]
-physics_material_override = SubResource("PM_track")
-
-[node name="Collider" type="CollisionPolygon2D" parent="ShaftLeft"]
-polygon = PackedVector2Array(1098, 668, 1110, 668, 1110, 745, 1098, 745)
-
-[node name="Visual" type="Polygon2D" parent="ShaftLeft"]
-color = Color(0.06, 0.14, 0.18, 1)
-polygon = PackedVector2Array(1098, 668, 1110, 668, 1110, 745, 1098, 745)
+[node name="Visual" type="Polygon2D" parent="TailB2"]
+color = Color(0.12, 0.26, 0.3, 1)
+polygon = PackedVector2Array(1890, 845, 1600, 918.992, 1605.439, 940.309, 1895.439, 866.317)
 
 [node name="PegL1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
@@ -391,11 +389,141 @@ rotation = 0.2
 shape = SubResource("Rect_ZoneR")
 
 [node name="ZoneTail" type="Area2D" parent="Currents"]
-position = Vector2(1240.077, 752.727)
+position = Vector2(1360, 782)
 rotation = 0.242
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Currents/ZoneTail"]
 shape = SubResource("Rect_ZoneTail")
+
+[node name="TailA1" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="TailA1"]
+polygon = PackedVector2Array(1215, 789.793, 1380, 830.571, 1374.722, 851.929, 1209.722, 811.15)
+
+[node name="Visual" type="Polygon2D" parent="TailA1"]
+color = Color(0.12, 0.26, 0.3, 1)
+polygon = PackedVector2Array(1215, 789.793, 1380, 830.571, 1374.722, 851.929, 1209.722, 811.15)
+
+[node name="RapidsA" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="RapidsA"]
+polygon = PackedVector2Array(1090, 802, 800, 846.117, 803.309, 867.867, 1093.309, 823.75)
+
+[node name="Visual" type="Polygon2D" parent="RapidsA"]
+color = Color(0.12, 0.26, 0.3, 1)
+polygon = PackedVector2Array(1090, 802, 800, 846.117, 803.309, 867.867, 1093.309, 823.75)
+
+[node name="RapidsB" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="RapidsB"]
+polygon = PackedVector2Array(690, 862.851, 150, 945, 153.309, 966.75, 693.309, 884.601)
+
+[node name="Visual" type="Polygon2D" parent="RapidsB"]
+color = Color(0.12, 0.26, 0.3, 1)
+polygon = PackedVector2Array(690, 862.851, 150, 945, 153.309, 966.75, 693.309, 884.601)
+
+[node name="Switch" type="Node2D" parent="."]
+position = Vector2(1165, 760)
+script = ExtResource("5_gate")
+initial_state = 1
+
+[node name="Paddle" type="AnimatableBody2D" parent="Switch"]
+physics_material_override = SubResource("PM_paddle")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Switch/Paddle"]
+polygon = PackedVector2Array(-90, -6, 90, -6, 90, 6, -90, 6)
+
+[node name="Visual" type="Polygon2D" parent="Switch/Paddle"]
+color = Color(0.95, 0.45, 0.5, 1)
+polygon = PackedVector2Array(-90, -6, 90, -6, 90, 6, -90, 6)
+
+[node name="Sensor" type="Area2D" parent="Switch"]
+
+[node name="EndLeft" type="CollisionShape2D" parent="Switch/Sensor"]
+position = Vector2(-95, 22)
+shape = SubResource("Rect_sensor")
+
+[node name="EndRight" type="CollisionShape2D" parent="Switch/Sensor"]
+position = Vector2(95, 22)
+shape = SubResource("Rect_sensor")
+
+[node name="DoorLong" type="Node2D" parent="."]
+position = Vector2(1380, 830.571)
+rotation = 0.242
+script = ExtResource("6_door")
+length = 110
+open_degrees = 80
+
+[node name="Plate" type="AnimatableBody2D" parent="DoorLong"]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="DoorLong/Plate"]
+polygon = PackedVector2Array(0, 0, 110, 0, 110, 22, 0, 22)
+
+[node name="Visual" type="Polygon2D" parent="DoorLong/Plate"]
+color = Color(0.85, 0.65, 0.3, 1)
+polygon = PackedVector2Array(0, 0, 110, 0, 110, 22, 0, 22)
+
+[node name="DoorRapids" type="Node2D" parent="."]
+position = Vector2(800, 846.117)
+rotation = -0.151
+script = ExtResource("6_door")
+length = -110
+open_degrees = -80
+
+[node name="Plate" type="AnimatableBody2D" parent="DoorRapids"]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="DoorRapids/Plate"]
+polygon = PackedVector2Array(0, 0, -110, 0, -110, 22, 0, 22)
+
+[node name="Visual" type="Polygon2D" parent="DoorRapids/Plate"]
+color = Color(0.85, 0.65, 0.3, 1)
+polygon = PackedVector2Array(0, 0, -110, 0, -110, 22, 0, 22)
+
+[node name="VentR1" type="Node2D" parent="."]
+position = Vector2(985, 817.973)
+rotation = 0.2
+script = ExtResource("3_geyser")
+period = 5
+
+[node name="Column" type="Area2D" parent="VentR1"]
+position = Vector2(0, -80)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VentR1/Column"]
+shape = SubResource("Rect_column")
+
+[node name="VentR2" type="Node2D" parent="."]
+position = Vector2(560, 882.628)
+rotation = 0.2
+script = ExtResource("3_geyser")
+period = 5
+
+[node name="Column" type="Area2D" parent="VentR2"]
+position = Vector2(0, -80)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VentR2/Column"]
+shape = SubResource("Rect_column")
+
+[node name="VentR3" type="Node2D" parent="."]
+position = Vector2(330, 917.617)
+rotation = 0.2
+script = ExtResource("3_geyser")
+period = 5
+
+[node name="Column" type="Area2D" parent="VentR3"]
+position = Vector2(0, -80)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VentR3/Column"]
+shape = SubResource("Rect_column")
+
+[node name="Branches" type="Node2D" parent="."]
+
+[node name="Rapids" type="Path2D" parent="Branches"]
+curve = SubResource("Curve_Rapids")
 
 [node name="Feeders" type="Node2D" parent="."]
 
@@ -415,7 +543,7 @@ curve = SubResource("Curve_center")
 z_index = -5
 width = 2.0
 default_color = Color(1, 1, 1, 0.12)
-points = PackedVector2Array(1165, 640, 1165, 780, 1580, 850, 1640, 955, 950, 1020)
+points = PackedVector2Array(1165, 640, 1165, 780, 1490, 860, 1560, 935, 950, 1020)
 
 [node name="SpawnOrigin" type="Marker2D" parent="."]
 position = Vector2(60, 120)
@@ -461,16 +589,16 @@ position = Vector2(1470, 826.814)
 position = Vector2(1550, 846.586)
 
 [node name="S5" type="Marker2D" parent="TreasureSpots"]
-position = Vector2(1760, 924.924)
+position = Vector2(1760, 871.479)
 
 [node name="S6" type="Marker2D" parent="TreasureSpots"]
-position = Vector2(1600, 938.37)
+position = Vector2(1600, 892.992)
 
 [node name="S7" type="Marker2D" parent="TreasureSpots"]
-position = Vector2(1440, 951.815)
+position = Vector2(1440, 914.504)
 
 [node name="S8" type="Marker2D" parent="TreasureSpots"]
-position = Vector2(1280, 965.261)
+position = Vector2(1280, 936.017)
 
 [node name="Finish" type="Area2D" parent="."]
 position = Vector2(950, 1000)
@@ -478,7 +606,11 @@ position = Vector2(950, 1000)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Finish"]
 shape = SubResource("Rect_finish")
 
+[node name="LeftBand" type="CollisionShape2D" parent="Finish"]
+position = Vector2(-610, 12.5)
+shape = SubResource("Rect_finish_left")
+
 [node name="Visual" type="Polygon2D" parent="Finish"]
 z_index = -5
 color = Color(0.95, 0.85, 0.2, 0.3)
-polygon = PackedVector2Array(-300, -60, 300, -60, 300, 60, -300, 60)
+polygon = PackedVector2Array(-920, -35, -300, -35, -300, -60, 300, -60, 300, 60, -920, 60)

@@ -75,6 +75,11 @@ func test_fork_replay_matches_the_recording_at_every_frame() -> void:
 	for geyser: Geyser in geysers:
 		assert_true(nodes.has(geyser), "%s is recorded" % geyser.name)
 	assert_true(nodes.has(_current), "the current is recorded")
+	var moving: int = 0
+	for node: Node in nodes:
+		if node is TrapDoor or node is FlipGate:
+			moving += 1
+	assert_eq(moving, 3, "the two trapdoors and the switch are recorded")
 	var bad: Array[String] = []
 	var geyser_phases: Dictionary = {}
 	var current_phases: Dictionary = {}

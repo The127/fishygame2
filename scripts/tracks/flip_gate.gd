@@ -130,6 +130,11 @@ func reset() -> void:
 	_paddle.rotation = target_angle()
 
 
+## Called by [method Track.stop_gimmicks] on a gate that sits directly under a map.
+func stop_gimmick() -> void:
+	reset()
+
+
 ## Flips once a marble that was in the sensor has left it. Marbles that vanish from the
 ## tree (a race being cleared) never count.
 func _watch_sensor() -> void:

@@ -289,10 +289,20 @@ fish and its gasp flashes are not replayed.
 Fork Reef has three separate starts (`SpawnOrigin` and the markers under `Starts` in
 `scenes/tracks/fork_track.tscn`). Each race deals the fish out evenly between them by seed
 (`Track.plan_starts`), and each start has its own route: a short steep one with bumpers and geysers,
-a middle one with two ledges and a long safe one. The routes merge into a funnel above a shared
-finish run. Progress on a multi-start map is measured along one `Feeders` path per start for the
+a middle one with two ledges and a long safe one. The routes merge into a funnel, and under the funnel
+gap a switch (a `FlipGate`, directly under the map) sends the fish alternately down the Rapids on the
+left (a long steep ramp with geysers, short but bumpy) or along the Long Road on the right (the
+gentle tail). Each route has a trapdoor (`scripts/tracks/trap_door.gd`): a hinged floor plate that
+glows, swings open for a moment and drops the fish above it onto the floor below, skipping the
+rest of that route. Door phases come from the race seed (`reseed`, like the geysers) and a door
+that was never armed stays shut. The finish is two shapes: the box at the end of the Long Road and a
+band under the end of the Rapids, placed so a fish registers before it can touch the pile of fish
+that already finished. Progress on a multi-start map is measured along one `Feeders` path per start for the
 first `merge_progress` of the scale and along `Centerline` (merge point to finish) for the rest.
-The debug race prints each marble's start (`starts=`) so a seed sweep can report results per start.
+A map can split again after the merge: every `Path2D` under a `Branches` node is another route from the
+merge point to the finish, and a fish is measured along whichever route it is nearest to (Fork Reef's
+`Rapids`). The debug race prints each marble's start (`starts=`) so a seed sweep can report results
+per start.
 
 Sunken City is a drowned ruin where the towers come down as the fish arrive (`scripts/tracks/ruin_hazard.gd`).
 There is no event timer: every ruin has an invisible trigger zone (an `Area2D` named `Trigger`) on the
