@@ -52,3 +52,12 @@ func test_viewer_cooldown_is_per_viewer() -> void:
 	_meow.tick(_meow.viewer_cooldown + 0.1)
 	assert_true(_meow.meow(_msg("a")))
 	assert_eq(_requests, [0, 1, 0] as Array[int])
+
+
+func test_cooldown_resets_with_the_next_race() -> void:
+	assert_true(_meow.meow(_msg("a")))
+	_meow.on_race_finished([] as Array[Dictionary])
+	_meow.on_state_changed(GameFlow.State.LOBBY, GameFlow.State.PODIUM)
+	_meow.add_contestant(Contestant.create("a", "Alice"))
+	_meow.on_state_changed(GameFlow.State.RACING, GameFlow.State.COUNTDOWN)
+	assert_true(_meow.meow(_msg("a")))
