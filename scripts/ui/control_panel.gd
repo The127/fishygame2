@@ -106,7 +106,7 @@ func _ready() -> void:
 	_auto.toggled.connect(auto_mode_toggled.emit)
 	_mute.toggled.connect(mute_toggled.emit)
 	for bus: String in _volume_sliders:
-		(_volume_sliders[bus] as HSlider).value_changed.connect(volume_changed.emit.bind(bus))
+		(_volume_sliders[bus] as HSlider).value_changed.connect(_on_volume_slider_changed.bind(bus))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -283,6 +283,12 @@ func select_map(choice: String) -> void:
 		if String(_map_picker.get_item_metadata(i)) == choice:
 			_map_picker.select(i)
 			return
+
+
+## A bound argument comes after the signal's own (value, bus), so it cannot go straight to
+## [signal volume_changed], which wants the bus first.
+func _on_volume_slider_changed(value: float, bus: String) -> void:
+	volume_changed.emit(bus, value)
 
 
 func _on_map_picked(index: int) -> void:
