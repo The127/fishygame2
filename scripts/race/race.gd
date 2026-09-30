@@ -175,6 +175,13 @@ func meow_marble(id: int) -> bool:
 	return true
 
 
+## Debug hook: makes a random fish meow. Returns false if the race is not running.
+func meow_random_marble() -> bool:
+	if not running or _marbles.is_empty():
+		return false
+	return meow_marble(_marbles.keys().pick_random() as int)
+
+
 ## The streamer's fishing rod: drops a hook at `pos` and yanks the nearest fish within
 ## `radius` back up the track. Returns that fish's id, or -1 if the race is not running
 ## or no fish is in reach (the hook still drops).

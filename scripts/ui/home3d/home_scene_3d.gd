@@ -101,13 +101,27 @@ func fish_clicked(index: int) -> void:
 		return
 	fish_clicks += 1
 	if fish_clicks >= EARS_CLICKS:
-		ears_fish = index
-		ears = MeshInstance3D.new()
-		ears.mesh = HomeFishMesh.build_ears(fish_color(index))
-		ears.material_override = _fish_material
-		ears.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_world.add_child(ears)
-		_update_fish()
+		_grow_ears(index)
+
+
+## Debug hook: puts the cat ears on a random fish right now, moving them if they already exist.
+func force_ears() -> void:
+	if school.count <= 0:
+		return
+	if ears != null:
+		ears.queue_free()
+		ears = null
+	_grow_ears(randi() % school.count)
+
+
+func _grow_ears(index: int) -> void:
+	ears_fish = index
+	ears = MeshInstance3D.new()
+	ears.mesh = HomeFishMesh.build_ears(fish_color(index))
+	ears.material_override = _fish_material
+	ears.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_world.add_child(ears)
+	_update_fish()
 
 
 ## The body color of fish [param index].

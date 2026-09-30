@@ -205,6 +205,8 @@ func _ready() -> void:
 	_panel.skip_replay_pressed.connect(_replay.stop)
 	_panel.stop_pressed.connect(_flow.stop)
 	_panel.add_debug_players_pressed.connect(_flow.add_debug_players)
+	_panel.debug_duck_pressed.connect(_on_debug_duck)
+	_panel.debug_meow_pressed.connect(_on_debug_meow)
 	_panel.home_pressed.connect(_on_home_pressed)
 	_panel.back_pressed.connect(_on_back_pressed)
 	_panel.leave_confirmed.connect(_leave_to_home)
@@ -796,6 +798,22 @@ func _on_effect_applied(msg: ChatMessage, target: Contestant, kind: Chaos.Kind, 
 		"@%s on %s" % [_viewer_name(msg), target.display_name]
 	)
 	_overlay.show_notice("%s %s %s!" % [_viewer_name(msg), verb, target.display_name])
+
+
+## Debug button: a rubber duck drifts through the current map right now.
+func _on_debug_duck() -> void:
+	if _track == null:
+		_overlay.show_notice("Debug: no map loaded")
+		return
+	_track.force_duck(randi())
+
+
+## Debug button: a random fish meows. Only works while a race is running.
+func _on_debug_meow() -> void:
+	if _race.meow_random_marble():
+		Sound.play(Sound.Sfx.MEOW)
+	else:
+		_overlay.show_notice("Debug: meow needs a running race")
 
 
 func _on_meow_requested(marble_id: int) -> void:

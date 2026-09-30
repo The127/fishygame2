@@ -95,6 +95,16 @@ layout_mode = 2
 focus_mode = 0
 text = "+5 players"
 
+[node name="Duck" type="Button" parent="Panel/Box/DebugButtons"]
+layout_mode = 2
+focus_mode = 0
+text = "Duck"
+
+[node name="Meow" type="Button" parent="Panel/Box/DebugButtons"]
+layout_mode = 2
+focus_mode = 0
+text = "Meow"
+
 [node name="Auto" type="CheckBox" parent="Panel/Box"]
 layout_mode = 2
 focus_mode = 0

@@ -8,6 +8,8 @@ signal open_lobby_pressed
 signal start_pressed
 signal stop_pressed
 signal add_debug_players_pressed(count: int)
+signal debug_duck_pressed
+signal debug_meow_pressed
 ## Emits a map id, or TrackCatalog.RANDOM_ID for a random map.
 signal map_selected(choice: String)
 ## Emits a bus name (see AudioSettings.BUSES) and a linear volume 0..1.
@@ -93,6 +95,8 @@ func _ready() -> void:
 	($Panel/Box/DebugButtons/AddFive as Button).pressed.connect(
 		add_debug_players_pressed.emit.bind(5)
 	)
+	($Panel/Box/DebugButtons/Duck as Button).pressed.connect(debug_duck_pressed.emit)
+	($Panel/Box/DebugButtons/Meow as Button).pressed.connect(debug_meow_pressed.emit)
 	_map_picker.add_item("Random")
 	_map_picker.set_item_metadata(0, TrackCatalog.RANDOM_ID)
 	for id: String in TrackCatalog.ids():
@@ -242,6 +246,8 @@ func _apply_style() -> void:
 		$Panel/Box/LeaveConfirm/Answers/Stay,
 		$Panel/Box/DebugButtons/AddOne,
 		$Panel/Box/DebugButtons/AddFive,
+		$Panel/Box/DebugButtons/Duck,
+		$Panel/Box/DebugButtons/Meow,
 		_map_picker,
 	]:
 		UiStyle.style_button(button, 20)
