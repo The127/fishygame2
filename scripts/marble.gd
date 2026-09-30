@@ -28,6 +28,10 @@ const FLOP_SECONDS: float = 1.3
 const STRAND_FADE_SECONDS: float = 0.9
 const FLOP_TINT: Color = Color(0.85, 0.75, 0.5)
 
+## Seconds a fish takes to dissolve in acid, and the color of the fizz.
+const DISSOLVE_SECONDS: float = 0.6
+const ACID_COLOR: Color = Color(0.75, 1.0, 0.3)
+
 ## Seconds the meow bubble stays up.
 const MEOW_SECONDS: float = 1.2
 
@@ -40,6 +44,8 @@ var eaten: bool = false
 var snapped: bool = false
 ## True once the tide left the fish high and dry. It stays out of the race for good.
 var stranded: bool = false
+## True once stomach acid dissolved the fish. It stays out of the race for good.
+var dissolved: bool = false
 ## Seconds the fish has lain above the waterline without getting wet again.
 var dry_time: float = 0.0
 ## How often anglerfish have swallowed this fish in the current race.
@@ -276,9 +282,10 @@ func snap() -> void:
 	tween.tween_callback(func() -> void: visible = false)
 
 
-## Whether the fish is out of the race for good (snapped or stranded). It counts as unfinished.
+## Whether the fish is out of the race for good (snapped, stranded or dissolved). It counts as
+## unfinished.
 func is_out() -> bool:
-	return snapped or stranded
+	return snapped or stranded or dissolved
 
 
 ## Tracks how long the fish has been above the waterline at `waterline_y` (world pixels, the
@@ -326,10 +333,34 @@ func strand() -> void:
 	_strand_tween.tween_callback(func() -> void: visible = false)
 
 
-## Ends a stranded fish's flop and fade at once, leaving it gone. The race calls it when it ends,
-## so a fish stranded a moment before never reappears under the finish replay.
+## Stomach acid eats the fish: it fizzes, sinks a little and fades, and is out of the race for
+## good (it counts as unfinished). The acid pit draws the skeleton it leaves behind. Also sets
+## [member eaten], so the race and the hazards leave it alone.
+func dissolve() -> void:
+	if eaten:
+		return
+	eaten = true
+	dissolved = true
+	collision_layer = 0
+	collision_mask = 0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	freeze = true
+	if _fish != null:
+		_fish.flash(ACID_COLOR, DISSOLVE_SECONDS)
+	_strand_tween = create_tween()
+	_strand_tween.set_parallel(true)
+	_strand_tween.tween_property(
+		self, "global_position:y", global_position.y + 10.0, DISSOLVE_SECONDS
+	)
+	_strand_tween.tween_property(self, "modulate:a", 0.0, DISSOLVE_SECONDS)
+	_strand_tween.chain().tween_callback(func() -> void: visible = false)
+
+
+## Ends a stranded or dissolving fish's last moments at once, leaving it gone. The race calls it
+## when it ends, so a fish lost a moment before never reappears under the finish replay.
 func finish_strand() -> void:
-	if not stranded:
+	if not stranded and not dissolved:
 		return
 	if _strand_tween != null:
 		_strand_tween.kill()

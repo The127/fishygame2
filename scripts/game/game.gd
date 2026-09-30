@@ -166,6 +166,7 @@ func _ready() -> void:
 	_race.fish_snapped.connect(_on_fish_snapped)
 	_race.treasure_collected.connect(_on_treasure_collected)
 	_race.fish_stranded.connect(_on_fish_stranded)
+	_race.fish_dissolved.connect(_on_fish_dissolved)
 	_sequence.photo_ended.connect(_camera.release_hold)
 	# After Betting.on_podium_ready, which settles the payouts this handler reports.
 	_flow.podium_ready.connect(_on_podium_ready)
@@ -385,6 +386,16 @@ func _on_fish_stranded(id: int) -> void:
 	if id >= 0 and id < contestants.size():
 		who = "@" + contestants[id].display_name
 	_overlay.show_notice("%s was left high and dry!" % who, 2.5)
+
+
+func _on_fish_dissolved(id: int) -> void:
+	Sound.play(Sound.Sfx.CURSE)
+	# Marble ids are roster indexes.
+	var contestants: Array[Contestant] = _flow.get_contestants()
+	var who: String = "A fish"
+	if id >= 0 and id < contestants.size():
+		who = "@" + contestants[id].display_name
+	_overlay.show_notice("%s was dissolved in stomach acid!" % who, 3.0)
 
 
 func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:

@@ -18,6 +18,7 @@ var _hazard_events: PackedStringArray = []
 var _treasures_found: int = 0
 var _treasures_total: int = 0
 var _stranded: int = 0
+var _dissolved: int = 0
 
 @onready var _race: Race = $Race
 
@@ -26,6 +27,7 @@ func _ready() -> void:
 	_race.marble_finished.connect(_on_marble_finished)
 	_race.fish_snapped.connect(_on_fish_snapped)
 	_race.fish_stranded.connect(_on_fish_stranded)
+	_race.fish_dissolved.connect(_on_fish_dissolved)
 	_race.race_finished.connect(_on_race_finished)
 	_race.treasure_collected.connect(_on_treasure_collected)
 	for arg: String in OS.get_cmdline_user_args():
@@ -83,6 +85,7 @@ func _start_race() -> void:
 	)
 	_hazard_events.clear()
 	_stranded = 0
+	_dissolved = 0
 	_race.time_limit = time_limit
 	_treasures_found = 0
 	_race.start(_track, marble_count, rng, hazard_frequency, event_id)
@@ -101,6 +104,12 @@ func _on_fish_snapped(ids: Array[int]) -> void:
 func _on_fish_stranded(id: int) -> void:
 	_stranded += 1
 	print("  stranded: marble %d at t=%.2fs" % [id, _race.elapsed])
+
+
+func _on_fish_dissolved(id: int) -> void:
+	_dissolved += 1
+	var at: Vector2 = _race.get_marbles()[id].global_position
+	print("  dissolved: marble %d at t=%.2fs (%.0f, %.0f)" % [id, _race.elapsed, at.x, at.y])
 
 
 func _on_fish_eaten(marble: Marble) -> void:
@@ -135,7 +144,12 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 		var unfinished: int = 0
 		for r: Dictionary in results:
 			var id: int = int(r["id"])
-			if not r["finished"] and not _race.is_snapped(id) and not _race.is_stranded(id):
+			if (
+				not r["finished"]
+				and not _race.is_snapped(id)
+				and not _race.is_stranded(id)
+				and not _race.is_dissolved(id)
+			):
 				unfinished += 1
 		var starts: String = ""
 		if _track.get_start_count() > 1:
@@ -145,13 +159,14 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 			starts = " starts=%s" % ",".join(by_marble)
 		print(
 			(
-				"RESULT map=%s seed=%d time=%.2f unfinished=%d stranded=%d hazards=%d treasures=%d/%d order=%s%s"
+				"RESULT map=%s seed=%d time=%.2f unfinished=%d stranded=%d dissolved=%d hazards=%d treasures=%d/%d order=%s%s"
 				% [
 					map_id,
 					seed_value,
 					_race.elapsed,
 					unfinished,
 					_stranded,
+					_dissolved,
 					_hazard_events.size(),
 					_treasures_found,
 					_treasures_total,

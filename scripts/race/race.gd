@@ -6,6 +6,8 @@ signal marble_finished(id: int, place: int)
 signal race_finished(results: Array[Dictionary])
 ## A Thanos snap just turned these fish to dust.
 signal fish_snapped(ids: Array[int])
+## Stomach acid just dissolved this fish: it is out of the race.
+signal fish_dissolved(id: int)
 ## The tide just left this fish stranded above the waterline.
 signal fish_stranded(id: int)
 ## The winner just crossed with `chaser_id` about to follow. Visual cue only.
@@ -68,6 +70,7 @@ func start(
 	_track.marble_reached_finish.connect(_on_marble_reached_finish)
 	if not _track.burst_played.is_connected(_on_burst_played):
 		_track.burst_played.connect(_on_burst_played)
+	_track.fish_dissolved.connect(_on_fish_dissolved)
 	# Read before any draw and never advanced, so a snap cannot shift the race's layout.
 	_snap_rng.seed = hash(rng.state)
 	_snap_pending = event == RaceEvent.THANOS_SNAP
@@ -120,6 +123,8 @@ func clear() -> void:
 		_track.stop_gimmicks()
 	if _track != null and _track.burst_played.is_connected(_on_burst_played):
 		_track.burst_played.disconnect(_on_burst_played)
+	if _track != null and _track.fish_dissolved.is_connected(_on_fish_dissolved):
+		_track.fish_dissolved.disconnect(_on_fish_dissolved)
 	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
 		_track.marble_reached_finish.disconnect(_on_marble_reached_finish)
 	_track = null
@@ -225,8 +230,12 @@ func get_progress_map() -> Dictionary:
 	var progress: Dictionary = {}
 	for id: int in _marbles:
 		var marble: Marble = _marbles[id]
-		# A snapped fish ranks behind every other fish that did not finish.
-		progress[id] = -1.0 if marble.snapped else _track.get_progress(marble.global_position)
+		# A snapped or dissolved fish ranks behind every other fish that did not finish.
+		progress[id] = (
+			-1.0
+			if marble.snapped or marble.dissolved
+			else _track.get_progress(marble.global_position)
+		)
 	return progress
 
 
@@ -286,8 +295,8 @@ func _on_marble_reached_finish(body: Node2D) -> void:
 		_finish_race()
 
 
-## Whether every fish that is still in the race has finished (snapped and stranded fish do not
-## count).
+## Whether every fish that is still in the race has finished (snapped, stranded and dissolved
+## fish do not count).
 func _all_racers_finished() -> bool:
 	for id: int in _ranking.get_unfinished_ids():
 		if not (_marbles[id] as Marble).is_out():
@@ -314,6 +323,19 @@ func _strand_dry_fish(delta: float) -> void:
 			fish_stranded.emit(id)
 	if any_stranded and _all_racers_finished():
 		_finish_race()
+
+
+func _on_fish_dissolved(marble: Marble) -> void:
+	if not running or _marbles.get(marble.id) != marble:
+		return
+	fish_dissolved.emit(marble.id)
+	if _all_racers_finished():
+		_finish_race()
+
+
+## Whether the fish was dissolved by stomach acid.
+func is_dissolved(id: int) -> bool:
+	return _marbles.has(id) and (_marbles[id] as Marble).dissolved
 
 
 ## Whether the fish was turned to dust by a Thanos snap.

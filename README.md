@@ -301,6 +301,18 @@ squeezes fish along all the time (`peristalsis.gd`). The hazard is a burp jet th
 along one of the three lanes at a seeded moment. At the finish a blowhole (`blowhole.gd`) throws
 every fish that has crossed the line up into the air, and leaves the ones still racing alone.
 
+Two acid pits (`scripts/tracks/acid_pit.gd`) cut through the stomach floor and the start of the
+intestine. A stone hatch covers each pit and sinks into the acid for about a second every seven or
+eight seconds, glowing green just before (the seed picks where in its cycle it starts). A fish that
+touches the acid is dissolved at once: `Marble.dissolve()` fizzes it away, it is out of the race
+for good (`Marble.is_out()`, a DNF like a snapped or stranded fish, ranked behind every other DNF),
+`Race.fish_dissolved` and a stream notice announce it, and the pit draws its skeleton, which sinks
+into the liquid. The acid takes every fish that touches it, so nothing can get stuck in a pit. A
+pit keeps its newest six skeletons. Pit and skeletons run on the pit's own race clock and are part
+of the finish replay (`replay_state()` holds the clock, the cycle shift and the skeleton slots). A
+typical 10-fish race loses two or three fish to the pits; `race_debug` prints `dissolved=N` in its
+`RESULT` line.
+
 Toilet Flush starts with a slide into a porcelain bowl (`scripts/tracks/flush_bowl.gd`, a `Whirlpool`
 with one drain at the bottom and a shorter dwell). Its hazard is the flush: the lever on the cistern
 swings down and the vortex spins up. The drain leads into a sewer pipe: a rubber duck
