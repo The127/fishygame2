@@ -12,6 +12,7 @@ const BODY_WIDTH: float = 0.75
 const PART_BODY: float = 0.0
 const PART_FIN: float = 1.0
 const PART_EYE: float = 2.0
+const EAR_INNER: Color = Color(1.0, 0.62, 0.72)
 
 
 static func build() -> ArrayMesh:
@@ -21,6 +22,37 @@ static func build() -> ArrayMesh:
 	_add_fins(tool)
 	_add_eye(tool, 1)
 	_add_eye(tool, -1)
+	tool.generate_normals()
+	return tool.commit()
+
+
+## Two little cat ears sitting on the head, in the same fish-local space as [method build],
+## for the home screen easter egg. Outer ears in [param color], a pink patch on the front.
+static func build_ears(color: Color) -> ArrayMesh:
+	var tool: SurfaceTool = SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	tool.set_smooth_group(-1)
+	tool.set_uv(Vector2(PART_FIN, 0.0))
+	for side: int in [1, -1]:
+		var z: float = 0.1 * side
+		var base_y: float = 0.24
+		var a: Vector3 = Vector3(0.6, base_y, z - 0.09 * side)
+		var b: Vector3 = Vector3(0.6, base_y, z + 0.09 * side)
+		var c: Vector3 = Vector3(0.38, base_y, z)
+		var tip: Vector3 = Vector3(0.5, base_y + 0.34, z * 1.5)
+		tool.set_color(color)
+		for tri: Array in [[a, b, tip], [b, c, tip], [c, a, tip], [a, c, b]]:
+			for v: Vector3 in tri:
+				tool.add_vertex(v)
+		# The pink patch sits just proud of the front face (a, b, tip).
+		var shift: Vector3 = Vector3(0.012, 0.0, 0.0)
+		tool.set_color(EAR_INNER)
+		for v: Vector3 in [
+			a.lerp(tip, 0.18) + shift,
+			b.lerp(tip, 0.18) + shift,
+			(a + b) * 0.5 + (tip - (a + b) * 0.5) * 0.7 + shift
+		]:
+			tool.add_vertex(v)
 	tool.generate_normals()
 	return tool.commit()
 

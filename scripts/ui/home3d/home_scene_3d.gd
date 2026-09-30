@@ -14,13 +14,23 @@ const SEABED_Y: float = -3.2
 const GOLDEN_RATIO_CONJUGATE: float = 0.618034
 ## Screen radius of a click (in world units at the fish) that frightens fish.
 const SCARE_RADIUS: float = 2.6
+## Clicks that land on a fish, in one visit, before one of the fish grows cat ears.
+const EARS_CLICKS: int = 10
 const FOG_COLOR: Color = Color(0.02, 0.09, 0.16)
 
 var school: HomeFishSchool
 var camera: Camera3D
 var viewport: SubViewport
 
+## Index of the fish wearing cat ears, or -1. Easter egg: nothing announces it.
+var ears_fish: int = -1
+## Clicks that landed on a fish so far.
+var fish_clicks: int = 0
+
 var _fish: MultiMeshInstance3D
+var _ears: MeshInstance3D
+var _fish_material: ShaderMaterial
+var _world: Node3D
 var _time: float = 0.0
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
@@ -36,6 +46,7 @@ func _ready() -> void:
 	add_child(viewport)
 	var world: Node3D = Node3D.new()
 	viewport.add_child(world)
+	_world = world
 	world.add_child(_make_environment())
 	world.add_child(_make_light())
 	camera = Camera3D.new()
@@ -67,14 +78,40 @@ func _gui_input(event: InputEvent) -> void:
 	var click: InputEventMouseButton = event as InputEventMouseButton
 	if click == null or not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
 		return
-	scare_at(click.position)
+	var hit: int = scare_at(click.position)
+	if hit >= 0:
+		fish_clicked(hit)
 	accept_event()
 
 
 ## Frightens fish near the point [param screen_pos] (in this control's coordinates).
-func scare_at(screen_pos: Vector2) -> void:
+## Returns the fish that was clicked on, or -1.
+func scare_at(screen_pos: Vector2) -> int:
 	var origin: Vector3 = camera.project_ray_origin(screen_pos)
-	school.scare(origin, camera.project_ray_normal(screen_pos), SCARE_RADIUS)
+	var direction: Vector3 = camera.project_ray_normal(screen_pos)
+	var hit: int = school.fish_at(origin, direction)
+	school.scare(origin, direction, SCARE_RADIUS)
+	return hit
+
+
+## Counts a click that landed on fish [param index]. On the tenth, that fish gets cat ears.
+func fish_clicked(index: int) -> void:
+	if ears_fish >= 0:
+		return
+	fish_clicks += 1
+	if fish_clicks >= EARS_CLICKS:
+		ears_fish = index
+		_ears = MeshInstance3D.new()
+		_ears.mesh = HomeFishMesh.build_ears(fish_color(index))
+		_ears.material_override = _fish_material
+		_ears.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_world.add_child(_ears)
+		_update_fish()
+
+
+## The body color of fish [param index].
+static func fish_color(index: int) -> Color:
+	return Color.from_hsv(fmod(float(index) * GOLDEN_RATIO_CONJUGATE, 1.0), 0.75, 0.95)
 
 
 ## Dune height of the seabed at world x/z. Mirrors seabed.gdshader.
@@ -100,6 +137,8 @@ func _update_fish() -> void:
 	var multimesh: MultiMesh = _fish.multimesh
 	for i: int in school.count:
 		multimesh.set_instance_transform(i, school.fish_transform(i))
+	if _ears != null:
+		_ears.transform = school.fish_transform(ears_fish)
 
 
 func _make_environment() -> WorldEnvironment:
@@ -271,11 +310,11 @@ func _make_fish() -> MultiMeshInstance3D:
 	var mesh: ArrayMesh = HomeFishMesh.build()
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = load("res://assets/shaders/home3d/fish.gdshader")
+	_fish_material = material
 	mesh.surface_set_material(0, material)
 	var multimesh: MultiMesh = _new_multimesh(mesh, FISH_COUNT, true)
 	for i: int in FISH_COUNT:
-		var hue: float = fmod(float(i) * GOLDEN_RATIO_CONJUGATE, 1.0)
-		multimesh.set_instance_color(i, Color.from_hsv(hue, 0.75, 0.95))
+		multimesh.set_instance_color(i, fish_color(i))
 		multimesh.set_instance_custom_data(i, Color(_rng.randf() * TAU, 0.0, 0.0, 0.0))
 	return _multimesh_instance(multimesh)
 
