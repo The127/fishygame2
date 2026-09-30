@@ -28,6 +28,8 @@ const CHAOS_REJECTIONS: Dictionary = {
 	"usage": "use #boost <name> or #curse <name>",
 	"unknown_fish": "no such racer",
 	"finished": "that fish already finished",
+	"self_boost": "you can't boost your own fish",
+	"self_curse": "you can't curse your own fish",
 	"cooldown": "you have to wait before another one",
 	"fish_busy": "that fish was just hit, try again shortly",
 	"insufficient": "not enough points",

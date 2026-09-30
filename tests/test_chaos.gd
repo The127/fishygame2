@@ -181,3 +181,32 @@ func test_marble_effects_change_velocity() -> void:
 	assert_lt(marble.linear_velocity.x, -50.0)
 	assert_true(marble.is_cursed())
 	assert_gt(marble.linear_damp, 1.0)
+
+
+func test_cannot_boost_own_fish() -> void:
+	_say("a", "#boost alice")
+	assert_eq(_rejections, ["self_boost"] as Array[String])
+	assert_eq(_requests.size(), 0)
+	assert_eq(_balance("a"), 1000)
+
+
+func test_cannot_curse_own_fish() -> void:
+	_say("b", "#curse @Bob")
+	assert_eq(_rejections, ["self_curse"] as Array[String])
+	assert_eq(_requests.size(), 0)
+	assert_eq(_balance("b"), 1000)
+
+
+func test_own_fish_check_uses_user_id_not_name() -> void:
+	# Same display name as Alice, different user id: not their fish.
+	_say("Alice", "#boost alice")
+	assert_eq(_requests, [[0, Chaos.Kind.BOOST]] as Array[Array])
+	# Owner of Bob acting under another display name is still blocked.
+	_source.inject("b", "Somebody", "#curse bob")
+	assert_eq(_rejections, ["self_curse"] as Array[String])
+
+
+func test_rejected_self_effect_does_not_start_cooldowns() -> void:
+	_say("a", "#boost alice")
+	_say("a", "#boost bob")
+	assert_eq(_requests, [[1, Chaos.Kind.BOOST]] as Array[Array])
