@@ -53,8 +53,13 @@ func _record_race() -> ReplayRecorder:
 	_race.start(_track, 3, _rng(11), 5)
 	_hazard = _track.get_hazards()[0] as RuinHazard
 	var recorder: ReplayRecorder = _race.get_recorder()
+	# No fish is near a trigger zone yet: set the first ruin off by hand.
+	assert_true(_hazard.trigger(0))
 	var crash_at: float = (
-		_hazard.get_schedule()[0] + _hazard.telegraph_seconds + RuinHazard.TOPPLE_SECONDS
+		_race.elapsed
+		+ _hazard.telegraph_seconds
+		+ RuinHazard.HESITATION
+		+ RuinHazard.TOPPLE_SECONDS
 	)
 	var finished: bool = false
 	var frames: int = 0

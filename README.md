@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, collapsing ruined towers on Sunken City and a flush on Toilet Flush. The Jellyfish
+Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush. The Jellyfish
 
 Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
@@ -260,17 +260,23 @@ finish run. Progress on a multi-start map is measured along one `Feeders` path p
 first `merge_progress` of the scale and along `Centerline` (merge point to finish) for the rest.
 The debug race prints each marble's start (`starts=`) so a seed sweep can report results per start.
 
-Sunken City is a drowned ruin where the towers come down (`scripts/tracks/ruin_hazard.gd`). Each
-hazard event picks a tower that still stands, shakes it with falling dust and flaring runes, then
-the tower topples and crashes. The crash changes the floor until the race ends. On the first two
-ruins a cap stone in lane A crumbles away and leaves a gap: a shortcut to the lane below. The other
-two start with an open gap in lane B and a slab hanging above it, and the crash drops the slab
-into the gap and seals it. At most four events happen, each tower falls once, and with hazards off
-nothing moves, so every state has to stay passable. A ruin is a child of the hazard with a
-`Tower` (scenery, never collides), a `Slab` (the `AnimatableBody2D` that moves) and metadata for
-`mode`, `lie_degrees` and `height`. The collapse order and timing come from the race seed, not from
-where the fish are. The finish replay shows the shaking and falling towers, the slabs and the dust
-of the crash.
+Sunken City is a drowned ruin where the towers come down as the fish arrive (`scripts/tracks/ruin_hazard.gd`).
+There is no event timer: every ruin has an invisible trigger zone (an `Area2D` named `Trigger`) on the
+lane just upstream of it, and the first fish to enter it sets the ruin off. The tower shakes and
+lets dust fall, then topples and crashes, shoving any fish in its sweep (an `Area2D` named `Sweep`)
+up and forward, and throwing the fish near its tip when it lands. Ruins run on their own, so several
+can be coming down at once. The crash changes the floor until the race ends. On the first two ruins
+a cap stone in lane A crumbles away and leaves a gap: a shortcut to the lane below. The next two
+start with an open gap in lane B and a slab hanging above it, and the crash drops the slab into the
+gap and seals it. The last five ruins have no gap: the tower shatters on the lane (two on the long
+upper lanes, three on the bottom lane) and leaves a heap of rubble that is scenery only, because a
+fish at rest cannot climb any step on these gentle lanes and nothing may block it. The race seed
+decides which ruins are live in a race (more of them at higher hazard levels, all of them at the top
+level) and how long each hesitates after its trigger; where the fish are decides the rest. With hazards
+off nothing moves, so every state has to stay passable. A ruin is a child of the hazard with a
+`Tower` (scenery, never collides), a `Slab` (the `AnimatableBody2D` that moves), a `Trigger`, a
+`Sweep` and metadata for `mode` (`open`, `close` or `topple`), `lie_degrees` and `height`. The finish
+replay shows the shaking and falling towers, the slabs, the rubble and the dust of the crash.
 
 Washing Machine starts the fish inside a steel drum (`scripts/tracks/wash_drum.gd`) that tumbles like
 a real washer: it swings clockwise about 260 degrees, slows and swings back, over and over, so the

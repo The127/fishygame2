@@ -26,6 +26,60 @@ _data = {
 }
 point_count = 11
 
+[sub_resource type="RectangleShape2D" id="Rect_zone1"]
+size = Vector2(480, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone2"]
+size = Vector2(280, 138)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone3"]
+size = Vector2(480, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone4"]
+size = Vector2(280, 138)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone5"]
+size = Vector2(480, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone6"]
+size = Vector2(280, 138)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone7"]
+size = Vector2(480, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone8"]
+size = Vector2(280, 138)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone9"]
+size = Vector2(415, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone10"]
+size = Vector2(220, 102)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone11"]
+size = Vector2(415, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone12"]
+size = Vector2(220, 102)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone13"]
+size = Vector2(440, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone14"]
+size = Vector2(170, 72)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone15"]
+size = Vector2(425, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone16"]
+size = Vector2(200, 90)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone17"]
+size = Vector2(440, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_zone18"]
+size = Vector2(170, 72)
+
 [node name="Track" type="Node2D"]
 script = ExtResource("1_track")
 view_bounds = Rect2(0, -160, 1920, 1240)
@@ -271,121 +325,11 @@ polygon = PackedVector2Array(167, 700, 166.42, 704.4, 164.72, 708.5, 162.02, 712
 [node name="Decor" type="Node2D" parent="."]
 z_index = -4
 
-[node name="Column1" type="Node2D" parent="Decor"]
-position = Vector2(300, 807.89)
-
-[node name="Body" type="Polygon2D" parent="Decor/Column1"]
-color = Color(0.12, 0.16, 0.26, 1)
-polygon = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -42, 22, -108, 7.7, -116.4, -5.5, -103.2, -14.3, -120, -22, -111.6, -23.1, -42)
-
-[node name="Ledge1" type="Polygon2D" parent="Decor/Column1"]
-color = Color(0.13, 0.17, 0.27, 1)
-polygon = PackedVector2Array(-27.5, -39.6, 27.5, -39.6, 27.5, -47.6, -27.5, -47.6)
-
-[node name="Ledge2" type="Polygon2D" parent="Decor/Column1"]
-color = Color(0.13, 0.17, 0.27, 1)
-polygon = PackedVector2Array(-27.5, -72, 27.5, -72, 27.5, -80, -27.5, -80)
-
-[node name="Rim" type="Line2D" parent="Decor/Column1"]
-width = 2.0
-default_color = Color(0.55, 0.62, 0.85, 0.7)
-points = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -42, 22, -108, 7.7, -116.4, -5.5, -103.2, -14.3, -120, -22, -111.6, -23.1, -42, -28.6, 0)
-joint_mode = 2
-
-[node name="Runes" type="Node2D" parent="Decor/Column1"]
-material = SubResource("Mat_glow")
-
-[node name="Rune1" type="Polygon2D" parent="Decor/Column1/Runes"]
-color = Color(1, 0.78, 0.42, 0.9)
-polygon = PackedVector2Array(-3.3, -31.8, 2.7, -24, -3.3, -16.2, -9.3, -24)
-
-[node name="Rune2" type="Polygon2D" parent="Decor/Column1/Runes"]
-color = Color(1, 0.78, 0.42, 0.9)
-polygon = PackedVector2Array(0, -65.4, 6, -57.6, 0, -49.8, -6, -57.6)
-
-[node name="Rune3" type="Polygon2D" parent="Decor/Column1/Runes"]
-color = Color(1, 0.78, 0.42, 0.9)
-polygon = PackedVector2Array(-3.3, -99, 2.7, -91.2, -3.3, -83.4, -9.3, -91.2)
-
-[node name="Column2" type="Node2D" parent="Decor"]
-position = Vector2(620, 845.69)
-
-[node name="Body" type="Polygon2D" parent="Decor/Column2"]
-color = Color(0.12, 0.16, 0.26, 1)
-polygon = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -52.5, 22, -135, 7.7, -145.5, -5.5, -129, -14.3, -150, -22, -139.5, -23.1, -52.5)
-
-[node name="Ledge1" type="Polygon2D" parent="Decor/Column2"]
-color = Color(0.13, 0.17, 0.27, 1)
-polygon = PackedVector2Array(-27.5, -49.5, 27.5, -49.5, 27.5, -57.5, -27.5, -57.5)
-
-[node name="Ledge2" type="Polygon2D" parent="Decor/Column2"]
-color = Color(0.13, 0.17, 0.27, 1)
-polygon = PackedVector2Array(-27.5, -90, 27.5, -90, 27.5, -98, -27.5, -98)
-
-[node name="Rim" type="Line2D" parent="Decor/Column2"]
-width = 2.0
-default_color = Color(0.55, 0.62, 0.85, 0.7)
-points = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -52.5, 22, -135, 7.7, -145.5, -5.5, -129, -14.3, -150, -22, -139.5, -23.1, -52.5, -28.6, 0)
-joint_mode = 2
-
-[node name="Runes" type="Node2D" parent="Decor/Column2"]
-material = SubResource("Mat_glow")
-
-[node name="Rune1" type="Polygon2D" parent="Decor/Column2/Runes"]
-color = Color(1, 0.78, 0.42, 0.9)
-polygon = PackedVector2Array(-3.3, -37.8, 2.7, -30, -3.3, -22.2, -9.3, -30)
-
-[node name="Rune2" type="Polygon2D" parent="Decor/Column2/Runes"]
-color = Color(1, 0.78, 0.42, 0.9)
-polygon = PackedVector2Array(0, -79.8, 6, -72, 0, -64.2, -6, -72)
-
-[node name="Rune3" type="Polygon2D" parent="Decor/Column2/Runes"]
-color = Color(1, 0.78, 0.42, 0.9)
-polygon = PackedVector2Array(-3.3, -121.8, 2.7, -114, -3.3, -106.2, -9.3, -114)
-
-[node name="Column3" type="Node2D" parent="Decor"]
-position = Vector2(900, 878.76)
-
-[node name="Body" type="Polygon2D" parent="Decor/Column3"]
-color = Color(0.12, 0.16, 0.26, 1)
-polygon = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -42, 22, -108, 7.7, -116.4, -5.5, -103.2, -14.3, -120, -22, -111.6, -23.1, -42)
-
-[node name="Ledge1" type="Polygon2D" parent="Decor/Column3"]
-color = Color(0.13, 0.17, 0.27, 1)
-polygon = PackedVector2Array(-27.5, -39.6, 27.5, -39.6, 27.5, -47.6, -27.5, -47.6)
-
-[node name="Ledge2" type="Polygon2D" parent="Decor/Column3"]
-color = Color(0.13, 0.17, 0.27, 1)
-polygon = PackedVector2Array(-27.5, -72, 27.5, -72, 27.5, -80, -27.5, -80)
-
-[node name="Rim" type="Line2D" parent="Decor/Column3"]
-width = 2.0
-default_color = Color(0.55, 0.62, 0.85, 0.7)
-points = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -42, 22, -108, 7.7, -116.4, -5.5, -103.2, -14.3, -120, -22, -111.6, -23.1, -42, -28.6, 0)
-joint_mode = 2
-
-[node name="Runes" type="Node2D" parent="Decor/Column3"]
-material = SubResource("Mat_glow")
-
-[node name="Rune1" type="Polygon2D" parent="Decor/Column3/Runes"]
-color = Color(1, 0.78, 0.42, 0.9)
-polygon = PackedVector2Array(-3.3, -31.8, 2.7, -24, -3.3, -16.2, -9.3, -24)
-
-[node name="Rune2" type="Polygon2D" parent="Decor/Column3/Runes"]
-color = Color(1, 0.78, 0.42, 0.9)
-polygon = PackedVector2Array(0, -65.4, 6, -57.6, 0, -49.8, -6, -57.6)
-
-[node name="Rune3" type="Polygon2D" parent="Decor/Column3/Runes"]
-color = Color(1, 0.78, 0.42, 0.9)
-polygon = PackedVector2Array(-3.3, -99, 2.7, -91.2, -3.3, -83.4, -9.3, -91.2)
-
 [node name="Ruins" type="Node2D" parent="."]
 script = ExtResource("2_ruin")
 kind = "ruin"
-telegraph_seconds = 1.4
-active_seconds = 2.0
-base_gap = 5.0
-max_events = 4
+telegraph_seconds = 1.0
+active_seconds = 1.0
 
 [node name="RuinA1" type="Node2D" parent="Ruins"]
 position = Vector2(1180, 275.71)
@@ -429,6 +373,22 @@ polygon = PackedVector2Array(0, -118.2, 6, -110.4, 0, -102.6, -6, -110.4)
 [node name="Rune3" type="Polygon2D" parent="Ruins/RuinA1/Tower/Runes"]
 color = Color(1, 0.78, 0.42, 0.9)
 polygon = PackedVector2Array(-4.2, -182.6, 1.8, -174.8, -4.2, -167, -10.2, -174.8)
+
+[node name="Trigger" type="Area2D" parent="Ruins/RuinA1"]
+position = Vector2(-266.35, -132.12)
+rotation = 0.11746
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinA1/Trigger"]
+shape = SubResource("Rect_zone1")
+
+[node name="Sweep" type="Area2D" parent="Ruins/RuinA1"]
+position = Vector2(-106.12, -82.01)
+rotation = 0.11746
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinA1/Sweep"]
+shape = SubResource("Rect_zone2")
 
 [node name="Slab" type="AnimatableBody2D" parent="Ruins/RuinA1"]
 physics_material_override = SubResource("PM_track")
@@ -482,6 +442,22 @@ polygon = PackedVector2Array(0, -118.2, 6, -110.4, 0, -102.6, -6, -110.4)
 [node name="Rune3" type="Polygon2D" parent="Ruins/RuinA2/Tower/Runes"]
 color = Color(1, 0.78, 0.42, 0.9)
 polygon = PackedVector2Array(-4.2, -182.6, 1.8, -174.8, -4.2, -167, -10.2, -174.8)
+
+[node name="Trigger" type="Area2D" parent="Ruins/RuinA2"]
+position = Vector2(-266.35, -132.12)
+rotation = 0.11746
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinA2/Trigger"]
+shape = SubResource("Rect_zone3")
+
+[node name="Sweep" type="Area2D" parent="Ruins/RuinA2"]
+position = Vector2(-106.12, -82.01)
+rotation = 0.11746
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinA2/Sweep"]
+shape = SubResource("Rect_zone4")
 
 [node name="Slab" type="AnimatableBody2D" parent="Ruins/RuinA2"]
 physics_material_override = SubResource("PM_track")
@@ -537,6 +513,22 @@ polygon = PackedVector2Array(0, -118.2, 6, -110.4, 0, -102.6, -6, -110.4)
 [node name="Rune3" type="Polygon2D" parent="Ruins/RuinB1/Tower/Runes"]
 color = Color(1, 0.78, 0.42, 0.9)
 polygon = PackedVector2Array(-4.2, -182.6, 1.8, -174.8, -4.2, -167, -10.2, -174.8)
+
+[node name="Trigger" type="Area2D" parent="Ruins/RuinB1"]
+position = Vector2(265.54, -133.76)
+rotation = -0.12360
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinB1/Trigger"]
+shape = SubResource("Rect_zone5")
+
+[node name="Sweep" type="Area2D" parent="Ruins/RuinB1"]
+position = Vector2(105.62, -82.65)
+rotation = -0.12360
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinB1/Sweep"]
+shape = SubResource("Rect_zone6")
 
 [node name="Slab" type="AnimatableBody2D" parent="Ruins/RuinB1"]
 physics_material_override = SubResource("PM_track")
@@ -605,6 +597,22 @@ polygon = PackedVector2Array(0, -118.2, 6, -110.4, 0, -102.6, -6, -110.4)
 color = Color(1, 0.78, 0.42, 0.9)
 polygon = PackedVector2Array(-4.2, -182.6, 1.8, -174.8, -4.2, -167, -10.2, -174.8)
 
+[node name="Trigger" type="Area2D" parent="Ruins/RuinB2"]
+position = Vector2(265.54, -133.76)
+rotation = -0.12360
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinB2/Trigger"]
+shape = SubResource("Rect_zone7")
+
+[node name="Sweep" type="Area2D" parent="Ruins/RuinB2"]
+position = Vector2(105.62, -82.65)
+rotation = -0.12360
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinB2/Sweep"]
+shape = SubResource("Rect_zone8")
+
 [node name="Slab" type="AnimatableBody2D" parent="Ruins/RuinB2"]
 physics_material_override = SubResource("PM_track")
 
@@ -626,6 +634,336 @@ points = PackedVector2Array(-30, -424.58, -30, -181.18)
 width = 4.0
 default_color = Color(0.4, 0.45, 0.6, 1)
 points = PackedVector2Array(30, -424.58, 30, -172.82)
+
+[node name="RuinTA" type="Node2D" parent="Ruins"]
+position = Vector2(800, 230.87)
+metadata/mode = "topple"
+metadata/lie_degrees = 96.73
+metadata/height = 170
+
+[node name="Tower" type="Node2D" parent="Ruins/RuinTA"]
+position = Vector2(-84.41, -9.96)
+z_index = -4
+
+[node name="Body" type="Polygon2D" parent="Ruins/RuinTA/Tower"]
+color = Color(0.12, 0.16, 0.26, 1)
+polygon = PackedVector2Array(-26.9, 0, 26.9, 0, 21.73, -59.5, 20.7, -153, 7.24, -164.9, -5.17, -146.2, -13.45, -170, -20.7, -158.1, -21.73, -59.5)
+
+[node name="Ledge1" type="Polygon2D" parent="Ruins/RuinTA/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-25.87, -56.1, 25.87, -56.1, 25.87, -62.01, -25.87, -62.01)
+
+[node name="Ledge2" type="Polygon2D" parent="Ruins/RuinTA/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-25.87, -102, 25.87, -102, 25.87, -107.91, -25.87, -107.91)
+
+[node name="Rim" type="Line2D" parent="Ruins/RuinTA/Tower"]
+width = 2.0
+default_color = Color(0.55, 0.62, 0.85, 0.7)
+points = PackedVector2Array(-26.9, 0, 26.9, 0, 21.73, -59.5, 20.7, -153, 7.24, -164.9, -5.17, -146.2, -13.45, -170, -20.7, -158.1, -21.73, -59.5, -26.9, 0)
+joint_mode = 2
+
+[node name="Runes" type="Node2D" parent="Ruins/RuinTA/Tower"]
+material = SubResource("Mat_glow")
+
+[node name="Rune1" type="Polygon2D" parent="Ruins/RuinTA/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.1, -39.77, 1.33, -34, -3.1, -28.23, -7.54, -34)
+
+[node name="Rune2" type="Polygon2D" parent="Ruins/RuinTA/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(0, -87.37, 4.43, -81.6, 0, -75.83, -4.43, -81.6)
+
+[node name="Rune3" type="Polygon2D" parent="Ruins/RuinTA/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.1, -134.97, 1.33, -129.2, -3.1, -123.43, -7.54, -129.2)
+
+[node name="Trigger" type="Area2D" parent="Ruins/RuinTA"]
+position = Vector2(-278.77, -133.59)
+rotation = 0.11746
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTA/Trigger"]
+shape = SubResource("Rect_zone9")
+
+[node name="Sweep" type="Area2D" parent="Ruins/RuinTA"]
+position = Vector2(5.98, -50.65)
+rotation = 0.11746
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTA/Sweep"]
+shape = SubResource("Rect_zone10")
+
+[node name="Slab" type="AnimatableBody2D" parent="Ruins/RuinTA"]
+physics_material_override = SubResource("PM_track")
+
+[node name="Visual" type="Polygon2D" parent="Ruins/RuinTA/Slab"]
+color = Color(0.34, 0.4, 0.54, 1)
+polygon = PackedVector2Array(-68.23, -2.01, -37.62, -22.56, 41.83, -13.19, 66.83, 13.93)
+
+[node name="RuinTB" type="Node2D" parent="Ruins"]
+position = Vector2(1330, 519.57)
+metadata/mode = "topple"
+metadata/lie_degrees = -97.08
+metadata/height = 170
+
+[node name="Tower" type="Node2D" parent="Ruins/RuinTB"]
+position = Vector2(84.35, -10.48)
+z_index = -4
+
+[node name="Body" type="Polygon2D" parent="Ruins/RuinTB/Tower"]
+color = Color(0.12, 0.16, 0.26, 1)
+polygon = PackedVector2Array(-26.9, 0, 26.9, 0, 21.73, -59.5, 20.7, -153, 7.24, -164.9, -5.17, -146.2, -13.45, -170, -20.7, -158.1, -21.73, -59.5)
+
+[node name="Ledge1" type="Polygon2D" parent="Ruins/RuinTB/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-25.87, -56.1, 25.87, -56.1, 25.87, -62.01, -25.87, -62.01)
+
+[node name="Ledge2" type="Polygon2D" parent="Ruins/RuinTB/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-25.87, -102, 25.87, -102, 25.87, -107.91, -25.87, -107.91)
+
+[node name="Rim" type="Line2D" parent="Ruins/RuinTB/Tower"]
+width = 2.0
+default_color = Color(0.55, 0.62, 0.85, 0.7)
+points = PackedVector2Array(-26.9, 0, 26.9, 0, 21.73, -59.5, 20.7, -153, 7.24, -164.9, -5.17, -146.2, -13.45, -170, -20.7, -158.1, -21.73, -59.5, -26.9, 0)
+joint_mode = 2
+
+[node name="Runes" type="Node2D" parent="Ruins/RuinTB/Tower"]
+material = SubResource("Mat_glow")
+
+[node name="Rune1" type="Polygon2D" parent="Ruins/RuinTB/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.1, -39.77, 1.33, -34, -3.1, -28.23, -7.54, -34)
+
+[node name="Rune2" type="Polygon2D" parent="Ruins/RuinTB/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(0, -87.37, 4.43, -81.6, 0, -75.83, -4.43, -81.6)
+
+[node name="Rune3" type="Polygon2D" parent="Ruins/RuinTB/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.1, -134.97, 1.33, -129.2, -3.1, -123.43, -7.54, -129.2)
+
+[node name="Trigger" type="Area2D" parent="Ruins/RuinTB"]
+position = Vector2(277.94, -135.3)
+rotation = -0.12360
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTB/Trigger"]
+shape = SubResource("Rect_zone11")
+
+[node name="Sweep" type="Area2D" parent="Ruins/RuinTB"]
+position = Vector2(-6.29, -50.61)
+rotation = -0.12360
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTB/Sweep"]
+shape = SubResource("Rect_zone12")
+
+[node name="Slab" type="AnimatableBody2D" parent="Ruins/RuinTB"]
+physics_material_override = SubResource("PM_track")
+
+[node name="Visual" type="Polygon2D" parent="Ruins/RuinTB/Slab"]
+color = Color(0.34, 0.4, 0.54, 1)
+polygon = PackedVector2Array(-66.74, 14.34, -41.91, -12.93, 37.48, -22.79, 68.22, -2.43)
+
+[node name="RuinTC1" type="Node2D" parent="Ruins"]
+position = Vector2(360, 808.98)
+metadata/mode = "topple"
+metadata/lie_degrees = 96.73
+metadata/height = 120
+
+[node name="Tower" type="Node2D" parent="Ruins/RuinTC1"]
+position = Vector2(-59.59, -7.04)
+z_index = -4
+
+[node name="Body" type="Polygon2D" parent="Ruins/RuinTC1/Tower"]
+color = Color(0.12, 0.16, 0.26, 1)
+polygon = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -42, 22, -108, 7.7, -116.4, -5.5, -103.2, -14.3, -120, -22, -111.6, -23.1, -42)
+
+[node name="Ledge1" type="Polygon2D" parent="Ruins/RuinTC1/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-27.5, -39.6, 27.5, -39.6, 27.5, -47.6, -27.5, -47.6)
+
+[node name="Ledge2" type="Polygon2D" parent="Ruins/RuinTC1/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-27.5, -72, 27.5, -72, 27.5, -80, -27.5, -80)
+
+[node name="Rim" type="Line2D" parent="Ruins/RuinTC1/Tower"]
+width = 2.0
+default_color = Color(0.55, 0.62, 0.85, 0.7)
+points = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -42, 22, -108, 7.7, -116.4, -5.5, -103.2, -14.3, -120, -22, -111.6, -23.1, -42, -28.6, 0)
+joint_mode = 2
+
+[node name="Runes" type="Node2D" parent="Ruins/RuinTC1/Tower"]
+material = SubResource("Mat_glow")
+
+[node name="Rune1" type="Polygon2D" parent="Ruins/RuinTC1/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.3, -31.8, 2.7, -24, -3.3, -16.2, -9.3, -24)
+
+[node name="Rune2" type="Polygon2D" parent="Ruins/RuinTC1/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(0, -65.4, 6, -57.6, 0, -49.8, -6, -57.6)
+
+[node name="Rune3" type="Polygon2D" parent="Ruins/RuinTC1/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.3, -99, 2.7, -91.2, -3.3, -83.4, -9.3, -91.2)
+
+[node name="Trigger" type="Area2D" parent="Ruins/RuinTC1"]
+position = Vector2(-266.34, -132.15)
+rotation = 0.11757
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTC1/Trigger"]
+shape = SubResource("Rect_zone13")
+
+[node name="Sweep" type="Area2D" parent="Ruins/RuinTC1"]
+position = Vector2(4.22, -35.75)
+rotation = 0.11757
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTC1/Sweep"]
+shape = SubResource("Rect_zone14")
+
+[node name="Slab" type="AnimatableBody2D" parent="Ruins/RuinTC1"]
+physics_material_override = SubResource("PM_track")
+
+[node name="Visual" type="Polygon2D" parent="Ruins/RuinTC1/Slab"]
+color = Color(0.34, 0.4, 0.54, 1)
+polygon = PackedVector2Array(-48.37, 0.33, -17.75, -20.22, 21.97, -15.53, 46.96, 11.59)
+
+[node name="RuinTC2" type="Node2D" parent="Ruins"]
+position = Vector2(695, 848.54)
+metadata/mode = "topple"
+metadata/lie_degrees = 96.73
+metadata/height = 150
+
+[node name="Tower" type="Node2D" parent="Ruins/RuinTC2"]
+position = Vector2(-74.48, -8.8)
+z_index = -4
+
+[node name="Body" type="Polygon2D" parent="Ruins/RuinTC2/Tower"]
+color = Color(0.12, 0.16, 0.26, 1)
+polygon = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -52.5, 22, -135, 7.7, -145.5, -5.5, -129, -14.3, -150, -22, -139.5, -23.1, -52.5)
+
+[node name="Ledge1" type="Polygon2D" parent="Ruins/RuinTC2/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-27.5, -49.5, 27.5, -49.5, 27.5, -57.5, -27.5, -57.5)
+
+[node name="Ledge2" type="Polygon2D" parent="Ruins/RuinTC2/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-27.5, -90, 27.5, -90, 27.5, -98, -27.5, -98)
+
+[node name="Rim" type="Line2D" parent="Ruins/RuinTC2/Tower"]
+width = 2.0
+default_color = Color(0.55, 0.62, 0.85, 0.7)
+points = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -52.5, 22, -135, 7.7, -145.5, -5.5, -129, -14.3, -150, -22, -139.5, -23.1, -52.5, -28.6, 0)
+joint_mode = 2
+
+[node name="Runes" type="Node2D" parent="Ruins/RuinTC2/Tower"]
+material = SubResource("Mat_glow")
+
+[node name="Rune1" type="Polygon2D" parent="Ruins/RuinTC2/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.3, -37.8, 2.7, -30, -3.3, -22.2, -9.3, -30)
+
+[node name="Rune2" type="Polygon2D" parent="Ruins/RuinTC2/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(0, -79.8, 6, -72, 0, -64.2, -6, -72)
+
+[node name="Rune3" type="Polygon2D" parent="Ruins/RuinTC2/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.3, -121.8, 2.7, -114, -3.3, -106.2, -9.3, -114)
+
+[node name="Trigger" type="Area2D" parent="Ruins/RuinTC2"]
+position = Vector2(-273.79, -133.03)
+rotation = 0.11757
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTC2/Trigger"]
+shape = SubResource("Rect_zone15")
+
+[node name="Sweep" type="Area2D" parent="Ruins/RuinTC2"]
+position = Vector2(5.28, -44.69)
+rotation = 0.11757
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTC2/Sweep"]
+shape = SubResource("Rect_zone16")
+
+[node name="Slab" type="AnimatableBody2D" parent="Ruins/RuinTC2"]
+physics_material_override = SubResource("PM_track")
+
+[node name="Visual" type="Polygon2D" parent="Ruins/RuinTC2/Slab"]
+color = Color(0.34, 0.4, 0.54, 1)
+polygon = PackedVector2Array(-60.29, -1.08, -29.67, -21.63, 33.89, -14.12, 58.88, 13)
+
+[node name="RuinTC3" type="Node2D" parent="Ruins"]
+position = Vector2(960, 879.84)
+metadata/mode = "topple"
+metadata/lie_degrees = 96.73
+metadata/height = 120
+
+[node name="Tower" type="Node2D" parent="Ruins/RuinTC3"]
+position = Vector2(-59.59, -7.04)
+z_index = -4
+
+[node name="Body" type="Polygon2D" parent="Ruins/RuinTC3/Tower"]
+color = Color(0.12, 0.16, 0.26, 1)
+polygon = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -42, 22, -108, 7.7, -116.4, -5.5, -103.2, -14.3, -120, -22, -111.6, -23.1, -42)
+
+[node name="Ledge1" type="Polygon2D" parent="Ruins/RuinTC3/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-27.5, -39.6, 27.5, -39.6, 27.5, -47.6, -27.5, -47.6)
+
+[node name="Ledge2" type="Polygon2D" parent="Ruins/RuinTC3/Tower"]
+color = Color(0.13, 0.17, 0.27, 1)
+polygon = PackedVector2Array(-27.5, -72, 27.5, -72, 27.5, -80, -27.5, -80)
+
+[node name="Rim" type="Line2D" parent="Ruins/RuinTC3/Tower"]
+width = 2.0
+default_color = Color(0.55, 0.62, 0.85, 0.7)
+points = PackedVector2Array(-28.6, 0, 28.6, 0, 23.1, -42, 22, -108, 7.7, -116.4, -5.5, -103.2, -14.3, -120, -22, -111.6, -23.1, -42, -28.6, 0)
+joint_mode = 2
+
+[node name="Runes" type="Node2D" parent="Ruins/RuinTC3/Tower"]
+material = SubResource("Mat_glow")
+
+[node name="Rune1" type="Polygon2D" parent="Ruins/RuinTC3/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.3, -31.8, 2.7, -24, -3.3, -16.2, -9.3, -24)
+
+[node name="Rune2" type="Polygon2D" parent="Ruins/RuinTC3/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(0, -65.4, 6, -57.6, 0, -49.8, -6, -57.6)
+
+[node name="Rune3" type="Polygon2D" parent="Ruins/RuinTC3/Tower/Runes"]
+color = Color(1, 0.78, 0.42, 0.9)
+polygon = PackedVector2Array(-3.3, -99, 2.7, -91.2, -3.3, -83.4, -9.3, -91.2)
+
+[node name="Trigger" type="Area2D" parent="Ruins/RuinTC3"]
+position = Vector2(-266.34, -132.15)
+rotation = 0.11757
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTC3/Trigger"]
+shape = SubResource("Rect_zone17")
+
+[node name="Sweep" type="Area2D" parent="Ruins/RuinTC3"]
+position = Vector2(4.22, -35.75)
+rotation = 0.11757
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Ruins/RuinTC3/Sweep"]
+shape = SubResource("Rect_zone18")
+
+[node name="Slab" type="AnimatableBody2D" parent="Ruins/RuinTC3"]
+physics_material_override = SubResource("PM_track")
+
+[node name="Visual" type="Polygon2D" parent="Ruins/RuinTC3/Slab"]
+color = Color(0.34, 0.4, 0.54, 1)
+polygon = PackedVector2Array(-48.37, 0.33, -17.75, -20.22, 21.97, -15.53, 46.96, 11.59)
 
 [node name="TreasureSpots" type="Node2D" parent="."]
 
