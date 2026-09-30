@@ -2,6 +2,7 @@ extends GutTest
 ## The jellyfish map: drifting bumpers on seeded paths and the surge event.
 
 const STEP: float = 1.0 / 60.0
+const MARBLE_SCENE: PackedScene = preload("res://scenes/marble.tscn")
 
 
 func _rng(seed_value: int) -> RandomNumberGenerator:
@@ -81,7 +82,7 @@ func test_maps_without_gimmicks_draw_nothing_from_the_rng() -> void:
 func test_marble_touching_a_jellyfish_is_kicked_away() -> void:
 	var swarm: JellyHazard = _swarm()
 	var jelly: Jellyfish = swarm.get_jellies()[0]
-	var marble: Marble = (load("res://scenes/marble.tscn") as PackedScene).instantiate() as Marble
+	var marble: Marble = MARBLE_SCENE.instantiate() as Marble
 	add_child_autofree(marble)
 	marble.global_position = jelly.global_position + Vector2(jelly.radius + 10.0, 0.0)
 	marble.linear_velocity = Vector2.ZERO
@@ -113,7 +114,7 @@ func test_surge_speeds_the_jellyfish_up_then_settles() -> void:
 
 
 func _marble() -> Marble:
-	var marble: Marble = (load("res://scenes/marble.tscn") as PackedScene).instantiate() as Marble
+	var marble: Marble = MARBLE_SCENE.instantiate() as Marble
 	add_child_autofree(marble)
 	return marble
 
