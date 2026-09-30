@@ -225,7 +225,9 @@ func _process(_delta: float) -> void:
 	_panel.set_status(_status_text())
 	_panel.set_power_status(_power_status_text())
 	var racing: bool = _flow.state == GameFlow.State.RACING
-	_panel.set_power_cooldown(_powers.cooldown_left() if racing else 0.0, _powers.cooldown)
+	_panel.set_power_cooldown(
+		_powers.cooldown_left() if racing else 0.0, _powers.cooldown, not racing
+	)
 
 
 ## Left click fires the armed streamer power at the mouse; right click puts it away.
@@ -567,13 +569,14 @@ func _on_power_pressed(kind: int) -> void:
 func _arm_power(kind: int) -> void:
 	_armed_power = kind
 	_panel.set_armed_power(kind)
-	_power_cursor.radius = (
-		StreamerPowers.radius_of(kind as StreamerPowers.Kind) if kind >= 0 else 0.0
+	_power_cursor.arm(
+		kind, StreamerPowers.radius_of(kind as StreamerPowers.Kind) if kind >= 0 else 0.0
 	)
 
 
 func _on_power_used(kind: StreamerPowers.Kind, pos: Vector2) -> void:
 	var radius: float = StreamerPowers.radius_of(kind)
+	_panel.play_power_activate(kind)
 	var text: String = ""
 	match kind:
 		StreamerPowers.Kind.ROD:

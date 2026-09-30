@@ -38,6 +38,10 @@ const VOLUME_ROWS: Dictionary = {
 ## Seconds the drawer takes to slide, and to fade the tab.
 const SLIDE_SECONDS: float = 0.25
 const FADE_SECONDS: float = 0.15
+## Opening takes a little longer: it overshoots and settles.
+const OPEN_SECONDS: float = 0.35
+## Share of the overshoot past fully open that is shown.
+const OVERSHOOT_SCALE: float = 0.35
 ## Seconds without the mouse over the tab or drawer before a tab-opened drawer closes.
 const AUTO_HIDE_SECONDS: float = 4.0
 const TAB_IDLE_ALPHA: float = 0.2
@@ -155,10 +159,13 @@ func set_open(open: bool, auto_hide: bool = false) -> void:
 	_open = open
 	if _slide_tween != null:
 		_slide_tween.kill()
-	_slide_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	# Opening overshoots a little and settles; closing dips first, then snaps away.
+	_slide_tween = create_tween().set_trans(Tween.TRANS_BACK)
+	_slide_tween.set_ease(Tween.EASE_OUT if open else Tween.EASE_IN)
 	if open:
 		_panel.visible = true
-	_slide_tween.tween_method(_set_slide, _slide, 1.0 if open else 0.0, SLIDE_SECONDS)
+	var seconds: float = OPEN_SECONDS if open else SLIDE_SECONDS
+	_slide_tween.tween_method(_set_slide, _slide, 1.0 if open else 0.0, seconds)
 	if not open:
 		_slide_tween.tween_callback(_hide_if_closed)
 	_refresh_tab()
@@ -210,16 +217,17 @@ func set_status(text: String) -> void:
 func set_armed_power(kind: int) -> void:
 	for i: int in _power_buttons.size():
 		_power_buttons[i].set_pressed_no_signal(i == kind)
+		_power_buttons[i].armed_changed()
 
 
 ## Fills the power buttons' cooldown bars. [param total] is the cooldown length, [param left]
 ## what remains; 0 left means ready. All powers share one cooldown.
-func set_power_cooldown(left: float, total: float) -> void:
+func set_power_cooldown(left: float, total: float, quiet: bool = false) -> void:
 	var fraction: float = 1.0 if left <= 0.0 or total <= 0.0 else 1.0 - left / total
 	_cooldown_fraction = fraction
 	_update_tab_bar()
 	for button: PowerButton in _power_buttons:
-		button.set_cooldown_progress(fraction)
+		button.set_cooldown_progress(fraction, quiet)
 
 
 ## Slim bar under the tab, filling left to right while the drawer is closed and a power cools down.
@@ -293,7 +301,7 @@ func _apply_style() -> void:
 	]:
 		UiStyle.style_button(button, 20)
 	for power: PowerButton in _power_buttons:
-		power.add_theme_stylebox_override("disabled", UiStyle.disabled_button_box())
+		power.apply_style()
 	# Popup menu of the map picker: dark panel and the same font.
 	var popup: PopupMenu = _map_picker.get_popup()
 	popup.add_theme_font_override("font", UiStyle.font(600))
@@ -345,9 +353,28 @@ func _refresh_tab() -> void:
 func _set_slide(amount: float) -> void:
 	_slide = amount
 	var height: float = maxf(_panel.size.y, _panel.get_combined_minimum_size().y)
-	var top: float = lerpf(-height - 8.0, OPEN_TOP, amount)
+	var top: float = lerpf(-height - 8.0, OPEN_TOP, slide_travel(amount))
+	_panel.modulate.a = slide_alpha(amount)
 	_panel.offset_top = top
 	_panel.offset_bottom = top + height
+
+
+## How far along its path the drawer is for a slide [param amount]; the overshoot past fully
+## open is damped so the bounce stays a few pixels.
+static func slide_travel(amount: float) -> float:
+	return amount if amount <= 1.0 else 1.0 + (amount - 1.0) * OVERSHOOT_SCALE
+
+
+## The drawer's contents fade in over the first part of the slide and out over the last.
+static func slide_alpha(amount: float) -> float:
+	return smoothstep(0.0, 0.6, amount)
+
+
+## Plays the burst of the power [param kind] firing on its button.
+func play_power_activate(kind: int) -> void:
+	for button: PowerButton in _power_buttons:
+		if button.kind == kind:
+			button.play_activate()
 
 
 func _hide_if_closed() -> void:
