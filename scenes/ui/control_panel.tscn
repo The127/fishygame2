@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/control_panel.gd" id="1_panel"]
+[ext_resource type="Script" path="res://scripts/ui/power_button.gd" id="2_power"]
 
 [node name="ControlPanel" type="CanvasLayer"]
 layer = 10
@@ -59,6 +60,7 @@ layout_mode = 2
 
 [node name="Rod" type="Button" parent="Panel/Box/PowerButtons"]
 layout_mode = 2
+script = ExtResource("2_power")
 size_flags_horizontal = 3
 focus_mode = 0
 toggle_mode = true
@@ -66,6 +68,7 @@ text = "Rod (1)"
 
 [node name="Net" type="Button" parent="Panel/Box/PowerButtons"]
 layout_mode = 2
+script = ExtResource("2_power")
 size_flags_horizontal = 3
 focus_mode = 0
 toggle_mode = true
@@ -73,6 +76,7 @@ text = "Net (2)"
 
 [node name="Blast" type="Button" parent="Panel/Box/PowerButtons"]
 layout_mode = 2
+script = ExtResource("2_power")
 size_flags_horizontal = 3
 focus_mode = 0
 toggle_mode = true
