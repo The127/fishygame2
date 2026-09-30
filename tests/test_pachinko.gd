@@ -42,6 +42,19 @@ func test_a_fish_in_the_field_is_behind_one_on_the_lanes() -> void:
 
 func test_progress_does_not_jump_where_the_field_meets_the_lanes() -> void:
 	var track: Track = _track()
-	var above: float = track.get_progress(Vector2(960.0, 1495.0))
-	var below: float = track.get_progress(Vector2(960.0, 1505.0))
+	var above: float = track.get_progress(Vector2(960.0, track.fall_zone_bottom - 5.0))
+	var below: float = track.get_progress(Vector2(960.0, track.fall_zone_bottom + 5.0))
 	assert_lt(absf(below - above), 0.01)
+	for x: float in FIELD_XS:
+		var before: float = track.get_progress(Vector2(x, track.fall_zone_bottom - 1.0))
+		var after: float = track.get_progress(Vector2(x, track.fall_zone_bottom + 1.0))
+		assert_gte(after, before - 0.0001, "%d" % x)
+
+
+func test_other_maps_measure_progress_above_the_frame_as_before() -> void:
+	var track: Track = TrackCatalog.instantiate("fork")
+	add_child_autofree(track)
+	assert_eq(track.fall_zone_bottom, 0.0)
+	var above: float = track.get_progress(Vector2(500.0, -100.0))
+	var at_top: float = track.get_progress(Vector2(500.0, 0.0))
+	assert_almost_eq(above, at_top, 0.2)
