@@ -67,6 +67,14 @@ var pattern: int = 0:
 	set(value):
 		pattern = value
 		_redraw_static()
+## A [enum FishSkin.Kind]: a premium animated look that replaces the flat color. NONE wears
+## `color`.
+var skin: int = FishSkin.Kind.NONE:
+	set(value):
+		skin = value
+		_refresh_palette()
+		_apply_skin()
+		_redraw_static()
 ## A [enum FishAccessory.Kind], cosmetic only.
 var accessory: int = 0:
 	set(value):
@@ -112,8 +120,12 @@ var _glow_dirty: bool = true
 var _body_layer: Node2D
 var _stripe_layer: Node2D
 var _head_layer: Node2D
+## Hats and other accessories keep their own colors, so the skin shader skips this layer.
+var _accessory_layer: Node2D
 var _fin_col: Color = Color.WHITE
 var _accent: Color = Color.WHITE
+## The color the body, fins and glow are built from: `color`, or the skin's accent.
+var _look: Color = Color.WHITE
 
 
 func _ready() -> void:
@@ -127,7 +139,9 @@ func _ready() -> void:
 	_body_layer = _add_layer(_draw_body)
 	_stripe_layer = _add_layer(_draw_stripe)
 	_head_layer = _add_layer(_draw_head)
+	_accessory_layer = _add_layer(_draw_accessory)
 	_refresh_palette()
+	_apply_skin()
 	_update_glow()
 	set_process(not frozen)
 
@@ -140,22 +154,34 @@ func _add_layer(painter: Callable) -> Node2D:
 
 
 func _refresh_palette() -> void:
-	_fin_col = Color.from_hsv(color.h, color.s, color.v * 0.7, 0.92)
-	_accent = color.lightened(0.25)
+	_look = color if skin == FishSkin.Kind.NONE else FishSkin.accent_of(skin)
+	_fin_col = Color.from_hsv(_look.h, _look.s, _look.v * 0.7, 0.92)
+	_accent = _look.lightened(0.25)
 	_glow_dirty = true
+
+
+## Puts the skin's shader on every layer that draws the fish, or takes it off.
+func _apply_skin() -> void:
+	if _body_layer == null:
+		return
+	var skin_material: ShaderMaterial = FishSkin.material_of(skin)
+	material = skin_material
+	for layer: Node2D in [_body_layer, _stripe_layer, _head_layer]:
+		layer.material = skin_material
 
 
 func _redraw_static() -> void:
 	if _body_layer != null:
 		_body_layer.queue_redraw()
 		_head_layer.queue_redraw()
+		_accessory_layer.queue_redraw()
 
 
 func _process(delta: float) -> void:
 	_time += delta
 	var was_flashing: bool = _flash_left > 0.0
 	_flash_left = maxf(_flash_left - delta, 0.0)
-	if _glow_dirty or was_flashing or celebrating:
+	if _glow_dirty or was_flashing or celebrating or FishSkin.ANIMATED_GLOW.has(skin):
 		_update_glow()
 		_glow_dirty = false
 	queue_redraw()
@@ -183,7 +209,12 @@ func face(velocity: Vector2, delta: float) -> void:
 
 
 func _update_glow() -> void:
-	var tint: Color = color.lightened(0.3)
+	var tint: Color = _look.lightened(0.3)
+	if skin == FishSkin.Kind.RAINBOW:
+		tint = Color.from_hsv(fposmod(_time * 0.35, 1.0), 0.7, 1.0)
+	elif skin == FishSkin.Kind.NEON or skin == FishSkin.Kind.GLITCH:
+		var swing: float = 0.5 + 0.5 * sin(_time * 3.0)
+		tint = Color("ff2bd6").lerp(Color("19f0e0"), swing)
 	tint.a = 0.28
 	var glow_scale: float = 1.0
 	if aura.a > 0.0:
@@ -227,8 +258,8 @@ func _draw_body(canvas: CanvasItem) -> void:
 	var length: float = sp["length"]
 	var height: float = sp["height"]
 	# Dark, desaturated body; the viewer color lives in the glowing accents.
-	var back: Color = Color.from_hsv(color.h, color.s * 0.95, color.v * 0.5)
-	var belly_col: Color = Color.from_hsv(color.h, color.s * 0.7, color.v * 0.85)
+	var back: Color = Color.from_hsv(_look.h, _look.s * 0.95, _look.v * 0.5)
+	var belly_col: Color = Color.from_hsv(_look.h, _look.s * 0.7, _look.v * 0.85)
 	var body: PackedVector2Array = _body_top(sp)
 	for i: int in BODY_STEPS + 1:
 		var u: float = float(BODY_STEPS - i) / float(BODY_STEPS)
@@ -264,7 +295,15 @@ func _draw_head(canvas: CanvasItem) -> void:
 	canvas.draw_circle(eye, 3.2, OUTLINE)
 	canvas.draw_circle(eye, 2.2, _accent.lightened(0.5))
 	canvas.draw_circle(eye + Vector2(0.6, 0), 1.0, OUTLINE)
+
+
+## The accessory, in its own layer so a premium skin does not repaint it.
+func _draw_accessory(canvas: CanvasItem) -> void:
 	if accessory != FishAccessory.Kind.NONE:
+		var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
+		var length: float = sp["length"]
+		var height: float = sp["height"]
+		var eye := Vector2(length * 0.5, -height * 0.25)
 		var head_x: float = length - 2.0 * length * 0.3
 		var head_top := Vector2(head_x, -_body_half_height(sp, 0.3))
 		var chin := Vector2(length - 2.0 * length * 0.22, _body_half_height(sp, 0.22) * 0.9)

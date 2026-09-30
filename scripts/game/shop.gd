@@ -16,6 +16,8 @@ const HAT_OFF: PackedStringArray = ["none", "off"]
 @export var shop_path: String = DEFAULT_PATH
 @export var species_price: int = 500
 @export var color_price: int = 250
+## Premium colors (see [FishSkin]) cost this instead of [member color_price].
+@export var premium_color_price: int = 1000
 @export var hat_price: int = 200
 
 ## Set by the game so the shop spends from the same balances as betting.
@@ -43,7 +45,9 @@ func handle_command(msg: ChatMessage, command: String, args: PackedStringArray) 
 			catalog_requested.emit(msg)
 
 
-func price_of(kind: String) -> int:
+func price_of(kind: String, item: String = "") -> int:
+	if ShopCatalog.is_premium(kind, item):
+		return premium_color_price
 	match kind:
 		ShopStore.KIND_SPECIES:
 			return species_price
@@ -55,7 +59,7 @@ func price_of(kind: String) -> int:
 ## Chat entry point for "#fish <species>" and "#color <name>". Buys the item if the viewer
 ## does not own it yet, then equips it. Returns true if it was equipped.
 func choose(msg: ChatMessage, args: PackedStringArray, kind: String) -> bool:
-	var item: String = " ".join(args).to_lower()
+	var item: String = ShopCatalog.canonical(kind, " ".join(args))
 	var reason: String = ""
 	if kind == ShopStore.KIND_HAT and item in HAT_OFF:
 		store.unequip(msg.user_id, kind)
@@ -68,7 +72,7 @@ func choose(msg: ChatMessage, args: PackedStringArray, kind: String) -> bool:
 		reason = "unknown_" + kind if kind != ShopStore.KIND_SPECIES else "unknown_species"
 	var price: int = 0
 	if reason.is_empty() and not store.owns(msg.user_id, kind, item):
-		price = price_of(kind)
+		price = price_of(kind, item)
 		if not points.try_debit(msg.user_id, price):
 			reason = "insufficient"
 	if not reason.is_empty():
@@ -120,6 +124,14 @@ func catalog_text() -> String:
 			"|".join(ShopCatalog.color_labels(colorblind)),
 			color_price,
 		]
+	)
+
+
+## One chat line with the premium colors on sale.
+func premium_catalog_text() -> String:
+	return (
+		"Premium colors: #color <%s> (%d points). Animated, bought once like any color."
+		% ["|".join(ShopCatalog.PREMIUM_NAMES), premium_color_price]
 	)
 
 
