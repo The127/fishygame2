@@ -5,7 +5,7 @@ extends RefCounted
 ## Chat reply to "#help". Kept well under Twitch's 500 character limit.
 const CHAT_REPLY: String = (
 	"Commands: #join | #bet <fish> <amount> | #boost <fish> | #curse <fish> | "
-	+ "#points | #top | #shop | #fish <species> | #color <name>"
+	+ "#points | #stats | #top | #shop | #fish <species> | #color <name>"
 )
 
 const TITLE: String = "CHAT COMMANDS"
@@ -16,6 +16,7 @@ const LINES: PackedStringArray = [
 	"#bet <fish> <amount>  bet points",
 	"#boost / #curse <fish>  help or hinder",
 	"#points  your balance",
+	"#stats  your record",
 	"#top  leaderboard",
 	"#shop  fish and colors",
 	"#help  this list",
