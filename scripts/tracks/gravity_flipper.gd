@@ -57,6 +57,7 @@ func _ready() -> void:
 	var material: CanvasItemMaterial = CanvasItemMaterial.new()
 	material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	self.material = material
+	Replayable.join(self)
 
 
 ## Plans the flips of a race from `seed_value` and puts gravity back to down.
@@ -131,6 +132,31 @@ func flip() -> void:
 	_flash = FLASH_SECONDS
 	_apply()
 	flipped.emit(up)
+
+
+## Part of the finish replay ([Replayable]): which way gravity points, where the flip clock and
+## the warning stand, the flash, the eased bubble direction and their scroll.
+func replay_state() -> PackedFloat32Array:
+	return PackedFloat32Array(
+		[clock, float(_next), 1.0 if up else 0.0, _flash, _blend, _scroll, 1.0 if _armed else 0.0]
+	)
+
+
+func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	clock = Replayable.mix(from, to, weight, 0)
+	_next = int(Replayable.step(from, to, weight, 1))
+	up = Replayable.step(from, to, weight, 2) > 0.5
+	_flash = Replayable.mix(from, to, weight, 3)
+	_blend = Replayable.mix(from, to, weight, 4)
+	_scroll = Replayable.mix(from, to, weight, 5)
+	_armed = Replayable.step(from, to, weight, 6) > 0.5
+	queue_redraw()
+
+
+## After the replay the physics zone points the way gravity really does again.
+func replay_end() -> void:
+	_apply()
+	queue_redraw()
 
 
 func _apply() -> void:

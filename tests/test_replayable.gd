@@ -154,3 +154,59 @@ func test_the_buffer_stays_small_on_the_busiest_map() -> void:
 		recorder.bind_nodes(Replayable.find_in(_track(id)))
 		biggest = maxi(biggest, recorder.memory_bytes())
 	assert_true(biggest < 200 * 1024, "replay buffer is %d bytes" % biggest)
+
+
+func test_gravity_map_replays_flips_warnings_and_currents_across_events() -> void:
+	var track: Track = _track("gravity")
+	var flipper: GravityFlipper = track.get_node("Flipper") as GravityFlipper
+	var nodes: Array[Node] = Replayable.find_in(track)
+	assert_true(nodes.has(flipper), "the flipper is replayable")
+	assert_true(nodes.has(track.get_hazards()[0]), "the cross current is replayable")
+	var recorder: ReplayRecorder = ReplayRecorder.new(1)
+	recorder.bind_nodes(nodes)
+	var zero: PackedVector2Array = PackedVector2Array([Vector2.ZERO])
+	var seen: Dictionary = {}
+	var flips: int = 0
+	var warned: bool = false
+	var phases: Dictionary = {}
+	var time: float = 0.0
+	while time < 9.0:
+		await get_tree().physics_frame
+		time += STEP
+		flips = maxi(flips, int(flipper.clock >= flipper.get_schedule()[0]))
+		warned = warned or flipper.warning() > 0.0
+		phases[(track.get_hazards()[0] as Hazard).phase] = true
+		if recorder.should_sample(time):
+			recorder.sample(time, zero, zero)
+			var states: Array[PackedFloat32Array] = []
+			for node: Node in nodes:
+				states.append(node.call(Replayable.STATE_METHOD))
+			seen[snappedf(time, 0.001)] = states
+	recorder.mark_finish(time, 0)
+	recorder.sample(time, zero, zero)
+	assert_eq(flips, 1, "a flip happened in the clip")
+	assert_true(warned, "a warning happened in the clip")
+	assert_gt(phases.size(), 1, "the current ran through its phases")
+	# The race goes on and everything moves to somewhere else.
+	await _run(2.0)
+	var ended_up: PackedFloat32Array = flipper.replay_state()
+	var replay: FinishReplay = FinishReplay.new()
+	add_child_autofree(replay)
+	assert_true(replay.start(recorder, [_marble()] as Array[Marble]))
+	for k: int in recorder.frame_count() - 1:
+		replay._clock = recorder.frame_time(k)
+		replay._frame = k
+		replay._apply()
+		for n: int in nodes.size():
+			assert_eq(
+				nodes[n].call(Replayable.STATE_METHOD),
+				seen[snappedf(recorder.frame_time(k), 0.001)][n],
+				"frame %d: %s matches the recording" % [k, nodes[n].name]
+			)
+	replay.stop()
+	assert_eq(flipper.replay_state(), ended_up, "gravity is put back after the replay")
+	assert_eq(
+		(flipper.get_node("Zone") as Area2D).gravity_direction.y < 0.0,
+		flipper.up,
+		"the physics zone matches the restored flip"
+	)
