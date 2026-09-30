@@ -1,7 +1,7 @@
 extends Node
 ## Autoload "Sound": the one audio service. It creates the Music, Ambience and SFX buses under
 ## Master, loops the ambient music and plays one-shot effects from a small player pool.
-## Each map has its own music theme (see [member MUSIC_PATHS]); [method set_music_theme]
+## Each map has its own music theme (its files live in [TrackCatalog]); [method set_music_theme]
 ## crossfades to it. Volumes and mute come from [AudioSettings] and are saved shortly after
 ## each change.
 ##
@@ -13,46 +13,8 @@ enum Sfx { JOIN, TICK, GO, BOOST, CURSE, SPLASH, WIN, MEOW }
 
 ## Theme played on the home screen and whenever a theme id is unknown.
 const HOME_THEME: String = "home"
-## Music theme by id: "home" plus one per map id in [TrackCatalog].
-const MUSIC_PATHS: Dictionary = {
-	HOME_THEME: "res://assets/audio/music_ambient.wav",
-	"zigzag": "res://assets/audio/music_zigzag.wav",
-	"pachinko": "res://assets/audio/music_pachinko.wav",
-	"wreck": "res://assets/audio/music_wreck.wav",
-	"whirlpool": "res://assets/audio/music_whirlpool.wav",
-	"jelly": "res://assets/audio/music_jelly.wav",
-	"abyss": "res://assets/audio/music_abyss.wav",
-	"vents": "res://assets/audio/music_vents.wav",
-	"coral": "res://assets/audio/music_coral.wav",
-	"kraken": "res://assets/audio/music_kraken.wav",
-	"gravity": "res://assets/audio/music_gravity.wav",
-}
-## Quiet looping sound bed by map id (the home screen has none).
-const AMBIENCE_PATHS: Dictionary = {
-	"zigzag": "res://assets/audio/ambience_zigzag.wav",
-	"pachinko": "res://assets/audio/ambience_pachinko.wav",
-	"wreck": "res://assets/audio/ambience_wreck.wav",
-	"whirlpool": "res://assets/audio/ambience_whirlpool.wav",
-	"jelly": "res://assets/audio/ambience_jelly.wav",
-	"abyss": "res://assets/audio/ambience_abyss.wav",
-	"vents": "res://assets/audio/ambience_vents.wav",
-	"coral": "res://assets/audio/ambience_coral.wav",
-	"kraken": "res://assets/audio/ambience_kraken.wav",
-	"gravity": "res://assets/audio/ambience_gravity.wav",
-}
-## Podium jingle by map id.
-const JINGLE_PATHS: Dictionary = {
-	"zigzag": "res://assets/audio/jingle_zigzag.wav",
-	"pachinko": "res://assets/audio/jingle_pachinko.wav",
-	"wreck": "res://assets/audio/jingle_wreck.wav",
-	"whirlpool": "res://assets/audio/jingle_whirlpool.wav",
-	"jelly": "res://assets/audio/jingle_jelly.wav",
-	"abyss": "res://assets/audio/jingle_abyss.wav",
-	"vents": "res://assets/audio/jingle_vents.wav",
-	"coral": "res://assets/audio/jingle_coral.wav",
-	"kraken": "res://assets/audio/jingle_kraken.wav",
-	"gravity": "res://assets/audio/jingle_gravity.wav",
-}
+## Music file of the home theme. Map themes come from [TrackCatalog].
+const HOME_MUSIC_PATH: String = "res://assets/audio/music_ambient.wav"
 const SFX_PATHS: Dictionary = {
 	Sfx.JOIN: "res://assets/audio/sfx_join.wav",
 	Sfx.TICK: "res://assets/audio/sfx_tick.wav",
@@ -142,7 +104,7 @@ func _notification(what: int) -> void:
 ## Crossfades to the music theme with this id (a map id or [constant HOME_THEME]). Unknown
 ## ids fall back to the home theme; asking for the theme already playing does nothing.
 func set_music_theme(id: String) -> void:
-	if not MUSIC_PATHS.has(id):
+	if music_path(id) == "":
 		id = HOME_THEME
 	if id == _theme:
 		return
@@ -150,10 +112,17 @@ func set_music_theme(id: String) -> void:
 	if not _audible:
 		return
 	_music.fade_to(_music_stream(id), MUSIC_CROSSFADE)
-	if AMBIENCE_PATHS.has(id):
+	if TrackCatalog.ambience_path(id) != "":
 		_ambience.fade_to(_ambience_stream(id), MUSIC_CROSSFADE)
 	else:
 		_ambience.fade_out(MUSIC_CROSSFADE)
+
+
+## File of the music theme with this id ([constant HOME_THEME] or a map id), or "" if unknown.
+static func music_path(id: String) -> String:
+	if id == HOME_THEME:
+		return HOME_MUSIC_PATH
+	return TrackCatalog.music_path(id)
 
 
 ## Id of the music theme that is playing (or fading in).
@@ -168,11 +137,12 @@ func play(sfx: Sfx) -> void:
 
 ## Plays the podium sting of the current map, or the generic win sound when the theme has none.
 func play_win() -> void:
-	if not JINGLE_PATHS.has(_theme):
+	var jingle: String = TrackCatalog.jingle_path(_theme)
+	if jingle == "":
 		play(Sfx.WIN)
 		return
 	if not _jingle_streams.has(_theme):
-		_jingle_streams[_theme] = load(JINGLE_PATHS[_theme])
+		_jingle_streams[_theme] = load(jingle)
 	_play_stream(_theme, _jingle_streams[_theme], 0.0)
 
 
@@ -220,13 +190,13 @@ func _play_stream(key: Variant, stream: AudioStream, jitter: float) -> void:
 
 func _music_stream(id: String) -> AudioStreamWAV:
 	if not _music_streams.has(id):
-		_music_streams[id] = make_loop(load(MUSIC_PATHS[id]))
+		_music_streams[id] = make_loop(load(music_path(id)))
 	return _music_streams[id]
 
 
 func _ambience_stream(id: String) -> AudioStreamWAV:
 	if not _ambience_streams.has(id):
-		_ambience_streams[id] = make_loop(load(AMBIENCE_PATHS[id]))
+		_ambience_streams[id] = make_loop(load(TrackCatalog.ambience_path(id)))
 	return _ambience_streams[id]
 
 

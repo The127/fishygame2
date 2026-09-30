@@ -19,6 +19,23 @@ func test_has_at_least_two_maps_with_unique_ids() -> void:
 		assert_ne(TrackCatalog.get_name_of(id), "")
 
 
+func test_every_map_has_music_ambience_and_jingle_files() -> void:
+	for id: String in TrackCatalog.ids():
+		for path: String in [
+			TrackCatalog.music_path(id),
+			TrackCatalog.ambience_path(id),
+			TrackCatalog.jingle_path(id)
+		]:
+			assert_ne(path, "", "no audio path for map %s" % id)
+			assert_true(ResourceLoader.exists(path), "missing file %s" % path)
+
+
+func test_unknown_id_has_no_audio_paths() -> void:
+	assert_eq(TrackCatalog.music_path("nope"), "")
+	assert_eq(TrackCatalog.ambience_path("nope"), "")
+	assert_eq(TrackCatalog.jingle_path("nope"), "")
+
+
 func test_every_map_instantiates_a_track() -> void:
 	for id: String in TrackCatalog.ids():
 		var track: Track = TrackCatalog.instantiate(id)

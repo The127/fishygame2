@@ -31,9 +31,12 @@ func test_map_is_registered() -> void:
 
 
 func test_map_has_music_ambience_and_a_jingle() -> void:
-	for paths: Dictionary in [Sound.MUSIC_PATHS, Sound.AMBIENCE_PATHS, Sound.JINGLE_PATHS]:
-		assert_true(paths.has("gravity"))
-		assert_true(ResourceLoader.exists(String(paths["gravity"])))
+	for path: String in [
+		TrackCatalog.music_path("gravity"),
+		TrackCatalog.ambience_path("gravity"),
+		TrackCatalog.jingle_path("gravity"),
+	]:
+		assert_true(ResourceLoader.exists(path), path)
 
 
 func test_gravity_starts_down_and_nothing_is_planned_until_seeded() -> void:

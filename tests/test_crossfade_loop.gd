@@ -6,7 +6,7 @@ extends GutTest
 func test_fade_sequence_leaves_no_playing_stream_behind() -> void:
 	var loop := CrossfadeLoop.new(AudioSettings.BUS_AMBIENCE)
 	add_child_autofree(loop)
-	var stream: AudioStreamWAV = Sound.make_loop(load(Sound.AMBIENCE_PATHS["wreck"]))
+	var stream: AudioStreamWAV = Sound.make_loop(load(TrackCatalog.ambience_path("wreck")))
 	loop.fade_to(stream, 0.05)
 	loop.fade_to(stream, 0.05)
 	loop.fade_out(0.05)

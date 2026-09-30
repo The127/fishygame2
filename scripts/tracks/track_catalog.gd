@@ -1,6 +1,7 @@
 class_name TrackCatalog
 extends RefCounted
-## The playable maps. Add an entry here to make a new track selectable.
+## The playable maps. Add an entry here to make a new track selectable: the entry holds the
+## scene and the music, ambience and jingle files, and nothing else needs a per-map edit.
 
 ## Value of the "random" choice in map selection.
 const RANDOM_ID: String = ""
@@ -10,51 +11,81 @@ const MAPS: Array[Dictionary] = [
 		"id": "zigzag",
 		"name": "Zigzag",
 		"scene": preload("res://scenes/tracks/test_track.tscn"),
+		"music": "res://assets/audio/music_zigzag.wav",
+		"ambience": "res://assets/audio/ambience_zigzag.wav",
+		"jingle": "res://assets/audio/jingle_zigzag.wav",
 	},
 	{
 		"id": "pachinko",
 		"name": "Pachinko",
 		"scene": preload("res://scenes/tracks/pachinko_track.tscn"),
+		"music": "res://assets/audio/music_pachinko.wav",
+		"ambience": "res://assets/audio/ambience_pachinko.wav",
+		"jingle": "res://assets/audio/jingle_pachinko.wav",
 	},
 	{
 		"id": "wreck",
 		"name": "Shipwreck",
 		"scene": preload("res://scenes/tracks/wreck_track.tscn"),
+		"music": "res://assets/audio/music_wreck.wav",
+		"ambience": "res://assets/audio/ambience_wreck.wav",
+		"jingle": "res://assets/audio/jingle_wreck.wav",
 	},
 	{
 		"id": "whirlpool",
 		"name": "Whirlpool",
 		"scene": preload("res://scenes/tracks/whirlpool_track.tscn"),
+		"music": "res://assets/audio/music_whirlpool.wav",
+		"ambience": "res://assets/audio/ambience_whirlpool.wav",
+		"jingle": "res://assets/audio/jingle_whirlpool.wav",
 	},
 	{
 		"id": "jelly",
 		"name": "Jellyfish Field",
 		"scene": preload("res://scenes/tracks/jelly_track.tscn"),
+		"music": "res://assets/audio/music_jelly.wav",
+		"ambience": "res://assets/audio/ambience_jelly.wav",
+		"jingle": "res://assets/audio/jingle_jelly.wav",
 	},
 	{
 		"id": "abyss",
 		"name": "Abyss",
 		"scene": preload("res://scenes/tracks/abyss_track.tscn"),
+		"music": "res://assets/audio/music_abyss.wav",
+		"ambience": "res://assets/audio/ambience_abyss.wav",
+		"jingle": "res://assets/audio/jingle_abyss.wav",
 	},
 	{
 		"id": "vents",
 		"name": "Volcanic Vents",
 		"scene": preload("res://scenes/tracks/vents_track.tscn"),
+		"music": "res://assets/audio/music_vents.wav",
+		"ambience": "res://assets/audio/ambience_vents.wav",
+		"jingle": "res://assets/audio/jingle_vents.wav",
 	},
 	{
 		"id": "coral",
 		"name": "Coral Maze",
 		"scene": preload("res://scenes/tracks/coral_track.tscn"),
+		"music": "res://assets/audio/music_coral.wav",
+		"ambience": "res://assets/audio/ambience_coral.wav",
+		"jingle": "res://assets/audio/jingle_coral.wav",
 	},
 	{
 		"id": "kraken",
 		"name": "Kraken's Lair",
 		"scene": preload("res://scenes/tracks/kraken_track.tscn"),
+		"music": "res://assets/audio/music_kraken.wav",
+		"ambience": "res://assets/audio/ambience_kraken.wav",
+		"jingle": "res://assets/audio/jingle_kraken.wav",
 	},
 	{
 		"id": "gravity",
 		"name": "Gravity Flip",
 		"scene": preload("res://scenes/tracks/gravity_track.tscn"),
+		"music": "res://assets/audio/music_gravity.wav",
+		"ambience": "res://assets/audio/ambience_gravity.wav",
+		"jingle": "res://assets/audio/jingle_gravity.wav",
 	},
 ]
 
@@ -64,6 +95,21 @@ static func ids() -> PackedStringArray:
 	for map: Dictionary in MAPS:
 		result.append(String(map["id"]))
 	return result
+
+
+## Music theme file of a map, or "" for an unknown id.
+static func music_path(id: String) -> String:
+	return _field(id, "music")
+
+
+## Looping sound bed file of a map, or "" for an unknown id.
+static func ambience_path(id: String) -> String:
+	return _field(id, "ambience")
+
+
+## Podium jingle file of a map, or "" for an unknown id.
+static func jingle_path(id: String) -> String:
+	return _field(id, "jingle")
 
 
 static func has_map(id: String) -> bool:
@@ -94,3 +140,10 @@ static func resolve(choice: String, rng: RandomNumberGenerator, avoid_id: String
 	if candidates.size() > 1 and candidates.has(avoid_id):
 		candidates.remove_at(candidates.find(avoid_id))
 	return candidates[rng.randi_range(0, candidates.size() - 1)]
+
+
+static func _field(id: String, key: String) -> String:
+	for map: Dictionary in MAPS:
+		if map["id"] == id:
+			return String(map[key])
+	return ""
