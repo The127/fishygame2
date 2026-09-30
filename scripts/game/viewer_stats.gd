@@ -23,6 +23,13 @@ func is_empty() -> bool:
 	return _data.is_empty()
 
 
+func user_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for user_id: String in _data:
+		ids.append(user_id)
+	return ids
+
+
 func has_stats(user_id: String) -> bool:
 	return _data.has(user_id)
 

@@ -5,6 +5,7 @@ extends Control
 
 const SETTINGS_SCENE: String = "res://scenes/ui/settings_screen.tscn"
 const ONBOARDING_SCENE: String = "res://scenes/ui/onboarding_screen.tscn"
+const AQUARIUM_SCENE: String = "res://scenes/aquarium/aquarium_screen.tscn"
 const RACE_SCENE: String = "res://scenes/main.tscn"
 ## The menu box never exceeds this width, and shrinks with the window.
 const MAX_BOX_WIDTH: float = 1200.0
@@ -19,6 +20,7 @@ var _board: LeaderboardPanel
 @onready var _box: VBoxContainer = $Center/Box
 @onready var _title: Label = $Center/Box/Title
 @onready var _open_lobby: Button = $Center/Box/OpenLobby
+@onready var _aquarium: Button = $Center/Box/Aquarium
 @onready var _settings: Button = $Center/Box/Settings
 @onready var _login_status: Label = $Center/Box/LoginStatus
 @onready var _client_id: LineEdit = $Center/Box/ClientId
@@ -34,7 +36,9 @@ func _ready() -> void:
 	_box.move_child(_board, _settings.get_index() + 1)
 	show_leaderboard(_load_store())
 	_open_lobby.pressed.connect(_on_open_lobby_pressed)
+	_aquarium.pressed.connect(_on_aquarium_pressed)
 	_settings.pressed.connect(_on_settings_pressed)
+	UiStyle.style_button(_aquarium, 28)
 	UiStyle.style_button(_settings, 28)
 	_login.pressed.connect(_on_login_pressed)
 	_logout.pressed.connect(Chat.logout)
@@ -77,6 +81,10 @@ func _fit_to_window() -> void:
 
 func _on_open_lobby_pressed() -> void:
 	get_tree().change_scene_to_file(RACE_SCENE)
+
+
+func _on_aquarium_pressed() -> void:
+	get_tree().change_scene_to_file(AQUARIUM_SCENE)
 
 
 func _on_settings_pressed() -> void:

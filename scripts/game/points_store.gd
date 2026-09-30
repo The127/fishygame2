@@ -136,6 +136,16 @@ func has_entry(user_id: String) -> bool:
 	return _balances.has(user_id) or _wins.has(user_id)
 
 
+## Every viewer id the store has a balance, win count or name for.
+func user_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for source: Dictionary in [_balances, _wins, _names]:
+		for user_id: String in source:
+			if not ids.has(user_id):
+				ids.append(user_id)
+	return ids
+
+
 ## The last name seen for the viewer, or "Viewer 1234" (last digits of the id) if none was
 ## ever recorded, so the board never shows a raw Twitch id.
 func get_name(user_id: String) -> String:
