@@ -6,6 +6,8 @@ extends Node2D
 signal marble_reached_finish(marble: Node2D)
 ## A hazard event begins its telegraph. `kind` names the event.
 signal hazard_started(kind: String)
+## A hazard event's telegraph is over and the event itself begins. `kind` names the event.
+signal hazard_active(kind: String)
 ## An anglerfish just swallowed `marble`.
 signal fish_eaten(marble: Marble)
 ## A map part (anglerfish, portal) let off a particle burst. The finish replay plays it again.
@@ -37,6 +39,7 @@ func _ready() -> void:
 			_tide = child as WaterLevel
 	for hazard: Hazard in get_hazards():
 		hazard.telegraph_started.connect(hazard_started.emit)
+		hazard.active_started.connect(hazard_active.emit)
 		if hazard is AnglerHazard:
 			(hazard as AnglerHazard).fish_eaten.connect(fish_eaten.emit)
 			(hazard as AnglerHazard).burst_played.connect(burst_played.emit)

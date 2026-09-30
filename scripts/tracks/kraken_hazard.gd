@@ -6,6 +6,8 @@ extends Hazard
 ## against the deck. The telegraph shows the arc the tentacle will sweep, the tentacle
 ## starting to rise and the kraken's eye (a [KrakenEye] child) snapping open.
 
+## The `kind` of the hazard, sent with its signals.
+const KIND: String = "swat"
 const SEGMENTS: int = 18
 ## Most tentacles one event uses.
 const MAX_TENTACLES: int = 3
@@ -63,6 +65,7 @@ func _ready() -> void:
 	if _lurkers != null:
 		_lurkers.setup(roots, reach, skin, glow)
 	_sight = Area2D.new()
+	_sight.collision_layer = 0
 	var view: CollisionShape2D = CollisionShape2D.new()
 	var rect: RectangleShape2D = RectangleShape2D.new()
 	rect.size = Vector2(1920.0, 1080.0)

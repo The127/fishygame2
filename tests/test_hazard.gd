@@ -95,6 +95,7 @@ func test_an_event_runs_telegraph_then_active_then_idle() -> void:
 	assert_true(_run_until(hazard, Hazard.Phase.TELEGRAPH))
 	assert_signal_emitted_with_parameters(track, "hazard_started", ["current"])
 	assert_true(_run_until(hazard, Hazard.Phase.ACTIVE))
+	assert_signal_emitted_with_parameters(track, "hazard_active", ["current"])
 	assert_true(_run_until(hazard, Hazard.Phase.IDLE))
 
 

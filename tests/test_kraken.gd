@@ -154,3 +154,16 @@ func test_idle_tentacles_hide_while_their_root_is_sweeping() -> void:
 	kraken.disarm()
 	await wait_frames(60)
 	assert_lt(lurkers._hidden[busy], 0.05, "and back afterwards")
+
+
+func test_the_track_announces_the_warning_and_the_sweep_for_the_sound_effects() -> void:
+	var kraken: KrakenHazard = _kraken()
+	var track: Track = kraken.get_parent() as Track
+	watch_signals(track)
+	assert_eq(kraken.kind, KrakenHazard.KIND)
+	_arm_now(kraken, 4)
+	await wait_until(func() -> bool: return kraken.phase == Hazard.Phase.TELEGRAPH, 2.0)
+	assert_signal_emitted_with_parameters(track, "hazard_started", [KrakenHazard.KIND])
+	assert_signal_not_emitted(track, "hazard_active")
+	await wait_until(func() -> bool: return kraken.phase == Hazard.Phase.ACTIVE, 2.0)
+	assert_signal_emitted_with_parameters(track, "hazard_active", [KrakenHazard.KIND])
