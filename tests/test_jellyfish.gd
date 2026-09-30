@@ -28,6 +28,28 @@ func test_map_has_a_field_of_jellyfish() -> void:
 	assert_gte(_swarm().get_jellies().size(), 8)
 
 
+func test_map_is_several_screens_tall_with_jellyfish_in_every_section() -> void:
+	var track: Track = TrackCatalog.instantiate("jelly")
+	add_child_autofree(track)
+	assert_gt(track.view_bounds.size.y, 2.0 * 1080.0, "taller than two screens")
+	var sections: Dictionary = {}
+	for jelly: Jellyfish in (track.get_hazards()[0] as JellyHazard).get_jellies():
+		assert_true(track.view_bounds.has_point(jelly.position), "jellyfish inside the bounds")
+		sections[int(jelly.position.y / 600.0)] = true
+	assert_gte(sections.size(), 4, "jellyfish spread over the whole height")
+	var finish: Area2D = track.get_node("Finish")
+	assert_gt(finish.position.y, 2000.0, "the finish is at the bottom")
+
+
+func test_centerline_runs_from_top_to_the_finish() -> void:
+	var track: Track = TrackCatalog.instantiate("jelly")
+	add_child_autofree(track)
+	var curve: Curve2D = (track.get_node("Centerline") as Path2D).curve
+	var end: Vector2 = curve.get_point_position(curve.point_count - 1)
+	var finish: Area2D = track.get_node("Finish")
+	assert_lt(end.distance_to(finish.position), 100.0)
+
+
 func test_jellyfish_stay_near_their_anchor() -> void:
 	var swarm: JellyHazard = _swarm()
 	swarm.reseed(3)

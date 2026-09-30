@@ -58,6 +58,21 @@ func test_finish_zone_is_visible_and_inside_the_camera_view() -> void:
 		assert_true(track.view_bounds.encloses(zone), "%s finish inside view_bounds" % id)
 
 
+func test_tall_map_repeats_its_layers_and_extends_the_sky() -> void:
+	var track: Track = TrackCatalog.instantiate("jelly")
+	add_child_autofree(track)
+	var style: TrackStyle = track.find_children("*", "TrackStyle", false, false)[0]
+	var layers: Array[Node] = style.find_children("*", "Parallax2D", false, false)
+	assert_false(layers.is_empty())
+	for layer: Node in layers:
+		assert_gt((layer as Parallax2D).repeat_size.y, 0.0, "layers repeat down a tall map")
+	var short: Track = TrackCatalog.instantiate("wreck")
+	add_child_autofree(short)
+	var short_style: TrackStyle = short.find_children("*", "TrackStyle", false, false)[0]
+	for layer: Node in short_style.find_children("*", "Parallax2D", false, false):
+		assert_eq((layer as Parallax2D).repeat_size.y, 0.0, "one-screen maps are unchanged")
+
+
 func test_moving_bodies_do_not_get_the_world_anchored_stone_texture() -> void:
 	var track: Track = TrackCatalog.instantiate("wreck")
 	add_child_autofree(track)

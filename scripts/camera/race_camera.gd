@@ -6,7 +6,7 @@ extends Camera2D
 const MIN_ZOOM: float = 1.0
 const MAX_ZOOM: float = 2.0
 ## The overview may zoom out further, so tall maps fit the frame.
-const OVERVIEW_MIN_ZOOM: float = 0.5
+const OVERVIEW_MIN_ZOOM: float = 0.35
 ## Room around the leading group, in world pixels.
 const MARGIN: float = 220.0
 ## The frame is never smaller than this, so a lone leader does not zoom in absurdly far.

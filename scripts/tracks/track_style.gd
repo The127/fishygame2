@@ -15,6 +15,9 @@ const FLOOR_BELOW_FRAME: float = 60.0
 const STONE_SHADER: Shader = preload("res://assets/shaders/env/stone.gdshader")
 const FOG_SHADER: Shader = preload("res://assets/shaders/env/fog.gdshader")
 const VIEW: Vector2 = Vector2(1920.0, 1080.0)
+## Height of the scenery a parallax layer paints (ceiling shapes to floor line). A map taller
+## than the base frame repeats it vertically so the layers never run out.
+const LAYER_PERIOD: float = 1360.0
 const FOG_RECT: Rect2 = Rect2(-160.0, -260.0, 2240.0, 1500.0)
 const PEG_GLOW_SIZE: float = 128.0
 const FINISH_COLOR: Color = Color(1.0, 0.86, 0.3)
@@ -30,6 +33,8 @@ var _finish_glows: Array[Node2D] = []
 var _rays: Array[Polygon2D] = []
 var _fogs: Array[ColorRect] = []
 var _motes: CPUParticles2D
+## How far the map reaches below the base frame (0 for a one-screen map).
+var _extra_height: float = 0.0
 
 
 func dress(track: Track, style_id: String) -> void:
@@ -37,6 +42,7 @@ func dress(track: Track, style_id: String) -> void:
 		style_id, TrackPalettes.PALETTES[TrackPalettes.DEFAULT_STYLE]
 	)
 	_floor_y = maxf(track.view_bounds.end.y, EnvLayer.FLOOR_Y)
+	_extra_height = maxf(track.view_bounds.end.y - VIEW.y, 0.0)
 	_hide_flat_artwork(track)
 	_add_background()
 	_add_rays()
@@ -94,6 +100,9 @@ func _parallax(scroll_scale: float, z: int) -> Parallax2D:
 	var layer: Parallax2D = Parallax2D.new()
 	layer.scroll_scale = Vector2(scroll_scale, scroll_scale)
 	layer.z_index = z
+	if _extra_height > 0.0:
+		layer.repeat_size = Vector2(0.0, LAYER_PERIOD)
+		layer.repeat_times = 3
 	add_child(layer)
 	return layer
 
