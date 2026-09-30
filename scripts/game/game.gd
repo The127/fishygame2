@@ -10,10 +10,6 @@ const NET_SECONDS: float = 2.5
 
 ## Milliseconds a "power not available" line stays in the control panel.
 const POWER_NOTE_MSEC: int = 3000
-## Seconds the finish plays on live before the replay cuts in.
-const REPLAY_BEAT: float = 0.8
-## Seconds of each fade to dark around the replay.
-const REPLAY_FADE: float = 0.25
 ## Most DNF names in the race result line.
 const RESULT_DNF: int = 3
 
@@ -38,12 +34,7 @@ var _map_choice: String = TrackCatalog.RANDOM_ID
 var _map_id: String = ""
 var _track: Track
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
-var _photo: PhotoFinish = PhotoFinish.new()
-var _replay: FinishReplay = FinishReplay.new()
-## Bumped whenever a pending replay intro must stop (round left, new race).
-var _replay_intro_id: int = 0
-## Results held back while the finish replay plays; empty when none is waiting.
-var _pending_results: Array[Dictionary] = []
+var _sequence: RaceSequence = RaceSequence.new()
 var _replies: ChatReplies = ChatReplies.new()
 var _batcher: ChatBatcher = _replies.batcher
 var _meow: Meow = Meow.new()
@@ -144,7 +135,7 @@ func _ready() -> void:
 	_race.race_finished.connect(_on_race_finished)
 	_panel.open_lobby_pressed.connect(_flow.open_lobby)
 	_panel.start_pressed.connect(_on_start_pressed)
-	_panel.skip_replay_pressed.connect(_replay.stop)
+	_panel.skip_replay_pressed.connect(_sequence.skip_replay)
 	_panel.stop_pressed.connect(_flow.stop)
 	_panel.add_debug_players_pressed.connect(_flow.add_debug_players)
 	_panel.debug_duck_pressed.connect(_on_debug_duck)
@@ -161,15 +152,19 @@ func _ready() -> void:
 	_panel.set_audio_state(Sound.settings.get_volumes(), Sound.settings.muted)
 	_flow.countdown_tick.connect(_on_countdown_tick)
 	_race.marble_finished.connect(_on_marble_finished)
-	add_child(_photo)
-	add_child(_replay)
-	_replay.ended.connect(_on_replay_ended)
-	_replay.ending.connect(_on_replay_ending)
+	_sequence.settings = settings
+	_sequence.name = "RaceSequence"
+	_sequence.fade_out = _overlay.fade_out
+	_sequence.fade_in_requested.connect(_overlay.fade_in)
+	_sequence.results_ready.connect(_report_results)
+	_sequence.replay_started.connect(_on_replay_started)
+	_sequence.replay_ended.connect(_on_replay_ended)
+	add_child(_sequence)
 	_race.photo_finish.connect(_on_photo_finish)
 	_race.fish_snapped.connect(_on_fish_snapped)
 	_race.treasure_collected.connect(_on_treasure_collected)
 	_race.fish_stranded.connect(_on_fish_stranded)
-	_photo.ended.connect(_camera.release_hold)
+	_sequence.photo_ended.connect(_camera.release_hold)
 	# After Betting.on_podium_ready, which settles the payouts this handler reports.
 	_flow.podium_ready.connect(_on_podium_ready)
 	_rng.randomize()
@@ -222,7 +217,7 @@ func _process(_delta: float) -> void:
 		_camera.follow(_race.get_position_map(), _race.get_progress_map())
 	var left: float = _race.time_left()
 	_overlay.show_race_timer(ceili(left) if left >= 0.0 and left <= TIMER_SECONDS else -1)
-	if _replay.active:
+	if _sequence.is_replaying():
 		_follow_replay()
 	_panel.set_status(_status_text())
 	_panel.set_power_status(_power_status_text())
@@ -246,12 +241,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> void:
-	_photo.stop()
 	_arm_power(-1)
 	# Leaving the race (stop, home) drops the held results instead of reporting them.
-	_pending_results = []
-	_replay_intro_id += 1
-	_replay.stop()
+	_sequence.cancel()
 	if new_state != GameFlow.State.COUNTDOWN and new_state != GameFlow.State.RACING:
 		_panel.cancel_leave()
 	match new_state:
@@ -393,7 +385,7 @@ func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:
 	if _flow.state != GameFlow.State.RACING or _track == null:
 		return
 	_camera.hold_on(_track.get_finish_position())
-	_photo.start()
+	_sequence.start_photo_finish()
 
 
 func _on_fish_eaten(marble: Marble) -> void:
@@ -407,50 +399,16 @@ func _on_fish_eaten(marble: Marble) -> void:
 		_betting.points.save_to_disk()
 
 
-## Reports the results to the flow, after a finish replay when the setting asks for one.
+## Hands the results to the sequence, which reports them after a finish replay when the
+## setting asks for one.
 func _on_race_finished(results: Array[Dictionary]) -> void:
-	var recorder: ReplayRecorder = _race.get_recorder()
-	if _wants_replay(results) and recorder != null and recorder.has_clip():
-		# Held until the replay ends. The finish signal comes from the physics callback, where
-		# bodies must not be moved, so the replay itself starts later, after a short beat.
-		_pending_results = results
-		_replay_intro_id += 1
-		_replay_intro(_replay_intro_id)
-		return
-	_report_results(results)
+	_sequence.finish(results, _race.get_recorder(), _race.get_marbles(), _race.had_photo_finish)
 
 
-## The lead-in: a beat on the live finish, a dip to dark, the replay starts under it and the
-## picture fades back in with the REPLAY badge sliding in.
-func _replay_intro(id: int) -> void:
-	await get_tree().create_timer(REPLAY_BEAT).timeout
-	if id != _replay_intro_id:
-		return
-	await _overlay.fade_out(REPLAY_FADE).finished
-	if id != _replay_intro_id:
-		_overlay.fade_in(REPLAY_FADE)
-		return
-	_begin_replay()
-
-
-func _begin_replay() -> void:
-	if _pending_results.is_empty():
-		_overlay.fade_in(REPLAY_FADE)
-		return
-	if not _replay.start(_race.get_recorder(), _race.get_marbles()):
-		_overlay.fade_in(REPLAY_FADE)
-		_report_results(_pending_results)
-		_pending_results = []
-		return
-	_photo.stop()
+## The replay cut in under a dip to dark.
+func _on_replay_started() -> void:
 	_overlay.show_replay(true)
 	_panel.show_skip_replay(true)
-	_overlay.fade_in(REPLAY_FADE)
-
-
-## The crossing has been shown: dip to dark so the podium does not cut in.
-func _on_replay_ending() -> void:
-	_overlay.fade_out(REPLAY_FADE)
 
 
 ## Counts the race for the viewers' stats and hands the results to the flow. Only runs when the
@@ -462,34 +420,22 @@ func _report_results(results: Array[Dictionary]) -> void:
 	_flow.report_race_finished(results)
 
 
-func _wants_replay(results: Array[Dictionary]) -> bool:
-	if settings.finish_replay == GameSettings.REPLAY_OFF or results.is_empty():
-		return false
-	if not bool(results[0]["finished"]):
-		return false
-	if settings.finish_replay == GameSettings.REPLAY_ALWAYS:
-		return true
-	return FinishReplay.is_close(results, _race.had_photo_finish)
-
-
-func _on_replay_ended() -> void:
+func _on_replay_ended(results: Array[Dictionary]) -> void:
 	_overlay.show_replay(false)
 	_panel.show_skip_replay(false)
-	var results: Array[Dictionary] = _pending_results
-	_pending_results = []
 	var still_racing: bool = _flow.state == GameFlow.State.RACING
 	if not results.is_empty():
 		_report_results(results)
 	# Fully dark already when the replay ran out; a skip dips quickly from wherever it was. After
 	# the report, because showing the podium resets the overlay.
 	if still_racing:
-		_overlay.fade_in(REPLAY_FADE)
+		_overlay.fade_in(RaceSequence.REPLAY_FADE)
 
 
 ## Space starts the race, or skips the replay while one plays.
 func _on_start_pressed() -> void:
-	if _replay.active:
-		_replay.stop()
+	if _sequence.is_replaying():
+		_sequence.skip_replay()
 	else:
 		_flow.start_race()
 
@@ -498,7 +444,7 @@ func _on_start_pressed() -> void:
 func _follow_replay() -> void:
 	if _track == null:
 		return
-	var at: Vector2 = _replay.winner_position()
+	var at: Vector2 = _sequence.winner_position()
 	_camera.follow({0: at}, {0: _track.get_progress(at)})
 
 
