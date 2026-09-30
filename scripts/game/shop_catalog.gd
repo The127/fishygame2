@@ -1,6 +1,6 @@
 class_name ShopCatalog
 extends RefCounted
-## What the fish shop sells: the fish species and the palette colors, by chat name.
+## What the fish shop sells: the fish species, the palette colors, accessories and trails, by chat name.
 ## Colors are the hand-picked [constant Contestant.PALETTE], so any mix a lobby ends up
 ## with stays easy to tell apart. [method assign_loadouts] settles who gets which color.
 
@@ -19,6 +19,8 @@ const HAT_NAMES: Array[String] = [
 	"flower",
 	"duck",
 ]
+## Chat names of the trails, in the order of [enum FishTrail.Kind] after NONE.
+const TRAIL_NAMES: Array[String] = ["rainbow", "stars", "bubbles", "dust", "embers", "hearts"]
 ## Chat names of the colors, in the order of [constant Contestant.PALETTE].
 const COLOR_NAMES: Array[String] = [
 	"red",
@@ -66,6 +68,11 @@ static func accessory_of(item: String) -> int:
 	return index_of(ShopStore.KIND_HAT, item) + 1
 
 
+## The [enum FishTrail.Kind] for a chat name, NONE if unknown.
+static func trail_of(item: String) -> int:
+	return index_of(ShopStore.KIND_TRAIL, item) + 1
+
+
 ## Whether [param item] (case does not matter) is on sale as a [param kind].
 static func has_item(kind: String, item: String) -> bool:
 	return index_of(kind, item) >= 0 or is_premium(kind, item)
@@ -94,6 +101,8 @@ static func index_of(kind: String, item: String) -> int:
 		return COLOR_NAMES.find(wanted)
 	if kind == ShopStore.KIND_HAT:
 		return HAT_NAMES.find(wanted)
+	if kind == ShopStore.KIND_TRAIL:
+		return TRAIL_NAMES.find(wanted)
 	return -1
 
 
@@ -123,6 +132,10 @@ static func assign_loadouts(
 		contestant.skin = skin
 		contestant.accessory = (
 			index_of(ShopStore.KIND_HAT, store.equipped(contestant.user_id, ShopStore.KIND_HAT)) + 1
+		)
+		contestant.trail = (
+			index_of(ShopStore.KIND_TRAIL, store.equipped(contestant.user_id, ShopStore.KIND_TRAIL))
+			+ 1
 		)
 		if skin > 0:
 			continue

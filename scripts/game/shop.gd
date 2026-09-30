@@ -1,6 +1,6 @@
 class_name Shop
 extends Node
-## Viewers spend points on how their fish looks: "#fish <species>", "#color <name>" and "#hat <name>".
+## Viewers spend points on how their fish looks: "#fish <species>", "#color <name>", "#hat <name>" and "#trail <name>".
 ## An item is bought once, the first time it is asked for, and afterwards equipping it
 ## is free. The equipped items are applied when a race starts (see [ShopCatalog]).
 ## "#shop" asks the game to list the options.
@@ -10,8 +10,8 @@ signal rejected(msg: ChatMessage, reason: String)
 signal catalog_requested(msg: ChatMessage)
 
 const DEFAULT_PATH: String = "user://shop.json"
-## Words for "#hat" that take the accessory off.
-const HAT_OFF: PackedStringArray = ["none", "off"]
+## Words for "#hat" and "#trail" that take the item off.
+const TAKE_OFF: PackedStringArray = ["none", "off"]
 
 @export var shop_path: String = DEFAULT_PATH
 @export var species_price: int = 500
@@ -19,6 +19,7 @@ const HAT_OFF: PackedStringArray = ["none", "off"]
 ## Premium colors (see [FishSkin]) cost this instead of [member color_price].
 @export var premium_color_price: int = 1000
 @export var hat_price: int = 200
+@export var trail_price: int = 300
 
 ## Set by the game so the shop spends from the same balances as betting.
 var points: PointsStore = null
@@ -41,6 +42,8 @@ func handle_command(msg: ChatMessage, command: String, args: PackedStringArray) 
 			choose(msg, args, ShopStore.KIND_COLOR)
 		"hat":
 			choose(msg, args, ShopStore.KIND_HAT)
+		"trail":
+			choose(msg, args, ShopStore.KIND_TRAIL)
 		"shop":
 			catalog_requested.emit(msg)
 
@@ -53,6 +56,8 @@ func price_of(kind: String, item: String = "") -> int:
 			return species_price
 		ShopStore.KIND_HAT:
 			return hat_price
+		ShopStore.KIND_TRAIL:
+			return trail_price
 	return color_price
 
 
@@ -61,7 +66,7 @@ func price_of(kind: String, item: String = "") -> int:
 func choose(msg: ChatMessage, args: PackedStringArray, kind: String) -> bool:
 	var item: String = ShopCatalog.canonical(kind, " ".join(args))
 	var reason: String = ""
-	if kind == ShopStore.KIND_HAT and item in HAT_OFF:
+	if (kind == ShopStore.KIND_HAT or kind == ShopStore.KIND_TRAIL) and item in TAKE_OFF:
 		store.unequip(msg.user_id, kind)
 		store.save_to_disk()
 		equipped.emit(msg, kind, "none", 0)
@@ -140,4 +145,12 @@ func hat_catalog_text() -> String:
 	return (
 		"Accessories: #hat <%s> (%d points), #hat none takes it off. Cosmetic only."
 		% ["|".join(ShopCatalog.HAT_NAMES), hat_price]
+	)
+
+
+## One chat line with the trails on sale.
+func trail_catalog_text() -> String:
+	return (
+		"Trails: #trail <%s> (%d points), #trail none takes it off. Cosmetic only."
+		% ["|".join(ShopCatalog.TRAIL_NAMES), trail_price]
 	)

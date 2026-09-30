@@ -39,6 +39,8 @@ var pattern: int = 0
 var skin: int = 0
 ## A [enum FishAccessory.Kind] from the shop; 0 is none.
 var accessory: int = 0
+## A [enum FishTrail.Kind] from the shop; 0 is the plain bubble trail.
+var trail: int = 0
 
 
 static func create(p_user_id: String, p_display_name: String, slot: int = 0) -> Contestant:

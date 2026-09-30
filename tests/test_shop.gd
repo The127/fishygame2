@@ -144,3 +144,21 @@ func test_hat_needs_enough_points() -> void:
 func test_hat_catalog_lists_every_hat() -> void:
 	for hat: String in ShopCatalog.HAT_NAMES:
 		assert_string_contains(_shop.hat_catalog_text(), hat)
+
+
+func test_buying_a_trail_costs_the_trail_price_and_none_takes_it_off() -> void:
+	_shop.trail_price = 300
+	_shop.handle_command(_msg("1"), "trail", PackedStringArray(["Rainbow"]))
+	assert_eq(_points.get_balance("1"), 700)
+	assert_eq(_shop.store.equipped("1", ShopStore.KIND_TRAIL), "rainbow")
+	_shop.handle_command(_msg("1"), "trail", PackedStringArray(["none"]))
+	assert_eq(_shop.store.equipped("1", ShopStore.KIND_TRAIL), "")
+	_shop.handle_command(_msg("1"), "trail", PackedStringArray(["rainbow"]))
+	assert_eq(_points.get_balance("1"), 700, "owned, so switching back is free")
+
+
+func test_unknown_trail_is_rejected_and_catalog_lists_every_trail() -> void:
+	_shop.handle_command(_msg("1"), "trail", PackedStringArray(["red"]))
+	assert_eq(_rejections, ["unknown_trail"] as Array[String])
+	for trail: String in ShopCatalog.TRAIL_NAMES:
+		assert_string_contains(_shop.trail_catalog_text(), trail)

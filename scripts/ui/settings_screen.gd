@@ -49,7 +49,15 @@ const TABS: Array[Dictionary] = [
 	},
 	{
 		"title": "Shop",
-		"items": ["species_price", "color_price", "premium_color_price", "hat_price", "welcome_hat"]
+		"items":
+		[
+			"species_price",
+			"color_price",
+			"premium_color_price",
+			"hat_price",
+			"trail_price",
+			"welcome_hat"
+		]
 	},
 	{
 		"title": "Chat",

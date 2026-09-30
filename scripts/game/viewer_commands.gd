@@ -18,7 +18,7 @@ const STATS_COOLDOWN_MSEC: int = 15000
 
 ## Commands that put a viewer on the leaderboard, so their name is remembered.
 const NAMED_COMMANDS: PackedStringArray = [
-	"join", "bet", "boost", "curse", "points", "fish", "color", "hat", "shop", "stats"
+	"join", "bet", "boost", "curse", "points", "fish", "color", "hat", "trail", "shop", "stats"
 ]
 
 ## The scores and names to read and update. Set by the owner before chat arrives.

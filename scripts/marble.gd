@@ -78,6 +78,13 @@ var accessory: int = 0:
 		if _fish != null:
 			_fish.accessory = value
 
+## A [enum FishTrail.Kind]; 0 is the plain bubble trail.
+var trail: int = 0:
+	set(value):
+		trail = value
+		if _trail != null:
+			_build_trail()
+
 ## Glow strength, 1 is normal.
 var glow_boost: float = 1.0:
 	set(value):
@@ -138,7 +145,14 @@ func _ready() -> void:
 	_label.add_theme_constant_override("outline_size", 4)
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_label)
-	_trail = RaceFx.make_trail()
+	_build_trail()
+
+
+## Swaps in the emitter for the current [member trail].
+func _build_trail() -> void:
+	if _trail != null:
+		_trail.queue_free()
+	_trail = FishTrail.make(trail)
 	_trail.top_level = true
 	add_child(_trail)
 

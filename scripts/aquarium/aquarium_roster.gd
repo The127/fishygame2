@@ -52,4 +52,8 @@ static func describe(who: Contestant) -> String:
 	]
 	if who.accessory > 0:
 		parts.append(ShopCatalog.HAT_NAMES[(who.accessory - 1) % ShopCatalog.HAT_NAMES.size()])
+	if who.trail > 0:
+		parts.append(
+			ShopCatalog.TRAIL_NAMES[(who.trail - 1) % ShopCatalog.TRAIL_NAMES.size()] + " trail"
+		)
 	return ", ".join(parts)
