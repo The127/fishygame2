@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/tracks/rift_hazard.gd" id="2_rift"]
 [ext_resource type="Script" path="res://scripts/tracks/portal_pair.gd" id="3_portal"]
 [ext_resource type="Script" path="res://scripts/tracks/angler_lure.gd" id="4_lure"]
+[ext_resource type="Script" path="res://scripts/tracks/angler_hazard.gd" id="5_angler"]
 
 [sub_resource type="PhysicsMaterial" id="PM_track"]
 friction = 0.6
@@ -51,11 +52,11 @@ polygon = PackedVector2Array(30, 170, 700, 245, 700, 267, 30, 192)
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="RampTopB"]
-polygon = PackedVector2Array(640, 300, 1890, 450, 1890, 472, 640, 322)
+polygon = PackedVector2Array(628, 282, 640, 282, 640, 300, 1890, 450, 1890, 472, 628, 322)
 
 [node name="Visual" type="Polygon2D" parent="RampTopB"]
 color = Color(0.13, 0.2, 0.26, 1)
-polygon = PackedVector2Array(640, 300, 1890, 450, 1890, 472, 640, 322)
+polygon = PackedVector2Array(628, 282, 640, 282, 640, 300, 1890, 450, 1890, 472, 628, 322)
 
 [node name="RampMidA" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
@@ -226,22 +227,31 @@ divert_point = Vector2(170, 430)
 radius = 50.0
 tint = Color(0.9, 0.4, 1, 1)
 
-[node name="LureTop" type="Node2D" parent="."]
+[node name="Anglers" type="Node2D" parent="."]
+script = ExtResource("5_angler")
+kind = "angler"
+telegraph_seconds = 1.6
+active_seconds = 4.5
+sight_radius = 300.0
+spit_points = PackedVector2Array(200, 120, 200, 440)
+
+[node name="LureTop" type="Node2D" parent="Anglers"]
 position = Vector2(1500, 150)
 scale = Vector2(-1, 1)
 script = ExtResource("4_lure")
 tint = Color(0.4, 1.0, 0.85, 1)
 stalk_length = 110.0
 show_body = true
+body_scale = 1.6
 phase = 0
 
-[node name="LureLow" type="Node2D" parent="."]
-position = Vector2(1350, 830)
-scale = Vector2(-1, 1)
+[node name="LureLow" type="Node2D" parent="Anglers"]
+position = Vector2(720, 690)
 script = ExtResource("4_lure")
 tint = Color(0.5, 0.8, 1.0, 1)
 stalk_length = 100.0
 show_body = true
+body_scale = 1.6
 phase = 1.7
 
 [node name="LureA" type="Node2D" parent="."]

@@ -38,7 +38,7 @@ func test_abyss_is_a_dark_glowing_map_with_a_rift() -> void:
 	var track: Track = _track()
 	assert_eq(track.style_id, "abyss")
 	assert_gt(track.fish_glow, 1.0)
-	assert_eq(track.get_hazards().size(), 1)
+	assert_eq(track.get_hazards().size(), 2, "the rift and the anglers")
 	assert_not_null(_rift(track))
 	assert_eq(_rift(track).kind, "rift")
 	assert_gt(track.find_children("*", "AnglerLure", false, false).size(), 2)

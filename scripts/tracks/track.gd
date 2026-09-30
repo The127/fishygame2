@@ -6,6 +6,8 @@ extends Node2D
 signal marble_reached_finish(marble: Node2D)
 ## A hazard event begins its telegraph. `kind` names the event.
 signal hazard_started(kind: String)
+## An anglerfish just swallowed `marble`.
+signal fish_eaten(marble: Marble)
 
 ## Distance in pixels either side of a point used to estimate the track direction.
 const FORWARD_SAMPLE: float = 30.0
@@ -28,6 +30,8 @@ func _ready() -> void:
 	_finish.body_entered.connect(_on_finish_body_entered)
 	for hazard: Hazard in get_hazards():
 		hazard.telegraph_started.connect(hazard_started.emit)
+		if hazard is AnglerHazard:
+			(hazard as AnglerHazard).fish_eaten.connect(fish_eaten.emit)
 	var style: TrackStyle = TrackStyle.new()
 	add_child(style)
 	style.dress(self, style_id)

@@ -37,6 +37,7 @@ func _ready() -> void:
 	add_child(_track)
 	move_child(_track, 0)
 	_track.hazard_started.connect(_on_hazard_started)
+	_track.fish_eaten.connect(_on_fish_eaten)
 	if _autorun:
 		_start_race()
 	else:
@@ -67,6 +68,10 @@ func _start_race() -> void:
 func _on_hazard_started(kind: String) -> void:
 	_hazard_events.append("%s@%.1f" % [kind, _race.elapsed])
 	print("  hazard: %s at t=%.2fs" % [kind, _race.elapsed])
+
+
+func _on_fish_eaten(marble: Marble) -> void:
+	print("  eaten: marble %d at t=%.2fs" % [marble.id, _race.elapsed])
 
 
 func _on_marble_finished(id: int, place: int) -> void:

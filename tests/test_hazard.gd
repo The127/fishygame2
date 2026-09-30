@@ -26,9 +26,9 @@ func _run_until(hazard: Hazard, phase: Hazard.Phase, limit: float = 100.0) -> bo
 	return hazard.phase == phase
 
 
-func test_every_map_has_one_hazard() -> void:
+func test_every_map_has_a_hazard() -> void:
 	for id: String in TrackCatalog.ids():
-		assert_eq(_track(id).get_hazards().size(), 1, "%s has a hazard" % id)
+		assert_gte(_track(id).get_hazards().size(), 1, "%s has a hazard" % id)
 
 
 func test_frequency_zero_arms_nothing() -> void:

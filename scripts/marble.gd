@@ -19,6 +19,12 @@ const CHEER_MAX_STRENGTH: float = 8.0
 const MEOW_SECONDS: float = 1.2
 
 var id: int = 0
+## Set by the race once the fish has crossed the finish.
+var has_finished: bool = false
+## True while an anglerfish holds the fish: hidden, frozen and out of the physics.
+var eaten: bool = false
+## How often anglerfish have swallowed this fish in the current race.
+var times_eaten: int = 0
 var color: Color = Color.WHITE:
 	set(value):
 		color = value
@@ -53,6 +59,8 @@ var label_text: String = "":
 			_label.text = value
 
 var _curse_left: float = 0.0
+var _layer_before_eaten: int = 0
+var _mask_before_eaten: int = 0
 var _base_damp: float = 0.0
 var _label: Label
 var _fish: FishVisual
@@ -162,6 +170,38 @@ func _physics_process(delta: float) -> void:
 		if _fish != null:
 			_fish.color = color
 			_fish.aura = Color.TRANSPARENT
+
+
+## An anglerfish swallows the fish: it vanishes and takes no part in the physics until
+## [method release].
+func swallow() -> void:
+	if eaten:
+		return
+	eaten = true
+	times_eaten += 1
+	_layer_before_eaten = collision_layer
+	_mask_before_eaten = collision_mask
+	collision_layer = 0
+	collision_mask = 0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	freeze = true
+	visible = false
+
+
+## Brings a swallowed fish back at `at`, moving with `velocity`.
+func release(at: Vector2, velocity: Vector2) -> void:
+	if not eaten:
+		return
+	eaten = false
+	collision_layer = _layer_before_eaten
+	collision_mask = _mask_before_eaten
+	freeze = false
+	global_position = at
+	linear_velocity = velocity
+	visible = true
+	if _fish != null:
+		_fish.flash(RaceFx.SPLASH_COLOR)
 
 
 ## A splash of bubbles where the fish crossed the finish.
