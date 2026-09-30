@@ -216,13 +216,14 @@ func test_wreck_has_at_least_three_trapdoors_that_break_often() -> void:
 func test_a_trapdoor_never_breaks_twice_in_a_row() -> void:
 	var track: Track = _track("wreck")
 	var hazard: PlankHazard = track.get_hazards()[0] as PlankHazard
-	track.arm_hazards(_rng(5), 5)
-	var last: AnimatableBody2D = null
-	for i: int in hazard.get_schedule().size():
-		assert_true(_run_until(hazard, Hazard.Phase.TELEGRAPH))
-		assert_ne(hazard._plank, last)
-		last = hazard._plank
-		assert_true(_run_until(hazard, Hazard.Phase.IDLE))
+	for seed_value: int in range(1, 13):
+		track.arm_hazards(_rng(seed_value), 5)
+		var last: AnimatableBody2D = null
+		for i: int in hazard.get_schedule().size():
+			assert_true(_run_until(hazard, Hazard.Phase.TELEGRAPH))
+			assert_ne(hazard._plank, last, "seed %d event %d" % [seed_value, i])
+			last = hazard._plank
+			assert_true(_run_until(hazard, Hazard.Phase.IDLE))
 
 
 func test_open_planks_stay_clear_of_the_decks_below() -> void:

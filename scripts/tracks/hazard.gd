@@ -48,7 +48,7 @@ func arm(seed_value: int, frequency: int) -> void:
 	_rng.seed = seed_value
 	var gap: float = base_gap / float(frequency)
 	var t: float = _rng.randf_range(FIRST_EVENT_MIN, FIRST_EVENT_MIN + gap)
-	while t < HORIZON and _schedule.size() < max_events:
+	while t < HORIZON and _schedule.size() < mini(max_events, MAX_EVENTS):
 		_schedule.append(t)
 		t += event_seconds() + _rng.randf_range(0.6, 1.4) * gap
 	_armed = true
