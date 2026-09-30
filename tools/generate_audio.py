@@ -13,6 +13,8 @@ import random
 import wave
 from pathlib import Path
 
+import music_themes
+
 SAMPLE_RATE = 22050
 TAU = 2.0 * math.pi
 OUT_DIR = Path(__file__).resolve().parent.parent / "assets" / "audio"
@@ -26,17 +28,20 @@ def n_samples(seconds: float) -> int:
     return int(seconds * SAMPLE_RATE)
 
 
-def write_wav(name: str, samples: list, peak: float) -> None:
+def write_wav(
+    name: str, samples: list, peak: float, rate: int = SAMPLE_RATE, normalize: bool = True
+) -> None:
+    """Writes 16-bit mono. Normalizing scales the loudest sample to `peak`."""
     top = max(1e-9, max(abs(s) for s in samples))
-    scale = peak / top
+    scale = peak / top if normalize else 1.0
     data = array.array("h", (int(max(-1.0, min(1.0, s * scale)) * 32767) for s in samples))
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     with wave.open(str(OUT_DIR / name), "wb") as f:
         f.setnchannels(1)
         f.setsampwidth(2)
-        f.setframerate(SAMPLE_RATE)
+        f.setframerate(rate)
         f.writeframes(data.tobytes())
-    print(f"{name}: {len(samples) / SAMPLE_RATE:.2f}s, {len(data) * 2 // 1024} KiB")
+    print(f"{name}: {len(samples) / rate:.2f}s, {len(data) * 2 // 1024} KiB")
 
 
 def fade_edges(samples: list, ms: float = 4.0) -> list:
@@ -266,6 +271,8 @@ def music() -> list:
 
 def main() -> None:
     write_wav("music_ambient.wav", music(), MUSIC_PEAK)
+    for map_id, theme in music_themes.THEMES.items():
+        write_wav(f"music_{map_id}.wav", music_themes.render(theme), 1.0, music_themes.RATE, False)
     effects = {
         "sfx_join.wav": sfx_join,
         "sfx_tick.wav": sfx_tick,

@@ -333,6 +333,7 @@ func _load_map() -> void:
 	add_child(_track)
 	move_child(_track, 0)
 	_camera.set_bounds(_track.view_bounds)
+	Sound.set_music_theme(id)
 	_camera.show_overview(true)
 
 

@@ -1,7 +1,9 @@
 extends Node
 ## Autoload "Sound": the one audio service. It creates the Music and SFX buses under
 ## Master, loops the ambient music and plays one-shot effects from a small player pool.
-## Volumes and mute come from [AudioSettings] and are saved shortly after each change.
+## Each map has its own music theme (see [member MUSIC_PATHS]); [method set_music_theme]
+## crossfades to it. Volumes and mute come from [AudioSettings] and are saved shortly after
+## each change.
 ##
 ## Web export: browsers keep audio suspended until the first click or key press. Godot
 ## resumes it on that input and the already playing music simply becomes audible, so
@@ -9,7 +11,20 @@ extends Node
 
 enum Sfx { JOIN, TICK, GO, BOOST, CURSE, SPLASH, WIN }
 
-const MUSIC_PATH: String = "res://assets/audio/music_ambient.wav"
+## Theme played on the home screen and whenever a theme id is unknown.
+const HOME_THEME: String = "home"
+## Music theme by id: "home" plus one per map id in [TrackCatalog].
+const MUSIC_PATHS: Dictionary = {
+	HOME_THEME: "res://assets/audio/music_ambient.wav",
+	"zigzag": "res://assets/audio/music_zigzag.wav",
+	"pachinko": "res://assets/audio/music_pachinko.wav",
+	"wreck": "res://assets/audio/music_wreck.wav",
+	"whirlpool": "res://assets/audio/music_whirlpool.wav",
+	"jelly": "res://assets/audio/music_jelly.wav",
+	"abyss": "res://assets/audio/music_abyss.wav",
+	"vents": "res://assets/audio/music_vents.wav",
+	"coral": "res://assets/audio/music_coral.wav",
+}
 const SFX_PATHS: Dictionary = {
 	Sfx.JOIN: "res://assets/audio/sfx_join.wav",
 	Sfx.TICK: "res://assets/audio/sfx_tick.wav",
@@ -24,6 +39,8 @@ const POOL_SIZE: int = 8
 const MIN_REPEAT_MSEC: int = 40
 const PITCH_JITTER: float = 0.04
 const MUSIC_FADE_IN: float = 3.0
+## Seconds the old theme fades out while the new one fades in.
+const MUSIC_CROSSFADE: float = 2.0
 const SILENT_DB: float = -80.0
 ## Seconds after the last change before settings are written.
 const SAVE_DELAY: float = 0.5
@@ -37,6 +54,10 @@ var _sfx_streams: Dictionary = {}
 var _players: Array[AudioStreamPlayer] = []
 var _last_played: Dictionary = {}
 var _music: AudioStreamPlayer
+var _music_fading: AudioStreamPlayer
+var _music_tween: Tween
+var _music_streams: Dictionary = {}
+var _theme: String = HOME_THEME
 var _dirty: bool = false
 var _save_timer: float = 0.0
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -54,15 +75,15 @@ func _ready() -> void:
 		player.bus = AudioSettings.BUS_SFX
 		add_child(player)
 		_players.append(player)
-	_music = AudioStreamPlayer.new()
-	_music.bus = AudioSettings.BUS_MUSIC
-	_music.stream = make_loop(load(MUSIC_PATH))
-	add_child(_music)
+	_music = _make_music_player()
+	_music_fading = _make_music_player()
+	_music.stream = _music_stream(_theme)
 	if not _audible:
 		return
 	_music.volume_db = SILENT_DB
 	_music.play()
-	create_tween().tween_property(_music, "volume_db", 0.0, MUSIC_FADE_IN)
+	_music_tween = create_tween()
+	_music_tween.tween_property(_music, "volume_db", 0.0, MUSIC_FADE_IN)
 
 
 func _process(delta: float) -> void:
@@ -89,6 +110,37 @@ func _notification(what: int) -> void:
 	)
 	if leaving and _dirty:
 		save_now()
+
+
+## Crossfades to the music theme with this id (a map id or [constant HOME_THEME]). Unknown
+## ids fall back to the home theme; asking for the theme already playing does nothing.
+func set_music_theme(id: String) -> void:
+	if not MUSIC_PATHS.has(id):
+		id = HOME_THEME
+	if id == _theme:
+		return
+	_theme = id
+	if not _audible:
+		return
+	if _music_tween != null:
+		_music_tween.kill()
+	# The player that was still fading out is reused below, so cut it off.
+	_music_fading.stop()
+	var outgoing: AudioStreamPlayer = _music
+	_music = _music_fading
+	_music_fading = outgoing
+	_music.stream = _music_stream(id)
+	_music.volume_db = SILENT_DB
+	_music.play()
+	_music_tween = create_tween().set_parallel(true)
+	_music_tween.tween_property(_music, "volume_db", 0.0, MUSIC_CROSSFADE)
+	_music_tween.tween_property(_music_fading, "volume_db", SILENT_DB, MUSIC_CROSSFADE)
+	_music_tween.chain().tween_callback(_music_fading.stop)
+
+
+## Id of the music theme that is playing (or fading in).
+func get_music_theme() -> String:
+	return _theme
 
 
 ## Plays a one-shot effect. Silently skipped when repeated too fast or the pool is busy.
@@ -133,6 +185,19 @@ static func volume_to_db(value: float) -> float:
 	if value <= 0.001:
 		return SILENT_DB
 	return maxf(linear_to_db(value), SILENT_DB)
+
+
+func _make_music_player() -> AudioStreamPlayer:
+	var player := AudioStreamPlayer.new()
+	player.bus = AudioSettings.BUS_MUSIC
+	add_child(player)
+	return player
+
+
+func _music_stream(id: String) -> AudioStreamWAV:
+	if not _music_streams.has(id):
+		_music_streams[id] = make_loop(load(MUSIC_PATHS[id]))
+	return _music_streams[id]
 
 
 func _mark_dirty() -> void:
