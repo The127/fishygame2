@@ -201,6 +201,24 @@ const PALETTES: Dictionary = {
 		"far_kind": EnvLayer.Kind.SPIRES,
 		"sway_scale": 1.0,
 	},
+	"reef":
+	{
+		"sky_top": Color(0.02, 0.12, 0.13),
+		"sky_bottom": Color(0.0, 0.03, 0.04),
+		"far": Color(0.03, 0.15, 0.15),
+		"mid": Color(0.02, 0.11, 0.11),
+		"near": Color(0.0, 0.03, 0.035),
+		"plant": Color(0.04, 0.2, 0.16),
+		"stone_dark": Color(0.03, 0.09, 0.1),
+		"stone_light": Color(0.1, 0.3, 0.3),
+		"rim": Color(0.35, 0.95, 0.75),
+		"ray": Color(0.5, 1.0, 0.85),
+		"fog": Color(0.05, 0.25, 0.25),
+		"mote": Color(0.7, 1.0, 0.85),
+		"layer_kind": EnvLayer.Kind.CORAL,
+		"far_kind": EnvLayer.Kind.KELP,
+		"sway_scale": 0.8,
+	},
 }
 const DEFAULT_STYLE: String = "kelp"
 
@@ -217,4 +235,5 @@ const FOREGROUND: Dictionary = {
 	"kraken": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.TENTACLES],
 	"gravity": [EnvLayer.Kind.SHARDS, EnvLayer.Kind.SHARDS],
 	"tide": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
+	"reef": [EnvLayer.Kind.KELP, EnvLayer.Kind.CORAL],
 }

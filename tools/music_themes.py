@@ -550,4 +550,30 @@ THEMES = {
             },
         ),
     },
+    # Fork Reef: F lydian, a bright mallet arpeggio that splits into three lines over a bouncy bass.
+    "fork": {
+        "seed": 32,
+        "chords": (
+            (41, 53, 57, 60, 64),
+            (43, 55, 59, 62, 65),
+            (45, 57, 60, 64, 67),
+            (38, 53, 57, 60, 62),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.07,
+        "trem_rate": 0.11,
+        "trem_depth": 0.25,
+        "rumble_cutoff": 210.0,
+        "rumble_gain": 0.25,
+        "layers": (
+            {"kind": "arp", "bpm": 100, "div": 2, "decay": 0.16, "gain": 0.09, "accent": 3,
+             "partials": MALLET,
+             "pattern": (77, 81, 84, 88, 84, 81, 77, 81,
+                         79, 83, 86, 89, 86, 83, 79, 83)},
+            {"kind": "bass", "bpm": 100, "div": 1, "decay": 0.3, "gain": 0.30,
+             "pattern": (41, None, 48, None, 43, None, 50, None)},
+            {"kind": "hiss", "bpm": 100, "every": 2, "offset": 1, "decay": 0.05, "low": 3000.0,
+             "high": 6500.0, "gain": 0.02},
+        ),
+    },
 }

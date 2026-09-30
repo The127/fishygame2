@@ -137,9 +137,15 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 			var id: int = int(r["id"])
 			if not r["finished"] and not _race.is_snapped(id) and not _race.is_stranded(id):
 				unfinished += 1
+		var starts: String = ""
+		if _track.get_start_count() > 1:
+			var by_marble: PackedStringArray = []
+			for i: int in marble_count:
+				by_marble.append(str(_track.get_start_of(i)))
+			starts = " starts=%s" % ",".join(by_marble)
 		print(
 			(
-				"RESULT map=%s seed=%d time=%.2f unfinished=%d stranded=%d hazards=%d treasures=%d/%d order=%s"
+				"RESULT map=%s seed=%d time=%.2f unfinished=%d stranded=%d hazards=%d treasures=%d/%d order=%s%s"
 				% [
 					map_id,
 					seed_value,
@@ -149,7 +155,8 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 					_hazard_events.size(),
 					_treasures_found,
 					_treasures_total,
-					",".join(order)
+					",".join(order),
+					starts
 				]
 			)
 		)

@@ -75,6 +75,7 @@ func start(
 	_snap_rng.seed = hash(rng.state)
 	_snap_pending = event == RaceEvent.THANOS_SNAP
 	_snap_time = _snap_rng.randf_range(RaceEvent.SNAP_MIN_SECONDS, RaceEvent.SNAP_MAX_SECONDS)
+	_track.plan_starts(count, rng)
 	var ids: Array[int] = []
 	for i: int in count:
 		ids.append(i)

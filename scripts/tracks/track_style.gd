@@ -81,9 +81,10 @@ func _hide_flat_artwork(track: Track) -> void:
 	var line: Node2D = track.get_node_or_null("Centerline/Line") as Node2D
 	if line != null:
 		line.visible = false
-	var start: Polygon2D = track.get_node_or_null("StartArea") as Polygon2D
-	if start != null:
-		start.color = Color(_palette["rim"], 0.1)
+	# A map with several starts has a StartArea, StartArea2 and so on.
+	for child: Node in track.get_children():
+		if child is Polygon2D and child.name.begins_with("StartArea"):
+			(child as Polygon2D).color = Color(_palette["rim"], 0.1)
 
 
 func _parallax(scroll_scale: float, z: int) -> Parallax2D:
@@ -186,7 +187,9 @@ func _add_foreground(track: Track, style_id: String) -> void:
 	add_child(group)
 	# Top shapes hang from above the frame (h includes the gap to the top of the frame),
 	# bottom shapes rise from just below it.
-	_add_foreground_layer(group, kinds[0], 21, 6, 290.0, 450.0, true, blocked)
+	# Shapes hanging from the top would cover the starts up there, so they avoid every start.
+	var blocked_top: Array[Vector2] = blocked + _extra_start_ranges(track)
+	_add_foreground_layer(group, kinds[0], 21, 6, 290.0, 450.0, true, blocked_top)
 	_add_foreground_layer(group, kinds[1], 22, 5, 130.0, 300.0, false, blocked)
 
 
@@ -232,13 +235,7 @@ func _foreground_blocked_ranges(track: Track) -> Array[Vector2]:
 	var ranges: Array[Vector2] = []
 	var spawn: Marker2D = track.get_node_or_null("SpawnOrigin") as Marker2D
 	if spawn != null:
-		var width: float = float(track.spawn_columns) * track.spawn_spacing
-		ranges.append(
-			Vector2(
-				spawn.global_position.x - FOREGROUND_MARGIN,
-				spawn.global_position.x + width + FOREGROUND_MARGIN
-			)
-		)
+		ranges.append(_start_range(track, spawn))
 	var finish: Area2D = track.get_node_or_null("Finish") as Area2D
 	var zone: CollisionShape2D = null
 	if finish != null:
@@ -248,6 +245,26 @@ func _foreground_blocked_ranges(track: Track) -> Array[Vector2]:
 		var center: float = zone.global_position.x
 		ranges.append(Vector2(center - half - FOREGROUND_MARGIN, center + half + FOREGROUND_MARGIN))
 	return ranges
+
+
+## X ranges of the starts after the first, on a map with several.
+func _extra_start_ranges(track: Track) -> Array[Vector2]:
+	var ranges: Array[Vector2] = []
+	var starts: Node = track.get_node_or_null("Starts")
+	if starts == null:
+		return ranges
+	for child: Node in starts.get_children():
+		if child is Marker2D:
+			ranges.append(_start_range(track, child as Marker2D))
+	return ranges
+
+
+func _start_range(track: Track, start: Marker2D) -> Vector2:
+	var width: float = float(track.spawn_columns) * track.spawn_spacing
+	return Vector2(
+		start.global_position.x - FOREGROUND_MARGIN,
+		start.global_position.x + width + FOREGROUND_MARGIN
+	)
 
 
 func _add_fog() -> void:
