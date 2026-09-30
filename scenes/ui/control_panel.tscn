@@ -188,7 +188,7 @@ text = "Mute all sound"
 [node name="Home" type="Button" parent="Panel/Box"]
 layout_mode = 2
 focus_mode = 0
-text = "Home (Esc)"
+text = "Home"
 
 [node name="SkipReplay" type="Button" parent="Panel/Box"]
 visible = false

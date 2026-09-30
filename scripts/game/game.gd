@@ -202,6 +202,7 @@ func _ready() -> void:
 	_panel.stop_pressed.connect(_flow.stop)
 	_panel.add_debug_players_pressed.connect(_flow.add_debug_players)
 	_panel.home_pressed.connect(_on_home_pressed)
+	_panel.back_pressed.connect(_on_back_pressed)
 	_panel.leave_confirmed.connect(_leave_to_home)
 	_panel.map_selected.connect(_on_map_selected)
 	_panel.auto_mode_toggled.connect(_on_auto_mode_toggled)
@@ -579,6 +580,13 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	_confirm(
 		"reply_results", "results", "Race over:", _result_text(str(podium[0]["name"]), payouts, dnf)
 	)
+
+
+## Esc steps back one level: the podium returns to an empty map. Everywhere else it does
+## nothing, so a stray key press never aborts a round or leaves the game.
+func _on_back_pressed() -> void:
+	if _flow.state == GameFlow.State.PODIUM:
+		_flow.open_lobby()
 
 
 ## Leaves right away between rounds; mid-round the streamer has to confirm first.
