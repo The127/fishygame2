@@ -311,17 +311,6 @@ def music() -> list:
         t = i / SAMPLE_RATE
         out[i] += 0.16 * math.sin(TAU * snap(55.0) * t)
 
-    # Water rumble: low-passed noise, crossfaded so it loops.
-    fade = n_samples(2.0)
-    raw = lowpass(noise(MUSIC_SECONDS + 2.0, rng), 260.0)
-    rumble = raw[:n]
-    for i in range(fade):
-        g = i / fade
-        rumble[i] = rumble[i] * g + raw[n + i] * (1.0 - g)
-    for i in range(n):
-        t = i / SAMPLE_RATE
-        out[i] += rumble[i] * (0.9 + 0.5 * math.sin(TAU * 2.0 / MUSIC_SECONDS * t)) * 1.2
-
     # Sparse plucks with an echo tail that wraps around the loop point.
     times = sorted(rng.uniform(0.5, MUSIC_SECONDS - 1.0) for _ in range(13))
     for start in times:

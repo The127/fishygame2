@@ -1,7 +1,7 @@
 """One seamless ambient loop per map, synthesized from scratch (pure Python).
 
 Used by generate_audio.py. Every theme is a dict of layers rendered by `render`: pads over
-a chord loop, a sub drone, filtered-noise rumble and a few optional event layers (plucks,
+a chord loop, a sub drone and a few optional event layers (plucks,
 bells, arps, pulses, hiss, pings). Everything is placed modulo the loop length and pad
 frequencies are snapped to whole cycles per loop, so the loop point is seamless.
 """
@@ -106,19 +106,6 @@ def render_pads(out: list, chords, partials, gain: float, trem_rate: float, trem
             out[i % N] += 0.5 * gain * 1.6 * w * math.sin(TAU * freq * t)
 
 
-def render_rumble(out: list, rng: random.Random, cutoff: float, gain: float) -> None:
-    fade = int(2.0 * RATE)
-    raw = lowpass(noise(N + fade, rng), cutoff)
-    rumble = raw[:N]
-    for i in range(fade):
-        g = i / fade
-        rumble[i] = rumble[i] * g + raw[N + i] * (1.0 - g)
-    top = max(1e-9, max(abs(s) for s in rumble))
-    for i in range(N):
-        t = i / RATE
-        out[i] += rumble[i] / top * gain * (0.8 + 0.3 * math.sin(TAU * 2.0 / SECONDS * t))
-
-
 def render_plucks(out: list, rng: random.Random, spec: dict) -> None:
     times = sorted(rng.uniform(0.3, SECONDS - 0.5) for _ in range(spec["count"]))
     for start in times:
@@ -210,20 +197,6 @@ def render_creaks(out: list, rng: random.Random, spec: dict) -> None:
         add(out, creak, start, spec["gain"] * 8.0)
 
 
-def render_swirl(out: list, rng: random.Random, spec: dict) -> None:
-    """Filtered noise swelling in and out like rushing water."""
-    fade = int(2.0 * RATE)
-    long = bandpass(noise(N + fade, rng), spec["low"], spec["high"])
-    raw = long[:N]
-    for i in range(fade):  # crossfade the tail into the head so the loop has no tick
-        g = i / fade
-        raw[i] = raw[i] * g + long[N + i] * (1.0 - g)
-    lfo = snap(spec["rate"])
-    for i in range(N):
-        t = i / RATE
-        out[i] += raw[i] * (0.5 + 0.5 * math.sin(TAU * lfo * t)) * spec["gain"] * 6.0
-
-
 def render_crackle(out: list, rng: random.Random, spec: dict) -> None:
     for _ in range(spec["count"]):
         start = rng.uniform(0.0, SECONDS)
@@ -245,7 +218,6 @@ def render(theme: dict) -> list:
         theme["trem_rate"],
         theme["trem_depth"],
     )
-    render_rumble(out, rng, theme["rumble_cutoff"], theme["rumble_gain"])
     for layer in theme.get("layers", ()):
         kind = layer["kind"]
         if kind == "plucks":
@@ -262,8 +234,6 @@ def render(theme: dict) -> list:
             render_pings(out, layer)
         elif kind == "creaks":
             render_creaks(out, rng, layer)
-        elif kind == "swirl":
-            render_swirl(out, rng, layer)
         elif kind == "crackle":
             render_crackle(out, rng, layer)
     rms = math.sqrt(sum(s * s for s in out) / N)
@@ -292,8 +262,6 @@ THEMES = {
         "pad_gain": 0.10,
         "trem_rate": 0.09,
         "trem_depth": 0.3,
-        "rumble_cutoff": 220.0,
-        "rumble_gain": 0.5,
         "layers": (
             {
                 "kind": "plucks",
@@ -317,8 +285,6 @@ THEMES = {
         "pad_gain": 0.07,
         "trem_rate": 0.12,
         "trem_depth": 0.35,
-        "rumble_cutoff": 180.0,
-        "rumble_gain": 0.25,
         "layers": (
             {
                 "kind": "plucks",
@@ -344,8 +310,6 @@ THEMES = {
         "pad_gain": 0.055,
         "trem_rate": 0.06,
         "trem_depth": 0.25,
-        "rumble_cutoff": 320.0,
-        "rumble_gain": 0.9,
         "layers": (
             {"kind": "pings", "times": (2.0, 14.0), "freq": hz(48), "decay": 1.4,
              "gain": 0.5, "gaps": (1.6, 3.2)},
@@ -355,7 +319,7 @@ THEMES = {
              "bell": True, "gaps": (0.9, 1.8)},
         ),
     },
-    # Whirlpool: A minor arpeggio circling round chord tones over rushing water.
+    # Whirlpool: A minor arpeggio circling round chord tones.
     "whirlpool": {
         "seed": 24,
         "chords": (
@@ -368,10 +332,7 @@ THEMES = {
         "pad_gain": 0.08,
         "trem_rate": 0.25,
         "trem_depth": 0.4,
-        "rumble_cutoff": 280.0,
-        "rumble_gain": 0.6,
         "layers": (
-            {"kind": "swirl", "low": 250.0, "high": 1400.0, "rate": 0.25, "gain": 0.03},
             {"kind": "arp", "bpm": 120, "div": 2, "decay": 0.28, "gain": 0.075, "accent": 6,
              "pattern": (57, 60, 64, 69, 72, 69, 64, 60, 53, 57, 60, 65, 69, 65, 60, 57,
                          55, 60, 64, 67, 72, 67, 64, 60, 55, 59, 62, 67, 71, 67, 62, 59)},
@@ -390,8 +351,6 @@ THEMES = {
         "pad_gain": 0.085,
         "trem_rate": 0.17,
         "trem_depth": 0.45,
-        "rumble_cutoff": 200.0,
-        "rumble_gain": 0.3,
         "layers": (
             {"kind": "plucks", "count": 11, "notes": (77, 79, 81, 84, 86, 89), "decay": 0.7,
              "gain": 0.10, "glide": True, "gaps": (0.55, 1.1, 1.65)},
@@ -411,8 +370,6 @@ THEMES = {
         "pad_gain": 0.09,
         "trem_rate": 0.05,
         "trem_depth": 0.3,
-        "rumble_cutoff": 150.0,
-        "rumble_gain": 1.0,
         "layers": (
             {"kind": "pulse", "bpm": 45, "freq": 70.0, "decay": 0.16, "gain": 0.35,
              "double": 0.28},
@@ -433,8 +390,6 @@ THEMES = {
         "pad_gain": 0.045,
         "trem_rate": 0.1,
         "trem_depth": 0.2,
-        "rumble_cutoff": 260.0,
-        "rumble_gain": 0.8,
         "layers": (
             {"kind": "pulse", "bpm": 90, "freq": 60.0, "decay": 0.13, "gain": 0.45},
             {"kind": "hiss", "bpm": 90, "every": 2, "offset": 1, "decay": 0.22, "low": 1500.0,
@@ -457,8 +412,6 @@ THEMES = {
         "pad_gain": 0.07,
         "trem_rate": 0.13,
         "trem_depth": 0.25,
-        "rumble_cutoff": 200.0,
-        "rumble_gain": 0.2,
         "layers": (
             {"kind": "arp", "bpm": 120, "div": 2, "decay": 0.16, "gain": 0.09, "accent": 4,
              "partials": MALLET,
@@ -487,8 +440,6 @@ THEMES = {
         "pad_gain": 0.05,
         "trem_rate": 0.07,
         "trem_depth": 0.3,
-        "rumble_cutoff": 170.0,
-        "rumble_gain": 0.9,
         "layers": (
             {"kind": "pulse", "bpm": 60, "freq": 52.0, "decay": 0.22, "gain": 0.45,
              "double": 0.5},
@@ -509,8 +460,6 @@ THEMES = {
         "pad_gain": 0.08,
         "trem_rate": 0.2,
         "trem_depth": 0.35,
-        "rumble_cutoff": 180.0,
-        "rumble_gain": 0.5,
         "layers": (
             {"kind": "arp", "bpm": 100, "div": 2, "decay": 0.3, "gain": 0.08, "accent": 4,
              "partials": GLASS,
@@ -521,7 +470,7 @@ THEMES = {
             {"kind": "pulse", "bpm": 50, "freq": 65.0, "decay": 0.2, "gain": 0.3},
         ),
     },
-    # Ebb tide: slow D dorian, a low swell like the sea breathing out and dripping bells.
+    # Ebb tide: slow D dorian, slow pads and dripping bells.
     "tide": {
         "seed": 31,
         "chords": (
@@ -534,11 +483,8 @@ THEMES = {
         "pad_gain": 0.09,
         "trem_rate": 0.08,
         "trem_depth": 0.35,
-        "rumble_cutoff": 240.0,
-        "rumble_gain": 0.6,
         "layers": (
             {"kind": "pulse", "bpm": 60, "freq": 55.0, "decay": 0.3, "gain": 0.3},
-            {"kind": "swirl", "low": 200.0, "high": 1400.0, "rate": 0.08, "gain": 0.05},
             {
                 "kind": "plucks",
                 "count": 14,
@@ -563,8 +509,6 @@ THEMES = {
         "pad_gain": 0.07,
         "trem_rate": 0.11,
         "trem_depth": 0.25,
-        "rumble_cutoff": 210.0,
-        "rumble_gain": 0.25,
         "layers": (
             {"kind": "arp", "bpm": 100, "div": 2, "decay": 0.16, "gain": 0.09, "accent": 3,
              "partials": MALLET,
@@ -589,8 +533,6 @@ THEMES = {
         "pad_gain": 0.075,
         "trem_rate": 0.05,
         "trem_depth": 0.3,
-        "rumble_cutoff": 200.0,
-        "rumble_gain": 0.7,
         "layers": (
             {"kind": "pings", "times": (1.5, 7.5, 13.5, 19.5), "freq": hz(57), "decay": 1.6,
              "gain": 0.4, "gaps": (1.4, 2.8)},
@@ -606,7 +548,7 @@ THEMES = {
             },
         ),
     },
-    # Washing machine: cheerful C major, a steady thump like a tumbling load, swishing water and
+    # Washing machine: cheerful C major, a steady thump like a tumbling load and
     # a marimba arpeggio.
     "washer": {
         "seed": 50,
@@ -620,8 +562,6 @@ THEMES = {
         "pad_gain": 0.07,
         "trem_rate": 0.11,
         "trem_depth": 0.3,
-        "rumble_cutoff": 210.0,
-        "rumble_gain": 0.45,
         "layers": (
             {"kind": "arp", "bpm": 120, "div": 2, "decay": 0.16, "gain": 0.08, "accent": 4,
              "partials": MALLET,
@@ -630,8 +570,6 @@ THEMES = {
                          74, 79, 83, 79, 74, 79, 83, 86,
                          69, 72, 76, 72, 69, 72, 76, 81)},
             {"kind": "pulse", "bpm": 60, "freq": 58.0, "decay": 0.3, "gain": 0.3},
-            {"kind": "hiss", "bpm": 120, "every": 4, "offset": 2, "decay": 0.3, "low": 800.0,
-             "high": 3500.0, "gain": 0.05},
         ),
     },
     # Inside the whale: slow D minor, a heartbeat under a warbling pad and gurgling bells.
@@ -647,11 +585,8 @@ THEMES = {
         "pad_gain": 0.09,
         "trem_rate": 0.22,
         "trem_depth": 0.4,
-        "rumble_cutoff": 200.0,
-        "rumble_gain": 0.7,
         "layers": (
             {"kind": "pulse", "bpm": 72, "freq": 52.0, "decay": 0.22, "gain": 0.5},
-            {"kind": "swirl", "low": 150.0, "high": 900.0, "rate": 0.12, "gain": 0.05},
             {
                 "kind": "plucks",
                 "count": 12,
@@ -663,7 +598,7 @@ THEMES = {
             },
         ),
     },
-    # Toilet flush: a cheeky C major bathroom lounge, bouncy bass, marimba and gurgling water.
+    # Toilet flush: a cheeky C major bathroom lounge, bouncy bass, marimba and gurgling plucks.
     "flush": {
         "seed": 61,
         "chords": (
@@ -676,10 +611,7 @@ THEMES = {
         "pad_gain": 0.06,
         "trem_rate": 0.12,
         "trem_depth": 0.3,
-        "rumble_cutoff": 220.0,
-        "rumble_gain": 0.4,
         "layers": (
-            {"kind": "swirl", "low": 300.0, "high": 1800.0, "rate": 0.125, "gain": 0.03},
             {"kind": "arp", "bpm": 100, "div": 2, "decay": 0.22, "gain": 0.07, "accent": 4,
              "partials": MALLET,
              "pattern": (72, 76, 79, 76, 72, 76, 79, 84, 79, 76, 72, 76, 79, 76, 72, 67, 71, 74, 72, 67, 69,
