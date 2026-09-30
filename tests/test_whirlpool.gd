@@ -121,3 +121,53 @@ func test_time_in_the_basin_differs_between_marbles_and_between_races() -> void:
 	var needed: float = first._dwell_needed(a)
 	assert_gte(needed, Whirlpool.MIN_DWELL)
 	assert_lte(needed, Whirlpool.MIN_DWELL + Whirlpool.DWELL_SPREAD)
+
+
+func _track() -> Track:
+	var track: Track = TrackCatalog.instantiate("whirlpool")
+	add_child_autofree(track)
+	return track
+
+
+func test_progress_is_the_same_all_the_way_round_the_basin() -> void:
+	# Measured against the route it read 0.45 to 0.6 depending on the side the fish was on,
+	# so the follow cam hopped between the fish circling in it.
+	var track: Track = _track()
+	var whirlpool: Whirlpool = track.get_hazards()[0] as Whirlpool
+	var center: Vector2 = whirlpool.get_center()
+	var first: float = track.get_progress(center)
+	for step: int in 36:
+		for fraction: float in [0.3, 0.6, 0.95]:
+			var at: Vector2 = (
+				center + Vector2.from_angle(TAU * step / 36.0) * whirlpool.get_radius() * fraction
+			)
+			assert_almost_eq(track.get_progress(at), first, 0.0001, "%s" % at)
+
+
+func test_progress_never_jumps_between_the_entry_the_basin_and_the_exits() -> void:
+	var track: Track = _track()
+	var whirlpool: Whirlpool = track.get_hazards()[0] as Whirlpool
+	var center: Vector2 = whirlpool.get_center()
+	var finish: Vector2 = track.get_finish_position()
+	# Down the entry ramp, through the basin, out of each exit and on to the finish.
+	var walks: Array[PackedVector2Array] = []
+	for exit: int in whirlpool.exit_degrees.size():
+		var out: Vector2 = whirlpool.get_exit_direction(exit)
+		var walk: PackedVector2Array = PackedVector2Array(
+			[Vector2(100, 160), Vector2(400, 250), Vector2(690, 335), center]
+		)
+		walk.append(center + out * whirlpool.get_radius() * 1.2)
+		walk.append(Vector2(center.x + out.x * 450.0, finish.y - 40.0))
+		walk.append(finish)
+		walks.append(walk)
+	for walk: PackedVector2Array in walks:
+		var last: float = track.get_progress(walk[0])
+		for i: int in range(1, walk.size()):
+			var steps: int = 40
+			for s: int in range(1, steps + 1):
+				var at: Vector2 = walk[i - 1].lerp(walk[i], float(s) / steps)
+				var now: float = track.get_progress(at)
+				assert_lt(absf(now - last), 0.06, "jumped at %s" % at)
+				assert_gte(now, last - 0.02, "went backwards at %s" % at)
+				last = now
+		assert_gt(last, 0.95, "reaches the finish")
