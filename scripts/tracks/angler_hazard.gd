@@ -8,6 +8,8 @@ extends Hazard
 
 signal fish_eaten(marble: Marble)
 signal fish_spat(marble: Marble)
+## A particle burst was let off (bite, swallow, spit), for the finish replay to play again.
+signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
 
 enum Stage { HUNT, LUNGE, HOLD, RETREAT }
 
@@ -250,13 +252,13 @@ func _bite() -> void:
 			var db: float = mouth.distance_squared_to(b.global_position)
 			return da < db or (da == db and a.id < b.id)
 	)
-	RaceFx.burst(self, mouth, lure.tint, 18, 170.0, Vector2.ZERO)
+	_burst(mouth, lure.tint, 18, 170.0, Vector2.ZERO)
 	for i: int in mini(victims.size(), MAX_EATEN):
 		_swallow(victims[i], _lair)
 
 
 func _swallow(marble: Marble, lair: int) -> void:
-	RaceFx.burst(self, marble.global_position, EATEN_COLOR, 26, 220.0, Vector2.ZERO)
+	_burst(marble.global_position, EATEN_COLOR, 26, 220.0, Vector2.ZERO)
 	marble.swallow()
 	(
 		_swallowed
@@ -291,8 +293,13 @@ func _spit(marble: Marble, lair: int) -> void:
 	_spat += 1
 	var spot: Vector2 = to_global(get_spit_point(lair) + Vector2(slot * SPIT_SPACING, 0.0))
 	marble.release(spot, spit_velocity + Vector2(slot * 20.0, 0.0))
-	RaceFx.burst(self, spot, EATEN_COLOR.lerp(Color.WHITE, 0.5), 22, 170.0, Vector2(0.0, 60.0))
+	_burst(spot, EATEN_COLOR.lerp(Color.WHITE, 0.5), 22, 170.0, Vector2(0.0, 60.0))
 	fish_spat.emit(marble)
+
+
+func _burst(at: Vector2, color: Color, amount: int, speed: float, gravity: Vector2) -> void:
+	RaceFx.burst(self, at, color, amount, speed, gravity)
+	burst_played.emit(at, color, amount, speed, gravity)
 
 
 func _draw() -> void:

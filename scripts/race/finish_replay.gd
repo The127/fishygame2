@@ -277,6 +277,9 @@ func _play_events() -> void:
 
 
 func _play_event(event: Dictionary) -> void:
+	if int(event["kind"]) == ReplayRecorder.Kind.BURST:
+		_play_burst(event)
+		return
 	var id: int = int(event["id"])
 	var marble: Marble = _marbles.get(id)
 	if marble == null or not is_instance_valid(marble):
@@ -292,3 +295,16 @@ func _play_event(event: Dictionary) -> void:
 			RaceFx.burst(marble, at, RaceFx.BOOST_COLOR, 16, 130.0)
 		ReplayRecorder.Kind.CURSE:
 			RaceFx.burst(marble, at, RaceFx.CURSE_COLOR, 14, 70.0, Vector2(0, 30))
+
+
+## A particle burst that belongs to the map, not to a fish.
+func _play_burst(event: Dictionary) -> void:
+	var data: Dictionary = event.get("data", {})
+	RaceFx.burst(
+		self,
+		event["position"],
+		data.get("color", Color.WHITE),
+		int(data.get("amount", 14)),
+		float(data.get("speed", 90.0)),
+		data.get("gravity", Vector2(0, -40))
+	)

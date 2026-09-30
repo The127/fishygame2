@@ -5,7 +5,9 @@ extends RefCounted
 ## Memory is fixed at creation: a ring of frames with one pose per marble id, plus the state of
 ## every [Replayable] node on the map once [method bind_nodes] has been called.
 
-enum Kind { SPLASH, BOOST, CURSE }
+## BURST is a particle burst that belongs to no fish (anglerfish bite and spit, portal sparks):
+## its `data` holds the `color`, `amount`, `speed` and `gravity` of the burst.
+enum Kind { SPLASH, BOOST, CURSE, BURST }
 
 ## Seconds between recorded frames.
 const SAMPLE_INTERVAL: float = 1.0 / 30.0
@@ -33,7 +35,7 @@ var _size: int = 0
 var _last_time: float = -INF
 var _finish_time: float = -1.0
 var _winner_id: int = -1
-## Visual effects worth replaying: {time, id, kind, position}, oldest first.
+## Visual effects worth replaying: {time, id, kind, position, data}, oldest first.
 var _events: Array[Dictionary] = []
 
 
@@ -106,10 +108,12 @@ func mark_finish(time: float, winner_id: int) -> void:
 	_winner_id = winner_id
 
 
-func add_event(time: float, id: int, kind: Kind, position: Vector2) -> void:
+## Notes a visual effect. `id` is the fish it belongs to, or -1 for none; `data` is whatever
+## the kind needs to draw it again.
+func add_event(time: float, id: int, kind: Kind, position: Vector2, data: Dictionary = {}) -> void:
 	if is_done():
 		return
-	_events.append({"time": time, "id": id, "kind": kind, "position": position})
+	_events.append({"time": time, "id": id, "kind": kind, "position": position, "data": data})
 
 
 ## Recording is over: the winner crossed and the tail after it is stored.
