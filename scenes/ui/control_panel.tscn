@@ -118,6 +118,23 @@ max_value = 1.0
 step = 0.01
 value = 1.0
 
+[node name="AmbienceRow" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/Box/AmbienceRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Ambience"
+
+[node name="Slider" type="HSlider" parent="Panel/Box/AmbienceRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
 [node name="SfxRow" type="HBoxContainer" parent="Panel/Box"]
 layout_mode = 2
 

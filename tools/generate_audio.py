@@ -13,6 +13,7 @@ import random
 import wave
 from pathlib import Path
 
+import map_audio
 import music_themes
 
 SAMPLE_RATE = 22050
@@ -44,9 +45,9 @@ def write_wav(
     print(f"{name}: {len(samples) / rate:.2f}s, {len(data) * 2 // 1024} KiB")
 
 
-def fade_edges(samples: list, ms: float = 4.0) -> list:
+def fade_edges(samples: list, ms: float = 4.0, rate: int = SAMPLE_RATE) -> list:
     """Short fades so one-shots never click at the start or end."""
-    k = max(1, int(SAMPLE_RATE * ms / 1000.0))
+    k = max(1, int(rate * ms / 1000.0))
     for i in range(min(k, len(samples))):
         g = i / k
         samples[i] *= g
@@ -294,6 +295,17 @@ def main() -> None:
     write_wav("music_ambient.wav", music(), MUSIC_PEAK)
     for map_id, theme in music_themes.THEMES.items():
         write_wav(f"music_{map_id}.wav", music_themes.render(theme), 1.0, music_themes.RATE, False)
+    for map_id, spec in map_audio.JINGLES.items():
+        write_wav(
+            f"jingle_{map_id}.wav",
+            fade_edges(map_audio.jingle(spec), 4.0, map_audio.JINGLE_RATE),
+            SFX_PEAK,
+            map_audio.JINGLE_RATE,
+        )
+    for map_id in map_audio.AMBIENCE:
+        write_wav(
+            f"ambience_{map_id}.wav", map_audio.ambience(map_id), 1.0, map_audio.AMB_RATE, False
+        )
     effects = {
         "sfx_join.wav": sfx_join,
         "sfx_tick.wav": sfx_tick,

@@ -372,7 +372,7 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	_payouts = []
 	if podium.is_empty() or not podium[0]["finished"]:
 		return
-	Sound.play(Sound.Sfx.WIN)
+	Sound.play_win()
 	_confirm(
 		"reply_results", "results", "Race over:", _result_text(str(podium[0]["name"]), payouts)
 	)

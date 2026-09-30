@@ -1,5 +1,5 @@
 extends Node
-## Autoload "Sound": the one audio service. It creates the Music and SFX buses under
+## Autoload "Sound": the one audio service. It creates the Music, Ambience and SFX buses under
 ## Master, loops the ambient music and plays one-shot effects from a small player pool.
 ## Each map has its own music theme (see [member MUSIC_PATHS]); [method set_music_theme]
 ## crossfades to it. Volumes and mute come from [AudioSettings] and are saved shortly after
@@ -24,6 +24,28 @@ const MUSIC_PATHS: Dictionary = {
 	"abyss": "res://assets/audio/music_abyss.wav",
 	"vents": "res://assets/audio/music_vents.wav",
 	"coral": "res://assets/audio/music_coral.wav",
+}
+## Quiet looping sound bed by map id (the home screen has none).
+const AMBIENCE_PATHS: Dictionary = {
+	"zigzag": "res://assets/audio/ambience_zigzag.wav",
+	"pachinko": "res://assets/audio/ambience_pachinko.wav",
+	"wreck": "res://assets/audio/ambience_wreck.wav",
+	"whirlpool": "res://assets/audio/ambience_whirlpool.wav",
+	"jelly": "res://assets/audio/ambience_jelly.wav",
+	"abyss": "res://assets/audio/ambience_abyss.wav",
+	"vents": "res://assets/audio/ambience_vents.wav",
+	"coral": "res://assets/audio/ambience_coral.wav",
+}
+## Podium jingle by map id.
+const JINGLE_PATHS: Dictionary = {
+	"zigzag": "res://assets/audio/jingle_zigzag.wav",
+	"pachinko": "res://assets/audio/jingle_pachinko.wav",
+	"wreck": "res://assets/audio/jingle_wreck.wav",
+	"whirlpool": "res://assets/audio/jingle_whirlpool.wav",
+	"jelly": "res://assets/audio/jingle_jelly.wav",
+	"abyss": "res://assets/audio/jingle_abyss.wav",
+	"vents": "res://assets/audio/jingle_vents.wav",
+	"coral": "res://assets/audio/jingle_coral.wav",
 }
 const SFX_PATHS: Dictionary = {
 	Sfx.JOIN: "res://assets/audio/sfx_join.wav",
@@ -54,10 +76,11 @@ var _audible: bool = DisplayServer.get_name() != "headless"
 var _sfx_streams: Dictionary = {}
 var _players: Array[AudioStreamPlayer] = []
 var _last_played: Dictionary = {}
-var _music: AudioStreamPlayer
-var _music_fading: AudioStreamPlayer
-var _music_tween: Tween
+var _music: CrossfadeLoop
+var _ambience: CrossfadeLoop
 var _music_streams: Dictionary = {}
+var _ambience_streams: Dictionary = {}
+var _jingle_streams: Dictionary = {}
 var _theme: String = HOME_THEME
 var _dirty: bool = false
 var _save_timer: float = 0.0
@@ -76,15 +99,12 @@ func _ready() -> void:
 		player.bus = AudioSettings.BUS_SFX
 		add_child(player)
 		_players.append(player)
-	_music = _make_music_player()
-	_music_fading = _make_music_player()
-	_music.stream = _music_stream(_theme)
-	if not _audible:
-		return
-	_music.volume_db = SILENT_DB
-	_music.play()
-	_music_tween = create_tween()
-	_music_tween.tween_property(_music, "volume_db", 0.0, MUSIC_FADE_IN)
+	_music = CrossfadeLoop.new(AudioSettings.BUS_MUSIC)
+	_ambience = CrossfadeLoop.new(AudioSettings.BUS_AMBIENCE)
+	add_child(_music)
+	add_child(_ambience)
+	if _audible:
+		_music.fade_to(_music_stream(_theme), MUSIC_FADE_IN)
 
 
 func _process(delta: float) -> void:
@@ -100,8 +120,8 @@ func _input(event: InputEvent) -> void:
 		event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch
 	):
 		return
-	if _music != null and not _music.playing:
-		_music.play()
+	_music.resume_if_stopped()
+	_ambience.resume_if_stopped()
 
 
 func _notification(what: int) -> void:
@@ -123,23 +143,11 @@ func set_music_theme(id: String) -> void:
 	_theme = id
 	if not _audible:
 		return
-	if _music_tween != null:
-		_music_tween.kill()
-	# The player that was still fading out is reused below, so cut it off.
-	_music_fading.stop()
-	var outgoing: AudioStreamPlayer = _music
-	_music = _music_fading
-	_music_fading = outgoing
-	_music.stream = _music_stream(id)
-	_music.volume_db = SILENT_DB
-	_music.play()
-	# Quad easing keeps both themes audible mid-fade instead of dipping to silence.
-	_music_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_QUAD)
-	_music_tween.tween_property(_music, "volume_db", 0.0, MUSIC_CROSSFADE).set_ease(Tween.EASE_OUT)
-	_music_tween.tween_property(_music_fading, "volume_db", SILENT_DB, MUSIC_CROSSFADE).set_ease(
-		Tween.EASE_IN
-	)
-	_music_tween.chain().tween_callback(_music_fading.stop)
+	_music.fade_to(_music_stream(id), MUSIC_CROSSFADE)
+	if AMBIENCE_PATHS.has(id):
+		_ambience.fade_to(_ambience_stream(id), MUSIC_CROSSFADE)
+	else:
+		_ambience.fade_out(MUSIC_CROSSFADE)
 
 
 ## Id of the music theme that is playing (or fading in).
@@ -149,19 +157,17 @@ func get_music_theme() -> String:
 
 ## Plays a one-shot effect. Silently skipped when repeated too fast or the pool is busy.
 func play(sfx: Sfx) -> void:
-	var stream: AudioStream = _sfx_streams.get(sfx)
-	if stream == null or not _audible:
+	_play_stream(sfx, _sfx_streams.get(sfx), PITCH_JITTER)
+
+
+## Plays the podium sting of the current map, or the generic win sound when the theme has none.
+func play_win() -> void:
+	if not JINGLE_PATHS.has(_theme):
+		play(Sfx.WIN)
 		return
-	var now: int = Time.get_ticks_msec()
-	if now - int(_last_played.get(sfx, -MIN_REPEAT_MSEC)) < MIN_REPEAT_MSEC:
-		return
-	for player: AudioStreamPlayer in _players:
-		if not player.playing:
-			_last_played[sfx] = now
-			player.stream = stream
-			player.pitch_scale = 1.0 + _rng.randf_range(-PITCH_JITTER, PITCH_JITTER)
-			player.play()
-			return
+	if not _jingle_streams.has(_theme):
+		_jingle_streams[_theme] = load(JINGLE_PATHS[_theme])
+	_play_stream(_theme, _jingle_streams[_theme], 0.0)
 
 
 ## Sets a bus volume (linear 0..1) and schedules a save.
@@ -191,11 +197,19 @@ static func volume_to_db(value: float) -> float:
 	return maxf(linear_to_db(value), SILENT_DB)
 
 
-func _make_music_player() -> AudioStreamPlayer:
-	var player := AudioStreamPlayer.new()
-	player.bus = AudioSettings.BUS_MUSIC
-	add_child(player)
-	return player
+func _play_stream(key: Variant, stream: AudioStream, jitter: float) -> void:
+	if stream == null or not _audible:
+		return
+	var now: int = Time.get_ticks_msec()
+	if now - int(_last_played.get(key, -MIN_REPEAT_MSEC)) < MIN_REPEAT_MSEC:
+		return
+	for player: AudioStreamPlayer in _players:
+		if not player.playing:
+			_last_played[key] = now
+			player.stream = stream
+			player.pitch_scale = 1.0 + _rng.randf_range(-jitter, jitter)
+			player.play()
+			return
 
 
 func _music_stream(id: String) -> AudioStreamWAV:
@@ -204,13 +218,19 @@ func _music_stream(id: String) -> AudioStreamWAV:
 	return _music_streams[id]
 
 
+func _ambience_stream(id: String) -> AudioStreamWAV:
+	if not _ambience_streams.has(id):
+		_ambience_streams[id] = make_loop(load(AMBIENCE_PATHS[id]))
+	return _ambience_streams[id]
+
+
 func _mark_dirty() -> void:
 	_dirty = true
 	_save_timer = SAVE_DELAY
 
 
 func _ensure_buses() -> void:
-	for bus: String in [AudioSettings.BUS_MUSIC, AudioSettings.BUS_SFX]:
+	for bus: String in [AudioSettings.BUS_MUSIC, AudioSettings.BUS_AMBIENCE, AudioSettings.BUS_SFX]:
 		if AudioServer.get_bus_index(bus) != -1:
 			continue
 		AudioServer.add_bus()
