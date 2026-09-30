@@ -16,8 +16,9 @@ const IMMUNE_SECONDS: float = 2.5
 ## sinks while held, in pixels per second.
 const GRIP: float = 9.0
 const SAG_SPEED: float = 30.0
-## Floats in a [method snapshot].
-const SNAPSHOT_FLOATS: int = 5
+## Fish ids a [method snapshot] keeps per jellyfish (-1 for an empty slot), and floats in it.
+const HELD_SLOTS: int = 3
+const SNAPSHOT_FLOATS: int = 5 + HELD_SLOTS
 
 ## Radius of the bell (the part marbles bounce off).
 @export var radius: float = 42.0
@@ -43,6 +44,9 @@ var _held: Dictionary = {}
 var _immune: Dictionary = {}
 var _sting: float = 0.0
 var _sting_area: Area2D
+## Replay: the fish by id while a replay plays (null otherwise) and the ids shown as held.
+var _replay_fish: Variant = null
+var _shown_held: Array[int] = []
 
 
 func _ready() -> void:
@@ -117,9 +121,19 @@ func advance(delta: float, speed_scale: float = 1.0) -> void:
 	_update_catches(delta)
 
 
-## What the finish replay needs to draw this jellyfish: position, drift clock, glow and sting.
+## What the finish replay needs to draw this jellyfish: position, drift clock, glow and sting,
+## then the ids of the fish its tentacles hold (-1 for none), for the crackle drawn to them.
 func snapshot() -> PackedFloat32Array:
-	return PackedFloat32Array([position.x, position.y, _clock, excite, _sting])
+	var state: PackedFloat32Array = PackedFloat32Array(
+		[position.x, position.y, _clock, excite, _sting]
+	)
+	var ids: Array[int] = []
+	for key: Variant in _held.keys():
+		if ids.size() < HELD_SLOTS and is_instance_valid(key):
+			ids.append((key as Marble).id)
+	for k: int in HELD_SLOTS:
+		state.append(float(ids[k]) if k < ids.size() else -1.0)
+	return state
 
 
 ## Shows the jellyfish as a [method snapshot] recorded it. Does not move it along its path.
@@ -128,6 +142,17 @@ func show_snapshot(values: PackedFloat32Array) -> void:
 	_clock = values[2]
 	excite = values[3]
 	_sting = values[4]
+	_shown_held.clear()
+	for k: int in HELD_SLOTS:
+		_shown_held.append(roundi(values[5 + k]))
+	queue_redraw()
+
+
+## Replay: tells the jellyfish where to find the fish (id to [Marble]) so it can draw the crackle
+## to the ones the recording says it held. `null` goes back to the live fish.
+func use_replay_fish(fish: Variant) -> void:
+	_replay_fish = fish
+	_shown_held.clear()
 	queue_redraw()
 
 
@@ -231,11 +256,7 @@ func _draw() -> void:
 		var color: Color = Color(tint.lightened(0.5 * grip), (0.5 + 0.4 * grip) * glow)
 		draw_polyline(points, color, 3.0 + grip, true)
 	# A crackle of light from the tentacles to every fish they hold.
-	for key: Variant in _held.keys():
-		if not is_instance_valid(key):
-			continue
-		var marble: Marble = key as Marble
-		var there: Vector2 = to_local(marble.global_position)
+	for there: Vector2 in _held_points():
 		var from: Vector2 = Vector2(clampf(there.x, -radius * 0.7, radius * 0.7), radius * 1.4)
 		var zig: Vector2 = (there - from).orthogonal().normalized() * 6.0 * sin(_clock * 40.0)
 		draw_polyline(
@@ -245,3 +266,21 @@ func _draw() -> void:
 			true
 		)
 		draw_circle(there, Marble.RADIUS * 1.6, Color(tint.lightened(0.6), 0.25))
+
+
+## Local positions of the fish to draw the crackle to: the ones held now, or during a replay the
+## ones the recording says were held, where the replayed fish are.
+func _held_points() -> Array[Vector2]:
+	var points: Array[Vector2] = []
+	if _replay_fish != null:
+		var fish: Dictionary = _replay_fish
+		for id: int in _shown_held:
+			var marble: Variant = fish.get(id)
+			if id >= 0 and marble != null and is_instance_valid(marble):
+				if (marble as Marble).visible:
+					points.append(to_local((marble as Marble).global_position))
+		return points
+	for key: Variant in _held.keys():
+		if is_instance_valid(key):
+			points.append(to_local((key as Marble).global_position))
+	return points

@@ -15,7 +15,8 @@ extends RefCounted
 ## While a replay plays, [FinishReplay] switches the node's physics processing off, so nothing
 ## advances on its own, then calls `replay_apply` every frame and puts the node back to the
 ## state it had before the replay when the replay ends. A node that needs more can also define
-## `replay_begin()` and `replay_end()`, called around the replay.
+## `replay_begin()` and `replay_end()`, called around the replay, and `replay_fish(fish)`, which
+## gets the replayed fish (marble id to [Marble]) for a node that draws something to them.
 
 const GROUP: StringName = &"replayable"
 const STATE_METHOD: StringName = &"replay_state"

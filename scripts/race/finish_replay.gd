@@ -225,6 +225,8 @@ func _begin_nodes() -> void:
 		_free_moving_bodies(node)
 		if node.has_method("replay_begin"):
 			node.call("replay_begin")
+		if node.has_method("replay_fish"):
+			node.call("replay_fish", _marbles)
 
 
 func _apply_nodes(weight: float) -> void:
