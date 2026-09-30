@@ -154,3 +154,14 @@ func test_fish_dropping_onto_the_left_of_the_first_lane_are_not_ahead() -> void:
 	assert_lt(dropped, 0.2, "a fish on the left of the first lane has barely started")
 	assert_lt(dropped, rolling)
 	assert_lt(rolling, home_run)
+
+
+func test_the_rings_nest_and_turn_different_ways() -> void:
+	var rings: Array[WashDrum] = _spin.get_drums()
+	assert_eq(rings.size(), 3, "an outer drum with two rings inside")
+	for i: int in rings.size() - 1:
+		assert_gt(
+			rings[i].outer_radius - rings[i + 1].outer_radius, 60.0, "room for a fish between"
+		)
+		assert_ne(rings[i].direction, rings[i + 1].direction, "neighbours swing opposite ways")
+		assert_ne(rings[i].tumble_seconds, rings[i + 1].tumble_seconds, "at their own pace")

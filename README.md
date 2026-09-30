@@ -278,15 +278,20 @@ off nothing moves, so every state has to stay passable. A ruin is a child of the
 `Sweep` and metadata for `mode` (`open`, `close` or `topple`), `lie_degrees` and `height`. The finish
 replay shows the shaking and falling towers, the slabs, the rubble and the dust of the crash.
 
-Washing Machine starts the fish inside a steel drum (`scripts/tracks/wash_drum.gd`) that tumbles like
-a real washer: it swings clockwise about 260 degrees, slows and swings back, over and over, so the
-load never rides the wall for long. A gap in the rim is the door, and each time it sweeps past the
-bottom a few fish drop out onto two drain lanes that lead to the finish. There are deliberately no
-baffles inside: a pocket carries its fish round with the door and they never meet, which trapped
-fish for minutes in testing. The drum waits a seeded moment before it starts and never jumps, so the
-rim can not hit a fish. Its hazard is a spin cycle (`scripts/tracks/spin_cycle_hazard.gd`): the drum
-whirls through one or two whole laps, sometimes counterclockwise, then drops back into its tumble
-exactly where it was. The drum keeps tumbling when hazards are off.
+Washing Machine is circles inside circles: the fish start in the middle of three nested steel rings
+(`scripts/tracks/wash_drum.gd`, one `WashDrum` node per ring under the spin cycle hazard). Every ring
+tumbles like a real washer: it swings about 250 to 300 degrees, slows and swings back, over and over,
+so the load never rides the wall for long. Neighbouring rings swing opposite ways at their own pace
+(3.5, 5 and 7 seconds a swing), each with a door gap in the rim. A fish drops through a door when it
+sweeps past the bottom, into the channel of the next ring out, and out of the last door onto two
+drain lanes that lead to the finish. There are deliberately no baffles inside: a pocket carries its
+fish round with the door and they never meet, which trapped fish for minutes in testing. Each ring
+waits a seeded moment before it starts and never jumps, so a rim can not hit a fish. The hazard is a
+spin cycle (`scripts/tracks/spin_cycle_hazard.gd`): the rings whirl through one or two whole laps
+(each by its own whole multiple, sometimes counterclockwise), then drop back into their tumble
+exactly where they were. The rings keep tumbling when hazards are off. The race centerline starts on
+the left of the first lane so fish dropping onto it never read as nearly finished (the follow cam
+chases the leader by progress along that line).
 
 Inside the Whale swallows the fish at the start: a throat slide drops into a stomach whose
 pink muscle lobes swell and relax (`scripts/tracks/pulsing_bumper.gd`, the pulse starts at a point

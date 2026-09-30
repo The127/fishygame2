@@ -1,8 +1,8 @@
 class_name SpinCycleHazard
 extends Hazard
-## The spin cycle of the Washing Machine: the drum (its child) whirls through a few whole turns,
-## sometimes the other way round, and flings suds about, then settles back into its tumble
-## exactly where it was. The door lamp flashes during the telegraph. It also carries the drum's
+## The spin cycle of the Washing Machine: the rings (its [WashDrum] children) whirl through a few
+## whole turns, each by its own multiple and sometimes the other way round, and fling suds about,
+## then settle back into their tumble exactly where they were. The door lamp flashes during the telegraph. It also carries the drum's
 ## race start and stop, since the drum turns whatever the hazard setting is.
 
 ## A burst of suds: what [method RaceFx.burst] was given, so the finish replay can play the same
@@ -16,7 +16,7 @@ const TURNS_MAX: int = 2
 ## Chance that a burst turns the drum counterclockwise.
 const REVERSE_CHANCE: float = 0.4
 
-var _drum: WashDrum
+var _drums: Array[WashDrum] = []
 ## Signed whole turns of the running burst.
 var _turns: float = 0.0
 
@@ -24,23 +24,25 @@ var _turns: float = 0.0
 func _ready() -> void:
 	for child: Node in get_children():
 		if child is WashDrum:
-			_drum = child as WashDrum
+			_drums.append(child as WashDrum)
 
 
-## Starts the drum for a race ([method Track.seed_gimmicks] calls this).
+## Starts the rings for a race ([method Track.seed_gimmicks] calls this). Each ring draws its own
+## start delay from the seed.
 func reseed(seed_value: int) -> void:
-	if _drum != null:
-		_drum.reseed(seed_value)
+	for i: int in _drums.size():
+		_drums[i].reseed(seed_value + i * 7919)
 
 
-## Brings the drum back to rest ([method Track.stop_gimmicks] calls this).
+## Brings the rings back to rest ([method Track.stop_gimmicks] calls this).
 func stop_gimmick() -> void:
-	if _drum != null:
-		_drum.stop()
+	for drum: WashDrum in _drums:
+		drum.stop()
 
 
-func get_drum() -> WashDrum:
-	return _drum
+## The rings, outermost first.
+func get_drums() -> Array[WashDrum]:
+	return _drums
 
 
 func _begin_telegraph(rng: RandomNumberGenerator) -> void:
@@ -50,30 +52,33 @@ func _begin_telegraph(rng: RandomNumberGenerator) -> void:
 
 
 func _process_telegraph(_delta: float) -> void:
-	if _drum != null:
-		var pulse: float = 0.5 + 0.5 * sin(clock * 16.0)
-		_drum.alarm = phase_progress() * (0.4 + 0.6 * pulse)
+	var pulse: float = 0.5 + 0.5 * sin(clock * 16.0)
+	for drum: WashDrum in _drums:
+		drum.alarm = phase_progress() * (0.4 + 0.6 * pulse)
 
 
 func _begin_active() -> void:
-	if _drum == null:
+	if _drums.is_empty():
 		return
-	_drum.alarm = 0.0
-	var at: Vector2 = _drum.global_position
+	for drum: WashDrum in _drums:
+		drum.alarm = 0.0
+	var at: Vector2 = _drums[0].global_position
 	RaceFx.burst(self, at, SUDS_COLOR, 40, 260.0, Vector2(0, 60))
 	burst_played.emit(at, SUDS_COLOR, 40, 260.0, Vector2(0, 60))
 
 
 func _process_active(_delta: float) -> void:
-	if _drum != null:
-		_drum.spin = _turns * TAU * smoothstep(0.0, 1.0, phase_progress())
+	for drum: WashDrum in _drums:
+		drum.spin = (
+			_turns * float(drum.spin_multiplier) * TAU * smoothstep(0.0, 1.0, phase_progress())
+		)
 
 
 func _end_event() -> void:
-	if _drum != null:
-		# A whole number of turns, so dropping it back to zero leaves the drum where it is.
-		_drum.spin = 0.0
-		_drum.alarm = 0.0
+	for drum: WashDrum in _drums:
+		# A whole number of turns, so dropping it back to zero leaves the ring where it is.
+		drum.spin = 0.0
+		drum.alarm = 0.0
 
 
 func _reset() -> void:
