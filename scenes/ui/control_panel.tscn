@@ -54,6 +54,34 @@ layout_mode = 2
 focus_mode = 0
 text = "Stop"
 
+[node name="PowerButtons" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="Rod" type="Button" parent="Panel/Box/PowerButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+text = "Rod (1)"
+
+[node name="Net" type="Button" parent="Panel/Box/PowerButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+text = "Net (2)"
+
+[node name="Blast" type="Button" parent="Panel/Box/PowerButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+text = "Blast (3)"
+
+[node name="PowerStatus" type="Label" parent="Panel/Box"]
+layout_mode = 2
+text = "Streamer powers: pick one, then click the track"
+
 [node name="DebugButtons" type="HBoxContainer" parent="Panel/Box"]
 layout_mode = 2
 

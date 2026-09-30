@@ -42,6 +42,13 @@ const CHAOS_REJECTIONS: Dictionary = {
 	"insufficient": "not enough points",
 }
 
+const POWER_REJECTIONS: Dictionary = {
+	"off": "streamer powers are off in the settings",
+	"closed": "powers only work during a race",
+	"cooldown": "power is recharging",
+	"cap": "no powers left this race",
+}
+
 ## Milliseconds between "#top" replies in chat, shared by everyone.
 const TOP_COOLDOWN_MSEC: int = 30000
 
@@ -58,6 +65,12 @@ const NAMED_COMMANDS: PackedStringArray = [
 
 ## Most payouts named in the race result line.
 const RESULT_PAYOUTS: int = 3
+
+## Seconds a cast net holds fish.
+const NET_SECONDS: float = 2.5
+
+## Milliseconds a "power not available" line stays in the control panel.
+const POWER_NOTE_MSEC: int = 3000
 
 const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
 
@@ -80,12 +93,18 @@ var _photo: PhotoFinish = PhotoFinish.new()
 var _batcher: ChatBatcher = ChatBatcher.new()
 var _meow: Meow = Meow.new()
 var _payouts: Array[Dictionary] = []
+## The streamer power waiting for a click on the track (a StreamerPowers.Kind), or -1.
+var _armed_power: int = -1
+var _power_cursor: PowerCursor = PowerCursor.new()
+var _power_note: String = ""
+var _power_note_until_msec: int = 0
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
 @onready var _chaos: Chaos = $Chaos
 @onready var _shop: Shop = $Shop
 @onready var _cheer: Cheer = $Cheer
+@onready var _powers: StreamerPowers = $StreamerPowers
 @onready var _race: Race = $Race
 @onready var _camera: RaceCamera = $RaceCamera
 @onready var _overlay: Overlay = $Overlay
@@ -134,10 +153,16 @@ func _ready() -> void:
 	_flow.player_joined.connect(_meow.add_contestant)
 	_flow.state_changed.connect(_meow.on_state_changed)
 	_meow.meow_requested.connect(_on_meow_requested)
+	_flow.state_changed.connect(_powers.on_state_changed)
+	_powers.power_used.connect(_on_power_used)
+	_powers.power_rejected.connect(_on_power_rejected)
+	_panel.power_pressed.connect(_on_power_pressed)
+	add_child(_power_cursor)
 	_race.marble_finished.connect(_chaos.on_marble_finished)
 	_race.marble_finished.connect(_cheer.on_marble_finished)
 	# Before the flow's connection below, so chaos closes before the state changes.
 	_race.race_finished.connect(_chaos.on_race_finished)
+	_race.race_finished.connect(_powers.on_race_finished)
 	_race.race_finished.connect(_cheer.on_race_finished)
 	_race.race_finished.connect(_meow.on_race_finished)
 	_flow.podium_ready.connect(_overlay.show_podium)
@@ -198,6 +223,9 @@ func _apply_settings() -> void:
 	_chaos.curse_cost = settings.curse_cost
 	_chaos.viewer_cooldown = float(settings.viewer_cooldown)
 	_chaos.fish_lockout = float(settings.fish_lockout)
+	_powers.enabled = settings.powers_enabled
+	_powers.cooldown = float(settings.power_cooldown)
+	_powers.max_per_race = settings.powers_per_race
 	_cheer.command_prefix = Chat.parser.prefix
 	_cheer.strength_percent = settings.cheer_strength
 	_cheer.viewer_cooldown = float(settings.cheer_viewer_cooldown)
@@ -214,10 +242,27 @@ func _process(_delta: float) -> void:
 	if _flow.state == GameFlow.State.RACING and _race.running:
 		_camera.follow(_race.get_position_map(), _race.get_progress_map())
 	_panel.set_status(_status_text())
+	_panel.set_power_status(_power_status_text())
+
+
+## Left click fires the armed streamer power at the mouse; right click puts it away.
+func _unhandled_input(event: InputEvent) -> void:
+	var click: InputEventMouseButton = event as InputEventMouseButton
+	if click == null or not click.pressed or _armed_power < 0:
+		return
+	if click.button_index == MOUSE_BUTTON_LEFT:
+		var kind: int = _armed_power
+		_arm_power(-1)
+		_powers.use(kind as StreamerPowers.Kind, get_global_mouse_position())
+		get_viewport().set_input_as_handled()
+	elif click.button_index == MOUSE_BUTTON_RIGHT:
+		_arm_power(-1)
+		get_viewport().set_input_as_handled()
 
 
 func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> void:
 	_photo.stop()
+	_arm_power(-1)
 	if new_state != GameFlow.State.COUNTDOWN and new_state != GameFlow.State.RACING:
 		_panel.cancel_leave()
 	match new_state:
@@ -468,6 +513,76 @@ func _on_pick_placed(msg: ChatMessage, target: Contestant) -> void:
 func _on_pick_rejected(msg: ChatMessage, reason: String) -> void:
 	var text: String = PICK_REJECTIONS.get(reason, "pick not accepted")
 	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
+
+
+func _on_power_pressed(kind: int) -> void:
+	_arm_power(-1 if kind == _armed_power else kind)
+
+
+func _arm_power(kind: int) -> void:
+	_armed_power = kind
+	_panel.set_armed_power(kind)
+	_power_cursor.radius = (
+		StreamerPowers.radius_of(kind as StreamerPowers.Kind) if kind >= 0 else 0.0
+	)
+
+
+func _on_power_used(kind: StreamerPowers.Kind, pos: Vector2) -> void:
+	var radius: float = StreamerPowers.radius_of(kind)
+	var text: String = ""
+	match kind:
+		StreamerPowers.Kind.ROD:
+			var id: int = _race.hook_near(pos, radius)
+			var hooked: String = _contestant_name(id)
+			text = (
+				"The streamer hooked @%s!" % hooked
+				if id >= 0
+				else "The streamer's hook came up empty"
+			)
+			if id >= 0:
+				Sound.play(Sound.Sfx.CURSE)
+		StreamerPowers.Kind.NET:
+			var caught: int = _race.place_net(pos, radius, NET_SECONDS)
+			text = "The streamer cast a net over %s!" % _fish_count(caught)
+		StreamerPowers.Kind.BLAST:
+			var hit: int = _race.blast(pos, radius)
+			text = "The streamer blasted %s!" % _fish_count(hit)
+			Sound.play(Sound.Sfx.BOOST)
+	_overlay.show_notice(text)
+	if settings.replies_enabled("reply_powers"):
+		Chat.send_message(text)
+
+
+func _on_power_rejected(_kind: StreamerPowers.Kind, reason: String) -> void:
+	_power_note = POWER_REJECTIONS.get(reason, "power not available")
+	_power_note_until_msec = Time.get_ticks_msec() + POWER_NOTE_MSEC
+
+
+## "1 fish" or "3 fish", or "no fish" for none.
+func _fish_count(count: int) -> String:
+	return "%d fish" % count if count > 0 else "no fish"
+
+
+func _contestant_name(id: int) -> String:
+	var contestants: Array[Contestant] = _flow.get_contestants()
+	return contestants[id].display_name if id >= 0 and id < contestants.size() else ""
+
+
+func _power_status_text() -> String:
+	if Time.get_ticks_msec() < _power_note_until_msec:
+		return _power_note
+	if _armed_power >= 0:
+		return (
+			"%s armed: click the track (right click cancels)"
+			% StreamerPowers.name_of(_armed_power as StreamerPowers.Kind)
+		)
+	if not settings.powers_enabled:
+		return "Streamer powers are off in the settings"
+	if _flow.state != GameFlow.State.RACING:
+		return "Streamer powers: available during a race"
+	if _powers.cooldown_left() > 0.0:
+		return "Recharging %.0fs, %d left" % [ceilf(_powers.cooldown_left()), _powers.uses_left()]
+	return "Ready, %d left this race" % _powers.uses_left()
 
 
 func _on_effect_requested(marble_id: int, kind: Chaos.Kind) -> void:

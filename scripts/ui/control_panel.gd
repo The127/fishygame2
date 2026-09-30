@@ -15,6 +15,8 @@ signal volume_changed(bus: String, value: float)
 ## Streamer switched auto mode (unattended rounds) on or off.
 signal auto_mode_toggled(enabled: bool)
 signal mute_toggled(muted: bool)
+## Streamer picked a streamer power (button or hotkey 1 to 3): a [enum StreamerPowers.Kind].
+signal power_pressed(kind: int)
 ## Streamer wants to leave for the home screen (button or Esc).
 signal home_pressed
 ## Streamer confirmed leaving after [method ask_leave].
@@ -49,6 +51,10 @@ var _fade_tween: Tween
 @onready var _tab: Button = $Handle
 @onready var _status: Label = $Panel/Box/Status
 @onready var _map_picker: OptionButton = $Panel/Box/MapRow/MapPicker
+@onready var _power_status: Label = $Panel/Box/PowerStatus
+@onready var _power_buttons: Array[Button] = [
+	$Panel/Box/PowerButtons/Rod, $Panel/Box/PowerButtons/Net, $Panel/Box/PowerButtons/Blast
+]
 @onready var _confirm: Control = $Panel/Box/LeaveConfirm
 @onready var _auto: CheckBox = $Panel/Box/Auto
 @onready var _mute: CheckBox = $Panel/Box/Mute
@@ -69,6 +75,8 @@ func _ready() -> void:
 	($Panel/Box/Buttons/Start as Button).pressed.connect(start_pressed.emit)
 	($Panel/Box/Buttons/Stop as Button).pressed.connect(stop_pressed.emit)
 	($Panel/Box/Home as Button).pressed.connect(home_pressed.emit)
+	for i: int in _power_buttons.size():
+		_power_buttons[i].pressed.connect(power_pressed.emit.bind(i))
 	($Panel/Box/LeaveConfirm/Answers/Leave as Button).pressed.connect(_on_leave_pressed)
 	($Panel/Box/LeaveConfirm/Answers/Stay as Button).pressed.connect(cancel_leave)
 	($Panel/Box/DebugButtons as Control).visible = DebugMode.is_enabled()
@@ -96,6 +104,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if key.keycode == KEY_F1:
 		toggle_drawer()
+	elif key.keycode >= KEY_1 and key.keycode < KEY_1 + _power_buttons.size():
+		power_pressed.emit(key.keycode - KEY_1)
 	elif key.keycode == KEY_SPACE:
 		start_pressed.emit()
 	elif key.keycode == KEY_ESCAPE:
@@ -167,6 +177,17 @@ func set_status(text: String) -> void:
 	_status.text = text
 
 
+## Highlights the armed power (a [enum StreamerPowers.Kind]), or none for -1.
+func set_armed_power(kind: int) -> void:
+	for i: int in _power_buttons.size():
+		_power_buttons[i].set_pressed_no_signal(i == kind)
+
+
+## One line for the streamer under the power buttons. It is not shown to viewers.
+func set_power_status(text: String) -> void:
+	_power_status.text = text
+
+
 ## Shows the auto mode choice without emitting [signal auto_mode_toggled].
 func set_auto_mode(enabled: bool) -> void:
 	_auto.set_pressed_no_signal(enabled)
@@ -186,6 +207,8 @@ func _apply_style() -> void:
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiStyle.style_label($Panel/Box/MapRow/MapLabel as Label, 22, 600, UiStyle.MUTED)
 	UiStyle.style_label($Panel/Box/Hint as Label, 18, 600, UiStyle.MUTED)
+	UiStyle.style_label(_power_status, 18, 600, UiStyle.MUTED)
+	_power_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiStyle.style_label($Panel/Box/LeaveConfirm/Question as Label, 20, 600, UiStyle.TEXT)
 	($Panel/Box/LeaveConfirm/Question as Label).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	for box: CheckBox in [_auto, _mute]:
@@ -198,6 +221,9 @@ func _apply_style() -> void:
 		$Panel/Box/Buttons/Open,
 		$Panel/Box/Buttons/Start,
 		$Panel/Box/Buttons/Stop,
+		$Panel/Box/PowerButtons/Rod,
+		$Panel/Box/PowerButtons/Net,
+		$Panel/Box/PowerButtons/Blast,
 		$Panel/Box/Home,
 		$Panel/Box/LeaveConfirm/Answers/Leave,
 		$Panel/Box/LeaveConfirm/Answers/Stay,
