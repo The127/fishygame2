@@ -276,6 +276,14 @@ func get_finish_position() -> Vector2:
 ## Progress along the route in [0, 1] for a global position. On a multi-start map the feeders
 ## fill the first `merge_progress` of the scale and the centerline the rest.
 func get_progress(global_pos: Vector2) -> float:
+	for hazard: Hazard in get_hazards():
+		var known: float = hazard.progress_at(global_pos, _finish.global_position)
+		if known >= 0.0:
+			return known
+	return _route_progress(global_pos)
+
+
+func _route_progress(global_pos: Vector2) -> float:
 	var route: int = _nearest_route(global_pos)
 	var path: Path2D = _route_path(route)
 	var length: float = path.curve.get_baked_length()

@@ -132,6 +132,13 @@ func _physics_process(delta: float) -> void:
 	tick(delta)
 
 
+## Race progress in [0, 1] of a fish at `global_pos` where the hazard knows it better than the
+## route does (a basin the fish circle in), or -1 to leave it to the route. `finish` is the
+## finish gate's position.
+func progress_at(_global_pos: Vector2, _finish: Vector2) -> float:
+	return -1.0
+
+
 ## Called when an event's telegraph begins. Choose everything random about the event
 ## from `rng` here.
 func _begin_telegraph(_rng_for_event: RandomNumberGenerator) -> void:

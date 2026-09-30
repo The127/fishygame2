@@ -37,6 +37,8 @@ const ARMS: int = 4
 
 ## Directions, in degrees, of the exit gaps around the basin (0 is right, 90 is down).
 @export var exit_degrees: PackedFloat32Array = PackedFloat32Array()
+## Race progress of a fish circling in the basin. Set to where the entry ramp reaches the rim.
+@export_range(0.0, 1.0) var hold_progress: float = 0.45
 @export var tint: Color = Color(0.45, 0.85, 1.0)
 
 var _zone: Area2D
@@ -75,6 +77,23 @@ func get_radius() -> float:
 ## Position of the middle of the basin on the map.
 func get_center() -> Vector2:
 	return _zone.global_position
+
+
+## A circling fish has not got anywhere yet, and the fish flung out of the basin spread out to
+## the left and right of the route, so progress there is by depth below the basin. Measured
+## against the route it would jump back and forth between the entry ramp and the way out.
+func progress_at(global_pos: Vector2, finish: Vector2) -> float:
+	var center: Vector2 = get_center()
+	if global_pos.distance_to(center) <= _radius:
+		return hold_progress
+	var bottom: float = center.y + _radius
+	# The entry ramp is up on the left, so up there only a fish on the right is past the basin.
+	if global_pos.x <= center.x and global_pos.y <= center.y:
+		return -1.0
+	if finish.y <= bottom:
+		return hold_progress
+	var depth: float = clampf((global_pos.y - bottom) / (finish.y - bottom), 0.0, 1.0)
+	return lerpf(hold_progress, 1.0, depth)
 
 
 ## Unit vector pointing out of the given exit.
