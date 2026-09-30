@@ -21,6 +21,8 @@ var save_path: String = ""
 var _owned: Dictionary = {}
 ## user_id -> {kind: String}
 var _equipped: Dictionary = {}
+## Viewers who already got their free first-race hat, as a set of user ids.
+var _welcomed: Dictionary = {}
 ## Save time (unix seconds) of the copy that was loaded last; 0 if it had none.
 var _loaded_at: float = 0.0
 ## Whether a saved copy was loaded from the files.
@@ -42,6 +44,15 @@ func grant(user_id: String, kind: String, item: String) -> void:
 	var by_kind: Dictionary = _owned.get_or_add(user_id, {})
 	var items: Array = by_kind.get_or_add(kind, [])
 	items.append(item)
+
+
+## Whether the viewer already got their free first-race hat.
+func was_welcomed(user_id: String) -> bool:
+	return _welcomed.has(user_id)
+
+
+func mark_welcomed(user_id: String) -> void:
+	_welcomed[user_id] = true
 
 
 ## Equips an item the viewer owns. Returns false (and changes nothing) otherwise.
@@ -71,6 +82,7 @@ func equipped(user_id: String, kind: String) -> String:
 func load_from_disk() -> bool:
 	_owned.clear()
 	_equipped.clear()
+	_welcomed.clear()
 	_loaded_at = 0.0
 	_loaded = false
 	if save_path.is_empty():
@@ -81,6 +93,7 @@ func load_from_disk() -> bool:
 	if not mirrored.is_empty() and (not _loaded or _saved_at(mirrored) > _loaded_at):
 		_owned.clear()
 		_equipped.clear()
+		_welcomed.clear()
 		_apply(mirrored)
 		return true
 	return ok
@@ -114,6 +127,7 @@ func save_to_disk() -> bool:
 				"saved_at": Time.get_unix_time_from_system(),
 				"owned": _owned,
 				"equipped": _equipped,
+				"welcomed": _welcomed.keys(),
 			}
 		)
 	)
@@ -191,6 +205,7 @@ func _load_file(path: String) -> bool:
 		return false
 	_owned.clear()
 	_equipped.clear()
+	_welcomed.clear()
 	_apply(data)
 	return true
 
@@ -247,6 +262,11 @@ func _apply(data: Dictionary) -> void:
 			for item: Variant in items:
 				if item is String:
 					grant(str(user_id), kind, item)
+	var welcomed: Variant = data.get("welcomed", [])
+	if welcomed is Array:
+		for user_id: Variant in welcomed:
+			if user_id is String:
+				mark_welcomed(user_id)
 	var equipped_data: Dictionary = data.get("equipped", {})
 	for user_id: Variant in equipped_data:
 		if not (equipped_data[user_id] is Dictionary):

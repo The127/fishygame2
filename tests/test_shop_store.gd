@@ -161,3 +161,17 @@ func test_unequip_keeps_ownership() -> void:
 	store.unequip("1", ShopStore.KIND_HAT)
 	assert_eq(store.equipped("1", ShopStore.KIND_HAT), "")
 	assert_true(store.owns("1", ShopStore.KIND_HAT, "crown"))
+
+
+func test_welcomed_viewers_are_saved() -> void:
+	var path: String = "user://test_shop_welcomed.json"
+	var store := ShopStore.new(path)
+	store.mark_welcomed("7")
+	assert_true(store.save_to_disk())
+	var loaded := ShopStore.new(path)
+	assert_true(loaded.load_from_disk())
+	assert_true(loaded.was_welcomed("7"))
+	assert_false(loaded.was_welcomed("8"))
+	for suffix: String in ["", ".tmp", ".bak"]:
+		if FileAccess.file_exists(path + suffix):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path + suffix))
