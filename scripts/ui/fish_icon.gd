@@ -19,11 +19,17 @@ func _init(look: Dictionary = {}) -> void:
 	_fish.species = int(look.get("species", 0))
 	_fish.pattern = int(look.get("pattern", 0))
 	_fish.accessory = int(look.get("accessory", 0))
-	add_child(_fish)
-	# FishVisual detaches itself in _ready to follow a marble; here it stays in the row.
-	_fish.top_level = false
+	_fish.glow_boost = 0.0
 	_fish.scale = Vector2.ONE * FISH_SCALE
 	_fish.position = ICON_SIZE * 0.5
+	add_child(_fish)
+
+
+func _ready() -> void:
+	# FishVisual detaches itself in its own _ready (which runs before this one) to follow
+	# a marble; here it stays in the row.
+	_fish.top_level = false
+	_fish.z_index = 0
 
 
 func fish() -> FishVisual:

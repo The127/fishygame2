@@ -17,6 +17,8 @@ func test_each_joined_player_gets_a_fish_icon_with_their_look() -> void:
 		assert_eq(fish.color, contestants[i].color)
 		assert_eq(fish.species, contestants[i].species)
 		assert_true(fish.frozen)
+		assert_false(fish.top_level, "the fish stays inside its row")
+		assert_true(icons[i].get_global_rect().has_point(fish.global_position))
 		assert_false(fish.is_processing(), "icons do no per-frame work")
 
 
