@@ -136,6 +136,9 @@ func show_payouts(results: Array[Dictionary], max_lines: int = 8) -> void:
 	for entry: Dictionary in results:
 		if shown >= max_lines:
 			break
+		# A wrong free pick costs nothing, so only the winning ones are listed.
+		if entry.get("kind", "bet") == "pick" and int(entry["payout"]) <= 0:
+			continue
 		shown += 1
 		if int(entry["payout"]) > 0:
 			_payouts_box.add_child(

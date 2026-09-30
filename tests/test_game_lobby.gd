@@ -129,7 +129,7 @@ func test_timeout_with_a_finisher_still_pays_the_winner() -> void:
 	_race.timeout_seconds = 0.0
 	await wait_physics_frames(2)
 	assert_eq(_flow.state, GameFlow.State.PODIUM)
-	assert_eq(_balance("100"), 900 + 300)
+	assert_eq(_balance("100"), 900 + 200, "pool of 100, doubled")
 
 
 func test_join_during_countdown_is_rejected() -> void:

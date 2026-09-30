@@ -8,6 +8,7 @@ func _configure(settings: GameSettings) -> void:
 	settings.starting_balance = 400
 	settings.min_bet = 50
 	settings.max_bet = 200
+	settings.pick_reward = 25
 	settings.boost_cost = 30
 	settings.curse_cost = 60
 	settings.viewer_cooldown = 9
@@ -27,6 +28,7 @@ func test_flow_reads_the_settings() -> void:
 func test_betting_reads_the_settings() -> void:
 	assert_eq(_betting.min_bet, 50)
 	assert_eq(_betting.max_bet, 200)
+	assert_eq(_betting.pick_reward, 25)
 	assert_eq(_balance("new_viewer"), 400)
 
 
