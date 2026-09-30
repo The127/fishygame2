@@ -36,6 +36,14 @@ func test_lights_out_darkens_the_map_until_the_next_lobby() -> void:
 	assert_eq(track.modulate, RaceEvent.track_tint(RaceEvent.LIGHTS_OUT))
 	_flow.stop()
 	assert_eq(track.modulate, Color.WHITE)
+	_flow.open_lobby()
+	_game.forced_event = RaceEvent.LIGHTS_OUT
+	_start_race(2)
+	_flow.tick(1000.0)
+	_finish_marbles([0, 1])
+	_flow.tick(_flow.podium_seconds)
+	assert_eq(_flow.state, GameFlow.State.LOBBY)
+	assert_eq(_current_track().modulate, Color.WHITE, "the next lobby starts lit")
 
 
 func test_bouncy_changes_a_copy_of_the_material() -> void:
@@ -52,6 +60,11 @@ func test_bouncy_changes_a_copy_of_the_material() -> void:
 func test_each_race_spins_again() -> void:
 	_game.forced_event = RaceEvent.LOW_GRAVITY
 	_start_race(2)
+	_flow.stop()
+	_game.forced_event = RaceEvent.BOUNCY
+	_flow.open_lobby()
+	_start_race(2)
+	assert_eq(_race.event, RaceEvent.BOUNCY)
 	_flow.stop()
 	_game.forced_event = RaceEvent.NOTHING
 	_flow.open_lobby()

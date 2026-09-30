@@ -216,6 +216,7 @@ func _ready() -> void:
 	add_child(_replay)
 	_replay.ended.connect(_on_replay_ended)
 	_race.photo_finish.connect(_on_photo_finish)
+	_race.fish_snapped.connect(_on_fish_snapped)
 	_photo.ended.connect(_camera.release_hold)
 	# After Betting.on_podium_ready, which settles the payouts this handler reports.
 	_flow.podium_ready.connect(_on_podium_ready)
@@ -466,6 +467,11 @@ func _on_countdown_tick(_seconds_left: int) -> void:
 
 func _on_marble_finished(_id: int, _place: int) -> void:
 	Sound.play(Sound.Sfx.SPLASH)
+
+
+func _on_fish_snapped(ids: Array[int]) -> void:
+	Sound.play(Sound.Sfx.SPLASH)
+	_overlay.show_notice("SNAP! %d fish turned to dust" % ids.size(), 3.0)
 
 
 func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:

@@ -3,7 +3,7 @@ extends Node2D
 ## Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7 --map=pachinko --count=20 --hazards=3
 ## --hazards is the hazard frequency (0 turns hazard events off). --limit is the race time limit in
 ## seconds (default 0, none): fish still racing then are DNF, which does not fail an autorun.
-## --event=<id> runs the race under a RaceEvent (low_gravity, double_hazards, lights_out, bouncy).
+## --event=<id> runs the race under a RaceEvent (low_gravity, double_hazards, lights_out, bouncy, thanos_snap).
 
 @export var seed_value: int = 1
 @export var marble_count: int = 10
@@ -21,6 +21,7 @@ var _hazard_events: PackedStringArray = []
 
 func _ready() -> void:
 	_race.marble_finished.connect(_on_marble_finished)
+	_race.fish_snapped.connect(_on_fish_snapped)
 	_race.race_finished.connect(_on_race_finished)
 	for arg: String in OS.get_cmdline_user_args():
 		if arg == "--autorun":
@@ -85,6 +86,10 @@ func _on_hazard_started(kind: String) -> void:
 	print("  hazard: %s at t=%.2fs" % [kind, _race.elapsed])
 
 
+func _on_fish_snapped(ids: Array[int]) -> void:
+	print("  snap: marbles %s at t=%.2fs" % [ids, _race.elapsed])
+
+
 func _on_fish_eaten(marble: Marble) -> void:
 	print("  eaten: marble %d at t=%.2fs" % [marble.id, _race.elapsed])
 
@@ -104,9 +109,10 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 			var at: Vector2 = positions[r["id"]]
 			print("  unfinished: marble %d at (%.0f, %.0f)" % [r["id"], at.x, at.y])
 	if _autorun:
-		var unfinished: int = (
-			results.filter(func(r: Dictionary) -> bool: return not r["finished"]).size()
-		)
+		var unfinished: int = 0
+		for r: Dictionary in results:
+			if not r["finished"] and not _race.is_snapped(int(r["id"])):
+				unfinished += 1
 		print(
 			(
 				"RESULT map=%s seed=%d time=%.2f unfinished=%d hazards=%d order=%s"

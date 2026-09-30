@@ -175,7 +175,7 @@ EVENT=low_gravity tests/run_race_seeds.sh godot 1 20 zigzag  # under a random ev
 
 Random events (Settings, Betting & Chaos tab, off by default): a wheel spins during the countdown of every
 race and lands mostly on nothing, sometimes on a modifier (low gravity, double hazards, lights out,
-bouncy). Modifiers change rules without drawing from the race seed (`scripts/game/race_event.gd`);
+bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers change rules without drawing from the race seed (`scripts/game/race_event.gd`);
 `--event=<id>` on the debug race scene replays one.
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and

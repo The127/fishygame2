@@ -11,6 +11,7 @@ const LOW_GRAVITY: String = "low_gravity"
 const DOUBLE_HAZARDS: String = "double_hazards"
 const LIGHTS_OUT: String = "lights_out"
 const BOUNCY: String = "bouncy"
+const THANOS_SNAP: String = "thanos_snap"
 
 ## Every modifier: display name, one line of what it does, the short wheel label and its color.
 const EVENTS: Dictionary = {
@@ -24,7 +25,7 @@ const EVENTS: Dictionary = {
 	DOUBLE_HAZARDS:
 	{
 		"name": "Double hazards",
-		"blurb": "Hazards strike twice as often",
+		"blurb": "Hazards strike much more often",
 		"short": "x2",
 		"color": Color(1.0, 0.5, 0.35),
 	},
@@ -34,6 +35,13 @@ const EVENTS: Dictionary = {
 		"blurb": "The map goes dark, the fish glow",
 		"short": "DARK",
 		"color": Color(0.6, 0.4, 0.9),
+	},
+	THANOS_SNAP:
+	{
+		"name": "Thanos snap",
+		"blurb": "Half the fish turn to dust mid-race",
+		"short": "SNAP",
+		"color": Color(0.9, 0.7, 0.2),
 	},
 	BOUNCY:
 	{
@@ -58,13 +66,21 @@ const WHEEL: Array[String] = [
 	NOTHING,
 	BOUNCY,
 	NOTHING,
+	THANOS_SNAP,
+	NOTHING,
+	NOTHING,
 ]
 
 ## Shortest countdown, in seconds, that leaves the wheel time to spin and show its result.
 const MIN_COUNTDOWN: int = 6
 const LOW_GRAVITY_SCALE: float = 0.85
-const BOUNCY_BOUNCE: float = 0.6
+const BOUNCY_BOUNCE: float = 0.45
 const DARK_TRACK: Color = Color(0.3, 0.34, 0.45)
+## The snap happens this many seconds into the race, at the earliest and the latest.
+const SNAP_MIN_SECONDS: float = 10.0
+const SNAP_MAX_SECONDS: float = 18.0
+## Fish still racing needed for a snap to happen; it removes half of them, rounded down.
+const SNAP_MIN_FISH: int = 2
 const LIGHTS_OUT_GLOW: float = 2.0
 ## Longest a hazard frequency can get.
 const MAX_HAZARD_LEVEL: int = 5
@@ -109,6 +125,11 @@ static func hazard_level(id: String, base: int) -> int:
 	if id == DOUBLE_HAZARDS and base > 0:
 		return mini(base * 2, MAX_HAZARD_LEVEL)
 	return base
+
+
+## How many of `racing` fish a snap removes.
+static func snap_count(racing: int) -> int:
+	return racing / 2 if racing >= SNAP_MIN_FISH else 0
 
 
 static func gravity_scale(id: String) -> float:
