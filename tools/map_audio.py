@@ -85,13 +85,13 @@ JINGLES = {
         "hiss": 0.5,
         "echo": (0.2, 1, 0.35),
     },
-    # Coral maze: bouncy G major marimba.
-    "coral": {
-        "partials": MALLET,
-        "notes": ((0.0, 67, 0.7, 0.2), (0.12, 71, 0.7, 0.2), (0.24, 74, 0.7, 0.2),
-                  (0.36, 79, 0.7, 0.2), (0.48, 74, 0.7, 0.2), (0.6, 79, 1.7, 0.6),
-                  (0.6, 71, 1.7, 0.6), (0.6, 55, 1.7, 0.6)),
-        "echo": (0.22, 2, 0.4),
+    # Crystal cave: A minor glass chimes falling like a crystal shattering softly, long echo.
+    "cave": {
+        "partials": BELL,
+        "notes": ((0.0, 93, 1.6, 0.6), (0.1, 88, 1.6, 0.6), (0.2, 84, 1.6, 0.6),
+                  (0.3, 81, 1.6, 0.6), (0.42, 76, 1.8, 0.7), (0.55, 69, 2.0, 0.8),
+                  (0.55, 57, 2.0, 0.8)),
+        "echo": (0.3, 3, 0.45),
     },
     # Kraken's lair: D minor brass swell, a dread bell and one more toll.
     "kraken": {
@@ -436,12 +436,11 @@ def _vents(out, rng):
     bubbles(out, rng, 10, 200.0, 500.0, 0.14)
 
 
-def _coral(out, rng):
-    bed(out, rng, 100.0, 700.0, 0.4, swell=0.5, cycles=2)
-    bubbles(out, rng, 8, 800.0, 1600.0, 0.1)
-    pops(out, rng, 7, 0.14)
-
-
+def _cave(out, rng):
+    bed(out, rng, 0.0, 240.0, 0.7, swell=0.3, cycles=1)
+    drips(out, rng, (0.7, 2.3, 3.4, 5.2, 6.6), 1500.0, 0.16)
+    shimmer(out, rng, (1.8, 4.4, 6.9), 1800.0, 3400.0, 0.03)
+    pings(out, (3.0,), 1900.0, 0.08)
 def _kraken(out, rng):
     bed(out, rng, 0.0, 140.0, 0.9, swell=0.3, cycles=1)
     thumps(out, rng, (1.0, 4.6), 90.0, 0.6)
@@ -536,7 +535,7 @@ AMBIENCE = {
     "jelly": (35, _jelly),
     "abyss": (36, _abyss),
     "vents": (37, _vents),
-    "coral": (38, _coral),
+    "cave": (38, _cave),
     "kraken": (39, _kraken),
     "gravity": (40, _gravity),
     "tide": (41, _tide),

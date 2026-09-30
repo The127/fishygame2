@@ -5,7 +5,7 @@ extends Node2D
 ## The shapes are tessellated once into a single mesh (one draw call per layer) instead of
 ## thousands of canvas draw commands.
 
-enum Kind { SPIRES, KELP, SHARDS, MASTS, BLOOMS, CORAL, TENTACLES, RUINS }
+enum Kind { SPIRES, KELP, SHARDS, MASTS, BLOOMS, CORAL, TENTACLES, RUINS, CRYSTALS }
 
 const WIDTH: float = 2400.0
 const FLOOR_Y: float = 1080.0
@@ -90,6 +90,8 @@ func _build() -> void:
 				_draw_tentacle(Vector2(x, base_y), h * flip)
 			Kind.RUINS:
 				_draw_ruin(Vector2(x, base_y), h * flip, i)
+			Kind.CRYSTALS:
+				_draw_cluster(Vector2(x, base_y), h * flip)
 	if _vertices.is_empty():
 		_mesh = null
 		return
@@ -187,6 +189,41 @@ func _draw_coral_branch(from: Vector2, direction: Vector2, length: float, depth:
 	if depth >= 3:
 		_draw_coral_branch(
 			to, direction.rotated(_rng.randf_range(-0.15, 0.15)), length * 0.55, depth - 2
+		)
+
+
+## A cluster of crystals fanning out from one point, the outer ones shorter and leaning away.
+func _draw_cluster(base: Vector2, height: float) -> void:
+	var direction: Vector2 = Vector2(0.0, -signf(height))
+	var reach: float = absf(height)
+	var count: int = _rng.randi_range(3, 5)
+	for i: int in count:
+		var lean: float = (float(i) - float(count - 1) * 0.5) * 0.42 + _rng.randf_range(-0.1, 0.1)
+		var length: float = reach * (1.0 - absf(lean) * 0.8) * _rng.randf_range(0.75, 1.0)
+		var width: float = (14.0 + reach * 0.07) * _rng.randf_range(0.8, 1.25)
+		_draw_crystal(base, direction.rotated(lean), length, width)
+
+
+## One faceted prism with a pointed tip. The highlight lights its right facet and its edge.
+func _draw_crystal(base: Vector2, direction: Vector2, length: float, width: float) -> void:
+	var side: Vector2 = direction.orthogonal() * width * 0.5
+	var shoulder: Vector2 = base + direction * length * 0.78
+	var tip: Vector2 = base + direction * length
+	_add_polygon(
+		PackedVector2Array(
+			[base - side, base + side, shoulder + side * 0.85, tip, shoulder - side * 0.85]
+		),
+		color
+	)
+	if highlight.a > 0.0:
+		_add_polygon(
+			PackedVector2Array([base, base + side, shoulder + side * 0.85, tip]), highlight
+		)
+		_add_line(
+			base + direction * length * 0.1,
+			tip,
+			Color(highlight, minf(highlight.a * 3.0, 1.0)),
+			2.0
 		)
 
 
