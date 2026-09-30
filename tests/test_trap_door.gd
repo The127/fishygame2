@@ -136,11 +136,15 @@ func test_progress_on_both_routes_rises_toward_the_finish() -> void:
 	var curve: Curve2D = branch.curve
 	var last: float = -1.0
 	for i: int in 11:
-		var at: Vector2 = branch.to_global(curve.sample_baked(curve.get_baked_length() * float(i) / 10.0))
+		var at: Vector2 = branch.to_global(
+			curve.sample_baked(curve.get_baked_length() * float(i) / 10.0)
+		)
 		var progress: float = track.get_progress(at)
 		assert_gte(progress, last - 0.001)
 		last = progress
 	assert_gt(last, 0.9)
 	var centerline: Path2D = track.get_node("Centerline") as Path2D
-	var end: Vector2 = centerline.to_global(centerline.curve.get_point_position(centerline.curve.point_count - 1))
+	var end: Vector2 = centerline.to_global(
+		centerline.curve.get_point_position(centerline.curve.point_count - 1)
+	)
 	assert_gt(track.get_progress(end), 0.95)
