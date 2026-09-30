@@ -119,7 +119,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _confirm.visible:
 			cancel_leave()
 		else:
-			home_pressed.emit()
+			back_pressed.emit()
 
 
 func _process(delta: float) -> void:
