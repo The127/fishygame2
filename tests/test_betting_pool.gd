@@ -11,6 +11,7 @@ var _bob: Contestant
 func before_each() -> void:
 	_betting = Betting.new()
 	_betting.points = PointsStore.new("", 1000)
+	_betting.place_rewards = []
 	add_child_autofree(_betting)
 	_chat = load("res://scripts/chat/chat.gd").new()
 	add_child_autofree(_chat)

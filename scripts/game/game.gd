@@ -254,6 +254,7 @@ func _apply_settings() -> void:
 	_betting.min_bet = settings.min_bet
 	_betting.max_bet = settings.max_bet
 	_betting.pick_reward = settings.pick_reward
+	_betting.place_rewards = [settings.win_reward, settings.second_reward, settings.third_reward]
 	_shop.species_price = settings.species_price
 	_shop.color_price = settings.color_price
 	_shop.hat_price = settings.hat_price
@@ -887,9 +888,19 @@ func _on_payouts_settled(results: Array[Dictionary]) -> void:
 func _result_text(
 	winner: String, payouts: Array[Dictionary], dnf: PackedStringArray = [], treasure: String = ""
 ) -> String:
-	var paid: Array[Dictionary] = payouts.filter(
-		func(r: Dictionary) -> bool: return r["payout"] > 0
-	)
+	# One entry per viewer: a winner who also bet shows a single total.
+	var totals: Dictionary = {}
+	for r: Dictionary in payouts:
+		if int(r["payout"]) <= 0:
+			continue
+		var uid: String = str(r.get("user_id", r["name"]))
+		if totals.has(uid):
+			totals[uid]["payout"] = int(totals[uid]["payout"]) + int(r["payout"])
+		else:
+			totals[uid] = {"name": r["name"], "payout": int(r["payout"])}
+	var paid: Array[Dictionary] = []
+	for total: Dictionary in totals.values():
+		paid.append(total)
 	paid.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["payout"] > b["payout"])
 	var parts: PackedStringArray = []
 	for r: Dictionary in paid.slice(0, RESULT_PAYOUTS):
