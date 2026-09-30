@@ -207,8 +207,8 @@ func test_gravity_map_replays_flips_warnings_and_currents_across_events() -> voi
 	replay.stop()
 	assert_eq(flipper.replay_state(), ended_up, "gravity is put back after the replay")
 	assert_eq(
-		(flipper.get_node("Zone") as Area2D).gravity_direction.y < 0.0,
-		flipper.up,
+		(flipper.get_node("Zone") as Area2D).gravity_direction,
+		GravityFlipper.direction_of(flipper.pull, flipper.lean),
 		"the physics zone matches the restored flip"
 	)
 
