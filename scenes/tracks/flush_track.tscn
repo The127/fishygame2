@@ -698,7 +698,7 @@ polygon = PackedVector2Array(1664, 140, 1776, 140, 1776, 530, 1762, 514, 1748, 5
 
 [node name="PlungerHandle" type="Polygon2D" parent="Decor"]
 color = Color(0.55, 0.42, 0.3, 0.45)
-polygon = PackedVector2Array(1786, 560, 1800, 560, 1800, 830, 1786, 830)
+polygon = PackedVector2Array(1743, 560, 1757, 560, 1757, 840, 1743, 840)
 
 [node name="PlungerCup" type="Polygon2D" parent="Decor"]
 color = Color(0.75, 0.25, 0.22, 0.4)
