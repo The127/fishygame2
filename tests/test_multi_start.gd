@@ -167,3 +167,17 @@ func test_forward_points_downstream_on_every_route() -> void:
 func test_finish_is_at_the_end_of_the_scale() -> void:
 	var track: Track = _track()
 	assert_gt(track.get_progress(track.get_finish_position()), 0.9)
+
+
+func test_no_slot_overlaps_the_map() -> void:
+	var track: Track = _track()
+	track.plan_starts(20, _rng(9))
+	await get_tree().physics_frame
+	var shape: CircleShape2D = CircleShape2D.new()
+	shape.radius = Marble.RADIUS
+	var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	for i: int in 20:
+		query.transform = Transform2D(0.0, track.get_spawn_position(i))
+		var hits: Array[Dictionary] = track.get_world_2d().direct_space_state.intersect_shape(query)
+		assert_eq(hits.size(), 0, "slot of fish %d is inside the map" % i)

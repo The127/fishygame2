@@ -25,7 +25,7 @@ size = Vector2(110, 160)
 size = Vector2(546.195, 90)
 
 [sub_resource type="RectangleShape2D" id="Rect_ZoneC"]
-size = Vector2(373.807, 90)
+size = Vector2(372.146, 90)
 
 [sub_resource type="RectangleShape2D" id="Rect_ZoneR"]
 size = Vector2(488.535, 90)
@@ -41,7 +41,7 @@ point_count = 4
 
 [sub_resource type="Curve2D" id="Curve_FeederCenter"]
 _data = {
-"points": PackedVector2Array(0, 0, 0, 0, 745, 150, 0, 0, 0, 0, 1120, 246, 0, 0, 0, 0, 1215, 330, 0, 0, 0, 0, 840, 390, 0, 0, 0, 0, 780, 520, 0, 0, 0, 0, 1165, 640)
+"points": PackedVector2Array(0, 0, 0, 0, 745, 130, 0, 0, 0, 0, 1120, 246, 0, 0, 0, 0, 1215, 330, 0, 0, 0, 0, 840, 390, 0, 0, 0, 0, 780, 520, 0, 0, 0, 0, 1165, 640)
 }
 point_count = 6
 
@@ -143,21 +143,21 @@ polygon = PackedVector2Array(30, 190, 610, 275, 606.81, 296.767, 26.81, 211.767)
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="LedgeC1"]
-polygon = PackedVector2Array(720, 190, 1130, 246, 1127.023, 267.798, 717.023, 211.798)
+polygon = PackedVector2Array(720, 190, 1130, 232, 1127.758, 253.885, 717.758, 211.885)
 
 [node name="Visual" type="Polygon2D" parent="LedgeC1"]
 color = Color(0.1, 0.22, 0.26, 1)
-polygon = PackedVector2Array(720, 190, 1130, 246, 1127.023, 267.798, 717.023, 211.798)
+polygon = PackedVector2Array(720, 190, 1130, 232, 1127.758, 253.885, 717.758, 211.885)
 
 [node name="LedgeC2" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="LedgeC2"]
-polygon = PackedVector2Array(1232, 335, 840, 402, 843.706, 423.686, 1235.706, 356.686)
+polygon = PackedVector2Array(1232, 335, 840, 396, 843.383, 417.738, 1235.383, 356.738)
 
 [node name="Visual" type="Polygon2D" parent="LedgeC2"]
 color = Color(0.1, 0.22, 0.26, 1)
-polygon = PackedVector2Array(1232, 335, 840, 402, 843.706, 423.686, 1235.706, 356.686)
+polygon = PackedVector2Array(1232, 335, 840, 396, 843.383, 417.738, 1235.383, 356.738)
 
 [node name="LedgeR1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
@@ -254,34 +254,34 @@ polygon = PackedVector2Array(497, 165.948, 496.168, 171.202, 493.753, 175.941, 4
 physics_material_override = SubResource("PM_peg")
 
 [node name="Collider" type="CollisionShape2D" parent="PegC1"]
-position = Vector2(820, 118.659)
+position = Vector2(940, 127.537)
 shape = SubResource("Circle_peg")
 
 [node name="Visual" type="Polygon2D" parent="PegC1"]
 color = Color(0.35, 0.9, 0.8, 1)
-polygon = PackedVector2Array(837, 118.659, 836.168, 123.912, 833.753, 128.651, 829.992, 132.412, 825.253, 134.826, 820, 135.659, 814.747, 134.826, 810.008, 132.412, 806.247, 128.651, 803.832, 123.912, 803, 118.659, 803.832, 113.405, 806.247, 108.666, 810.008, 104.905, 814.747, 102.491, 820, 101.659, 825.253, 102.491, 829.992, 104.905, 833.753, 108.666, 836.168, 113.405)
+polygon = PackedVector2Array(957, 127.537, 956.168, 132.79, 953.753, 137.529, 949.992, 141.29, 945.253, 143.705, 940, 144.537, 934.747, 143.705, 930.008, 141.29, 926.247, 137.529, 923.832, 132.79, 923, 127.537, 923.832, 122.283, 926.247, 117.544, 930.008, 113.783, 934.747, 111.369, 940, 110.537, 945.253, 111.369, 949.992, 113.783, 953.753, 117.544, 956.168, 122.283)
 
 [node name="PegC2" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
 
 [node name="Collider" type="CollisionShape2D" parent="PegC2"]
-position = Vector2(930, 133.683)
+position = Vector2(1010, 134.707)
 shape = SubResource("Circle_peg")
 
 [node name="Visual" type="Polygon2D" parent="PegC2"]
 color = Color(0.35, 0.9, 0.8, 1)
-polygon = PackedVector2Array(947, 133.683, 946.168, 138.936, 943.753, 143.675, 939.992, 147.436, 935.253, 149.851, 930, 150.683, 924.747, 149.851, 920.008, 147.436, 916.247, 143.675, 913.832, 138.936, 913, 133.683, 913.832, 128.43, 916.247, 123.691, 920.008, 119.93, 924.747, 117.515, 930, 116.683, 935.253, 117.515, 939.992, 119.93, 943.753, 123.691, 946.168, 128.43)
+polygon = PackedVector2Array(1027, 134.707, 1026.168, 139.961, 1023.753, 144.7, 1019.992, 148.461, 1015.253, 150.875, 1010, 151.707, 1004.747, 150.875, 1000.008, 148.461, 996.247, 144.7, 993.832, 139.961, 993, 134.707, 993.832, 129.454, 996.247, 124.715, 1000.008, 120.954, 1004.747, 118.539, 1010, 117.707, 1015.253, 118.539, 1019.992, 120.954, 1023.753, 124.715, 1026.168, 129.454)
 
 [node name="PegC3" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
 
 [node name="Collider" type="CollisionShape2D" parent="PegC3"]
-position = Vector2(1040, 148.707)
+position = Vector2(1080, 141.878)
 shape = SubResource("Circle_peg")
 
 [node name="Visual" type="Polygon2D" parent="PegC3"]
 color = Color(0.35, 0.9, 0.8, 1)
-polygon = PackedVector2Array(1057, 148.707, 1056.168, 153.961, 1053.753, 158.7, 1049.992, 162.461, 1045.253, 164.875, 1040, 165.707, 1034.747, 164.875, 1030.008, 162.461, 1026.247, 158.7, 1023.832, 153.961, 1023, 148.707, 1023.832, 143.454, 1026.247, 138.715, 1030.008, 134.954, 1034.747, 132.539, 1040, 131.707, 1045.253, 132.539, 1049.992, 134.954, 1053.753, 138.715, 1056.168, 143.454)
+polygon = PackedVector2Array(1097, 141.878, 1096.168, 147.131, 1093.753, 151.87, 1089.992, 155.631, 1085.253, 158.046, 1080, 158.878, 1074.747, 158.046, 1070.008, 155.631, 1066.247, 151.87, 1063.832, 147.131, 1063, 141.878, 1063.832, 136.625, 1066.247, 131.886, 1070.008, 128.125, 1074.747, 125.71, 1080, 124.878, 1085.253, 125.71, 1089.992, 128.125, 1093.753, 131.886, 1096.168, 136.625)
 
 [node name="PegR1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
@@ -377,8 +377,8 @@ rotation = 0.146
 shape = SubResource("Rect_ZoneL")
 
 [node name="ZoneC" type="Area2D" parent="Currents"]
-position = Vector2(930.684, 176.386)
-rotation = 0.136
+position = Vector2(929.28, 169.219)
+rotation = 0.102
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Currents/ZoneC"]
 shape = SubResource("Rect_ZoneC")
