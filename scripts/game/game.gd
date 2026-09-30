@@ -24,9 +24,10 @@ const PICK_REJECTIONS: Dictionary = {
 }
 
 const SHOP_REJECTIONS: Dictionary = {
-	"usage": "use #fish <species> or #color <name>, see #shop",
+	"usage": "use #fish <species>, #color <name> or #hat <name>, see #shop",
 	"unknown_species": "no such species, see #shop",
 	"unknown_color": "no such color, see #shop",
+	"unknown_hat": "no such accessory, see #shop",
 	"insufficient": "not enough points",
 }
 
@@ -60,7 +61,7 @@ const STATS_COOLDOWN_MSEC: int = 15000
 
 ## Commands that put a viewer on the leaderboard, so their name is remembered.
 const NAMED_COMMANDS: PackedStringArray = [
-	"join", "bet", "pick", "boost", "curse", "points", "fish", "color", "shop", "stats"
+	"join", "bet", "pick", "boost", "curse", "points", "fish", "color", "hat", "shop", "stats"
 ]
 
 ## Most payouts named in the race result line.
@@ -225,6 +226,7 @@ func _apply_settings() -> void:
 	_betting.pick_reward = settings.pick_reward
 	_shop.species_price = settings.species_price
 	_shop.color_price = settings.color_price
+	_shop.hat_price = settings.hat_price
 	_shop.colorblind = settings.colorblind
 	_chaos.boost_cost = settings.boost_cost
 	_chaos.curse_cost = settings.curse_cost
@@ -726,9 +728,10 @@ func _on_shop_rejected(msg: ChatMessage, reason: String) -> void:
 
 
 func _on_shop_catalog_requested(_msg: ChatMessage) -> void:
-	_overlay.show_notice("Shop: #fish <species> or #color <name>")
+	_overlay.show_notice("Shop: #fish <species>, #color <name> or #hat <name>")
 	if settings.chat_replies:
 		Chat.send_message(_shop.catalog_text())
+		Chat.send_message(_shop.hat_catalog_text())
 
 
 func _on_balance_reported(msg: ChatMessage, balance: int) -> void:
@@ -783,6 +786,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 		marble.color = contestants[marble.id].color
 		marble.species = contestants[marble.id].species
 		marble.pattern = contestants[marble.id].pattern
+		marble.accessory = contestants[marble.id].accessory
 		marble.label_text = contestants[marble.id].display_name
 
 

@@ -36,8 +36,8 @@ func test_cannot_equip_what_is_not_owned() -> void:
 
 func test_unknown_kind_is_ignored() -> void:
 	var store := ShopStore.new()
-	store.grant("1", "hat", "top")
-	assert_false(store.owns("1", "hat", "top"))
+	store.grant("1", "scarf", "top")
+	assert_false(store.owns("1", "scarf", "top"))
 
 
 func test_persists_and_reloads() -> void:
@@ -152,3 +152,12 @@ func _cleanup() -> void:
 	for name_text: String in dir.get_files():
 		if name_text.begins_with("test_shop_store.json"):
 			dir.remove(name_text)
+
+
+func test_unequip_keeps_ownership() -> void:
+	var store := ShopStore.new()
+	store.grant("1", ShopStore.KIND_HAT, "crown")
+	store.equip("1", ShopStore.KIND_HAT, "crown")
+	store.unequip("1", ShopStore.KIND_HAT)
+	assert_eq(store.equipped("1", ShopStore.KIND_HAT), "")
+	assert_true(store.owns("1", ShopStore.KIND_HAT, "crown"))

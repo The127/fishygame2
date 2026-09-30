@@ -6,6 +6,19 @@ extends RefCounted
 
 ## Chat names of the species, in the order of [constant FishVisual.SPECIES].
 const SPECIES_NAMES: Array[String] = ["trout", "puffer", "pike", "angelfish"]
+## Chat names of the accessories, in the order of [enum FishAccessory.Kind] after NONE.
+const HAT_NAMES: Array[String] = [
+	"tophat",
+	"party",
+	"shades",
+	"crown",
+	"bowtie",
+	"pirate",
+	"ears",
+	"snorkel",
+	"flower",
+	"duck",
+]
 ## Chat names of the colors, in the order of [constant Contestant.PALETTE].
 const COLOR_NAMES: Array[String] = [
 	"red",
@@ -45,6 +58,11 @@ static func color_labels(colorblind: bool) -> Array[String]:
 	return labels
 
 
+## The [enum FishAccessory.Kind] for a chat name, NONE if unknown.
+static func accessory_of(item: String) -> int:
+	return index_of(ShopStore.KIND_HAT, item) + 1
+
+
 ## Whether [param item] (case does not matter) is on sale as a [param kind].
 static func has_item(kind: String, item: String) -> bool:
 	return index_of(kind, item) >= 0
@@ -57,6 +75,8 @@ static func index_of(kind: String, item: String) -> int:
 		return SPECIES_NAMES.find(wanted)
 	if kind == ShopStore.KIND_COLOR:
 		return COLOR_NAMES.find(wanted)
+	if kind == ShopStore.KIND_HAT:
+		return HAT_NAMES.find(wanted)
 	return -1
 
 
@@ -80,6 +100,9 @@ static func assign_loadouts(
 			contestant.species = species
 		var color: int = index_of(
 			ShopStore.KIND_COLOR, store.equipped(contestant.user_id, ShopStore.KIND_COLOR)
+		)
+		contestant.accessory = (
+			index_of(ShopStore.KIND_HAT, store.equipped(contestant.user_id, ShopStore.KIND_HAT)) + 1
 		)
 		if color >= 0 and not taken.has(color):
 			taken[color] = true
