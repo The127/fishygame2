@@ -174,3 +174,19 @@ func test_reseeding_lets_go_of_every_fish() -> void:
 	swarm.reseed(2)
 	assert_false(jelly.is_holding(marble))
 	assert_false(jelly.is_immune(marble))
+
+
+func test_a_fish_freed_while_held_is_forgotten() -> void:
+	var jelly: Jellyfish = _swarm().get_jellies()[0]
+	var marble: Marble = _marble()
+	jelly.catch_marble(marble)
+	marble.free()
+	jelly.advance(STEP)
+	assert_eq(jelly.held_count(), 0)
+
+
+func test_a_frozen_fish_is_not_held() -> void:
+	var jelly: Jellyfish = _swarm().get_jellies()[0]
+	var marble: Marble = _marble()
+	marble.freeze = true
+	assert_false(jelly.catch_marble(marble))

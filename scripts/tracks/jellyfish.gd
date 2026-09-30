@@ -36,8 +36,9 @@ var _phase: Vector2 = Vector2.ZERO
 var _pulse_phase: float = 0.0
 var _velocity: Vector2 = Vector2.ZERO
 ## Seconds left on each held fish, and seconds of immunity left on each released fish.
-var _held: Dictionary[Marble, float] = {}
-var _immune: Dictionary[Marble, float] = {}
+## Untyped because freed marbles stay behind as keys and a typed key cannot be erased.
+var _held: Dictionary = {}
+var _immune: Dictionary = {}
 var _sting: float = 0.0
 var _sting_area: Area2D
 
@@ -130,6 +131,8 @@ func held_count() -> int:
 
 ## Grabs the marble for a moment unless it is already held or was just released.
 func catch_marble(marble: Marble) -> bool:
+	if not is_instance_valid(marble) or marble.freeze:
+		return false
 	if _held.has(marble) or _immune.has(marble):
 		return false
 	_held[marble] = CATCH_SECONDS
@@ -137,15 +140,21 @@ func catch_marble(marble: Marble) -> bool:
 	return true
 
 
+## Keys are checked before they are used as marbles: a finished race frees its marbles while
+## the jellyfish keep running.
 func _update_catches(delta: float) -> void:
-	for marble: Marble in _immune.keys():
-		_immune[marble] -= delta
-		if _immune[marble] <= 0.0 or not is_instance_valid(marble):
-			_immune.erase(marble)
-	for marble: Marble in _held.keys():
-		if not is_instance_valid(marble):
-			_held.erase(marble)
+	for key: Variant in _immune.keys():
+		if not is_instance_valid(key):
+			_immune.erase(key)
 			continue
+		_immune[key] -= delta
+		if _immune[key] <= 0.0:
+			_immune.erase(key)
+	for key: Variant in _held.keys():
+		if not is_instance_valid(key) or (key as Marble).freeze:
+			_held.erase(key)
+			continue
+		var marble: Marble = key as Marble
 		_held[marble] -= delta
 		if _held[marble] <= 0.0:
 			_held.erase(marble)
@@ -206,9 +215,10 @@ func _draw() -> void:
 		var color: Color = Color(tint.lightened(0.5 * grip), (0.5 + 0.4 * grip) * glow)
 		draw_polyline(points, color, 3.0 + grip, true)
 	# A crackle of light from the tentacles to every fish they hold.
-	for marble: Marble in _held.keys():
-		if not is_instance_valid(marble):
+	for key: Variant in _held.keys():
+		if not is_instance_valid(key):
 			continue
+		var marble: Marble = key as Marble
 		var there: Vector2 = to_local(marble.global_position)
 		var from: Vector2 = Vector2(clampf(there.x, -radius * 0.7, radius * 0.7), radius * 1.4)
 		var zig: Vector2 = (there - from).orthogonal().normalized() * 6.0 * sin(_clock * 40.0)
