@@ -152,6 +152,25 @@ const PALETTES: Dictionary = {
 }
 const DEFAULT_STYLE: String = "kelp"
 
+## Foreground shapes per style: what hangs from the top and what grows from the bottom.
+const FOREGROUND: Dictionary = {
+	"kelp": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
+	"crystal": [EnvLayer.Kind.SHARDS, EnvLayer.Kind.SHARDS],
+	"jelly": [EnvLayer.Kind.BLOOMS, EnvLayer.Kind.KELP],
+	"wreck": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.MASTS],
+	"whirlpool": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
+	"abyss": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
+	"volcanic": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SPIRES],
+	"coral": [EnvLayer.Kind.CORAL, EnvLayer.Kind.CORAL],
+}
+## Foreground sits over the fish (z 5) and their effects, under the names (z 10).
+const FOREGROUND_Z: int = 7
+const FOREGROUND_ALPHA: float = 0.82
+## Keeps the foreground out of the spawn column and the finish zone, in world pixels.
+const FOREGROUND_MARGIN: float = 110.0
+## Bottom shapes are rooted this far below the frame (EnvLayer's floor line).
+const FLOOR_BELOW_FRAME: float = 60.0
+
 const STONE_SHADER: Shader = preload("res://assets/shaders/env/stone.gdshader")
 const FOG_SHADER: Shader = preload("res://assets/shaders/env/fog.gdshader")
 const VIEW: Vector2 = Vector2(1920.0, 1080.0)
@@ -179,6 +198,7 @@ func dress(track: Track, style_id: String) -> void:
 	_add_fog()
 	_add_motes()
 	_dress_finish(track)
+	_add_foreground(track, style_id)
 	for child: Node in track.get_children():
 		if child is StaticBody2D:
 			_dress_body(child as StaticBody2D)
@@ -280,10 +300,6 @@ func _add_layers() -> void:
 	# Mid: vegetation or shards closer to the action.
 	_add_layer(_parallax(0.5, -40), kind, _palette["plant"], 5, 14, 200.0, 460.0, false, 30.0)
 	_add_layer(_parallax(0.5, -40), far_kind, _palette["mid"], 6, 8, 120.0, 280.0, true, 0.0)
-	# Near: dark silhouettes in front of the walls but behind the fish, trails and effects.
-	var near: Parallax2D = _parallax(1.25, 3)
-	_add_layer(near, kind, _palette["near"], 7, 9, 40.0, 110.0, false, 18.0)
-	_add_layer(near, far_kind, _palette["near"], 8, 5, 140.0, 300.0, true, 0.0)
 
 
 func _add_layer(
@@ -308,6 +324,83 @@ func _add_layer(
 	layer.from_top = from_top
 	layer.sway = sway * float(_palette["sway_scale"])
 	parent.add_child(layer)
+
+
+## Silhouettes drawn in front of the fish, so they vanish briefly behind them. Translucent
+## as a whole (one group, so overlapping shapes do not darken each other) and never placed
+## over the spawn column or the finish zone.
+func _add_foreground(track: Track, style_id: String) -> void:
+	var kinds: Array = FOREGROUND.get(style_id, FOREGROUND[DEFAULT_STYLE])
+	var blocked: Array[Vector2] = _foreground_blocked_ranges(track)
+	var group: CanvasGroup = CanvasGroup.new()
+	group.name = "Foreground"
+	group.z_index = FOREGROUND_Z
+	group.modulate = Color(1.0, 1.0, 1.0, FOREGROUND_ALPHA)
+	add_child(group)
+	# Top shapes hang from above the frame (h includes the gap to the top of the frame),
+	# bottom shapes rise from just below it.
+	_add_foreground_layer(group, kinds[0], 21, 6, 290.0, 450.0, true, blocked)
+	_add_foreground_layer(group, kinds[1], 22, 5, 130.0, 300.0, false, blocked)
+
+
+func _add_foreground_layer(
+	group: CanvasGroup,
+	kind: EnvLayer.Kind,
+	seed_value: int,
+	slots: int,
+	min_height: float,
+	max_height: float,
+	from_top: bool,
+	blocked: Array[Vector2]
+) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var placements: Array[Vector2] = []
+	for i: int in slots:
+		var x: float = lerpf(60.0, 1860.0, (float(i) + rng.randf_range(0.2, 0.8)) / float(slots))
+		var height: float = rng.randf_range(min_height, max_height)
+		var free: bool = true
+		for span: Vector2 in blocked:
+			if x > span.x and x < span.y:
+				free = false
+		if free:
+			placements.append(Vector2(x, height if from_top else height + FLOOR_BELOW_FRAME))
+	if placements.is_empty():
+		return
+	var layer: EnvLayer = EnvLayer.new()
+	layer.kind = kind
+	layer.color = _palette["near"]
+	layer.highlight = Color(_palette["rim"], 0.22)
+	layer.seed_value = seed_value
+	layer.min_height = min_height
+	layer.max_height = max_height
+	layer.from_top = from_top
+	layer.sway = 16.0 * float(_palette["sway_scale"])
+	layer.placements = placements
+	group.add_child(layer)
+
+
+## X ranges the foreground keeps clear: the spawn column and the finish zone.
+func _foreground_blocked_ranges(track: Track) -> Array[Vector2]:
+	var ranges: Array[Vector2] = []
+	var spawn: Marker2D = track.get_node_or_null("SpawnOrigin") as Marker2D
+	if spawn != null:
+		var width: float = float(track.spawn_columns) * track.spawn_spacing
+		ranges.append(
+			Vector2(
+				spawn.global_position.x - FOREGROUND_MARGIN,
+				spawn.global_position.x + width + FOREGROUND_MARGIN
+			)
+		)
+	var finish: Area2D = track.get_node_or_null("Finish") as Area2D
+	var zone: CollisionShape2D = null
+	if finish != null:
+		zone = finish.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if zone != null and zone.shape is RectangleShape2D:
+		var half: float = (zone.shape as RectangleShape2D).size.x * 0.5
+		var center: float = zone.global_position.x
+		ranges.append(Vector2(center - half - FOREGROUND_MARGIN, center + half + FOREGROUND_MARGIN))
+	return ranges
 
 
 func _add_fog() -> void:
