@@ -100,6 +100,7 @@ var replaying: bool = false:
 			_fish.celebrating = _fish.celebrating or _was_celebrating
 var replay_velocity: Vector2 = Vector2.ZERO
 
+var _strand_tween: Tween
 var _curse_left: float = 0.0
 var _layer_before_eaten: int = 0
 var _mask_before_eaten: int = 0
@@ -293,12 +294,24 @@ func strand() -> void:
 	RaceFx.burst(get_parent(), global_position, RaceFx.SPLASH_COLOR, 10, 70.0, Vector2(0, -40))
 	var base: Vector2 = global_position
 	var heading_before: float = _fish.heading if _fish != null else 0.0
-	var tween: Tween = create_tween()
-	tween.tween_method(
+	_strand_tween = create_tween()
+	_strand_tween.tween_method(
 		func(t: float) -> void: _flop(base, heading_before, t), 0.0, 1.0, FLOP_SECONDS
 	)
-	tween.tween_property(self, "modulate:a", 0.0, STRAND_FADE_SECONDS)
-	tween.tween_callback(func() -> void: visible = false)
+	_strand_tween.tween_property(self, "modulate:a", 0.0, STRAND_FADE_SECONDS)
+	_strand_tween.tween_callback(func() -> void: visible = false)
+
+
+## Ends a stranded fish's flop and fade at once, leaving it gone. The race calls it when it ends,
+## so a fish stranded a moment before never reappears under the finish replay.
+func finish_strand() -> void:
+	if not stranded:
+		return
+	if _strand_tween != null:
+		_strand_tween.kill()
+		_strand_tween = null
+	modulate.a = 0.0
+	visible = false
 
 
 ## One frame of the stranded flop: hops and rocks side to side, tiring as it goes.

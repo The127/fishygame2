@@ -509,6 +509,7 @@ func _finish_race() -> void:
 	_track.stop_hazards()
 	_track.hold_tide()
 	for marble: Marble in _marbles.values():
+		marble.finish_strand()
 		marble.set_deferred("freeze", true)
 	var results: Array[Dictionary] = _ranking.get_results(get_progress_map())
 	race_finished.emit(results)

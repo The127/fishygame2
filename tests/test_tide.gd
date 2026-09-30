@@ -211,3 +211,14 @@ func test_the_waterline_takes_part_in_the_finish_replay() -> void:
 	assert_almost_eq(_water.position.y, 150.0, 0.001, "the drawn water follows")
 	assert_eq(_water.replay_state().size(), 2)
 	assert_almost_eq(_water.replay_state()[0], 150.0, 0.001)
+
+
+func test_a_fish_stranded_as_the_race_ends_is_gone_for_the_replay() -> void:
+	var race: Race = _make_race(1)
+	_sink_the_waterline()
+	for i: int in roundi(Marble.DRY_GRACE / STEP) + 5:
+		race._physics_process(STEP)
+	var marble: Marble = race.get_marbles()[0]
+	assert_false(race.running)
+	assert_false(marble.visible, "no flop or fade is left to fight the replay")
+	assert_eq(marble.modulate.a, 0.0)
