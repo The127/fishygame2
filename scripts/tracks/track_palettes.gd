@@ -330,5 +330,5 @@ const FOREGROUND: Dictionary = {
 	"washer": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.MASTS],
 	"whale": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.TENTACLES],
 	"flush": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.MASTS],
-	"switchback": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SPIRES],
+	"switchback": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.RUINS],
 }

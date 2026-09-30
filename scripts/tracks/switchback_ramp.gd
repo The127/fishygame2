@@ -4,7 +4,8 @@ extends Node2D
 ## A hidden `Trigger` zone sits somewhere along the ramp: the first fish to enter it makes the slab
 ## shudder, then the slab swings to the opposite slope, so everything on it rolls back the way it
 ## came. After a hold it swings back. Every ramp flips at most [member max_flips] times a race and
-## nothing flips after [constant HORIZON], so a fish can only ever be held back for a bounded time.
+## nothing a fish triggers flips after [constant HORIZON], so a fish can only ever be held back for a
+## bounded time. The backwash hazard tips a ramp on top of that, bounded by the hazard's own event cap.
 ## The trigger position, the flip budget and the hold time come from the race seed.
 
 enum Phase { REST, WARN, HOLD }
@@ -139,7 +140,8 @@ func _physics_process(delta: float) -> void:
 		clock += delta
 		_advance(delta)
 	_swing = move_toward(_swing, target_angle(), SWING_SPEED * delta)
-	_slab.rotation = _swing + _shudder()
+	_slab.rotation = _swing
+	(_slab.get_node("Visual") as Polygon2D).rotation = _shudder()
 	_flash = maxf(_flash - delta, 0.0)
 	_scroll += delta
 	queue_redraw()
@@ -154,7 +156,10 @@ func _advance(delta: float) -> void:
 				phase = Phase.WARN
 				phase_time = 0.0
 		Phase.WARN:
-			if phase_time >= WARN_SECONDS:
+			if clock >= HORIZON:
+				phase = Phase.REST
+				phase_time = 0.0
+			elif phase_time >= WARN_SECONDS:
 				phase = Phase.HOLD
 				phase_time = 0.0
 				reversed = true
@@ -198,7 +203,7 @@ func _draw() -> void:
 	# Chevrons point downhill, so a tipped ramp visibly turns them around.
 	var downhill: float = signf(_swing)
 	var fade: float = clampf(absf(_swing) / deg_to_rad(tilt_degrees), 0.0, 1.0)
-	draw_set_transform(Vector2.ZERO, _slab.rotation)
+	draw_set_transform(Vector2.ZERO, _swing + _shudder())
 	var count: int = int(2.0 * _half_length / CHEVRON_SPACING)
 	for i: int in count:
 		var x: float = -_half_length + (float(i) + 0.5) * CHEVRON_SPACING
@@ -249,5 +254,6 @@ func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: floa
 	_alarm = Replayable.mix(from, to, weight, 8)
 	_scroll = Replayable.mix(from, to, weight, 9)
 	_armed = Replayable.step(from, to, weight, 10) > 0.5
-	_slab.rotation = _swing + _shudder()
+	_slab.rotation = _swing
+	(_slab.get_node("Visual") as Polygon2D).rotation = _shudder()
 	queue_redraw()
