@@ -117,3 +117,34 @@ func test_stop_ends_right_away_once() -> void:
 	assert_false(_replay.active)
 	assert_signal_emit_count(_replay, "ended", 1)
 	assert_false(marbles[0].replaying)
+
+
+func test_marbles_go_back_to_their_real_position_after_the_replay() -> void:
+	var marbles: Array[Marble] = _marbles(2)
+	marbles[0].global_position = Vector2(7.0, 8.0)
+	_replay.start(_recording(5.0), marbles)
+	assert_ne(marbles[0].global_position, Vector2(7.0, 8.0))
+	_replay.stop()
+	assert_eq(marbles[0].global_position, Vector2(7.0, 8.0))
+
+
+func test_leaving_the_tree_reports_nothing() -> void:
+	var replay := FinishReplay.new()
+	add_child(replay)
+	replay.start(_recording(5.0), _marbles(2))
+	watch_signals(replay)
+	remove_child(replay)
+	assert_signal_not_emitted(replay, "ended")
+	replay.free()
+
+
+func test_a_portal_jump_snaps_instead_of_sliding() -> void:
+	var rec := ReplayRecorder.new(1)
+	rec.sample(0.0, PackedVector2Array([Vector2.ZERO]), PackedVector2Array([Vector2.ZERO]))
+	rec.sample(0.1, PackedVector2Array([Vector2(1000, 0)]), PackedVector2Array([Vector2.ZERO]))
+	rec.sample(0.2, PackedVector2Array([Vector2(1000, 0)]), PackedVector2Array([Vector2.ZERO]))
+	rec.mark_finish(0.2, 0)
+	var marbles: Array[Marble] = _marbles(1)
+	_replay.start(rec, marbles)
+	_replay._process(0.03)
+	assert_true(marbles[0].global_position.x < 1.0 or marbles[0].global_position.x >= 999.0)

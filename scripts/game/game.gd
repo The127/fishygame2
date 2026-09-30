@@ -181,7 +181,6 @@ func _ready() -> void:
 	_betting.pick_placed.connect(_on_pick_placed)
 	_betting.pick_rejected.connect(_on_pick_rejected)
 	_betting.balance_reported.connect(_on_balance_reported)
-	_race.race_finished.connect(_record_race_stats)
 	_race.race_finished.connect(_on_race_finished)
 	_panel.open_lobby_pressed.connect(_flow.open_lobby)
 	_panel.start_pressed.connect(_on_start_pressed)
@@ -436,12 +435,32 @@ func _on_fish_eaten(marble: Marble) -> void:
 		_betting.points.save_to_disk()
 ## Reports the results to the flow, after a finish replay when the setting asks for one.
 func _on_race_finished(results: Array[Dictionary]) -> void:
-	if _wants_replay(results) and _replay.start(_race.get_recorder(), _race.get_marbles()):
-		_photo.stop()
+	var recorder: ReplayRecorder = _race.get_recorder()
+	if _wants_replay(results) and recorder != null and recorder.has_clip():
+		# Held until the replay ends. The finish signal comes from the physics callback, where
+		# bodies must not be moved, so the replay itself starts a moment later.
 		_pending_results = results
-		_overlay.show_replay(true)
-		_panel.show_skip_replay(true)
+		_begin_replay.call_deferred()
 		return
+	_report_results(results)
+
+
+func _begin_replay() -> void:
+	if _pending_results.is_empty():
+		return
+	if not _replay.start(_race.get_recorder(), _race.get_marbles()):
+		_report_results(_pending_results)
+		_pending_results = []
+		return
+	_photo.stop()
+	_overlay.show_replay(true)
+	_panel.show_skip_replay(true)
+
+
+## Counts the race for the viewers' stats and hands the results to the flow. Only runs when the
+## race really ends, so a round stopped during the replay leaves no stats behind.
+func _report_results(results: Array[Dictionary]) -> void:
+	_record_race_stats(results)
 	_flow.report_race_finished(results)
 
 
@@ -461,7 +480,7 @@ func _on_replay_ended() -> void:
 	var results: Array[Dictionary] = _pending_results
 	_pending_results = []
 	if not results.is_empty():
-		_flow.report_race_finished(results)
+		_report_results(results)
 
 
 ## Space starts the race, or skips the replay while one plays.

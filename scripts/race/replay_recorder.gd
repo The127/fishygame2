@@ -46,6 +46,10 @@ func should_sample(time: float) -> bool:
 func sample(time: float, positions: PackedVector2Array, velocities: PackedVector2Array) -> void:
 	if is_done() or positions.size() < marble_count or velocities.size() < marble_count:
 		return
+	if _size > 0 and absf(time - _last_time) < 0.0001:
+		# Same instant as the last frame (a finish right after a regular sample): replace it.
+		_head = posmod(_head - 1, _capacity)
+		_size -= 1
 	_times[_head] = time
 	var base: int = _head * marble_count
 	for i: int in marble_count:

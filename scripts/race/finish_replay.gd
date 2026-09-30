@@ -14,6 +14,8 @@ const SLOW_AFTER: float = 0.5
 const EASE_SECONDS: float = 0.3
 ## A finish this close between first and second place counts as a close one.
 const CLOSE_GAP: float = 0.5
+## Consecutive frames this far apart are a teleport (portal): snap instead of sliding.
+const TELEPORT_DISTANCE: float = 250.0
 
 var active: bool = false
 
@@ -23,6 +25,8 @@ var _clock: float = 0.0
 var _frame: int = 0
 var _event_index: int = 0
 var _crossed: Dictionary = {}
+## Where each marble really ended up, put back when the replay ends.
+var _home_positions: Dictionary = {}
 
 
 ## Playback speed at clip time `time` for a winner crossing at `finish_time`.
@@ -65,10 +69,12 @@ func start(recorder: ReplayRecorder, marbles: Array[Marble]) -> bool:
 	_recorder = recorder
 	_marbles.clear()
 	_crossed.clear()
+	_home_positions.clear()
 	for marble: Marble in marbles:
 		if marble.id >= 0 and marble.id < recorder.marble_count:
 			_marbles[marble.id] = marble
 			marble.set_deferred("freeze", true)
+			_home_positions[marble.id] = marble.global_position
 			marble.replaying = true
 	_clock = recorder.start_time()
 	_frame = 0
@@ -81,14 +87,23 @@ func start(recorder: ReplayRecorder, marbles: Array[Marble]) -> bool:
 
 ## Ends the replay right away and gives the marbles back.
 func stop() -> void:
+	_finish(true)
+
+
+func _finish(restore: bool) -> void:
 	if not active:
 		return
 	active = false
-	for marble: Marble in _marbles.values():
-		if is_instance_valid(marble):
-			marble.replaying = false
+	for id: int in _marbles:
+		var marble: Marble = _marbles[id]
+		if not is_instance_valid(marble):
+			continue
+		marble.replaying = false
+		if restore and marble.is_inside_tree():
+			marble.global_position = _home_positions[id]
 	_marbles.clear()
-	ended.emit()
+	if restore:
+		ended.emit()
 
 
 ## Clip time now, in race seconds.
@@ -119,8 +134,8 @@ func _process(delta: float) -> void:
 
 
 func _exit_tree() -> void:
-	if active:
-		stop()
+	# Leaving the scene is not a finished replay: nothing gets reported.
+	_finish(false)
 
 
 func _apply() -> void:
@@ -134,9 +149,12 @@ func _apply() -> void:
 		var marble: Marble = _marbles[id]
 		if not is_instance_valid(marble):
 			continue
-		marble.global_position = _recorder.position_at(_frame, id).lerp(
-			_recorder.position_at(_frame + 1, id), weight
-		)
+		var from: Vector2 = _recorder.position_at(_frame, id)
+		var to: Vector2 = _recorder.position_at(_frame + 1, id)
+		var mix: float = weight
+		if from.distance_to(to) > TELEPORT_DISTANCE:
+			mix = 0.0 if weight < 0.5 else 1.0
+		marble.global_position = from.lerp(to, mix)
 		marble.replay_velocity = _recorder.velocity_at(_frame, id).lerp(
 			_recorder.velocity_at(_frame + 1, id), weight
 		)
@@ -160,6 +178,8 @@ func _play_event(event: Dictionary) -> void:
 		ReplayRecorder.Kind.SPLASH:
 			_crossed[id] = true
 			marble.splash()
+			if id == _recorder.winner_id():
+				marble.celebrate()
 		ReplayRecorder.Kind.BOOST:
 			RaceFx.burst(marble, at, RaceFx.BOOST_COLOR, 16, 130.0)
 		ReplayRecorder.Kind.CURSE:

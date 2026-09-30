@@ -15,8 +15,8 @@ func after_each() -> void:
 func _run_race_with_clip(order: Array[int]) -> void:
 	_start_race(2)
 	var recorder: ReplayRecorder = _race.get_recorder()
-	var t: float = 0.0
-	while t < 2.0:
+	var t: float = -2.0
+	while t < 0.0:
 		recorder.sample(
 			t,
 			PackedVector2Array([Vector2(t * 50.0, 0.0), Vector2(t * 50.0, 40.0)]),
@@ -24,6 +24,8 @@ func _run_race_with_clip(order: Array[int]) -> void:
 		)
 		t += ReplayRecorder.SAMPLE_INTERVAL
 	_finish_marbles(order)
+	# The replay starts a frame later, outside the physics callback.
+	await get_tree().process_frame
 
 
 func _replay_node() -> FinishReplay:
@@ -34,7 +36,7 @@ func _replay_node() -> FinishReplay:
 
 
 func test_podium_waits_for_the_replay() -> void:
-	_run_race_with_clip([0, 1])
+	await _run_race_with_clip([0, 1])
 	assert_eq(_flow.state, GameFlow.State.RACING, "flow waits while the replay plays")
 	assert_true(_replay_node().active)
 	_replay_node().stop()
@@ -42,7 +44,7 @@ func test_podium_waits_for_the_replay() -> void:
 
 
 func test_replay_ending_reports_the_real_results() -> void:
-	_run_race_with_clip([1, 0])
+	await _run_race_with_clip([1, 0])
 	watch_signals(_flow)
 	_replay_node().stop()
 	assert_signal_emitted(_flow, "podium_ready")
@@ -51,20 +53,20 @@ func test_replay_ending_reports_the_real_results() -> void:
 
 
 func test_space_skips_the_replay_instead_of_starting() -> void:
-	_run_race_with_clip([0, 1])
+	await _run_race_with_clip([0, 1])
 	_panel.start_pressed.emit()
 	assert_false(_replay_node().active)
 	assert_eq(_flow.state, GameFlow.State.PODIUM)
 
 
 func test_skip_button_signal_skips() -> void:
-	_run_race_with_clip([0, 1])
+	await _run_race_with_clip([0, 1])
 	_panel.skip_replay_pressed.emit()
 	assert_eq(_flow.state, GameFlow.State.PODIUM)
 
 
 func test_stopping_the_round_drops_the_replay_and_results() -> void:
-	_run_race_with_clip([0, 1])
+	await _run_race_with_clip([0, 1])
 	_flow.stop()
 	assert_false(_replay_node().active)
 	assert_eq(_flow.state, GameFlow.State.IDLE)
@@ -75,7 +77,7 @@ func test_stopping_the_round_drops_the_replay_and_results() -> void:
 
 func test_replay_off_goes_straight_to_the_podium() -> void:
 	_game.settings.finish_replay = GameSettings.REPLAY_OFF
-	_run_race_with_clip([0, 1])
+	await _run_race_with_clip([0, 1])
 	assert_eq(_flow.state, GameFlow.State.PODIUM)
 	assert_false(_replay_node().active)
 
@@ -84,15 +86,15 @@ func test_close_mode_skips_a_far_finish_and_plays_a_close_one() -> void:
 	_game.settings.finish_replay = GameSettings.REPLAY_CLOSE
 	_start_race(2)
 	_race.had_photo_finish = true
-	_run_race_with_clip_from_running([0, 1])
+	await _run_race_with_clip_from_running([0, 1])
 	assert_true(_replay_node().active, "a photo finish gets a replay")
 
 
 ## Like _run_race_with_clip but for a race that is already running.
 func _run_race_with_clip_from_running(order: Array[int]) -> void:
 	var recorder: ReplayRecorder = _race.get_recorder()
-	var t: float = 0.0
-	while t < 2.0:
+	var t: float = -2.0
+	while t < 0.0:
 		recorder.sample(
 			t,
 			PackedVector2Array([Vector2(t * 50.0, 0.0), Vector2(t * 50.0, 40.0)]),
@@ -100,9 +102,26 @@ func _run_race_with_clip_from_running(order: Array[int]) -> void:
 		)
 		t += ReplayRecorder.SAMPLE_INTERVAL
 	_finish_marbles(order)
+	await get_tree().process_frame
 
 
 func test_no_replay_without_a_recorded_clip() -> void:
 	_start_race(2)
 	_finish_marbles([0, 1])
+	await get_tree().process_frame
 	assert_eq(_flow.state, GameFlow.State.PODIUM, "one frame is not enough to play")
+
+
+func test_stopping_during_the_replay_records_no_stats() -> void:
+	await _run_race_with_clip([0, 1])
+	_flow.stop()
+	assert_eq(_betting.points.stats.get_counter("0", "races"), 0)
+
+
+func test_stats_are_recorded_when_the_replay_ends() -> void:
+	await _run_race_with_clip([0, 1])
+	assert_eq(
+		_betting.points.stats.get_counter("0", "races"), 0, "not yet, the race is still replaying"
+	)
+	_replay_node().stop()
+	assert_eq(_betting.points.stats.get_counter("0", "races"), 1)

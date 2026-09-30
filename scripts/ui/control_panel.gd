@@ -176,7 +176,7 @@ func cancel_leave() -> void:
 	_confirm.visible = false
 
 
-## Shows the skip button (and reveals the panel, so it can be used) while a replay plays.
+## Shows or hides the skip button. Space skips too, even with the panel hidden.
 func show_skip_replay(shown: bool) -> void:
 	($Panel/Box/SkipReplay as Control).visible = shown
 

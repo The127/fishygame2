@@ -59,12 +59,25 @@ var label_text: String = "":
 			_label.text = value
 
 ## While a finish replay drives this marble, its heading comes from [member replay_velocity].
-var replaying: bool = false
+var replaying: bool = false:
+	set(value):
+		if value == replaying:
+			return
+		replaying = value
+		if _fish == null:
+			return
+		# The winner's glow is replayed at the crossing, not shown from the first frame.
+		if value:
+			_was_celebrating = _fish.celebrating
+			_fish.celebrating = false
+		else:
+			_fish.celebrating = _fish.celebrating or _was_celebrating
 var replay_velocity: Vector2 = Vector2.ZERO
 
 var _curse_left: float = 0.0
 var _layer_before_eaten: int = 0
 var _mask_before_eaten: int = 0
+var _was_celebrating: bool = false
 var _base_damp: float = 0.0
 var _label: Label
 var _fish: FishVisual
@@ -223,6 +236,7 @@ func celebrate() -> void:
 func _process(delta: float) -> void:
 	_fish.face(replay_velocity if replaying else linear_velocity, delta)
 	_trail.global_position = global_position
-	_trail.emitting = linear_velocity.length() > 60.0 and not freeze
+	var heading: Vector2 = replay_velocity if replaying else linear_velocity
+	_trail.emitting = heading.length() > 60.0 and (replaying or not freeze)
 	var size: Vector2 = _label.get_minimum_size()
 	_label.global_position = global_position + Vector2(-size.x * 0.5, -RADIUS - size.y - 2.0)

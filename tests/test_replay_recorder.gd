@@ -85,3 +85,11 @@ func test_old_events_are_pruned() -> void:
 	var events: Array[Dictionary] = rec.events()
 	assert_eq(events.size(), 1)
 	assert_eq(int(events[0]["id"]), 1)
+
+
+func test_a_frame_at_the_same_instant_replaces_the_last() -> void:
+	var rec := ReplayRecorder.new(1)
+	rec.sample(1.0, PackedVector2Array([Vector2(1, 0)]), PackedVector2Array([Vector2.ZERO]))
+	rec.sample(1.0, PackedVector2Array([Vector2(2, 0)]), PackedVector2Array([Vector2.ZERO]))
+	assert_eq(rec.frame_count(), 1)
+	assert_eq(rec.position_at(0, 0), Vector2(2, 0))
