@@ -24,6 +24,7 @@ const MUSIC_PATHS: Dictionary = {
 	"abyss": "res://assets/audio/music_abyss.wav",
 	"vents": "res://assets/audio/music_vents.wav",
 	"coral": "res://assets/audio/music_coral.wav",
+	"kraken": "res://assets/audio/music_kraken.wav",
 }
 ## Quiet looping sound bed by map id (the home screen has none).
 const AMBIENCE_PATHS: Dictionary = {
@@ -35,6 +36,7 @@ const AMBIENCE_PATHS: Dictionary = {
 	"abyss": "res://assets/audio/ambience_abyss.wav",
 	"vents": "res://assets/audio/ambience_vents.wav",
 	"coral": "res://assets/audio/ambience_coral.wav",
+	"kraken": "res://assets/audio/ambience_kraken.wav",
 }
 ## Podium jingle by map id.
 const JINGLE_PATHS: Dictionary = {
@@ -46,6 +48,7 @@ const JINGLE_PATHS: Dictionary = {
 	"abyss": "res://assets/audio/jingle_abyss.wav",
 	"vents": "res://assets/audio/jingle_vents.wav",
 	"coral": "res://assets/audio/jingle_coral.wav",
+	"kraken": "res://assets/audio/jingle_kraken.wav",
 }
 const SFX_PATHS: Dictionary = {
 	Sfx.JOIN: "res://assets/audio/sfx_join.wav",

@@ -93,6 +93,16 @@ JINGLES = {
                   (0.6, 71, 1.7, 0.6), (0.6, 55, 1.7, 0.6)),
         "echo": (0.22, 2, 0.4),
     },
+    # Kraken's lair: D minor brass swell, a dread bell and one more toll.
+    "kraken": {
+        "partials": BRASS,
+        "attack": 0.08,
+        "notes": ((0.0, 50, 1.0, 0.5), (0.0, 57, 1.0, 0.5), (0.4, 53, 1.0, 0.5),
+                  (0.4, 60, 1.0, 0.5), (0.8, 50, 1.9, 0.9), (0.8, 57, 1.9, 0.9),
+                  (0.8, 62, 1.9, 0.9), (0.8, 38, 1.9, 0.9)),
+        "bell": (1.2, 74, 1.6),
+        "echo": (0.5, 2, 0.4),
+    },
 }
 
 
@@ -362,6 +372,13 @@ def _coral(out, rng):
     pops(out, rng, 7, 0.14)
 
 
+def _kraken(out, rng):
+    bed(out, rng, 0.0, 140.0, 0.9, swell=0.3, cycles=1)
+    thumps(out, rng, (1.0, 4.6), 90.0, 0.6)
+    moan(out, 2.6, 55.0, 85.0, 0.3)
+    bubbles(out, rng, 6, 250.0, 600.0, 0.1)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -371,6 +388,7 @@ AMBIENCE = {
     "abyss": (36, _abyss),
     "vents": (37, _vents),
     "coral": (38, _coral),
+    "kraken": (39, _kraken),
 }
 
 

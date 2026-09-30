@@ -49,3 +49,11 @@ func test_indices_stay_inside_the_vertex_array() -> void:
 		assert_eq(indices.size() % 3, 0)
 		for index: int in indices:
 			assert_true(index >= 0 and index < vertices)
+
+
+func test_tentacles_are_the_same_for_a_seed_and_differ_between_seeds() -> void:
+	var a: EnvLayer = _layer(EnvLayer.Kind.TENTACLES, 5)
+	var b: EnvLayer = _layer(EnvLayer.Kind.TENTACLES, 5)
+	var c: EnvLayer = _layer(EnvLayer.Kind.TENTACLES, 6)
+	assert_eq(_vertices(a), _vertices(b))
+	assert_ne(_vertices(a), _vertices(c))

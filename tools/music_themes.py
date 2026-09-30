@@ -473,4 +473,27 @@ THEMES = {
              "high": 6000.0, "gain": 0.02},
         ),
     },
+    # Kraken's lair: D minor brass drone, slow war drum and a low tolling bell.
+    "kraken": {
+        "seed": 29,
+        "level": 0.9,
+        "chords": (
+            (26, 38, 45, 50, 53),
+            (22, 34, 41, 46, 50),
+            (24, 36, 43, 48, 51),
+            (21, 33, 40, 45, 49),
+        ),
+        "pad_partials": BRASS,
+        "pad_gain": 0.05,
+        "trem_rate": 0.07,
+        "trem_depth": 0.3,
+        "rumble_cutoff": 170.0,
+        "rumble_gain": 0.9,
+        "layers": (
+            {"kind": "pulse", "bpm": 60, "freq": 52.0, "decay": 0.22, "gain": 0.45,
+             "double": 0.5},
+            {"kind": "pings", "times": (2.0, 10.0, 18.0), "freq": 293.66, "decay": 1.6,
+             "gain": 0.07},
+        ),
+    },
 }
