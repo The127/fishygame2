@@ -5,6 +5,10 @@ extends Hazard
 ## children whose origin is the hinge at the downhill end. The telegraph shakes the plank and
 ## cracks it open with a warm glow.
 
+## A plank just swung open and kicked up dust: what [method RaceFx.burst] was given, so the
+## finish replay can play the same burst.
+signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
+
 ## How far a plank swings open unless its `open_degrees` metadata says otherwise. A plank
 ## must stop short of whatever lies under it, or it would crush the marbles down there.
 const DEFAULT_OPEN_DEGREES: float = 70.0
@@ -97,9 +101,9 @@ func _begin_active() -> void:
 	if _plank != null:
 		_restore_look(_plank)
 		_plank.rotation = 0.0
-		RaceFx.burst(
-			self, _plank.global_position + _centroid(_plank), DUST_COLOR, 18, 110.0, Vector2(0, 90)
-		)
+		var at: Vector2 = _plank.global_position + _centroid(_plank)
+		RaceFx.burst(self, at, DUST_COLOR, 18, 110.0, Vector2(0, 90))
+		burst_played.emit(at, DUST_COLOR, 18, 110.0, Vector2(0, 90))
 
 
 func _process_active(_delta: float) -> void:

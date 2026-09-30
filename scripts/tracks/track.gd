@@ -35,6 +35,8 @@ func _ready() -> void:
 		if hazard is AnglerHazard:
 			(hazard as AnglerHazard).fish_eaten.connect(fish_eaten.emit)
 			(hazard as AnglerHazard).burst_played.connect(burst_played.emit)
+		if hazard is PlankHazard:
+			(hazard as PlankHazard).burst_played.connect(burst_played.emit)
 	for node: Node in find_children("*", "PortalPair", true, false):
 		(node as PortalPair).burst_played.connect(burst_played.emit)
 	var style: TrackStyle = TrackStyle.new()
