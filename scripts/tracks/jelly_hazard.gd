@@ -65,10 +65,25 @@ func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weigh
 	_level = Replayable.mix(from, to, weight, REPLAY_BASE)
 	for i: int in _jellies.size():
 		var start: int = REPLAY_BASE + 1 + i * Jellyfish.SNAPSHOT_FLOATS
-		_jellies[i].show_snapshot(
-			Replayable.blend(from, to, weight, start, Jellyfish.SNAPSHOT_FLOATS)
+		var shown: PackedFloat32Array = Replayable.blend(
+			from, to, weight, start, Jellyfish.SNAPSHOT_FLOATS
 		)
+		# Fish ids are not blended.
+		for k: int in Jellyfish.HELD_SLOTS:
+			shown[5 + k] = Replayable.step(from, to, weight, start + 5 + k)
+		_jellies[i].show_snapshot(shown)
 		_jellies[i].kick_scale = lerpf(1.0, SURGE_KICK, _level)
+
+
+## Replay: the fish by id, so the jellyfish can draw the crackle to the fish they held.
+func replay_fish(fish: Dictionary) -> void:
+	for jelly: Jellyfish in _jellies:
+		jelly.use_replay_fish(fish)
+
+
+func replay_end() -> void:
+	for jelly: Jellyfish in _jellies:
+		jelly.use_replay_fish(null)
 
 
 func _reset() -> void:

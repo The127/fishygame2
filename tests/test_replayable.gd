@@ -210,3 +210,90 @@ func test_gravity_map_replays_flips_warnings_and_currents_across_events() -> voi
 		flipper.up,
 		"the physics zone matches the restored flip"
 	)
+
+
+## Runs a real race on the jellyfish map, records it and plays the recording back.
+func test_a_real_jelly_race_replays_the_swarm_and_its_catches() -> void:
+	var track: Track = TrackCatalog.instantiate("jelly")
+	add_child_autofree(track)
+	var race: Race = Race.new()
+	race.marble_scene = load(MARBLE_SCENE) as PackedScene
+	add_child_autofree(race)
+	race.start(track, 4, _rng(11), 5)
+	var swarm: JellyHazard = track.get_hazards()[0] as JellyHazard
+	var jellies: Array[Jellyfish] = swarm.get_jellies()
+	var recorder: ReplayRecorder = race.get_recorder()
+	var fish: Array[Marble] = race.get_marbles()
+	assert_true(jellies[0].catch_marble(fish[0]))
+	var seen_positions: Dictionary = {}
+	var seen_held: Dictionary = {}
+	var last_seen: float = -1.0
+	var finished: bool = false
+	var before: PackedVector2Array = PackedVector2Array()
+	var before_held: float = -1.0
+	for i: int in 600:
+		await get_tree().physics_frame
+		# The race samples during a physics frame, before the swarm moves on in the same frame,
+		# so the recorded frame shows what stood there at the end of the frame before.
+		if recorder.frame_count() > 0 and recorder.end_time() != last_seen:
+			last_seen = recorder.end_time()
+			var key: float = snappedf(last_seen, 0.001)
+			seen_positions[key] = before
+			seen_held[key] = before_held
+		before = PackedVector2Array()
+		for jelly: Jellyfish in jellies:
+			before.append(jelly.position)
+		before_held = jellies[0].snapshot()[5]
+		if not finished and race.elapsed >= 1.5:
+			finished = true
+			recorder.mark_finish(race.elapsed, 0)
+		if recorder.is_done():
+			break
+	assert_true(recorder.is_done(), "the clip was recorded")
+	# After the race the swarm has drifted on and nobody is held any more.
+	for fish_body: Marble in fish:
+		fish_body.set_deferred("freeze", true)
+	await _run(1.0)
+	var replay: FinishReplay = FinishReplay.new()
+	add_child_autofree(replay)
+	assert_true(replay.start(recorder, fish))
+	var checked: int = 0
+	var crackles: int = 0
+	for k: int in recorder.frame_count() - 1:
+		replay._clock = recorder.frame_time(k)
+		replay._frame = k
+		replay._apply()
+		var key: float = snappedf(recorder.frame_time(k), 0.001)
+		if not seen_positions.has(key):
+			continue
+		checked += 1
+		for n: int in jellies.size():
+			var recorded: Vector2 = (seen_positions[key] as PackedVector2Array)[n]
+			assert_almost_eq(jellies[n].position.x, recorded.x, 0.5)
+			assert_almost_eq(jellies[n].position.y, recorded.y, 0.5)
+		var points: Array[Vector2] = jellies[0]._held_points()
+		if int(seen_held[key]) == 0:
+			crackles += 1
+			assert_eq(points.size(), 1, "the crackle reaches the held fish")
+			if points.size() == 1:
+				assert_almost_eq(
+					points[0].distance_to(jellies[0].to_local(fish[0].global_position)), 0.0, 0.01
+				)
+		else:
+			assert_eq(points.size(), 0, "no crackle when nothing is held")
+	assert_gt(checked, 10, "compared many replayed frames")
+	assert_gt(crackles, 0, "a catch was recorded and replayed")
+	replay.stop()
+	assert_eq(jellies[0]._held_points().size(), jellies[0].held_count(), "live fish again")
+
+
+func test_jellyfish_snapshot_keeps_the_held_fish_ids() -> void:
+	var track: Track = _track("jelly")
+	var jelly: Jellyfish = (track.get_hazards()[0] as JellyHazard).get_jellies()[0]
+	var marble: Marble = _marble()
+	marble.id = 7
+	assert_eq(jelly.snapshot().size(), Jellyfish.SNAPSHOT_FLOATS)
+	assert_eq(jelly.snapshot()[5], -1.0)
+	assert_true(jelly.catch_marble(marble))
+	assert_eq(jelly.snapshot()[5], 7.0)
+	assert_eq(jelly.snapshot().size(), Jellyfish.SNAPSHOT_FLOATS)
