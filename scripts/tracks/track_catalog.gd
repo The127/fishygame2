@@ -95,6 +95,14 @@ const MAPS: Array[Dictionary] = [
 		"ambience": "res://assets/audio/ambience_tide.wav",
 		"jingle": "res://assets/audio/jingle_tide.wav",
 	},
+	{
+		"id": "fork",
+		"name": "Fork Reef",
+		"scene": preload("res://scenes/tracks/fork_track.tscn"),
+		"music": "res://assets/audio/music_fork.wav",
+		"ambience": "res://assets/audio/ambience_fork.wav",
+		"jingle": "res://assets/audio/jingle_fork.wav",
+	},
 ]
 
 

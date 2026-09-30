@@ -250,6 +250,14 @@ seed sweeps do not count stranded fish as a jam, so check a map change with the 
 waterline, the rip current and stranded fish (hop and fade) as they were; the rocking of a flopping
 fish and its gasp flashes are not replayed.
 
+Fork Reef has three separate starts (`SpawnOrigin` and the markers under `Starts` in
+`scenes/tracks/fork_track.tscn`). Each race deals the fish out evenly between them by seed
+(`Track.plan_starts`), and each start has its own route: a short steep one with bumpers and geysers,
+a middle one with two ledges and a long safe one. The routes merge into a funnel above a shared
+finish run. Progress on a multi-start map is measured along one `Feeders` path per start for the
+first `merge_progress` of the scale and along `Centerline` (merge point to finish) for the rest.
+The debug race prints each marble's start (`starts=`) so a seed sweep can report results per start.
+
 ### Finish replay and moving map parts
 
 The finish replay (`scripts/race/finish_replay.gd`) plays back a short recorded clip around the

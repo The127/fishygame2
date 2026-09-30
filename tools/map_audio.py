@@ -120,6 +120,13 @@ JINGLES = {
                   (0.72, 50, 2.0, 0.9)),
         "echo": (0.3, 3, 0.45),
     },
+    # Fork Reef: three glassy notes that split into a lydian chord.
+    "fork": {
+        "partials": GLASS,
+        "notes": ((0.0, 77, 0.6, 0.2), (0.12, 81, 0.6, 0.2), (0.24, 84, 0.6, 0.2),
+                  (0.48, 89, 1.7, 0.6), (0.48, 81, 1.7, 0.6), (0.48, 65, 1.7, 0.6)),
+        "echo": (0.26, 2, 0.4),
+    },
 }
 
 
@@ -409,6 +416,13 @@ def _tide(out, rng):
     bubbles(out, rng, 4, 500.0, 1000.0, 0.08)
 
 
+def _fork(out, rng):
+    bed(out, rng, 90.0, 520.0, 0.45, swell=0.4, cycles=2)
+    bubbles(out, rng, 9, 700.0, 1500.0, 0.1)
+    shimmer(out, rng, (1.0, 3.3, 5.8), 1200.0, 2800.0, 0.03)
+    pings(out, (0.6,), 1800.0, 0.12)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -421,6 +435,7 @@ AMBIENCE = {
     "kraken": (39, _kraken),
     "gravity": (40, _gravity),
     "tide": (41, _tide),
+    "fork": (42, _fork),
 }
 
 

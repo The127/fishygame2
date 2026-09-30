@@ -56,7 +56,7 @@ func test_resolve_keeps_a_known_choice() -> void:
 func test_resolve_random_covers_all_maps() -> void:
 	var rng: RandomNumberGenerator = _rng(3)
 	var seen: Dictionary = {}
-	for i: int in 50:
+	for i: int in 400:
 		seen[TrackCatalog.resolve(TrackCatalog.RANDOM_ID, rng)] = true
 	assert_eq(seen.size(), TrackCatalog.ids().size())
 
