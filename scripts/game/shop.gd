@@ -9,10 +9,11 @@ signal equipped(msg: ChatMessage, kind: String, item: String, price: int)
 signal rejected(msg: ChatMessage, reason: String)
 signal catalog_requested(msg: ChatMessage)
 
+const DEFAULT_PATH: String = "user://shop.json"
 ## Words for "#hat" that take the accessory off.
 const HAT_OFF: PackedStringArray = ["none", "off"]
 
-@export var shop_path: String = "user://shop.json"
+@export var shop_path: String = DEFAULT_PATH
 @export var species_price: int = 500
 @export var color_price: int = 250
 @export var hat_price: int = 200

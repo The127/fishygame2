@@ -70,6 +70,16 @@ func unequip(user_id: String, kind: String) -> void:
 		_equipped[user_id].erase(kind)
 
 
+## Every viewer id with anything owned or equipped.
+func user_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for source: Dictionary in [_owned, _equipped]:
+		for user_id: String in source:
+			if not ids.has(user_id):
+				ids.append(user_id)
+	return ids
+
+
 ## The equipped item, or "" if the viewer has not equipped one.
 func equipped(user_id: String, kind: String) -> String:
 	return String(_equipped.get(user_id, {}).get(kind, ""))
