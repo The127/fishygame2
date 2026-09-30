@@ -26,9 +26,10 @@ var viewport: SubViewport
 var ears_fish: int = -1
 ## Clicks that landed on a fish so far.
 var fish_clicks: int = 0
+## The cat ears, once they exist.
+var ears: MeshInstance3D
 
 var _fish: MultiMeshInstance3D
-var _ears: MeshInstance3D
 var _fish_material: ShaderMaterial
 var _world: Node3D
 var _time: float = 0.0
@@ -96,16 +97,16 @@ func scare_at(screen_pos: Vector2) -> int:
 
 ## Counts a click that landed on fish [param index]. On the tenth, that fish gets cat ears.
 func fish_clicked(index: int) -> void:
-	if ears_fish >= 0:
+	if ears_fish >= 0 or index < 0 or index >= school.count:
 		return
 	fish_clicks += 1
 	if fish_clicks >= EARS_CLICKS:
 		ears_fish = index
-		_ears = MeshInstance3D.new()
-		_ears.mesh = HomeFishMesh.build_ears(fish_color(index))
-		_ears.material_override = _fish_material
-		_ears.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_world.add_child(_ears)
+		ears = MeshInstance3D.new()
+		ears.mesh = HomeFishMesh.build_ears(fish_color(index))
+		ears.material_override = _fish_material
+		ears.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_world.add_child(ears)
 		_update_fish()
 
 
@@ -137,8 +138,8 @@ func _update_fish() -> void:
 	var multimesh: MultiMesh = _fish.multimesh
 	for i: int in school.count:
 		multimesh.set_instance_transform(i, school.fish_transform(i))
-	if _ears != null:
-		_ears.transform = school.fish_transform(ears_fish)
+	if ears != null:
+		ears.transform = school.fish_transform(ears_fish)
 
 
 func _make_environment() -> WorldEnvironment:
