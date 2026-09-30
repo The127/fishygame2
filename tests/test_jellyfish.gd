@@ -41,6 +41,33 @@ func test_map_is_several_screens_tall_with_jellyfish_in_every_section() -> void:
 	assert_gt(finish.position.y, 2000.0, "the finish is at the bottom")
 
 
+func test_jellyfish_never_reach_the_walls_or_floors() -> void:
+	var track: Track = TrackCatalog.instantiate("jelly")
+	add_child_autofree(track)
+	for jelly: Jellyfish in (track.get_hazards()[0] as JellyHazard).get_jellies():
+		# Everything the bell can sweep over, with room for a fish to pass.
+		var reach: Vector2 = jelly.drift + Vector2.ONE * (jelly.radius + Marble.RADIUS)
+		var box: Rect2 = Rect2(jelly.position - reach, reach * 2.0)
+		for body: Node in track.get_children():
+			var collider: CollisionPolygon2D = (
+				body.get_node_or_null("Collider") as CollisionPolygon2D
+			)
+			if not body is StaticBody2D or collider == null:
+				continue
+			var hit: Array[PackedVector2Array] = Geometry2D.intersect_polygons(
+				collider.polygon,
+				PackedVector2Array(
+					[
+						box.position,
+						Vector2(box.end.x, box.position.y),
+						box.end,
+						Vector2(box.position.x, box.end.y)
+					]
+				)
+			)
+			assert_true(hit.is_empty(), "%s clear of %s" % [jelly.name, body.name])
+
+
 func test_centerline_runs_from_top_to_the_finish() -> void:
 	var track: Track = TrackCatalog.instantiate("jelly")
 	add_child_autofree(track)

@@ -185,7 +185,7 @@ radius = 44.0
 tint = Color(0.45, 0.85, 1, 1)
 
 [node name="Jelly11" type="AnimatableBody2D" parent="Jellies"]
-position = Vector2(1500, 750)
+position = Vector2(1500, 700)
 script = ExtResource("3_jelly")
 radius = 48.0
 tint = Color(0.75, 0.55, 1, 1)
@@ -245,7 +245,7 @@ radius = 48.0
 tint = Color(0.75, 0.55, 1, 1)
 
 [node name="Jelly21" type="AnimatableBody2D" parent="Jellies"]
-position = Vector2(580, 1740)
+position = Vector2(580, 1770)
 script = ExtResource("3_jelly")
 radius = 40.0
 tint = Color(1, 0.45, 0.85, 1)
@@ -257,7 +257,7 @@ radius = 44.0
 tint = Color(0.45, 0.85, 1, 1)
 
 [node name="Jelly23" type="AnimatableBody2D" parent="Jellies"]
-position = Vector2(1220, 1740)
+position = Vector2(1220, 1770)
 script = ExtResource("3_jelly")
 radius = 48.0
 tint = Color(0.75, 0.55, 1, 1)
@@ -279,18 +279,6 @@ position = Vector2(1380, 1880)
 script = ExtResource("3_jelly")
 radius = 48.0
 tint = Color(0.75, 0.55, 1, 1)
-
-[node name="Jelly27" type="AnimatableBody2D" parent="Jellies"]
-position = Vector2(620, 2350)
-script = ExtResource("3_jelly")
-radius = 40.0
-tint = Color(1, 0.45, 0.85, 1)
-
-[node name="Jelly28" type="AnimatableBody2D" parent="Jellies"]
-position = Vector2(1290, 2370)
-script = ExtResource("3_jelly")
-radius = 44.0
-tint = Color(0.45, 0.85, 1, 1)
 
 [node name="Jelly29" type="AnimatableBody2D" parent="Jellies"]
 position = Vector2(1600, 2300)
