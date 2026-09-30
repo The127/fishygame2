@@ -130,6 +130,11 @@ func arm(seed_value: int, frequency: int) -> void:
 	_armed = true
 
 
+## Ruins are set off by fish, not by a plan.
+func is_scheduled() -> bool:
+	return false
+
+
 ## Every ruin runs on its own. The base class's single event clock only keeps time and reports the
 ## busiest stage, for the signals and the replay.
 func tick(delta: float) -> void:

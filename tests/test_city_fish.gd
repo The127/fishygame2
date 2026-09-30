@@ -31,6 +31,13 @@ func _bring_down(index: int) -> bool:
 	return _hazard.stage_of(index) == RuinHazard.Stage.FALLEN
 
 
+func _live_set() -> Array[bool]:
+	var live: Array[bool] = []
+	for i: int in _hazard.ruin_count():
+		live.append(_hazard.is_live(i))
+	return live
+
+
 func _bring_down_all() -> void:
 	for i: int in _hazard.ruin_count():
 		_bring_down(i)

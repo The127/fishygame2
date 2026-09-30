@@ -80,6 +80,12 @@ func is_armed() -> bool:
 	return _armed
 
 
+## Whether the events come from a plan drawn at [method arm] (true), or from what happens in the
+## race, like fish reaching a trigger (false, and [method get_schedule] stays empty).
+func is_scheduled() -> bool:
+	return true
+
+
 ## Start times, in race seconds, of the planned events.
 func get_schedule() -> Array[float]:
 	return _schedule.duplicate()
