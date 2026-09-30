@@ -441,11 +441,15 @@ def _cave(out, rng):
     drips(out, rng, (0.7, 2.3, 3.4, 5.2, 6.6), 1500.0, 0.16)
     shimmer(out, rng, (1.8, 4.4, 6.9), 1800.0, 3400.0, 0.03)
     pings(out, (3.0,), 1900.0, 0.08)
+
+
 def _kraken(out, rng):
     bed(out, rng, 0.0, 140.0, 0.9, swell=0.3, cycles=1)
     thumps(out, rng, (1.0, 4.6), 90.0, 0.6)
     moan(out, 2.6, 55.0, 85.0, 0.3)
     bubbles(out, rng, 6, 250.0, 600.0, 0.1)
+
+
 def _gravity(out, rng):
     # Two slow swells per loop, like the water sloshing one way then the other.
     bed(out, rng, 60.0, 500.0, 0.9, swell=0.8, cycles=2)

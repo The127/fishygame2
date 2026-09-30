@@ -30,6 +30,6 @@ smoke:
     cd tests/browser && npm run smoke
 
 # Frame rate, draw calls and render objects per map with 20 fish in headless Chromium against build/web.
-# Numbers are relative only (software GL). MAPS=zigzag,coral limits the maps, SAMPLE_MS the sample length.
+# Numbers are relative only (software GL). MAPS=zigzag,cave limits the maps, SAMPLE_MS the sample length.
 bench:
     cd tests/browser && npm run bench
