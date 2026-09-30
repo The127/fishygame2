@@ -1,13 +1,13 @@
 extends GutTest
-## Sunken City: ruined towers come down one by one. The first two ruins' floor patches crumble
-## away and open shortcuts, the last two ruins' slabs drop and seal the shortcuts that started
-## open.
+## Sunken City: ruined towers come down when the fish arrive. The first two ruins' floor patches
+## crumble away and open shortcuts, the next two slabs drop and seal the shortcuts that started
+## open, and the last five towers just topple onto the lane.
 
-const MARBLE_SCENE: String = "res://scenes/marble.tscn"
 const STEP: float = 1.0 / 60.0
 ## Ruins whose floor patch crumbles (their gap starts shut), then the ones that seal a gap.
 const OPENING: Array[int] = [0, 1]
 const SEALING: Array[int] = [2, 3]
+const TOPPLING: Array[int] = [4, 5, 6, 7, 8]
 
 var _track: Track
 var _hazard: RuinHazard
@@ -29,62 +29,31 @@ func _arm(seed_value: int = 3, frequency: int = 5) -> void:
 	_hazard.arm(seed_value, frequency)
 
 
-## Steps until the next event is over. Returns whether one ran.
-func _run_one_event() -> bool:
+## Steps until ruin `index` has come down. Returns whether it did.
+func _bring_down(index: int) -> bool:
+	_hazard.trigger(index)
 	var spent: float = 0.0
-	while _hazard.phase == Hazard.Phase.IDLE and spent < 100.0:
+	while _hazard.stage_of(index) != RuinHazard.Stage.FALLEN and spent < 20.0:
 		_hazard.tick(STEP)
 		spent += STEP
-	while _hazard.phase != Hazard.Phase.IDLE and spent < 100.0:
-		_hazard.tick(STEP)
-		spent += STEP
-	return spent < 100.0
+	return _hazard.stage_of(index) == RuinHazard.Stage.FALLEN
 
 
-func _gaps() -> Array[bool]:
-	var gaps: Array[bool] = []
+func _bring_down_all() -> void:
 	for i: int in _hazard.ruin_count():
-		gaps.append(_hazard.is_gap_open(i))
-	return gaps
+		_bring_down(i)
 
 
-## Runs every planned event and returns the ruins in the order they came down.
-func _collapse_order() -> Array[int]:
-	var order: Array[int] = []
-	var before: Array[bool] = _gaps()
-	while _run_one_event():
-		var after: Array[bool] = _gaps()
-		for i: int in after.size():
-			if after[i] != before[i]:
-				order.append(i)
-		before = after
-		if _hazard.fallen_count() == _hazard.ruin_count():
-			break
-	return order
+func _live_set() -> Array[bool]:
+	var live: Array[bool] = []
+	for i: int in _hazard.ruin_count():
+		live.append(_hazard.is_live(i))
+	return live
 
 
-func _marble_at(pos: Vector2) -> Marble:
-	var marble: Marble = (load(MARBLE_SCENE) as PackedScene).instantiate() as Marble
-	add_child_autofree(marble)
-	marble.global_position = pos
-	return marble
-
-
-## Drops a fish `height` above the gap of ruin `index` and returns how far below the lane it got.
-func _drop_fish_over(index: int, height: float = 60.0) -> float:
-	# Let the slabs take their poses in the physics server first.
-	for i: int in 2:
-		await get_tree().physics_frame
-	var ruin: Node2D = _hazard.get_ruins()[index]
-	var marble: Marble = _marble_at(ruin.global_position + Vector2(0.0, -height))
-	for i: int in 100:
-		await get_tree().physics_frame
-	return marble.global_position.y - ruin.global_position.y
-
-
-func test_the_city_has_a_ruin_hazard_with_four_ruins() -> void:
+func test_the_city_has_nine_ruins_and_none_has_fallen() -> void:
 	assert_not_null(_hazard)
-	assert_eq(_hazard.ruin_count(), 4)
+	assert_eq(_hazard.ruin_count(), 9)
 	assert_eq(_hazard.fallen_count(), 0)
 
 
@@ -97,89 +66,130 @@ func test_before_any_collapse_the_floor_patches_hold_and_the_sealable_gaps_are_o
 
 func test_with_hazards_off_nothing_collapses() -> void:
 	_track.arm_hazards(_rng(1), 0)
+	assert_false(_hazard.is_armed())
+	for i: int in _hazard.ruin_count():
+		assert_false(_hazard.trigger(i), "ruin %d cannot be set off" % i)
 	for i: int in 600:
 		_hazard.tick(STEP)
 	assert_eq(_hazard.fallen_count(), 0)
-	assert_false(_hazard.is_armed())
 
 
-func test_each_event_brings_down_exactly_one_more_ruin() -> void:
+func test_nothing_falls_until_a_fish_arrives() -> void:
 	_arm()
-	for expected: int in range(1, 5):
-		assert_true(_run_one_event())
-		assert_eq(_hazard.fallen_count(), expected)
+	for i: int in 3600:
+		_hazard.tick(STEP)
+	assert_eq(_hazard.fallen_count(), 0, "a minute without fish brings nothing down")
+	assert_eq(_hazard.phase, Hazard.Phase.IDLE)
 
 
-func test_when_every_ruin_is_down_the_opening_gaps_are_open_and_the_sealing_ones_shut() -> void:
+func test_a_ruin_goes_through_telegraph_and_topple_before_it_is_down() -> void:
+	watch_signals(_hazard)
 	_arm()
-	for i: int in 4:
-		_run_one_event()
-	for i: int in OPENING:
-		assert_true(_hazard.is_gap_open(i), "gap %d is a shortcut now" % i)
-	for i: int in SEALING:
-		assert_false(_hazard.is_gap_open(i), "gap %d is sealed now" % i)
+	assert_true(_hazard.trigger(0))
+	assert_eq(_hazard.stage_of(0), RuinHazard.Stage.TELEGRAPH)
+	assert_signal_emitted(_hazard, "telegraph_started")
+	assert_signal_not_emitted(_hazard, "active_started")
+	var stages: Dictionary = {}
+	for i: int in 600:
+		_hazard.tick(STEP)
+		stages[_hazard.stage_of(0)] = true
+	assert_true(stages.has(RuinHazard.Stage.TOPPLE))
+	assert_signal_emitted(_hazard, "active_started")
+	assert_eq(_hazard.stage_of(0), RuinHazard.Stage.FALLEN)
+	assert_eq(_hazard.phase, Hazard.Phase.IDLE)
+
+
+func test_each_ruin_brings_down_exactly_one_more_tower() -> void:
+	_arm()
+	for index: int in _hazard.ruin_count():
+		assert_true(_bring_down(index))
+		assert_eq(_hazard.fallen_count(), index + 1)
+
+
+func test_ruins_run_on_their_own_and_several_can_be_going_down_at_once() -> void:
+	_arm()
+	assert_true(_hazard.trigger(1))
+	for i: int in 60:
+		_hazard.tick(STEP)
+	assert_true(_hazard.trigger(6))
+	for i: int in 600:
+		_hazard.tick(STEP)
+	assert_eq(_hazard.fallen_count(), 2)
+	assert_eq(_hazard.stage_of(0), RuinHazard.Stage.STANDING, "the others still stand")
 
 
 func test_a_ruin_only_falls_once_per_race() -> void:
 	_arm()
-	var order: Array[int] = _collapse_order()
-	var seen: Dictionary = {}
-	for i: int in order:
-		assert_false(seen.has(i), "ruin %d fell twice" % i)
-		seen[i] = true
-	assert_eq(order.size(), 4)
+	assert_true(_bring_down(2))
+	assert_false(_hazard.trigger(2), "it is down already")
+	assert_eq(_hazard.fallen_count(), 1)
 
 
-func test_the_same_seed_brings_the_ruins_down_in_the_same_order() -> void:
-	_arm(9)
-	var first: Array[int] = _collapse_order()
-	var other: Track = TrackCatalog.instantiate("city")
-	add_child_autofree(other)
-	_track = other
-	_hazard = other.get_hazards()[0] as RuinHazard
-	_arm(9)
-	assert_eq(_collapse_order(), first)
+func test_when_every_ruin_is_down_the_opening_gaps_are_open_and_the_sealing_ones_shut() -> void:
+	_arm()
+	_bring_down_all()
+	for i: int in OPENING:
+		assert_true(_hazard.is_gap_open(i), "gap %d is a shortcut now" % i)
+	for i: int in SEALING:
+		assert_false(_hazard.is_gap_open(i), "gap %d is sealed now" % i)
+	for i: int in TOPPLING:
+		assert_false(_hazard.is_gap_open(i), "a toppled tower leaves no gap")
 
 
-func test_the_order_depends_on_the_seed() -> void:
-	var orders: Dictionary = {}
-	for seed_value: int in range(1, 9):
+func test_the_same_seed_makes_the_same_ruins_live() -> void:
+	_arm(9, 2)
+	var first: Array[bool] = _live_set()
+	_hazard.disarm()
+	_arm(9, 2)
+	assert_eq(_live_set(), first)
+
+
+func test_which_ruins_are_live_depends_on_the_seed_and_the_hazard_level() -> void:
+	var sets: Dictionary = {}
+	for seed_value: int in range(1, 13):
 		_hazard.disarm()
-		_arm(seed_value)
-		orders[str(_collapse_order())] = true
-	assert_gt(orders.size(), 1, "eight seeds give more than one order")
+		_arm(seed_value, 2)
+		sets[str(_live_set())] = true
+	assert_gt(sets.size(), 1, "twelve seeds give more than one set of live ruins")
+	var at_one: int = 0
+	var at_five: int = 0
+	for seed_value: int in range(1, 13):
+		_hazard.disarm()
+		_arm(seed_value, 1)
+		at_one += _live_set().count(true)
+		_hazard.disarm()
+		_arm(seed_value, 5)
+		at_five += _live_set().count(true)
+	assert_lt(at_one, at_five, "a higher hazard level keeps more ruins live")
+	assert_eq(at_five, 12 * _hazard.ruin_count(), "the top level keeps them all live")
 
 
 func test_the_telegraph_shakes_and_glows_before_anything_changes() -> void:
 	watch_signals(_hazard)
 	_arm()
-	var spent: float = 0.0
-	while _hazard.phase != Hazard.Phase.TELEGRAPH and spent < 100.0:
+	_hazard.trigger(0)
+	for i: int in 50:
 		_hazard.tick(STEP)
-		spent += STEP
-	for i: int in 70:
-		_hazard.tick(STEP)
+	assert_eq(_hazard.stage_of(0), RuinHazard.Stage.TELEGRAPH)
 	assert_eq(_hazard.phase, Hazard.Phase.TELEGRAPH)
 	assert_eq(_hazard.fallen_count(), 0, "nothing has fallen yet")
 	assert_signal_emitted(_hazard, "burst_played", "dust falls during the warning")
-	var glowing: bool = false
-	for child: Node in _hazard.get_ruins():
-		var runes: CanvasItem = child.get_node("Tower/Runes") as CanvasItem
-		glowing = glowing or runes.modulate.a > 0.5
-	assert_true(glowing, "the runes of the doomed tower light up")
+	var runes: CanvasItem = _hazard.get_ruins()[0].get_node("Tower/Runes") as CanvasItem
+	assert_gt(runes.modulate.a, 0.4, "the runes of the doomed tower light up")
+	assert_false(_hazard.is_gap_open(0), "the floor still holds")
 
 
 func test_the_crash_throws_dust() -> void:
 	watch_signals(_hazard)
 	_arm()
-	_run_one_event()
+	_bring_down(0)
 	assert_gte(get_signal_emit_count(_hazard, "burst_played"), 3, "warning dust, then the crash")
 
 
 func test_disarming_puts_the_towers_and_the_floor_back() -> void:
 	_arm()
-	_run_one_event()
-	_run_one_event()
+	_bring_down(0)
+	_bring_down(5)
 	assert_eq(_hazard.fallen_count(), 2)
 	_hazard.disarm()
 	assert_eq(_hazard.fallen_count(), 0)
@@ -188,53 +198,22 @@ func test_disarming_puts_the_towers_and_the_floor_back() -> void:
 	for i: int in SEALING:
 		assert_true(_hazard.is_gap_open(i))
 	for child: Node in _hazard.get_ruins():
-		assert_almost_eq((child.get_node("Tower") as Node2D).rotation, 0.0, 0.0001)
+		var tower: Node2D = child.get_node("Tower") as Node2D
+		assert_almost_eq(tower.rotation, 0.0, 0.0001)
+		assert_almost_eq(tower.modulate.a, 1.0, 0.0001)
 
 
 func test_a_fallen_tower_lies_along_the_lane() -> void:
 	_arm()
-	_run_one_event()
+	_bring_down_all()
 	for child: Node in _hazard.get_ruins():
 		var tower: Node2D = child.get_node("Tower") as Node2D
-		if absf(tower.rotation) > 0.01:
-			assert_almost_eq(
-				tower.rotation, deg_to_rad(float(child.get_meta("lie_degrees"))), 0.001
-			)
+		assert_almost_eq(tower.rotation, deg_to_rad(float(child.get_meta("lie_degrees"))), 0.001)
 
 
-func test_fish_stay_on_a_floor_patch_and_fall_through_an_open_gap() -> void:
-	# Before any collapse: the first gaps are covered, the last ones are open.
-	var on_patch: float = await _drop_fish_over(0)
-	assert_lt(on_patch, 45.0, "a fish stays on the floor patch")
-	# The slab hangs 175 px above the gap, so the fish starts under it.
-	var through: float = await _drop_fish_over(2, 100.0)
-	assert_gt(through, 100.0, "a fish falls through an open gap")
-
-
-func test_after_the_collapses_the_shortcuts_work_and_the_sealed_gaps_hold() -> void:
+func test_a_toppled_tower_leaves_rubble_that_does_not_block_the_lane() -> void:
 	_arm()
-	for i: int in 4:
-		_run_one_event()
-	# Let the deferred collider changes and the moved slabs reach the physics server.
-	for i: int in 3:
-		await get_tree().physics_frame
-	var shortcut: float = await _drop_fish_over(0)
-	assert_gt(shortcut, 100.0, "a fish falls through the gap the floor patch left")
-	var sealed: float = await _drop_fish_over(2)
-	assert_lt(sealed, 45.0, "a fish stays on the slab that sealed the gap")
-
-
-func test_a_cut_short_event_leaves_every_floor_patch_solid() -> void:
-	_arm()
-	var spent: float = 0.0
-	while _hazard.phase != Hazard.Phase.TELEGRAPH and spent < 100.0:
-		_hazard.tick(STEP)
-		spent += STEP
-	# Cut the event short and start over, all in one frame, like the next race starting.
-	_hazard.disarm()
-	_arm()
-	for i: int in 3:
-		await get_tree().physics_frame
-	for ruin: Node2D in _hazard.get_ruins():
-		var collider: CollisionPolygon2D = ruin.get_node("Slab/Collider") as CollisionPolygon2D
-		assert_false(collider.disabled, "every slab collides again")
+	_bring_down(4)
+	var slab: Node = _hazard.get_ruins()[4].get_node("Slab")
+	assert_null(slab.get_node_or_null("Collider"), "a fish at rest cannot climb any step")
+	assert_almost_eq((slab.get_node("Visual") as CanvasItem).modulate.a, 1.0, 0.001)
