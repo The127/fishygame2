@@ -82,6 +82,33 @@ func choose(msg: ChatMessage, args: PackedStringArray, kind: String) -> bool:
 	return true
 
 
+## Gives each contestant who has never raced (per [param stats]), was never welcomed and wears
+## no hat a free random hat, owned and equipped. Returns [{"contestant": Contestant, "hat": String}]
+## for the ones who got one. Call it before the loadouts are assigned.
+func welcome_new_racers(
+	contestants: Array[Contestant], stats: ViewerStats, rng: RandomNumberGenerator
+) -> Array[Dictionary]:
+	var welcomed: Array[Dictionary] = []
+	for contestant: Contestant in contestants:
+		var id: String = contestant.user_id
+		if (
+			store.was_welcomed(id)
+			or stats.get_counter(id, "races") > 0
+			or store.equipped(id, ShopStore.KIND_HAT) != ""
+		):
+			continue
+		var hat: String = ShopCatalog.HAT_NAMES[rng.randi_range(
+			0, ShopCatalog.HAT_NAMES.size() - 1
+		)]
+		store.grant(id, ShopStore.KIND_HAT, hat)
+		store.equip(id, ShopStore.KIND_HAT, hat)
+		store.mark_welcomed(id)
+		welcomed.append({"contestant": contestant, "hat": hat})
+	if not welcomed.is_empty():
+		store.save_to_disk()
+	return welcomed
+
+
 ## One chat line with everything on sale.
 func catalog_text() -> String:
 	return (

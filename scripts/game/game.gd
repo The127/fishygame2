@@ -893,9 +893,16 @@ func _viewer_name(msg: ChatMessage) -> String:
 
 func _on_race_started(contestants: Array[Contestant]) -> void:
 	Sound.play(Sound.Sfx.GO)
-	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
+	if settings.welcome_hat:
+		for welcome: Dictionary in _shop.welcome_new_racers(
+			contestants, _betting.points.stats, rng
+		):
+			var name: String = (welcome["contestant"] as Contestant).display_name
+			_confirm("reply_shop", "welcome", "Welcome!", "@%s (free %s)" % [name, welcome["hat"]])
+			_overlay.show_notice("Welcome %s! Here's a free %s" % [name, welcome["hat"]])
+	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
 	_race.start(_track, contestants.size(), rng, settings.hazard_level(), _event)
 	_overlay.show_event_badge(_event_badge_text())
 	# Marble ids are roster ids, so match on id rather than on list order.

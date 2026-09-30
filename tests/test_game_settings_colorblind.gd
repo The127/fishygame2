@@ -33,3 +33,15 @@ func test_colorblind_ignores_a_value_of_the_wrong_type_and_resets() -> void:
 	settings.colorblind = true
 	settings.reset_to_defaults()
 	assert_false(settings.colorblind)
+
+
+func test_welcome_hat_is_on_by_default_and_survives_save_and_load() -> void:
+	assert_true(GameSettings.new().welcome_hat)
+	var settings := GameSettings.new(PATH)
+	settings.welcome_hat = false
+	assert_true(settings.save())
+	var loaded := GameSettings.new(PATH)
+	loaded.load_settings()
+	assert_false(loaded.welcome_hat)
+	loaded.reset_to_defaults()
+	assert_true(loaded.welcome_hat)

@@ -79,3 +79,38 @@ func test_bought_hat_is_worn_in_the_race_and_on_the_podium() -> void:
 	_flow.tick(float(_flow.countdown_seconds))
 	assert_eq(_marble(1).accessory, FishAccessory.Kind.PIRATE_HAT)
 	assert_eq(_marble(0).accessory, FishAccessory.Kind.NONE)
+
+
+func test_first_race_gives_a_free_hat_once() -> void:
+	_game.settings.welcome_hat = true
+	_say("0", "#join")
+	_say("1", "#join")
+	assert_true(_flow.start_race())
+	_flow.tick(float(_flow.countdown_seconds))
+	for id: String in ["0", "1"]:
+		var hat: String = _shop.store.equipped(id, ShopStore.KIND_HAT)
+		assert_ne(hat, "", "viewer %s got a hat" % id)
+		assert_true(_shop.store.owns(id, ShopStore.KIND_HAT, hat))
+		assert_true(_shop.store.was_welcomed(id))
+	assert_gt(_marble(0).accessory, 0)
+	assert_eq(_balance("0"), 1000, "the hat is free")
+
+
+func test_no_welcome_hat_for_a_viewer_who_already_raced_or_has_a_hat() -> void:
+	_game.settings.welcome_hat = true
+	_betting.points.stats.record_race("0")
+	_say("1", "#hat crown")
+	_say("0", "#join")
+	_say("1", "#join")
+	assert_true(_flow.start_race())
+	_flow.tick(float(_flow.countdown_seconds))
+	assert_eq(_shop.store.equipped("0", ShopStore.KIND_HAT), "")
+	assert_eq(_shop.store.equipped("1", ShopStore.KIND_HAT), "crown")
+
+
+func test_no_welcome_hat_when_the_setting_is_off() -> void:
+	_say("0", "#join")
+	_say("1", "#join")
+	assert_true(_flow.start_race())
+	_flow.tick(float(_flow.countdown_seconds))
+	assert_eq(_shop.store.equipped("0", ShopStore.KIND_HAT), "")

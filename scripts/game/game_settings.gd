@@ -153,6 +153,8 @@ var reply_results: bool = true
 var reply_powers: bool = true
 ## Whether fish wear the colorblind palette and a marking each (see [FishPalette]).
 var colorblind: bool = false
+## Whether a viewer's first race comes with a free random hat.
+var welcome_hat: bool = true
 ## Whether the streamer can use their own powers (rod, net, bubble blast) during a race.
 var powers_enabled: bool = true
 ## Whether maps run their hazard events (currents, eels, collapsing planks).
@@ -212,6 +214,7 @@ func reset_to_defaults() -> void:
 		set(key, fresh.get(key))
 	auto_mode = fresh.auto_mode
 	colorblind = fresh.colorblind
+	welcome_hat = fresh.welcome_hat
 	hazards_enabled = fresh.hazards_enabled
 	powers_enabled = fresh.powers_enabled
 	random_events = fresh.random_events
@@ -246,6 +249,9 @@ func load_settings() -> void:
 	var blind: Variant = file.get_value(SECTION, "colorblind", colorblind)
 	if blind is bool:
 		colorblind = blind
+	var welcome: Variant = file.get_value(SECTION, "welcome_hat", welcome_hat)
+	if welcome is bool:
+		welcome_hat = welcome
 	var hazards: Variant = file.get_value(SECTION, "hazards_enabled", hazards_enabled)
 	if hazards is bool:
 		hazards_enabled = hazards
@@ -273,6 +279,7 @@ func save() -> bool:
 		file.set_value(SECTION, key, get(key))
 	file.set_value(SECTION, "auto_mode", auto_mode)
 	file.set_value(SECTION, "colorblind", colorblind)
+	file.set_value(SECTION, "welcome_hat", welcome_hat)
 	file.set_value(SECTION, "hazards_enabled", hazards_enabled)
 	file.set_value(SECTION, "powers_enabled", powers_enabled)
 	file.set_value(SECTION, "random_events", random_events)

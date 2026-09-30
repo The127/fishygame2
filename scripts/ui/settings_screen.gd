@@ -44,7 +44,7 @@ const TABS: Array[Dictionary] = [
 		"title": "Streamer powers",
 		"items": ["powers_enabled", "power_cooldown", "powers_per_race", "reply_powers"],
 	},
-	{"title": "Shop", "items": ["species_price", "color_price", "hat_price"]},
+	{"title": "Shop", "items": ["species_price", "color_price", "hat_price", "welcome_hat"]},
 	{
 		"title": "Chat",
 		"items":
@@ -80,6 +80,7 @@ var _random_events: CheckBox
 var _chat_replies: CheckBox
 var _reply_toggles: Dictionary[String, CheckBox] = {}
 var _colorblind: CheckBox
+var _welcome_hat: CheckBox
 var _status: Label
 var _preview: PaddingPreview
 
@@ -236,6 +237,10 @@ func _build_controls() -> Dictionary[String, Control]:
 	_colorblind.toggled.connect(_on_colorblind_toggled)
 	_captions["colorblind"] = "Colorblind mode (alternate colors and fish markings)"
 	controls["colorblind"] = _colorblind
+	_welcome_hat = _make_check("On")
+	_welcome_hat.toggled.connect(_on_welcome_hat_toggled)
+	_captions["welcome_hat"] = "Free hat for a viewer's first race"
+	controls["welcome_hat"] = _welcome_hat
 	return controls
 
 
@@ -311,6 +316,7 @@ func _refresh() -> void:
 	for key: String in _reply_toggles:
 		_reply_toggles[key].set_pressed_no_signal(bool(settings.get(key)))
 	_colorblind.set_pressed_no_signal(settings.colorblind)
+	_welcome_hat.set_pressed_no_signal(settings.welcome_hat)
 	_preview.set_play_fraction(settings.play_fraction())
 
 
@@ -362,6 +368,11 @@ func _on_reply_toggled(pressed: bool, key: String) -> void:
 
 func _on_colorblind_toggled(pressed: bool) -> void:
 	settings.colorblind = pressed
+	_commit()
+
+
+func _on_welcome_hat_toggled(pressed: bool) -> void:
+	settings.welcome_hat = pressed
 	_commit()
 
 
