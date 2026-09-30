@@ -56,7 +56,6 @@ jobs:
       - name: Run GUT tests
         run: tools/run_tests.sh
 
-  # One job per map so the seed sweeps run in parallel. Pull requests run a shorter sweep; main runs the full one.
   map-ids:
     # The matrix comes from TrackCatalog, so a new map needs no CI edit.
     runs-on: ubuntu-latest
@@ -81,6 +80,7 @@ jobs:
           echo "$maps"
           echo "maps=$maps" >> "$GITHUB_OUTPUT"
 
+  # One job per map so the seed sweeps run in parallel. Pull requests run a shorter sweep; main runs the full one.
   race-seeds:
     needs: map-ids
     runs-on: ubuntu-latest
