@@ -34,6 +34,10 @@ const FORWARD_SAMPLE: float = 30.0
 @export var style_id: String = TrackPalettes.DEFAULT_STYLE
 ## Share of the progress scale (0..1) spent on the feeder routes of a multi-start map.
 @export_range(0.0, 0.9) var merge_progress: float = 0.25
+## Above this world y (0 turns it off) progress is measured by depth alone, along the vertical
+## through the centerline's first point. For a free fall through a field of pegs that a later
+## stretch of the route passes beneath, where the nearest route point is the wrong one.
+@export var fall_zone_bottom: float = 0.0
 
 var _starts: Array[Marker2D] = []
 var _feeders: Array[Path2D] = []
@@ -297,6 +301,9 @@ func get_progress(global_pos: Vector2) -> float:
 
 
 func _route_progress(global_pos: Vector2) -> float:
+	if fall_zone_bottom > 0.0 and global_pos.y < fall_zone_bottom:
+		var start: Vector2 = _centerline.to_global(_centerline.curve.get_point_position(0))
+		global_pos = Vector2(start.x, maxf(global_pos.y, start.y))
 	var route: int = _nearest_route(global_pos)
 	var path: Path2D = _route_path(route)
 	var length: float = path.curve.get_baked_length()
