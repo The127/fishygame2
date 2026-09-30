@@ -56,7 +56,7 @@ func test_missing_or_garbage_file_keeps_defaults() -> void:
 
 
 func test_buses_exist_and_route_to_master() -> void:
-	for bus: String in [AudioSettings.BUS_MUSIC, AudioSettings.BUS_SFX]:
+	for bus: String in [AudioSettings.BUS_MUSIC, AudioSettings.BUS_AMBIENCE, AudioSettings.BUS_SFX]:
 		var index: int = AudioServer.get_bus_index(bus)
 		assert_ne(index, -1, "%s bus should exist" % bus)
 		assert_eq(AudioServer.get_bus_send(index), AudioSettings.BUS_MASTER)
@@ -131,3 +131,35 @@ func test_music_theme_switch_and_fallback() -> void:
 	assert_eq(Sound.get_music_theme(), Sound.HOME_THEME)
 	Sound.set_music_theme(Sound.HOME_THEME)
 	assert_eq(Sound.get_music_theme(), Sound.HOME_THEME)
+
+
+func test_every_map_has_a_jingle_and_an_ambience_bed() -> void:
+	for id: String in TrackCatalog.ids():
+		assert_true(Sound.JINGLE_PATHS.has(id), "no jingle for map %s" % id)
+		assert_true(Sound.AMBIENCE_PATHS.has(id), "no ambience for map %s" % id)
+	for path: String in Sound.JINGLE_PATHS.values() + Sound.AMBIENCE_PATHS.values():
+		assert_true(ResourceLoader.exists(path), "missing file %s" % path)
+
+
+func test_ambience_beds_loop_and_jingles_are_short() -> void:
+	for id: String in Sound.AMBIENCE_PATHS:
+		var bed: AudioStreamWAV = Sound.make_loop(load(Sound.AMBIENCE_PATHS[id]) as AudioStreamWAV)
+		assert_eq(bed.loop_mode, AudioStreamWAV.LOOP_FORWARD)
+		assert_gt(bed.get_length(), 4.0, "ambience %s should be a real loop" % id)
+	for id: String in Sound.JINGLE_PATHS:
+		var jingle: AudioStreamWAV = load(Sound.JINGLE_PATHS[id]) as AudioStreamWAV
+		assert_lt(jingle.get_length(), 4.0, "jingle %s should be a short sting" % id)
+
+
+func test_ambience_volume_reaches_its_bus() -> void:
+	Sound.set_volume(AudioSettings.BUS_AMBIENCE, 0.25)
+	var index: int = AudioServer.get_bus_index(AudioSettings.BUS_AMBIENCE)
+	assert_almost_eq(AudioServer.get_bus_volume_db(index), linear_to_db(0.25), 0.01)
+
+
+func test_play_win_never_crashes_for_any_theme() -> void:
+	for id: String in Sound.MUSIC_PATHS:
+		Sound.set_music_theme(id)
+		Sound.play_win()
+	Sound.set_music_theme(Sound.HOME_THEME)
+	pass_test("played a win sting for every theme")

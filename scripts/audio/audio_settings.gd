@@ -7,9 +7,12 @@ const DEFAULT_PATH: String = "user://audio.cfg"
 const SECTION: String = "audio"
 const BUS_MASTER: String = "Master"
 const BUS_MUSIC: String = "Music"
+const BUS_AMBIENCE: String = "Ambience"
 const BUS_SFX: String = "SFX"
-const BUSES: Array[String] = [BUS_MASTER, BUS_MUSIC, BUS_SFX]
-const DEFAULT_VOLUMES: Dictionary = {BUS_MASTER: 0.8, BUS_MUSIC: 0.5, BUS_SFX: 0.8}
+const BUSES: Array[String] = [BUS_MASTER, BUS_MUSIC, BUS_AMBIENCE, BUS_SFX]
+const DEFAULT_VOLUMES: Dictionary = {
+	BUS_MASTER: 0.8, BUS_MUSIC: 0.5, BUS_AMBIENCE: 0.5, BUS_SFX: 0.8
+}
 
 var muted: bool = false
 ## Empty means in-memory only.

@@ -25,6 +25,7 @@ signal leave_confirmed
 const VOLUME_ROWS: Dictionary = {
 	AudioSettings.BUS_MASTER: "Master",
 	AudioSettings.BUS_MUSIC: "Music",
+	AudioSettings.BUS_AMBIENCE: "Ambience",
 	AudioSettings.BUS_SFX: "Effects",
 }
 
@@ -61,6 +62,7 @@ var _fade_tween: Tween
 @onready var _volume_sliders: Dictionary = {
 	AudioSettings.BUS_MASTER: $Panel/Box/MasterRow/Slider,
 	AudioSettings.BUS_MUSIC: $Panel/Box/MusicRow/Slider,
+	AudioSettings.BUS_AMBIENCE: $Panel/Box/AmbienceRow/Slider,
 	AudioSettings.BUS_SFX: $Panel/Box/SfxRow/Slider,
 }
 
@@ -215,7 +217,7 @@ func _apply_style() -> void:
 		box.add_theme_font_override("font", UiStyle.font(600))
 		box.add_theme_font_size_override("font_size", 22)
 		box.add_theme_color_override("font_color", UiStyle.TEXT)
-	for row: String in ["MasterRow", "MusicRow", "SfxRow"]:
+	for row: String in ["MasterRow", "MusicRow", "AmbienceRow", "SfxRow"]:
 		UiStyle.style_label(get_node("Panel/Box/%s/Label" % row) as Label, 22, 600, UiStyle.MUTED)
 	for button: Button in [
 		$Panel/Box/Buttons/Open,
