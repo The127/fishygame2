@@ -152,7 +152,11 @@ func test_the_dust_burst_is_recorded_and_replayed_when_the_plank_opens() -> void
 	var recorder: ReplayRecorder = await _record_race()
 	var bursts: Array[Dictionary] = []
 	for event: Dictionary in recorder.events():
-		if int(event["kind"]) == ReplayRecorder.Kind.BURST:
+		# The sinking ship's bubbles are bursts too, only the plank's dust counts here.
+		if (
+			int(event["kind"]) == ReplayRecorder.Kind.BURST
+			and ((event["data"] as Dictionary)["color"] == PlankHazard.DUST_COLOR)
+		):
 			bursts.append(event)
 	assert_eq(bursts.size(), 1, "one plank opened in the clip")
 	var replay: FinishReplay = _replay(recorder)
