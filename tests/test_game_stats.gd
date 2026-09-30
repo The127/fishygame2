@@ -58,19 +58,6 @@ func test_settled_bets_count_won_and_lost_with_net() -> void:
 	assert_eq(_stats().get_bet_net("101"), -40)
 
 
-func test_free_picks_do_not_count_as_bets() -> void:
-	_join(2)
-	_say("100", "#pick user0")
-	_say("101", "#pick user1")
-	_flow.start_race()
-	_flow.tick(3.0)
-	_finish_marbles([0, 1])
-	for id: String in ["100", "101"]:
-		assert_eq(_stats().get_counter(id, "bets_won"), 0)
-		assert_eq(_stats().get_counter(id, "bets_lost"), 0)
-		assert_eq(_stats().get_bet_net(id), 0)
-
-
 func test_refunded_bets_do_not_count() -> void:
 	_join(2)
 	_say("100", "#bet user0 100")

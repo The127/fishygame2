@@ -172,15 +172,3 @@ func test_bet_during_podium_rejected() -> void:
 	_say("100", "#bet user0 100")
 	assert_eq(get_signal_parameters(_betting, "bet_rejected", 0)[1], "closed")
 	assert_eq(_balance("100"), 1000)
-
-
-func test_pick_from_a_viewer_who_never_joined_pays_the_reward() -> void:
-	_join(2)
-	_say("500", "#pick user0")
-	_say("501", "#bet user0 100")
-	assert_eq(_balance("500"), 1000, "a pick costs nothing")
-	_flow.start_race()
-	_flow.tick(3.0)
-	_finish_marbles([0, 1])
-	assert_eq(_balance("500"), 1000 + _betting.pick_reward)
-	assert_eq(_balance("501"), 900 + 200)

@@ -16,13 +16,6 @@ const BET_REJECTIONS: Dictionary = {
 	"insufficient": "not enough points",
 }
 
-const PICK_REJECTIONS: Dictionary = {
-	"closed": "picks are closed",
-	"usage": "use #pick <name>",
-	"already_picked": "you already picked this round",
-	"unknown_fish": "no such racer",
-}
-
 const SHOP_REJECTIONS: Dictionary = {
 	"usage": "use #fish <species>, #color <name> or #hat <name>, see #shop",
 	"unknown_species": "no such species, see #shop",
@@ -61,7 +54,7 @@ const STATS_COOLDOWN_MSEC: int = 15000
 
 ## Commands that put a viewer on the leaderboard, so their name is remembered.
 const NAMED_COMMANDS: PackedStringArray = [
-	"join", "bet", "pick", "boost", "curse", "points", "fish", "color", "hat", "shop", "stats"
+	"join", "bet", "boost", "curse", "points", "fish", "color", "hat", "shop", "stats"
 ]
 
 ## Most payouts named in the race result line.
@@ -200,8 +193,6 @@ func _ready() -> void:
 	_betting.payouts_settled.connect(_record_bet_stats)
 	_betting.bet_placed.connect(_on_bet_placed)
 	_betting.bet_rejected.connect(_on_bet_rejected)
-	_betting.pick_placed.connect(_on_pick_placed)
-	_betting.pick_rejected.connect(_on_pick_rejected)
 	_betting.balance_reported.connect(_on_balance_reported)
 	_race.race_finished.connect(_on_race_finished)
 	_panel.open_lobby_pressed.connect(_flow.open_lobby)
@@ -253,7 +244,6 @@ func _apply_settings() -> void:
 	_betting.points.starting_balance = settings.starting_balance
 	_betting.min_bet = settings.min_bet
 	_betting.max_bet = settings.max_bet
-	_betting.pick_reward = settings.pick_reward
 	_betting.place_rewards = [settings.win_reward, settings.second_reward, settings.third_reward]
 	_shop.species_price = settings.species_price
 	_shop.color_price = settings.color_price
@@ -436,7 +426,7 @@ func _record_race_stats(results: Array[Dictionary]) -> void:
 func _record_bet_stats(results: Array[Dictionary]) -> void:
 	var points: PointsStore = _betting.points
 	for r: Dictionary in results:
-		# Free picks are not bets: they never count towards bets won, lost or the net.
+		# Placement rewards are not bets: they never count towards bets won, lost or the net.
 		if r.get("kind", "bet") != "bet":
 			continue
 		points.stats.record_bet(str(r["user_id"]), int(r["amount"]), int(r["payout"]))
@@ -724,18 +714,6 @@ func _on_bet_placed(msg: ChatMessage, target: Contestant, amount: int) -> void:
 
 func _on_bet_rejected(msg: ChatMessage, reason: String) -> void:
 	var text: String = BET_REJECTIONS.get(reason, "bet not accepted")
-	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
-
-
-func _on_pick_placed(msg: ChatMessage, target: Contestant) -> void:
-	_confirm(
-		"reply_bets", "picks", "Picks:", "@%s on %s" % [_viewer_name(msg), target.display_name]
-	)
-	_overlay.show_notice("%s picked %s" % [_viewer_name(msg), target.display_name])
-
-
-func _on_pick_rejected(msg: ChatMessage, reason: String) -> void:
-	var text: String = PICK_REJECTIONS.get(reason, "pick not accepted")
 	_overlay.show_notice("%s: %s" % [_viewer_name(msg), text])
 
 
