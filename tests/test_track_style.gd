@@ -6,7 +6,7 @@ func test_every_map_is_dressed_with_a_known_style() -> void:
 	for id: String in TrackCatalog.ids():
 		var track: Track = TrackCatalog.instantiate(id)
 		add_child_autofree(track)
-		assert_true(TrackStyle.PALETTES.has(track.style_id), "%s style exists" % id)
+		assert_true(TrackPalettes.PALETTES.has(track.style_id), "%s style exists" % id)
 		assert_eq(track.find_children("*", "TrackStyle", false, false).size(), 1)
 
 
@@ -106,3 +106,11 @@ func test_foreground_leaves_colliders_alone() -> void:
 	add_child_autofree(track)
 	var group: CanvasGroup = track.find_child("Foreground", true, false)
 	assert_eq(group.find_children("*", "CollisionObject2D", true, false).size(), 0)
+
+
+func test_every_style_has_a_palette_and_foreground() -> void:
+	assert_true(TrackPalettes.PALETTES.has(TrackPalettes.DEFAULT_STYLE))
+	for id: String in TrackPalettes.PALETTES:
+		assert_true(TrackPalettes.FOREGROUND.has(id), "%s has a foreground" % id)
+	for id: String in TrackPalettes.FOREGROUND:
+		assert_true(TrackPalettes.PALETTES.has(id), "%s has a palette" % id)
