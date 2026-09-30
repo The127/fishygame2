@@ -14,15 +14,6 @@ signal photo_finish(winner_id: int, chaser_id: int)
 signal treasure_collected(id: int, kind: int, value: int)
 
 const SPAWN_JITTER: float = 3.0
-## Impulse per unit of mass with which the streamer's hook yanks a fish back up the track.
-const HOOK_IMPULSE: float = 650.0
-## Fraction of its speed a hooked fish keeps before it is pulled back.
-const HOOK_KEEP_SPEED: float = 0.2
-## Impulse per unit of mass a bubble blast gives a fish at its centre, fading to the edge.
-const BLAST_IMPULSE: float = 600.0
-## Drag per second on a fish inside a net, in units of its own velocity.
-const NET_DRAG: float = 14.0
-
 @export var marble_scene: PackedScene
 ## Safety net: ends the race even without a time limit, so a jam can never hang a round.
 @export var timeout_seconds: float = 90.0
@@ -42,8 +33,8 @@ var had_photo_finish: bool = false
 var _track: Track
 var _ranking: RaceRanking
 var _marbles: Dictionary = {}
-var _nets: Array[NetZone] = []
-var _treasures: Array[Treasure] = []
+var _powers: RacePowers
+var _treasures: RaceTreasures
 var _snap_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _snap_pending: bool = false
 var _snap_time: float = 0.0
@@ -51,6 +42,12 @@ var _recorder: ReplayRecorder
 var _sample_positions: PackedVector2Array = PackedVector2Array()
 var _sample_velocities: PackedVector2Array = PackedVector2Array()
 var _sample_alphas: PackedFloat32Array = PackedFloat32Array()
+
+
+func _init() -> void:
+	_powers = RacePowers.new(self, _marbles, _live_marble, _record_event)
+	_treasures = RaceTreasures.new(self, _marbles, _live_marble)
+	_treasures.collected.connect(treasure_collected.emit)
 
 
 ## Clears any previous race and spawns `count` marbles. Every random draw comes
@@ -98,7 +95,9 @@ func start(
 	_track.set_field_size(count)
 	_track.seed_gimmicks(rng)
 	# Read before any later draw and never advanced, so treasures cannot shift a race's layout.
-	_place_treasures(hash(rng.state) if treasures_enabled else 0)
+	_powers.track = _track
+	if treasures_enabled:
+		_treasures.place(_track, hash(rng.state))
 	_track.arm_hazards(rng, RaceEvent.hazard_level(event, hazard_frequency))
 	_recorder = ReplayRecorder.new(count)
 	_recorder.bind_nodes(Replayable.find_in(_track))
@@ -124,15 +123,7 @@ func clear() -> void:
 		_track.marble_reached_finish.disconnect(_on_marble_reached_finish)
 	_track = null
 	_ranking = null
-	for net: NetZone in _nets:
-		if is_instance_valid(net):
-			remove_child(net)
-			net.queue_free()
-	_nets.clear()
-	for treasure: Treasure in _treasures:
-		if is_instance_valid(treasure):
-			remove_child(treasure)
-			treasure.queue_free()
+	_powers.clear()
 	_treasures.clear()
 	for marble: Marble in _marbles.values():
 		# Leave the tree now so a stale marble can't trigger the finish area this frame.
@@ -162,32 +153,18 @@ func get_marbles() -> Array[Marble]:
 
 ## Pushes a marble toward the finish. Returns false if the race is not running or the id is unknown.
 func boost_marble(id: int) -> bool:
-	var marble: Marble = _live_marble(id)
-	if marble == null:
-		return false
-	_record_event(ReplayRecorder.Kind.BOOST, marble)
-	marble.boost(_track.get_forward(marble.global_position))
-	return true
+	return _powers.boost(id)
 
 
 ## Knocks a marble back and slows it. Returns false if the race is not running or the id is unknown.
 func curse_marble(id: int) -> bool:
-	var marble: Marble = _live_marble(id)
-	if marble == null:
-		return false
-	_record_event(ReplayRecorder.Kind.CURSE, marble)
-	marble.curse(_track.get_forward(marble.global_position))
-	return true
+	return _powers.curse(id)
 
 
 ## Gives a marble a small cheering nudge toward the finish. `strength` is in emote units.
 ## Returns false if the race is not running or the id is unknown.
 func cheer_marble(id: int, strength: float) -> bool:
-	var marble: Marble = _live_marble(id)
-	if marble == null:
-		return false
-	marble.cheer(_track.get_forward(marble.global_position), strength)
-	return true
+	return _powers.cheer(id, strength)
 
 
 ## Makes a marble meow, purely for show. Returns false if the race is not running or the id is unknown.
@@ -211,18 +188,7 @@ func meow_random_marble() -> bool:
 func hook_near(pos: Vector2, radius: float) -> int:
 	if not running:
 		return -1
-	var hook: HookFx = HookFx.new()
-	add_child(hook)
-	hook.global_position = pos
-	var marble: Marble = _nearest_live(pos, radius)
-	if marble == null:
-		return -1
-	marble.linear_velocity *= HOOK_KEEP_SPEED
-	marble.apply_central_impulse(
-		-_track.get_forward(marble.global_position) * HOOK_IMPULSE * marble.mass
-	)
-	RaceFx.burst(marble, marble.global_position, RaceFx.SPLASH_COLOR, 12, 100.0, Vector2(0, -60))
-	return marble.id
+	return _powers.hook_near(pos, radius)
 
 
 ## The streamer's net: holds fish inside the area for `seconds`. Returns how many fish are in
@@ -230,13 +196,7 @@ func hook_near(pos: Vector2, radius: float) -> int:
 func place_net(pos: Vector2, radius: float, seconds: float) -> int:
 	if not running:
 		return 0
-	var net: NetZone = NetZone.new()
-	net.radius = radius
-	net.life = seconds
-	add_child(net)
-	net.global_position = pos
-	_nets.append(net)
-	return _live_in(pos, radius).size()
+	return _powers.place_net(pos, radius, seconds)
 
 
 ## The streamer's bubble blast: shoves every fish within `radius` away from `pos`, hardest
@@ -244,14 +204,7 @@ func place_net(pos: Vector2, radius: float, seconds: float) -> int:
 func blast(pos: Vector2, radius: float) -> int:
 	if not running:
 		return 0
-	var hit: Array[Marble] = _live_in(pos, radius)
-	for marble: Marble in hit:
-		var away: Vector2 = marble.global_position - pos
-		var direction: Vector2 = away.normalized() if away.length() > 0.001 else Vector2.UP
-		var falloff: float = 1.0 - clampf(away.length() / radius, 0.0, 1.0) * 0.6
-		marble.apply_central_impulse(direction * BLAST_IMPULSE * falloff * marble.mass)
-	RaceFx.burst(self, pos, RaceFx.BOOST_COLOR, 28, radius, Vector2.ZERO)
-	return hit.size()
+	return _powers.blast(pos, radius)
 
 
 ## Current global position of every marble still racing, id -> Vector2.
@@ -285,75 +238,16 @@ func _live_marble(id: int) -> Marble:
 	return _marbles[id]
 
 
-func _nearest_live(pos: Vector2, radius: float) -> Marble:
-	var best: Marble = null
-	var best_distance: float = radius
-	for marble: Marble in _live_in(pos, radius):
-		var distance: float = marble.global_position.distance_to(pos)
-		if best == null or distance < best_distance:
-			best = marble
-			best_distance = distance
-	return best
-
-
-func _live_in(pos: Vector2, radius: float) -> Array[Marble]:
-	var found: Array[Marble] = []
-	for id: int in _marbles:
-		var marble: Marble = _live_marble(id)
-		if marble != null and marble.global_position.distance_to(pos) <= radius:
-			found.append(marble)
-	return found
-
-
-func _place_treasures(treasure_seed: int) -> void:
-	if not treasures_enabled:
-		return
-	for spot: Dictionary in _track.treasure_spots(treasure_seed):
-		var treasure: Treasure = Treasure.new()
-		treasure.kind = spot["kind"]
-		add_child(treasure)
-		treasure.global_position = spot["position"]
-		_treasures.append(treasure)
-
-
 ## Treasures still lying on the map.
 func treasures_left() -> int:
-	return _treasures.filter(func(t: Treasure) -> bool: return not t.collected).size()
-
-
-## The first fish within reach takes each treasure (the lowest id if several touch at once).
-func _collect_treasures() -> void:
-	for treasure: Treasure in _treasures:
-		if treasure.collected:
-			continue
-		var finder: Marble = null
-		for id: int in _marbles:
-			var marble: Marble = _live_marble(id)
-			if (
-				marble != null
-				and marble.global_position.distance_to(treasure.global_position) <= Treasure.REACH
-			):
-				finder = marble
-				break
-		if finder != null:
-			treasure.collect()
-			treasure_collected.emit(finder.id, treasure.kind, treasure.value())
-
-
-func _hold_in_nets() -> void:
-	_nets = _nets.filter(func(net: NetZone) -> bool: return is_instance_valid(net))
-	for net: NetZone in _nets:
-		for marble: Marble in _live_in(net.global_position, net.radius):
-			marble.apply_central_force(
-				-marble.linear_velocity * NET_DRAG * marble.mass * net.strength()
-			)
+	return _treasures.left()
 
 
 func _physics_process(delta: float) -> void:
 	if not running:
 		return
-	_hold_in_nets()
-	_collect_treasures()
+	_powers.hold_in_nets()
+	_treasures.collect()
 	elapsed += delta
 	_strand_dry_fish(delta)
 	if not running:

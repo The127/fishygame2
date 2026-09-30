@@ -78,19 +78,19 @@ func test_disabled_means_none() -> void:
 
 func test_the_first_fish_in_reach_takes_it() -> void:
 	var race: Race = _make_race()
-	var treasure: Treasure = race._treasures[0]
+	var treasure: Treasure = race._treasures.treasures[0]
 	var marbles: Array[Marble] = race.get_marbles()
 	marbles[1].global_position = treasure.global_position + Vector2(10, 0)
 	marbles[2].global_position = treasure.global_position + Vector2(-10, 0)
 	var before: int = race.treasures_left()
 	watch_signals(race)
-	race._collect_treasures()
+	race._treasures.collect()
 	assert_signal_emit_count(race, "treasure_collected", 1)
 	var args: Array = get_signal_parameters(race, "treasure_collected", 0)
 	assert_eq(args[0], marbles[1].id, "the lower id wins a tie")
 	assert_eq(args[2], treasure.value())
 	assert_eq(race.treasures_left(), before - 1)
-	race._collect_treasures()
+	race._treasures.collect()
 	assert_signal_emit_count(race, "treasure_collected", 1, "a treasure is taken only once")
 
 
@@ -99,7 +99,7 @@ func test_a_far_fish_takes_nothing() -> void:
 	for marble: Marble in race.get_marbles():
 		marble.global_position = Vector2(-5000, -5000)
 	watch_signals(race)
-	race._collect_treasures()
+	race._treasures.collect()
 	assert_signal_not_emitted(race, "treasure_collected")
 
 

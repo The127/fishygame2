@@ -106,4 +106,4 @@ func test_powers_do_nothing_once_the_race_is_over() -> void:
 func test_clear_removes_nets() -> void:
 	_race.place_net(Vector2(500.0, 500.0), 170.0, 2.5)
 	_race.clear()
-	assert_eq(_race._nets.size(), 0)
+	assert_eq(_race._powers.nets.size(), 0)
