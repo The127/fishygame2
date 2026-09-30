@@ -39,6 +39,22 @@ func get_alert() -> float:
 	return _alert
 
 
+func _ready() -> void:
+	Replayable.join(self)
+
+
+## Replay: what the eye looks like right now.
+func replay_state() -> PackedFloat32Array:
+	return PackedFloat32Array([_alert, _look.x, _look.y, _time])
+
+
+func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	_alert = Replayable.mix(from, to, weight, 0)
+	_look = Replayable.mix_vector(from, to, weight, 1)
+	_time = Replayable.mix(from, to, weight, 3)
+	queue_redraw()
+
+
 func _process(delta: float) -> void:
 	_time += delta
 	var follow: float = minf(FOLLOW * delta, 1.0)
