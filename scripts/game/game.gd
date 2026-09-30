@@ -74,6 +74,11 @@ const NET_SECONDS: float = 2.5
 const POWER_NOTE_MSEC: int = 3000
 ## Seconds before the winner crosses in the replay when the camera settles on the gate.
 const REPLAY_GATE_LEAD: float = 0.6
+## Most DNF names in the race result line.
+const RESULT_DNF: int = 3
+
+## The overlay timer shows for this many seconds before the time limit.
+const TIMER_SECONDS: int = 10
 
 const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
 
@@ -104,6 +109,8 @@ var _armed_power: int = -1
 var _power_cursor: PowerCursor = PowerCursor.new()
 var _power_note: String = ""
 var _power_note_until_msec: int = 0
+## Names of the fish that did not finish the last race, in results order.
+var _dnf_names: PackedStringArray = []
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
@@ -218,6 +225,7 @@ func _apply_settings() -> void:
 	_flow.min_players = settings.min_players
 	_flow.max_players = settings.max_players
 	_flow.countdown_seconds = settings.countdown_seconds
+	_race.time_limit = float(settings.race_time_limit)
 	_flow.set_auto_mode(settings.auto_mode, float(settings.auto_join_seconds))
 	_betting.starting_balance = settings.starting_balance
 	_betting.points.starting_balance = settings.starting_balance
@@ -250,6 +258,8 @@ func _process(_delta: float) -> void:
 		_refresh_lobby()
 	if _flow.state == GameFlow.State.RACING and _race.running:
 		_camera.follow(_race.get_position_map(), _race.get_progress_map())
+	var left: float = _race.time_left()
+	_overlay.show_race_timer(ceili(left) if left >= 0.0 and left <= TIMER_SECONDS else -1)
 	if _replay.active:
 		_follow_replay()
 	_panel.set_status(_status_text())
@@ -364,13 +374,17 @@ func _reply_stats(msg: ChatMessage, args: PackedStringArray) -> void:
 func _record_race_stats(results: Array[Dictionary]) -> void:
 	var points: PointsStore = _betting.points
 	var contestants: Array[Contestant] = _flow.get_contestants()
+	_dnf_names = []
 	for r: Dictionary in results:
 		var id: int = int(r["id"])
 		if id < 0 or id >= contestants.size():
 			continue
 		var user_id: String = contestants[id].user_id
 		points.stats.record_race(user_id)
-		if bool(r["finished"]):
+		if not bool(r["finished"]):
+			points.stats.record_dnf(user_id)
+			_dnf_names.append(contestants[id].display_name)
+		else:
 			points.stats.record_finish_time(user_id, _map_id, float(r["time"]))
 			if int(r["place"]) <= _flow.podium_size:
 				points.stats.record_podium(user_id)
@@ -512,12 +526,17 @@ func _follow_replay() -> void:
 
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	var payouts: Array[Dictionary] = _payouts
+	var dnf: PackedStringArray = _dnf_names
 	_payouts = []
-	if podium.is_empty() or not podium[0]["finished"]:
+	_dnf_names = []
+	_overlay.show_dnf(dnf)
+	if podium.is_empty():
+		if not dnf.is_empty():
+			_confirm("reply_results", "results", "Race over:", "time is up, nobody finished.")
 		return
 	Sound.play_win()
 	_confirm(
-		"reply_results", "results", "Race over:", _result_text(str(podium[0]["name"]), payouts)
+		"reply_results", "results", "Race over:", _result_text(str(podium[0]["name"]), payouts, dnf)
 	)
 
 
@@ -742,8 +761,11 @@ func _on_payouts_settled(results: Array[Dictionary]) -> void:
 	_payouts = results
 
 
-## "Bubbles won. Payouts: @a +300, @b +200", with at most three payouts, biggest first.
-func _result_text(winner: String, payouts: Array[Dictionary]) -> String:
+## "Bubbles won. Payouts: @a +300, @b +200. DNF: c, d", with at most three payouts, biggest
+## first, and at most three DNF names.
+func _result_text(
+	winner: String, payouts: Array[Dictionary], dnf: PackedStringArray = []
+) -> String:
 	var paid: Array[Dictionary] = payouts.filter(
 		func(r: Dictionary) -> bool: return r["payout"] > 0
 	)
@@ -754,6 +776,10 @@ func _result_text(winner: String, payouts: Array[Dictionary]) -> String:
 	var text: String = "%s won." % winner
 	if not parts.is_empty():
 		text += " Payouts: " + ", ".join(parts)
+	if not dnf.is_empty():
+		text += (" " if parts.is_empty() else ". ") + "DNF: " + ", ".join(dnf.slice(0, RESULT_DNF))
+		if dnf.size() > RESULT_DNF:
+			text += " +%d more" % (dnf.size() - RESULT_DNF)
 	return text
 
 

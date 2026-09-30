@@ -115,13 +115,14 @@ func stop() -> void:
 	_set_state(State.IDLE)
 
 
-## Feed it the results of Race.race_finished (ids are roster indexes).
+## Feed it the results of Race.race_finished (ids are roster indexes). Only fish that
+## finished get a podium place; the rest are DNF and are left off.
 func report_race_finished(results: Array[Dictionary]) -> void:
 	if state != State.RACING:
 		return
 	var podium: Array[Dictionary] = []
 	for r: Dictionary in results:
-		if podium.size() >= podium_size:
+		if podium.size() >= podium_size or not bool(r["finished"]):
 			break
 		var contestant: Contestant = _contestants[int(r["id"])]
 		(

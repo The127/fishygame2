@@ -6,6 +6,8 @@ extends CanvasLayer
 ## can never overlap.
 
 const MARGIN: int = 48
+## Most DNF names listed under the podium.
+const DNF_SHOWN: int = 8
 const LOBBY_COLUMNS: int = 2
 
 var _frame: Control
@@ -22,6 +24,11 @@ var _big: Label
 var _results_column: VBoxContainer
 var _podium_panel: PanelContainer
 var _podium_view: PodiumView
+var _dnf_panel: PanelContainer
+var _dnf_label: Label
+var _timer_panel: PanelContainer
+var _timer_label: Label
+var _timer_shown: int = -1
 var _payouts_panel: PanelContainer
 var _payouts_box: VBoxContainer
 var _bets_panel: PanelContainer
@@ -46,6 +53,7 @@ func _ready() -> void:
 	_build_bets()
 	_build_notice()
 	_build_replay_badge()
+	_build_timer()
 	_notice_timer = Timer.new()
 	_notice_timer.one_shot = true
 	_notice_timer.timeout.connect(_clear_notice)
@@ -70,6 +78,9 @@ func clear() -> void:
 	_clear_lobby()
 	_big.text = ""
 	_podium_panel.visible = false
+	_dnf_panel.visible = false
+	_timer_panel.visible = false
+	_timer_shown = -1
 	_payouts_panel.visible = false
 	_set_bets_text("")
 
@@ -124,6 +135,32 @@ func show_podium(podium: Array[Dictionary]) -> void:
 	clear()
 	_podium_view.set_podium(podium)
 	_podium_panel.visible = not podium.is_empty()
+
+
+## Shows the seconds left before the race time limit, or hides the timer for a negative value.
+func show_race_timer(seconds_left: int) -> void:
+	if seconds_left == _timer_shown:
+		return
+	_timer_shown = seconds_left
+	_timer_panel.visible = seconds_left >= 0
+	if seconds_left < 0:
+		return
+	_timer_label.text = "0:%02d" % seconds_left
+	_timer_label.add_theme_color_override(
+		"font_color", UiStyle.TEXT if seconds_left > 5 else Color(1.0, 0.45, 0.4)
+	)
+
+
+## Lists the fish that did not finish under the podium; hidden when there are none.
+func show_dnf(names: PackedStringArray) -> void:
+	_dnf_panel.visible = not names.is_empty()
+	if names.is_empty():
+		return
+	var shown: PackedStringArray = names.slice(0, DNF_SHOWN)
+	var text: String = "DNF: " + ", ".join(shown)
+	if names.size() > DNF_SHOWN:
+		text += " +%d more" % (names.size() - DNF_SHOWN)
+	_dnf_label.text = text
 
 
 func show_bets(text: String) -> void:
@@ -273,6 +310,12 @@ func _build_results() -> void:
 	_podium_view = PodiumView.new()
 	podium_box.add_child(_podium_view)
 	_results_column.add_child(_podium_panel)
+	_dnf_panel = _make_panel(false)
+	_dnf_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_dnf_label = _make_label("", 28, 700, UiStyle.MUTED)
+	_dnf_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_dnf_panel.add_child(_dnf_label)
+	_results_column.add_child(_dnf_panel)
 	_payouts_panel = _make_panel(false)
 	_payouts_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_payouts_box = VBoxContainer.new()
@@ -308,6 +351,18 @@ func _build_notice() -> void:
 	strip.offset_top = 24.0
 	_frame.add_child(strip)
 	strip.add_child(_notice_panel)
+
+
+func _build_timer() -> void:
+	_timer_panel = _make_panel(false)
+	_timer_label = _make_label("", 72, 900, UiStyle.TEXT)
+	_timer_panel.add_child(_timer_label)
+	_frame.add_child(_timer_panel)
+	# Top-right corner, growing left and down with its text.
+	_timer_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_timer_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_timer_panel.offset_top = MARGIN
+	_timer_panel.offset_right = -MARGIN
 
 
 func _make_panel(start_visible: bool = true) -> PanelContainer:

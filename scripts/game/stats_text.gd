@@ -15,6 +15,9 @@ static func chat_text(points: PointsStore, user_id: String) -> String:
 	parts.append(_count(stats.get_counter(user_id, "races"), "race"))
 	parts.append(_count(wins, "win"))
 	parts.append(_count(stats.get_counter(user_id, "podiums"), "podium"))
+	var dnfs: int = stats.get_counter(user_id, "dnfs")
+	if dnfs > 0:
+		parts.append("%d DNF" % dnfs)
 	var fastest: Dictionary = stats.get_fastest(user_id)
 	if not fastest.is_empty():
 		var map_name: String = TrackCatalog.get_name_of(str(fastest["map_id"]))

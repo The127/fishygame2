@@ -12,7 +12,7 @@ const MAX_MAPS: int = 64
 const MAX_MAP_ID_LENGTH: int = 64
 ## Counters stored as plain non-negative integers.
 const COUNTERS: PackedStringArray = [
-	"races", "podiums", "bets_won", "bets_lost", "boosts", "curses", "eaten"
+	"races", "podiums", "dnfs", "bets_won", "bets_lost", "boosts", "curses", "eaten"
 ]
 
 ## user_id -> {counters..., "bet_net": int, "best_times": {map_id: seconds}}
@@ -91,6 +91,12 @@ func record_bet(user_id: String, amount: int, payout: int) -> void:
 	_bump(user_id, "bets_won" if payout > 0 else "bets_lost")
 	var row: Dictionary = _ensure(user_id)
 	row["bet_net"] = clampi(int(row.get("bet_net", 0)) + payout - amount, -MAX_VALUE, MAX_VALUE)
+
+
+## The viewer's fish did not finish the race (time ran out). The race itself is counted
+## by [method record_race].
+func record_dnf(user_id: String) -> void:
+	_bump(user_id, "dnfs")
 
 
 func record_boost(user_id: String) -> void:

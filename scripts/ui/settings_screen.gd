@@ -16,6 +16,7 @@ const TABS: Array[Dictionary] = [
 			"min_players",
 			"max_players",
 			"countdown_seconds",
+			"race_time_limit",
 			"default_map",
 			"hazards_enabled",
 			"hazard_frequency",

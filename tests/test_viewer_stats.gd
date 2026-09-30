@@ -216,3 +216,16 @@ func test_chat_text_summarizes() -> void:
 func test_chat_text_for_unknown_viewer() -> void:
 	var store := PointsStore.new("", 100)
 	assert_string_contains(StatsText.chat_text(store, "55"), "no stats yet")
+
+
+func test_dnfs_count_and_show_in_the_chat_text() -> void:
+	var store := PointsStore.new("", 1000)
+	store.set_name("7", "Ann")
+	store.stats.record_race("7")
+	assert_false(StatsText.chat_text(store, "7").contains("DNF"))
+	store.stats.record_dnf("7")
+	assert_eq(store.stats.get_counter("7", "dnfs"), 1)
+	assert_string_contains(StatsText.chat_text(store, "7"), "1 DNF")
+	var reloaded := ViewerStats.new()
+	reloaded.load_dict(store.stats.to_dict())
+	assert_eq(reloaded.get_counter("7", "dnfs"), 1)
