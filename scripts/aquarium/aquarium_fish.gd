@@ -17,7 +17,8 @@ const FADE_SECONDS: float = 1.0
 
 var contestant: Contestant
 var visual: FishVisual
-## Where it swims, in tank units. x wraps at the world width, y is 0..1 down the water.
+## Where it swims. x is a fraction of the world width (it wraps at 1) so a resize keeps the
+## spread, y is 0..1 down the water.
 var world_x: float = 0.0
 var depth_y: float = 0.5
 var z: float = 0.5
@@ -43,15 +44,14 @@ func _init(p_rng: RandomNumberGenerator) -> void:
 	add_child(visual)
 
 
-## Gives the fish [param who]'s look and a fresh spot. [param world_width] is the tank's world
-## width in pixels.
-func assign(who: Contestant, world_width: float) -> void:
+## Gives the fish [param who]'s look and a fresh spot.
+func assign(who: Contestant) -> void:
 	contestant = who
 	visual.color = who.color
 	visual.species = who.species
 	visual.pattern = who.pattern
 	visual.accessory = who.accessory
-	world_x = _rng.randf() * world_width
+	world_x = _rng.randf()
 	depth_y = _rng.randf_range(0.12, 0.8)
 	z = _rng.randf()
 	dir = 1.0 if _rng.randf() < 0.5 else -1.0
@@ -77,7 +77,7 @@ func step(delta: float, world_width: float) -> Vector2:
 	elif depth_y > 0.85:
 		_target_pitch = -absf(_target_pitch)
 	var velocity: Vector2 = Vector2(dir * cos(_pitch), sin(_pitch)) * speed
-	world_x = posmod(world_x + velocity.x * delta, world_width)
+	world_x = fposmod(world_x + velocity.x * delta / maxf(world_width, 1.0), 1.0)
 	depth_y = clampf(depth_y + velocity.y * delta * 0.002, 0.05, 0.92)
 	fade = move_toward(fade, 0.0 if fading_out else 1.0, delta / FADE_SECONDS)
 	return velocity

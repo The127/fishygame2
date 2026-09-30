@@ -117,6 +117,7 @@ func test_home_has_an_aquarium_button_that_opens_the_screen() -> void:
 func test_screen_shows_a_hint_when_nobody_exists_yet() -> void:
 	var screen: AquariumScreen = (load(HomeScreen.AQUARIUM_SCENE) as PackedScene).instantiate()
 	screen.roster = _roster(0)
+	screen.use_roster = true
 	add_child_autofree(screen)
 	await wait_process_frames(2)
 	assert_true((screen.get_node("Empty") as Label).visible)

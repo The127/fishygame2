@@ -4,8 +4,9 @@ extends Control
 
 const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
 
-## Fish to show; built from the saved data when left null (tests set it first).
+## Fish to show. Built from the saved data unless [member use_roster] is set (tests do).
 var roster: Array[Contestant] = []
+var use_roster: bool = false
 var _tank: AquariumTank
 var _count: Label
 var _empty: Label
@@ -13,7 +14,7 @@ var _empty: Label
 
 func _ready() -> void:
 	Sound.set_music_theme(Sound.HOME_THEME)
-	if roster.is_empty():
+	if not use_roster:
 		roster = _load_roster()
 	_tank = AquariumTank.new()
 	_tank.set_anchors_preset(Control.PRESET_FULL_RECT)

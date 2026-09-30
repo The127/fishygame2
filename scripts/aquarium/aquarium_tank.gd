@@ -107,7 +107,8 @@ func project(fish: AquariumFish) -> Dictionary:
 	var world_width: float = world_width_px()
 	var parallax: float = lerpf(1.0, FAR_PARALLAX, fish.z)
 	var x: float = (
-		fposmod(fish.world_x - _cam_x * parallax + OFFSCREEN_MARGIN, world_width) - OFFSCREEN_MARGIN
+		fposmod(fish.world_x * world_width - _cam_x * parallax + OFFSCREEN_MARGIN, world_width)
+		- OFFSCREEN_MARGIN
 	)
 	var y: float = size.y * lerpf(fish.depth_y, 0.5, fish.z * 0.35)
 	return {"position": Vector2(x, y), "scale": lerpf(NEAR_SCALE, FAR_SCALE, fish.z)}
@@ -130,7 +131,7 @@ func _process(delta: float) -> void:
 	var nearest_dist: float = INF
 	for fish: AquariumFish in _fish:
 		_update_fish(fish, delta)
-		if fish.fading_out:
+		if fish.fading_out or not fish.visible:
 			continue
 		var dist: float = fish.position.distance_to(mouse)
 		if dist < HOVER_RADIUS * fish.visual.scale.x and dist < nearest_dist:
@@ -177,21 +178,25 @@ func _rotate_crowd(delta: float) -> void:
 			continue
 		_waiting.append(fish.contestant)
 		var next: Contestant = _waiting.pop_front()
-		fish.assign(next, world_width_px())
+		fish.assign(next)
 	if _waiting.is_empty():
 		return
 	_swap_left -= delta
 	if _swap_left > 0.0:
 		return
 	_swap_left = ROTATE_SECONDS
-	var leaving: AquariumFish = _fish[_rng.randi_range(0, _fish.size() - 1)]
-	leaving.fading_out = true
+	var settled: Array[AquariumFish] = []
+	for fish: AquariumFish in _fish:
+		if not fish.fading_out and fish.fade >= 1.0:
+			settled.append(fish)
+	if not settled.is_empty():
+		settled[_rng.randi_range(0, settled.size() - 1)].fading_out = true
 
 
 func _spawn(who: Contestant) -> void:
 	var fish := AquariumFish.new(_rng)
 	add_child(fish)
-	fish.assign(who, world_width_px())
+	fish.assign(who)
 	_fish.append(fish)
 
 
@@ -236,6 +241,7 @@ func _add_bubbles() -> void:
 func _on_resized() -> void:
 	for backdrop: AquariumBackdrop in [_back, _light, _front]:
 		backdrop.view = size
+		backdrop.queue_redraw()
 	var bubbles: CPUParticles2D = get_node_or_null("Bubbles")
 	if bubbles != null:
 		bubbles.position = Vector2(size.x * 0.5, size.y)
