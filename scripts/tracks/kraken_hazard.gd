@@ -7,6 +7,8 @@ extends Hazard
 ## starting to rise and the kraken's eye (a [KrakenEye] child) snapping open.
 
 const SEGMENTS: int = 18
+## Most tentacles one event uses.
+const MAX_TENTACLES: int = 2
 const BODY_RADIUS: float = 34.0
 ## The part of the tentacle that pushes, as fractions of its length from the root.
 const PUSH_FROM: float = 0.3
@@ -55,6 +57,28 @@ func _ready() -> void:
 ## Indices of the tentacles in the current event, empty while idle.
 func get_active_tentacles() -> Array[int]:
 	return _active.duplicate()
+
+
+## Replay: which tentacles are in the event and their swing directions, as MAX_TENTACLES slots
+## of index (-1 for none) followed by MAX_TENTACLES slots of direction.
+func _replay_extra() -> PackedFloat32Array:
+	var state: PackedFloat32Array = PackedFloat32Array()
+	state.resize(MAX_TENTACLES * 2)
+	for n: int in MAX_TENTACLES:
+		state[n] = float(_active[n]) if n < _active.size() else -1.0
+		state[MAX_TENTACLES + n] = _swing[n] if n < _swing.size() else 0.0
+	return state
+
+
+func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
+	_active.clear()
+	_swing.clear()
+	for n: int in MAX_TENTACLES:
+		var index: int = int(Replayable.step(from, to, weight, REPLAY_BASE + n))
+		if index < 0 or index >= roots.size():
+			continue
+		_active.append(index)
+		_swing.append(Replayable.step(from, to, weight, REPLAY_BASE + MAX_TENTACLES + n))
 
 
 func _begin_telegraph(rng: RandomNumberGenerator) -> void:
