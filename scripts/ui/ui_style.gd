@@ -63,6 +63,26 @@ static func disabled_button_box() -> StyleBoxFlat:
 	return box
 
 
+## Brighter, filled look of a streamer power that is armed.
+static func armed_button_box() -> StyleBoxFlat:
+	var box: StyleBoxFlat = button_box(true)
+	box.bg_color = Color(CYAN, 0.32)
+	box.border_color = Color.WHITE
+	box.shadow_color = Color(CYAN, 0.65)
+	box.shadow_size = 16
+	return box
+
+
+## Accent of a streamer power (a [enum StreamerPowers.Kind]): rod cyan, net green, blast amber.
+static func power_color(kind: int) -> Color:
+	match kind:
+		StreamerPowers.Kind.NET:
+			return GOOD
+		StreamerPowers.Kind.BLAST:
+			return Color(1.0, 0.72, 0.3)
+	return CYAN_LIGHT
+
+
 static func gradient_material() -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = load(GRADIENT_SHADER_PATH)
