@@ -131,7 +131,7 @@ func get_progress_map() -> Dictionary:
 func _live_marble(id: int) -> Marble:
 	if not running or _ranking == null or not _marbles.has(id):
 		return null
-	if _ranking.is_finished(id):
+	if _ranking.is_finished(id) or (_marbles[id] as Marble).eaten:
 		return null
 	return _marbles[id]
 
