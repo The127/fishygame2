@@ -49,7 +49,7 @@ const fail = (msg) => {
   problems.push(msg);
   console.error(`FAIL: ${msg}`);
 };
-const log = (msg) => console.log(`[smoke] ${msg}`);
+const log = (msg) => console.log(`[bench] ${msg}`);
 
 function watch(page) {
   page.on("console", (m) => {
@@ -99,7 +99,7 @@ async function shot(page, name) {
 }
 
 
-const median = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
+const median = (a) => (a.length ? [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)] : 0);
 const SAMPLE_MS = Number(process.env.SAMPLE_MS ?? 10000);
 
 async function sample(page, ms) {

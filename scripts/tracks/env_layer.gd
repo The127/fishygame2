@@ -271,7 +271,8 @@ func _add_line(from: Vector2, to: Vector2, line_color: Color, width: float) -> v
 	_add_polyline(PackedVector2Array([from, to]), line_color, width)
 
 
-## A stroke of constant `width` with mitered joints (the miter is capped so sharp turns stay tidy).
+## A stroke of constant `width` with mitered joints. The miter length is capped at twice the half
+## width, so very sharp turns get a slightly narrower corner instead of a long spike.
 func _add_polyline(points: PackedVector2Array, line_color: Color, width: float) -> void:
 	var count: int = points.size()
 	if count < 2:
