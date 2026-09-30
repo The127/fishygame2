@@ -47,3 +47,14 @@ func test_marbles_pass_the_pattern_to_their_fish() -> void:
 	assert_eq(fish.pattern, FishVisual.Pattern.SPOTS)
 	marble.pattern = FishVisual.Pattern.LINES
 	assert_eq(fish.pattern, FishVisual.Pattern.LINES)
+
+
+func test_every_accessory_draws_at_every_species() -> void:
+	var fish: FishVisual = FishVisual.new()
+	add_child_autofree(fish)
+	for species: int in FishVisual.SPECIES.size():
+		fish.species = species
+		for kind: int in FishAccessory.Kind.size():
+			fish.accessory = kind
+			await wait_frames(1)
+	assert_true(is_instance_valid(fish))

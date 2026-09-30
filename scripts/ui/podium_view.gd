@@ -54,6 +54,7 @@ func _add_winner(entry: Dictionary, place: int) -> void:
 	fish.color = entry["color"]
 	fish.species = int(entry.get("species", entry["id"]))
 	fish.pattern = int(entry.get("pattern", 0))
+	fish.accessory = int(entry.get("accessory", 0))
 	fish.celebrating = place == 1
 	add_child(fish)
 	# FishVisual detaches itself in _ready to follow a marble; here it stays with the view.

@@ -63,6 +63,11 @@ var pattern: int = 0:
 	set(value):
 		pattern = value
 		queue_redraw()
+## A [enum FishAccessory.Kind], cosmetic only.
+var accessory: int = 0:
+	set(value):
+		accessory = value
+		queue_redraw()
 var heading: float = 0.0
 ## Scales the glow's strength and size, 1 is normal. Raised on dark maps.
 var glow_boost: float = 1.0
@@ -181,6 +186,11 @@ func _draw() -> void:
 	draw_circle(eye, 3.2, OUTLINE)
 	draw_circle(eye, 2.2, accent.lightened(0.5))
 	draw_circle(eye + Vector2(0.6, 0), 1.0, OUTLINE)
+	if accessory != FishAccessory.Kind.NONE:
+		var head_x: float = length - 2.0 * length * 0.3
+		var head_top := Vector2(head_x, -_body_half_height(sp, 0.3))
+		var chin := Vector2(length - 2.0 * length * 0.22, _body_half_height(sp, 0.22) * 0.9)
+		FishAccessory.draw(self, accessory, head_top, eye, chin)
 
 
 ## Half the body height at [param u], 0 at the snout and 1 at the tail.

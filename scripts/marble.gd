@@ -45,6 +45,13 @@ var pattern: int = 0:
 		if _fish != null:
 			_fish.pattern = value
 
+## A [enum FishAccessory.Kind].
+var accessory: int = 0:
+	set(value):
+		accessory = value
+		if _fish != null:
+			_fish.accessory = value
+
 ## Glow strength, 1 is normal.
 var glow_boost: float = 1.0:
 	set(value):
@@ -89,6 +96,7 @@ func _ready() -> void:
 	_fish.color = color
 	_fish.species = species if species >= 0 else id
 	_fish.pattern = pattern
+	_fish.accessory = accessory
 	_fish.glow_boost = glow_boost
 	add_child(_fish)
 	# Top level so the name stays upright and unscaled while the marble rolls.

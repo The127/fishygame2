@@ -42,7 +42,7 @@ const TABS: Array[Dictionary] = [
 		"title": "Streamer powers",
 		"items": ["powers_enabled", "power_cooldown", "powers_per_race", "reply_powers"],
 	},
-	{"title": "Shop", "items": ["species_price", "color_price"]},
+	{"title": "Shop", "items": ["species_price", "color_price", "hat_price"]},
 	{
 		"title": "Chat",
 		"items":

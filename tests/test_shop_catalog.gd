@@ -14,7 +14,7 @@ func test_lookup_ignores_case() -> void:
 	assert_eq(ShopCatalog.index_of(ShopStore.KIND_COLOR, "Blue"), 3)
 	assert_eq(ShopCatalog.index_of(ShopStore.KIND_SPECIES, "PIKE"), 2)
 	assert_eq(ShopCatalog.index_of(ShopStore.KIND_COLOR, "pike"), -1)
-	assert_false(ShopCatalog.has_item("hat", "red"))
+	assert_false(ShopCatalog.has_item("scarf", "red"))
 
 
 func test_default_loadout_is_the_slot() -> void:
@@ -132,3 +132,18 @@ func test_color_labels_name_the_marking_only_in_colorblind_mode() -> void:
 	assert_eq(labels.size(), ShopCatalog.COLOR_NAMES.size())
 	assert_eq(labels[0], "red (solid)")
 	assert_eq(labels[1], "green (striped)")
+
+
+func test_hat_names_match_the_accessory_kinds() -> void:
+	assert_eq(ShopCatalog.HAT_NAMES.size(), FishAccessory.Kind.size() - 1)
+	assert_eq(ShopCatalog.accessory_of("tophat"), FishAccessory.Kind.TOP_HAT)
+	assert_eq(ShopCatalog.accessory_of("duck"), FishAccessory.Kind.DUCK)
+	assert_eq(ShopCatalog.accessory_of("nope"), FishAccessory.Kind.NONE)
+
+
+func test_equipped_hat_is_applied_and_default_is_none() -> void:
+	var store := _store_with({"1": {"hat": "crown"}})
+	var roster: Array[Contestant] = _roster(2)
+	ShopCatalog.assign_loadouts(roster, store)
+	assert_eq(roster[1].accessory, FishAccessory.Kind.CROWN)
+	assert_eq(roster[0].accessory, FishAccessory.Kind.NONE)

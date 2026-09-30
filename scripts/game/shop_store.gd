@@ -11,7 +11,8 @@ extends RefCounted
 
 const KIND_SPECIES: String = "species"
 const KIND_COLOR: String = "color"
-const KINDS: Array[String] = [KIND_SPECIES, KIND_COLOR]
+const KIND_HAT: String = "hat"
+const KINDS: Array[String] = [KIND_SPECIES, KIND_COLOR, KIND_HAT]
 
 ## Empty means in-memory only.
 var save_path: String = ""
@@ -50,6 +51,12 @@ func equip(user_id: String, kind: String, item: String) -> bool:
 	var by_kind: Dictionary = _equipped.get_or_add(user_id, {})
 	by_kind[kind] = item
 	return true
+
+
+## Takes off whatever the viewer has equipped as [param kind].
+func unequip(user_id: String, kind: String) -> void:
+	if _equipped.has(user_id):
+		_equipped[user_id].erase(kind)
 
 
 ## The equipped item, or "" if the viewer has not equipped one.

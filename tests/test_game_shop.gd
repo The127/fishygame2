@@ -67,3 +67,15 @@ func test_colorblind_setting_reaches_marbles_the_podium_and_the_shop() -> void:
 	_flow.podium_ready.connect(func(podium: Array[Dictionary]) -> void: podiums.append(podium))
 	_finish_marbles([0, 1])
 	assert_true(podiums[0][0].has("pattern"))
+
+
+func test_bought_hat_is_worn_in_the_race_and_on_the_podium() -> void:
+	_say("0", "#join")
+	_say("1", "#join")
+	_say("1", "#hat pirate")
+	assert_eq(_balance("1"), 1000 - _shop.hat_price)
+	assert_eq(_shop.hat_price, _game.settings.hat_price)
+	assert_true(_flow.start_race())
+	_flow.tick(float(_flow.countdown_seconds))
+	assert_eq(_marble(1).accessory, FishAccessory.Kind.PIRATE_HAT)
+	assert_eq(_marble(0).accessory, FishAccessory.Kind.NONE)

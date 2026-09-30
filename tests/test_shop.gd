@@ -106,3 +106,41 @@ func test_colorblind_listing_names_the_markings_and_still_fits_a_message() -> vo
 	var text: String = _shop.catalog_text()
 	assert_string_contains(text, "red (solid)")
 	assert_lt(text.length(), 500, "fits in one Twitch message")
+
+
+func test_buying_a_hat_costs_the_hat_price_and_equips_it() -> void:
+	_shop.hat_price = 200
+	_shop.handle_command(_msg("1"), "hat", PackedStringArray(["Crown"]))
+	assert_eq(_points.get_balance("1"), 800)
+	assert_eq(_shop.store.equipped("1", ShopStore.KIND_HAT), "crown")
+	_shop.handle_command(_msg("1"), "hat", PackedStringArray(["duck"]))
+	_shop.handle_command(_msg("1"), "hat", PackedStringArray(["crown"]))
+	assert_eq(_points.get_balance("1"), 600, "crown is owned, so switching back is free")
+	assert_eq(_shop.store.equipped("1", ShopStore.KIND_HAT), "crown")
+
+
+func test_hat_none_takes_it_off_for_free_and_keeps_ownership() -> void:
+	_shop.handle_command(_msg("1"), "hat", PackedStringArray(["flower"]))
+	var balance: int = _points.get_balance("1")
+	_shop.handle_command(_msg("1"), "hat", PackedStringArray(["none"]))
+	assert_eq(_points.get_balance("1"), balance)
+	assert_eq(_shop.store.equipped("1", ShopStore.KIND_HAT), "")
+	assert_true(_shop.store.owns("1", ShopStore.KIND_HAT, "flower"))
+
+
+func test_unknown_hat_and_missing_name_are_rejected() -> void:
+	_shop.handle_command(_msg("1"), "hat", PackedStringArray(["red"]))
+	_shop.handle_command(_msg("1"), "hat", PackedStringArray())
+	assert_eq(_rejections, ["unknown_hat", "usage"] as Array[String])
+	assert_eq(_points.get_balance("1"), 1000)
+
+
+func test_hat_needs_enough_points() -> void:
+	_shop.hat_price = 5000
+	assert_false(_shop.choose(_msg("1"), PackedStringArray(["crown"]), ShopStore.KIND_HAT))
+	assert_eq(_rejections, ["insufficient"] as Array[String])
+
+
+func test_hat_catalog_lists_every_hat() -> void:
+	for hat: String in ShopCatalog.HAT_NAMES:
+		assert_string_contains(_shop.hat_catalog_text(), hat)
