@@ -4,6 +4,9 @@ extends Node2D
 ## arrived with. A short cooldown keeps a fish from being sent again straight away. While
 ## `diverted` (a rift event) the fish come out at the divert point instead.
 
+## A particle burst was let off, for the finish replay to play again.
+signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
+
 ## Seconds a teleported fish is ignored by the entry portals.
 const COOLDOWN: float = 0.8
 ## Fish arriving in quick succession come out side by side, not on top of each other.
@@ -105,8 +108,13 @@ func _send(marble: Marble) -> void:
 	_sent += 1
 	marble.global_position = to
 	var color: Color = tint.lerp(RIFT_COLOR, 1.0 if diverted else 0.0)
-	RaceFx.burst(self, from, tint, 14, 120.0, Vector2.ZERO)
-	RaceFx.burst(self, to, color, 14, 120.0, Vector2.ZERO)
+	_burst(from, tint)
+	_burst(to, color)
+
+
+func _burst(at: Vector2, color: Color) -> void:
+	RaceFx.burst(self, at, color, 14, 120.0, Vector2.ZERO)
+	burst_played.emit(at, color, 14, 120.0, Vector2.ZERO)
 
 
 func _draw() -> void:

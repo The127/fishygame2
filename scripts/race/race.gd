@@ -67,6 +67,8 @@ func start(
 	event = random_event
 	_track.modulate = RaceEvent.track_tint(event)
 	_track.marble_reached_finish.connect(_on_marble_reached_finish)
+	if not _track.burst_played.is_connected(_on_burst_played):
+		_track.burst_played.connect(_on_burst_played)
 	# Read before any draw and never advanced, so a snap cannot shift the race's layout.
 	_snap_rng.seed = hash(rng.state)
 	_snap_pending = event == RaceEvent.THANOS_SNAP
@@ -113,6 +115,8 @@ func clear() -> void:
 		_track.modulate = Color.WHITE
 		_track.stop_hazards()
 		_track.stop_gimmicks()
+	if _track != null and _track.burst_played.is_connected(_on_burst_played):
+		_track.burst_played.disconnect(_on_burst_played)
 	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
 		_track.marble_reached_finish.disconnect(_on_marble_reached_finish)
 	_track = null
@@ -456,6 +460,20 @@ func _record_sample() -> void:
 func _record_event(kind: ReplayRecorder.Kind, marble: Marble) -> void:
 	if _recorder != null:
 		_recorder.add_event(elapsed, marble.id, kind, marble.global_position)
+
+
+func _on_burst_played(
+	at: Vector2, color: Color, amount: int, speed: float, gravity: Vector2
+) -> void:
+	if _recorder == null or not running:
+		return
+	_recorder.add_event(
+		elapsed,
+		-1,
+		ReplayRecorder.Kind.BURST,
+		at,
+		{"color": color, "amount": amount, "speed": speed, "gravity": gravity}
+	)
 
 
 func _finish_race() -> void:

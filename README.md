@@ -252,7 +252,8 @@ While a replay plays, the node's `_process` and `_physics_process` are switched 
 syncing to physics, so nothing moves on its own; afterwards the node gets back the state it had
 before. Keep the state small (a few dozen floats): it is stored about 30 times a second. Fish
 that vanish during the clip (swallowed by an anglerfish, Thanos snap) are replayed too. Particle
-bursts are not: add a `ReplayRecorder.Kind` event if one matters.
+bursts are not, unless they are recorded as a `ReplayRecorder.Kind` event: the anglerfish and
+portals do that by emitting `burst_played`, which `Track` forwards and `Race` records as a `BURST`.
 
 Basic sanity checks:
 
