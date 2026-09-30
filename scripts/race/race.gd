@@ -4,6 +4,8 @@ extends Node2D
 
 signal marble_finished(id: int, place: int)
 signal race_finished(results: Array[Dictionary])
+## A Thanos snap just turned these fish to dust.
+signal fish_snapped(ids: Array[int])
 ## The winner just crossed with `chaser_id` about to follow. Visual cue only.
 signal photo_finish(winner_id: int, chaser_id: int)
 
@@ -23,6 +25,8 @@ const NET_DRAG: float = 14.0
 ## Race length in seconds; fish still racing at that point are DNF. 0 or less means no limit.
 @export var time_limit: float = 0.0
 
+## The random event this race runs under (see [RaceEvent]), [constant RaceEvent.NOTHING] for none.
+var event: String = RaceEvent.NOTHING
 var elapsed: float = 0.0
 var running: bool = false
 ## Whether [signal photo_finish] fired in this race.
@@ -32,6 +36,9 @@ var _track: Track
 var _ranking: RaceRanking
 var _marbles: Dictionary = {}
 var _nets: Array[NetZone] = []
+var _snap_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _snap_pending: bool = false
+var _snap_time: float = 0.0
 var _recorder: ReplayRecorder
 var _sample_positions: PackedVector2Array = PackedVector2Array()
 var _sample_velocities: PackedVector2Array = PackedVector2Array()
@@ -39,11 +46,24 @@ var _sample_velocities: PackedVector2Array = PackedVector2Array()
 
 ## Clears any previous race and spawns `count` marbles. Every random draw comes
 ## from the given rng. `hazard_frequency` (1 to 5) turns on the map's hazard events, 0 leaves them off.
-func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequency: int = 0) -> void:
+## `random_event` is a [RaceEvent] id; it changes the rules but draws nothing from `rng`.
+func start(
+	track: Track,
+	count: int,
+	rng: RandomNumberGenerator,
+	hazard_frequency: int = 0,
+	random_event: String = RaceEvent.NOTHING
+) -> void:
 	assert(marble_scene != null and count > 0, "Race needs a marble_scene and count > 0")
 	clear()
 	_track = track
+	event = random_event
+	_track.modulate = RaceEvent.track_tint(event)
 	_track.marble_reached_finish.connect(_on_marble_reached_finish)
+	# Read before any draw and never advanced, so a snap cannot shift the race's layout.
+	_snap_rng.seed = hash(rng.state)
+	_snap_pending = event == RaceEvent.THANOS_SNAP
+	_snap_time = _snap_rng.randf_range(RaceEvent.SNAP_MIN_SECONDS, RaceEvent.SNAP_MAX_SECONDS)
 	var ids: Array[int] = []
 	for i: int in count:
 		ids.append(i)
@@ -53,13 +73,19 @@ func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequenc
 			rng.randf_range(-SPAWN_JITTER, SPAWN_JITTER),
 			rng.randf_range(-SPAWN_JITTER, SPAWN_JITTER)
 		)
-		marble.glow_boost = _track.fish_glow
+		marble.glow_boost = _track.fish_glow * RaceEvent.glow_scale(event)
+		marble.gravity_scale = RaceEvent.gravity_scale(event)
+		if RaceEvent.bounce(event) >= 0.0:
+			# The material is shared by every marble scene instance, so change a copy.
+			var material: PhysicsMaterial = marble.physics_material_override.duplicate()
+			material.bounce = RaceEvent.bounce(event)
+			marble.physics_material_override = material
 		add_child(marble)
 		marble.global_position = _track.get_spawn_position(i) + jitter
 		_marbles[i] = marble
 	_ranking = RaceRanking.new(ids)
 	_track.seed_gimmicks(rng)
-	_track.arm_hazards(rng, hazard_frequency)
+	_track.arm_hazards(rng, RaceEvent.hazard_level(event, hazard_frequency))
 	_recorder = ReplayRecorder.new(count)
 	_sample_positions.resize(count)
 	_sample_velocities.resize(count)
@@ -70,7 +96,10 @@ func start(track: Track, count: int, rng: RandomNumberGenerator, hazard_frequenc
 
 func clear() -> void:
 	running = false
+	_snap_pending = false
+	event = RaceEvent.NOTHING
 	if _track != null:
+		_track.modulate = Color.WHITE
 		_track.stop_hazards()
 		_track.stop_gimmicks()
 	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
@@ -212,7 +241,8 @@ func get_progress_map() -> Dictionary:
 	var progress: Dictionary = {}
 	for id: int in _marbles:
 		var marble: Marble = _marbles[id]
-		progress[id] = _track.get_progress(marble.global_position)
+		# A snapped fish ranks behind every other fish that did not finish.
+		progress[id] = -1.0 if marble.snapped else _track.get_progress(marble.global_position)
 	return progress
 
 
@@ -259,6 +289,8 @@ func _physics_process(delta: float) -> void:
 		return
 	_hold_in_nets()
 	elapsed += delta
+	if _snap_pending and elapsed >= _snap_time:
+		_snap()
 	if _recorder != null and _recorder.should_sample(elapsed):
 		_record_sample()
 	if elapsed >= timeout_seconds or (time_limit > 0.0 and elapsed >= time_limit):
@@ -286,7 +318,47 @@ func _on_marble_reached_finish(body: Node2D) -> void:
 	marble_finished.emit(marble.id, place)
 	if place == 1:
 		_check_photo_finish(marble.id)
-	if _ranking.all_finished():
+	if _all_racers_finished():
+		_finish_race()
+
+
+## Whether every fish that is still in the race has finished (snapped fish do not count).
+func _all_racers_finished() -> bool:
+	for id: int in _ranking.get_unfinished_ids():
+		if not (_marbles[id] as Marble).snapped:
+			return false
+	return true
+
+
+## Whether the fish was turned to dust by a Thanos snap.
+func is_snapped(id: int) -> bool:
+	return _marbles.has(id) and (_marbles[id] as Marble).snapped
+
+
+## The Thanos snap: half of the fish still racing (a seeded pick) turn to dust.
+func _snap() -> void:
+	_snap_pending = false
+	var racing: Array[int] = []
+	for id: int in _marbles:
+		if _live_marble(id) != null:
+			racing.append(id)
+	racing.sort()
+	var count: int = RaceEvent.snap_count(racing.size())
+	if count == 0:
+		return
+	# Partial Fisher-Yates shuffle: the first `count` ids are the victims.
+	for i: int in count:
+		var j: int = _snap_rng.randi_range(i, racing.size() - 1)
+		var swap: int = racing[i]
+		racing[i] = racing[j]
+		racing[j] = swap
+	var victims: Array[int] = racing.slice(0, count)
+	for id: int in victims:
+		var marble: Marble = _marbles[id]
+		_record_event(ReplayRecorder.Kind.SPLASH, marble)
+		marble.snap()
+	fish_snapped.emit(victims)
+	if _all_racers_finished():
 		_finish_race()
 
 

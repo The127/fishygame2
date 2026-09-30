@@ -88,11 +88,17 @@ var home_scene: String = HOME_SCENE
 ## The streamer's rules. Loaded from storage in _ready unless a caller sets it first.
 var settings: GameSettings = null
 
+## Test and debug hook: when set, the wheel lands on this event (or [constant RaceEvent.NOTHING]
+## for the plain slice) instead of a random one.
+var forced_event: Variant = null
+
 var _last_reply_msec: Dictionary[String, int] = {}
 var _last_top_msec: int = -TOP_COOLDOWN_MSEC
 var _last_help_msec: int = -HELP_COOLDOWN_MSEC
 var _last_stats_msec: Dictionary[String, int] = {}
 
+var _event: String = RaceEvent.NOTHING
+var _event_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _map_choice: String = TrackCatalog.RANDOM_ID
 var _map_id: String = ""
 var _track: Track
@@ -210,10 +216,12 @@ func _ready() -> void:
 	add_child(_replay)
 	_replay.ended.connect(_on_replay_ended)
 	_race.photo_finish.connect(_on_photo_finish)
+	_race.fish_snapped.connect(_on_fish_snapped)
 	_photo.ended.connect(_camera.release_hold)
 	# After Betting.on_podium_ready, which settles the payouts this handler reports.
 	_flow.podium_ready.connect(_on_podium_ready)
 	_rng.randomize()
+	_event_rng.randomize()
 	if OS.has_feature("web") and DebugMode.is_enabled():
 		var bridge := WebTestBridge.new()
 		add_child(bridge)
@@ -224,7 +232,7 @@ func _ready() -> void:
 func _apply_settings() -> void:
 	_flow.min_players = settings.min_players
 	_flow.max_players = settings.max_players
-	_flow.countdown_seconds = settings.countdown_seconds
+	_flow.countdown_seconds = settings.effective_countdown()
 	_race.time_limit = float(settings.race_time_limit)
 	_flow.set_auto_mode(settings.auto_mode, float(settings.auto_join_seconds))
 	_betting.starting_balance = settings.starting_balance
@@ -302,8 +310,13 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 			_camera.show_overview(true)
 		GameFlow.State.COUNTDOWN, GameFlow.State.PODIUM:
 			_camera.show_overview()
+	match new_state:
+		GameFlow.State.COUNTDOWN:
+			_spin_wheel()
 		GameFlow.State.RACING:
 			_overlay.show_racing()
+		_:
+			_event = RaceEvent.NOTHING
 
 
 func _remember_name(msg: ChatMessage, command: String, _args: PackedStringArray) -> void:
@@ -412,6 +425,29 @@ func _record_effect_stats(
 	_betting.points.save_to_disk()
 
 
+## Picks this race's event and starts the wheel over the countdown, leaving a second to read
+## the result. With random events off the race has none.
+func _spin_wheel() -> void:
+	_event = RaceEvent.NOTHING
+	if not settings.random_events:
+		return
+	var slices: Array[String] = RaceEvent.wheel(settings.hazards_enabled)
+	var index: int = RaceEvent.spin(slices, _event_rng)
+	if forced_event != null:
+		index = maxi(slices.find(String(forced_event)), 0)
+	_event = slices[index]
+	var result: String = RaceEvent.name_of(_event).to_upper() if _event != "" else "NOTHING"
+	_overlay.show_event_wheel(
+		slices, index, maxf(float(_flow.countdown_seconds) - 1.0, 1.0), result
+	)
+
+
+func _event_badge_text() -> String:
+	if _event == RaceEvent.NOTHING:
+		return ""
+	return "%s: %s" % [RaceEvent.name_of(_event).to_upper(), RaceEvent.blurb_of(_event)]
+
+
 func _show_leaderboard() -> void:
 	_overlay.set_leaderboard(
 		_betting.points.top_by_points(LeaderboardPanel.ROWS),
@@ -431,6 +467,11 @@ func _on_countdown_tick(_seconds_left: int) -> void:
 
 func _on_marble_finished(_id: int, _place: int) -> void:
 	Sound.play(Sound.Sfx.SPLASH)
+
+
+func _on_fish_snapped(ids: Array[int]) -> void:
+	Sound.play(Sound.Sfx.SPLASH)
+	_overlay.show_notice("SNAP! %d fish turned to dust" % ids.size(), 3.0)
 
 
 func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:
@@ -803,7 +844,8 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
-	_race.start(_track, contestants.size(), rng, settings.hazard_level())
+	_race.start(_track, contestants.size(), rng, settings.hazard_level(), _event)
+	_overlay.show_event_badge(_event_badge_text())
 	# Marble ids are roster ids, so match on id rather than on list order.
 	for marble: Marble in _race.get_marbles():
 		if marble.id < 0 or marble.id >= contestants.size():

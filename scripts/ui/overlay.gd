@@ -37,6 +37,11 @@ var _notice_panel: PanelContainer
 var _notice: Label
 var _notice_timer: Timer
 var _replay_badge: PanelContainer
+var _wheel_panel: PanelContainer
+var _wheel: WheelView
+var _wheel_result: Label
+var _event_panel: PanelContainer
+var _event_label: Label
 
 
 func _ready() -> void:
@@ -54,6 +59,7 @@ func _ready() -> void:
 	_build_notice()
 	_build_replay_badge()
 	_build_timer()
+	_build_event()
 	_notice_timer = Timer.new()
 	_notice_timer.one_shot = true
 	_notice_timer.timeout.connect(_clear_notice)
@@ -83,6 +89,8 @@ func clear() -> void:
 	_timer_shown = -1
 	_payouts_panel.visible = false
 	_set_bets_text("")
+	hide_event_wheel()
+	show_event_badge("")
 
 
 func show_idle() -> void:
@@ -125,6 +133,25 @@ func show_lobby(names: PackedStringArray, max_players: int, seconds_left: float)
 func show_countdown(seconds_left: int) -> void:
 	_clear_lobby()
 	_big.text = str(seconds_left)
+
+
+## Spins the random-event wheel so slice `index` of `slices` ends under the pointer after
+## `seconds`. `result` is what the label under the wheel shows once it stops.
+func show_event_wheel(slices: Array[String], index: int, seconds: float, result: String) -> void:
+	_wheel_result.text = ""
+	_wheel.spin(slices, index, seconds)
+	_wheel_panel.visible = true
+	get_tree().create_timer(seconds).timeout.connect(_show_wheel_result.bind(result))
+
+
+func hide_event_wheel() -> void:
+	_wheel_panel.visible = false
+
+
+## Persistent tag for the race's event, e.g. "LOW GRAVITY: Fish sink slowly". Empty hides it.
+func show_event_badge(text: String) -> void:
+	_event_label.text = text
+	_event_panel.visible = text != ""
 
 
 func show_racing() -> void:
@@ -212,6 +239,12 @@ func _build_replay_badge() -> void:
 	_replay_badge.position = Vector2(float(MARGIN), float(MARGIN))
 	_replay_badge.add_child(_make_label("REPLAY", 44, 800, UiStyle.CYAN, 4))
 	_frame.add_child(_replay_badge)
+
+
+func _show_wheel_result(result: String) -> void:
+	# Skipped when the wheel was hidden, or a newer spin is still turning.
+	if _wheel_panel.visible and _wheel.is_settled():
+		_wheel_result.text = result
 
 
 func _clear_notice() -> void:
@@ -363,6 +396,40 @@ func _build_timer() -> void:
 	_timer_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_timer_panel.offset_top = MARGIN
 	_timer_panel.offset_right = -MARGIN
+
+
+func _build_event() -> void:
+	_wheel_panel = _make_panel(false)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	_wheel_panel.add_child(box)
+	box.add_child(_centered(_make_label("RANDOM EVENT", 26, 800, UiStyle.CYAN, 3)))
+	_wheel = WheelView.new()
+	box.add_child(_wheel)
+	_wheel_result = _make_label("", 28, 800, UiStyle.TEXT)
+	_wheel_result.custom_minimum_size.y = 40.0
+	box.add_child(_centered(_wheel_result))
+	_event_panel = _make_panel(false)
+	_event_label = _make_label("", 28, 800, UiStyle.TEXT, 2)
+	_event_panel.add_child(_event_label)
+	# Top-centered strips like the notice: both below the notice line.
+	_frame.add_child(_top_strip(_wheel_panel, 96.0))
+	_frame.add_child(_top_strip(_event_panel, 90.0))
+
+
+func _top_strip(child: Control, top: float) -> HBoxContainer:
+	var strip := HBoxContainer.new()
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	strip.alignment = BoxContainer.ALIGNMENT_CENTER
+	strip.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	strip.offset_top = top
+	strip.add_child(child)
+	return strip
+
+
+func _centered(label: Label) -> Label:
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return label
 
 
 func _make_panel(start_visible: bool = true) -> PanelContainer:

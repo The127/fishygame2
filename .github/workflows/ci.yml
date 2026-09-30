@@ -82,6 +82,11 @@ jobs:
         run: |
           tests/run_race_seeds.sh godot 1 "$LAST_SEED" "$MAP"
           MARBLES=20 tests/run_race_seeds.sh godot 1 "$LAST_SEED" "$MAP"
+      - name: Race seeds under random events (no jams)
+        run: |
+          for event in low_gravity double_hazards lights_out bouncy thanos_snap; do
+            EVENT="$event" MARBLES=20 tests/run_race_seeds.sh godot 1 "$LAST_SEED" "$MAP"
+          done
 
   export-web:
     runs-on: ubuntu-latest

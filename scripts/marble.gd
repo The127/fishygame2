@@ -15,6 +15,10 @@ const CHEER_IMPULSE: float = 40.0
 ## Largest cheer in emote units, so no setting makes a cheer as strong as a boost.
 const CHEER_MAX_STRENGTH: float = 8.0
 
+## Seconds a snapped fish takes to fade away, and the color of its dust.
+const SNAP_FADE_SECONDS: float = 1.0
+const SNAP_DUST: Color = Color(0.9, 0.75, 0.35)
+
 ## Seconds the meow bubble stays up.
 const MEOW_SECONDS: float = 1.2
 
@@ -23,6 +27,8 @@ var id: int = 0
 var has_finished: bool = false
 ## True while an anglerfish holds the fish: hidden, frozen and out of the physics.
 var eaten: bool = false
+## True once a Thanos snap turned the fish to dust. It stays out of the race for good.
+var snapped: bool = false
 ## How often anglerfish have swallowed this fish in the current race.
 var times_eaten: int = 0
 var color: Color = Color.WHITE:
@@ -214,9 +220,27 @@ func swallow() -> void:
 	visible = false
 
 
+## A Thanos snap: the fish fades into dust and is out of the race for good (it counts as
+## unfinished). Also sets [member eaten], so the race and the hazards leave it alone.
+func snap() -> void:
+	if eaten:
+		return
+	eaten = true
+	snapped = true
+	collision_layer = 0
+	collision_mask = 0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	freeze = true
+	RaceFx.burst(get_parent(), global_position, SNAP_DUST, 32, 140.0, Vector2(0, -30))
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, SNAP_FADE_SECONDS)
+	tween.tween_callback(func() -> void: visible = false)
+
+
 ## Brings a swallowed fish back at `at`, moving with `velocity`.
 func release(at: Vector2, velocity: Vector2) -> void:
-	if not eaten:
+	if not eaten or snapped:
 		return
 	eaten = false
 	collision_layer = _layer_before_eaten
