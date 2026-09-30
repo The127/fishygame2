@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush. The Jellyfish
+Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush and a backwash that tips a ramp on Switchback. The Jellyfish
 
 Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
@@ -240,6 +240,16 @@ toward the finish has baffles that grow from the floor or hang from the ceiling,
 fish can only get past each one while gravity points the right way, and a flip can send the leader
 back behind the pack. The arrows flash for a second before each flip. The flip times come from
 the race seed, and the finish spans the whole corridor so both orientations reach it.
+
+Switchback is three long ramps that pivot about their middle (`scripts/tracks/switchback_ramp.gd`).
+Somewhere along each ramp, at a spot drawn from the race seed, sits an invisible trigger zone: the
+first fish to reach it makes the slab shudder and glow for half a second, then the slab swings to the
+opposite slope and everything on it rolls back the way it came. After a short hold it swings back.
+Nothing on screen counts down, the shudder is the warning. A ramp flips at most twice per race, each
+hold is bounded, and nothing flips after 45 seconds, so a flip can cost fish time but never trap them.
+The hazard (`scripts/tracks/switchback_hazard.gd`) is a backwash that tips one ramp without a fish
+touching its trigger, and the same node plans the triggers of every ramp from the race seed. The
+finish replay shows the ramps tipping as recorded.
 
 Ebb Tide is a race against the map: the water starts above everything and drains from the top
 down (`scripts/tracks/water_level.gd`). A fish that lies above the waterline for two seconds is
