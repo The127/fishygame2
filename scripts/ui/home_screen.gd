@@ -36,6 +36,16 @@ func _ready() -> void:
 	_open_lobby.pressed.connect(_on_open_lobby_pressed)
 	_settings.pressed.connect(_on_settings_pressed)
 	UiStyle.style_button(_settings, 28)
+	if DebugMode.is_enabled():
+		var ears_button: Button = Button.new()
+		ears_button.name = "DebugEars"
+		ears_button.text = "Debug: cat ears"
+		ears_button.focus_mode = Control.FOCUS_NONE
+		ears_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		UiStyle.style_button(ears_button, 24)
+		ears_button.pressed.connect(($Scene3D as HomeScene3D).force_ears)
+		_box.add_child(ears_button)
+		_box.move_child(ears_button, _settings.get_index() + 1)
 	_login.pressed.connect(_on_login_pressed)
 	_logout.pressed.connect(Chat.logout)
 	Chat.login_changed.connect(_refresh_login)
