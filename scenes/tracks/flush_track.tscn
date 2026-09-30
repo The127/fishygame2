@@ -1,0 +1,749 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
+[ext_resource type="Script" path="res://scripts/tracks/flush_bowl.gd" id="2_bowl"]
+[ext_resource type="Script" path="res://scripts/tracks/current_hazard.gd" id="3_current"]
+[ext_resource type="Script" path="res://scripts/tracks/spinner.gd" id="4_spinner"]
+[ext_resource type="Script" path="res://scripts/tracks/duck_bumper.gd" id="5_duck"]
+
+[sub_resource type="PhysicsMaterial" id="PM_track"]
+friction = 0.5
+bounce = 0.3
+
+[sub_resource type="PhysicsMaterial" id="PM_peg"]
+friction = 0.2
+bounce = 0.7
+
+[sub_resource type="PhysicsMaterial" id="PM_duck"]
+friction = 0.2
+bounce = 0.9
+
+[sub_resource type="CircleShape2D" id="Circle_peg"]
+radius = 17.0
+
+[sub_resource type="CircleShape2D" id="Circle_duck"]
+radius = 34.0
+
+[sub_resource type="CircleShape2D" id="Circle_basin"]
+radius = 240
+
+[sub_resource type="RectangleShape2D" id="Rect_finish"]
+size = Vector2(970, 220)
+
+[sub_resource type="RectangleShape2D" id="Rect_current_1"]
+size = Vector2(950, 100)
+
+[sub_resource type="RectangleShape2D" id="Rect_current_2"]
+size = Vector2(980, 110)
+
+[sub_resource type="Curve2D" id="Curve_center"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 60, 0, 0, 0, 0, 0, 280, 80, 0, 0, 0, 0, 848.1, 157.8, 0, 0, 0, 0, 1100, 230, 0, 0, 0, 0, 1100, 470, 0, 0, 0, 0, 1100, 554, 0, 0, 0, 0, 800, 606, 0, 0, 0, 0, 420, 636.4, 0, 0, 0, 0, 250, 655, 0, 0, 0, 0, 110, 790, 0, 0, 0, 0, 110, 802, 0, 0, 0, 0, 300, 837.2, 0, 0, 0, 0, 700, 861.2, 0, 0, 0, 0, 1070, 895.2, 0, 0, 0, 0, 1180, 990)
+}
+point_count = 15
+
+[node name="Track" type="Node2D"]
+script = ExtResource("1_track")
+view_bounds = Rect2(0, -160, 1920, 1240)
+spawn_columns = 8
+style_id = "flush"
+
+[node name="Backdrop" type="Polygon2D" parent="."]
+z_index = -10
+color = Color(0.03, 0.08, 0.08, 1)
+polygon = PackedVector2Array(0, -160, 1920, -160, 1920, 1080, 0, 1080)
+
+[node name="Ceiling" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Ceiling"]
+polygon = PackedVector2Array(0, -340, 1920, -340, 1920, -300, 0, -300)
+
+[node name="Visual" type="Polygon2D" parent="Ceiling"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(0, -340, 1920, -340, 1920, -300, 0, -300)
+
+[node name="WallLeft" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="WallLeft"]
+polygon = PackedVector2Array(-40, -340, 30, -340, 30, 1120, -40, 1120)
+
+[node name="Visual" type="Polygon2D" parent="WallLeft"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(-40, -340, 30, -340, 30, 1120, -40, 1120)
+
+[node name="WallRight" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="WallRight"]
+polygon = PackedVector2Array(1890, -340, 1960, -340, 1960, 1120, 1890, 1120)
+
+[node name="Visual" type="Polygon2D" parent="WallRight"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(1890, -340, 1960, -340, 1960, 1120, 1890, 1120)
+
+[node name="Floor" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Floor"]
+polygon = PackedVector2Array(0, 1050, 1920, 1050, 1920, 1120, 0, 1120)
+
+[node name="Visual" type="Polygon2D" parent="Floor"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(0, 1050, 1920, 1050, 1920, 1120, 0, 1120)
+
+[node name="EntryRamp" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="EntryRamp"]
+polygon = PackedVector2Array(30, 14, 280, 84, 280, 110, 30, 40)
+
+[node name="Collider2" type="CollisionPolygon2D" parent="EntryRamp"]
+polygon = PackedVector2Array(280, 84, 848.15, 157.78, 848.15, 183.78, 280, 110)
+
+[node name="Visual" type="Polygon2D" parent="EntryRamp"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(30, 14, 280, 84, 848.15, 157.78, 848.15, 183.78, 280, 110, 30, 40)
+
+[node name="RimTop" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(927.36, 63.28, 911.53, 48, 931.2, 29.62, 945.37, 46.45)
+
+[node name="Collider2" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(945.37, 46.45, 931.2, 29.62, 952.65, 13.36, 965.02, 31.55)
+
+[node name="Collider3" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(965.02, 31.55, 952.65, 13.36, 975.65, -0.61, 986.1, 18.75)
+
+[node name="Collider4" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(986.1, 18.75, 975.65, -0.61, 999.97, -12.15, 1008.37, 8.18)
+
+[node name="Collider5" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1008.37, 8.18, 999.97, -12.15, 1025.34, -21.14, 1031.61, -0.05)
+
+[node name="Collider6" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1031.61, -0.05, 1025.34, -21.14, 1051.51, -27.47, 1055.58, -5.85)
+
+[node name="Collider7" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1055.58, -5.85, 1051.51, -27.47, 1078.18, -31.09, 1080.01, -9.17)
+
+[node name="Collider8" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1080.01, -9.17, 1078.18, -31.09, 1105.08, -31.95, 1104.65, -9.95)
+
+[node name="Collider9" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1104.65, -9.95, 1105.08, -31.95, 1131.93, -30.05, 1129.25, -8.21)
+
+[node name="Collider10" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1129.25, -8.21, 1131.93, -30.05, 1158.44, -25.4, 1153.53, -3.95)
+
+[node name="Collider11" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1153.53, -3.95, 1158.44, -25.4, 1184.34, -18.05, 1177.26, 2.77)
+
+[node name="Collider12" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1177.26, 2.77, 1184.34, -18.05, 1209.34, -8.09, 1200.16, 11.9)
+
+[node name="Collider13" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1200.16, 11.9, 1209.34, -8.09, 1233.19, 4.38, 1222.01, 23.33)
+
+[node name="Collider14" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1222.01, 23.33, 1233.19, 4.38, 1255.64, 19.24, 1242.57, 36.94)
+
+[node name="Collider15" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1242.57, 36.94, 1255.64, 19.24, 1276.44, 36.32, 1261.63, 52.58)
+
+[node name="Collider16" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1261.63, 52.58, 1276.44, 36.32, 1295.38, 55.44, 1278.98, 70.1)
+
+[node name="Collider17" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1278.98, 70.1, 1295.38, 55.44, 1312.26, 76.41, 1294.44, 89.31)
+
+[node name="Collider18" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1294.44, 89.31, 1312.26, 76.41, 1326.9, 99, 1307.85, 110)
+
+[node name="Collider19" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1307.85, 110, 1326.9, 99, 1339.14, 122.97, 1319.06, 131.96)
+
+[node name="Collider20" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1319.06, 131.96, 1339.14, 122.97, 1348.86, 148.07, 1327.96, 154.95)
+
+[node name="Collider21" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1327.96, 154.95, 1348.86, 148.07, 1355.95, 174.04, 1334.46, 178.74)
+
+[node name="Collider22" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1334.46, 178.74, 1355.95, 174.04, 1360.34, 200.59, 1338.48, 203.06)
+
+[node name="Collider23" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1338.48, 203.06, 1360.34, 200.59, 1361.99, 227.46, 1339.99, 227.67)
+
+[node name="Collider24" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1339.99, 227.67, 1361.99, 227.46, 1360.87, 254.35, 1338.96, 252.31)
+
+[node name="Collider25" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1338.96, 252.31, 1360.87, 254.35, 1356.99, 280.99, 1335.41, 276.71)
+
+[node name="Collider26" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1335.41, 276.71, 1356.99, 280.99, 1350.4, 307.09, 1329.38, 300.61)
+
+[node name="Collider27" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1329.38, 300.61, 1350.4, 307.09, 1341.17, 332.37, 1320.92, 323.78)
+
+[node name="Collider28" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1320.92, 323.78, 1341.17, 332.37, 1329.4, 356.58, 1310.13, 345.95)
+
+[node name="Collider29" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1310.13, 345.95, 1329.4, 356.58, 1315.2, 379.44, 1297.13, 366.89)
+
+[node name="Collider30" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1297.13, 366.89, 1315.2, 379.44, 1298.73, 400.73, 1282.04, 386.4)
+
+[node name="Collider31" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1282.04, 386.4, 1298.73, 400.73, 1280.16, 420.22, 1265.04, 404.25)
+
+[node name="Collider32" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1265.04, 404.25, 1280.16, 420.22, 1259.7, 437.7, 1246.29, 420.26)
+
+[node name="Collider33" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1246.29, 420.26, 1259.7, 437.7, 1237.54, 452.99, 1225.99, 434.27)
+
+[node name="Collider34" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1225.99, 434.27, 1237.54, 452.99, 1213.94, 465.93, 1204.37, 446.12)
+
+[node name="Collider35" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1204.37, 446.12, 1213.94, 465.93, 1189.13, 476.37, 1181.65, 455.68)
+
+[node name="Collider36" type="CollisionPolygon2D" parent="RimTop"]
+polygon = PackedVector2Array(1181.65, 455.68, 1189.13, 476.37, 1163.38, 484.22, 1158.06, 462.87)
+
+[node name="Visual" type="Polygon2D" parent="RimTop"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(911.53, 48, 931.2, 29.62, 952.65, 13.36, 975.65, -0.61, 999.97, -12.15, 1025.34, -21.14, 1051.51, -27.47, 1078.18, -31.09, 1105.08, -31.95, 1131.93, -30.05, 1158.44, -25.4, 1184.34, -18.05, 1209.34, -8.09, 1233.19, 4.38, 1255.64, 19.24, 1276.44, 36.32, 1295.38, 55.44, 1312.26, 76.41, 1326.9, 99, 1339.14, 122.97, 1348.86, 148.07, 1355.95, 174.04, 1360.34, 200.59, 1361.99, 227.46, 1360.87, 254.35, 1356.99, 280.99, 1350.4, 307.09, 1341.17, 332.37, 1329.4, 356.58, 1315.2, 379.44, 1298.73, 400.73, 1280.16, 420.22, 1259.7, 437.7, 1237.54, 452.99, 1213.94, 465.93, 1189.13, 476.37, 1163.38, 484.22, 1158.06, 462.87, 1181.65, 455.68, 1204.37, 446.12, 1225.99, 434.27, 1246.29, 420.26, 1265.04, 404.25, 1282.04, 386.4, 1297.13, 366.89, 1310.13, 345.95, 1320.92, 323.78, 1329.38, 300.61, 1335.41, 276.71, 1338.96, 252.31, 1339.99, 227.67, 1338.48, 203.06, 1334.46, 178.74, 1327.96, 154.95, 1319.06, 131.96, 1307.85, 110, 1294.44, 89.31, 1278.98, 70.1, 1261.63, 52.58, 1242.57, 36.94, 1222.01, 23.33, 1200.16, 11.9, 1177.26, 2.77, 1153.53, -3.95, 1129.25, -8.21, 1104.65, -9.95, 1080.01, -9.17, 1055.58, -5.85, 1031.61, -0.05, 1008.37, 8.18, 986.1, 18.75, 965.02, 31.55, 945.37, 46.45, 927.36, 63.28)
+
+[node name="RimBottom" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(1041.94, 462.87, 1036.62, 484.22, 1011.47, 476.59, 1018.9, 455.88)
+
+[node name="Collider2" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(1018.9, 455.88, 1011.47, 476.59, 987.21, 466.48, 996.68, 446.62)
+
+[node name="Collider3" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(996.68, 446.62, 987.21, 466.48, 964.08, 453.99, 975.49, 435.18)
+
+[node name="Collider4" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(975.49, 435.18, 964.08, 453.99, 942.32, 439.24, 955.56, 421.67)
+
+[node name="Collider5" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(955.56, 421.67, 942.32, 439.24, 922.15, 422.39, 937.09, 406.24)
+
+[node name="Collider6" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(937.09, 406.24, 922.15, 422.39, 903.77, 403.61, 920.25, 389.03)
+
+[node name="Collider7" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(920.25, 389.03, 903.77, 403.61, 887.37, 383.07, 905.22, 370.22)
+
+[node name="Collider8" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(905.22, 370.22, 887.37, 383.07, 873.1, 361, 892.15, 350)
+
+[node name="Collider9" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(892.15, 350, 873.1, 361, 861.12, 337.61, 881.18, 328.57)
+
+[node name="Collider10" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(881.18, 328.57, 861.12, 337.61, 851.54, 313.13, 872.4, 306.15)
+
+[node name="Collider11" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(872.4, 306.15, 851.54, 313.13, 844.46, 287.82, 865.92, 282.97)
+
+[node name="Collider12" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(865.92, 282.97, 844.46, 287.82, 839.95, 261.93, 861.79, 259.25)
+
+[node name="Collider13" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(861.79, 259.25, 839.95, 261.93, 838.06, 235.72, 860.06, 235.24)
+
+[node name="Collider14" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(860.06, 235.24, 838.06, 235.72, 838.81, 209.44, 860.74, 211.17)
+
+[node name="Collider15" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(860.74, 211.17, 838.81, 209.44, 842.18, 183.38, 863.83, 187.29)
+
+[node name="Collider16" type="CollisionPolygon2D" parent="RimBottom"]
+polygon = PackedVector2Array(863.83, 187.29, 842.18, 183.38, 848.15, 157.78, 869.3, 163.85)
+
+[node name="Visual" type="Polygon2D" parent="RimBottom"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(1036.62, 484.22, 1011.47, 476.59, 987.21, 466.48, 964.08, 453.99, 942.32, 439.24, 922.15, 422.39, 903.77, 403.61, 887.37, 383.07, 873.1, 361, 861.12, 337.61, 851.54, 313.13, 844.46, 287.82, 839.95, 261.93, 838.06, 235.72, 838.81, 209.44, 842.18, 183.38, 848.15, 157.78, 869.3, 163.85, 863.83, 187.29, 860.74, 211.17, 860.06, 235.24, 861.79, 259.25, 865.92, 282.97, 872.4, 306.15, 881.18, 328.57, 892.15, 350, 905.22, 370.22, 920.25, 389.03, 937.09, 406.24, 955.56, 421.67, 975.49, 435.18, 996.68, 446.62, 1018.9, 455.88, 1041.94, 462.87)
+
+[node name="ChuteLeft" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="ChuteLeft"]
+polygon = PackedVector2Array(1012.62, 482.22, 1036.62, 482.22, 1036.62, 513.09, 1012.62, 520.3)
+
+[node name="Visual" type="Polygon2D" parent="ChuteLeft"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(1012.62, 482.22, 1036.62, 482.22, 1036.62, 513.09, 1012.62, 520.3)
+
+[node name="ChuteRight" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="ChuteRight"]
+polygon = PackedVector2Array(1163.38, 482.22, 1187.38, 482.22, 1187.38, 611, 1163.38, 611)
+
+[node name="Visual" type="Polygon2D" parent="ChuteRight"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(1163.38, 482.22, 1187.38, 482.22, 1187.38, 611, 1163.38, 611)
+
+[node name="Lane1Floor" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Lane1Floor"]
+polygon = PackedVector2Array(190, 709.8, 950.38, 649, 950.38, 675, 190, 735.8)
+
+[node name="Collider2" type="CollisionPolygon2D" parent="Lane1Floor"]
+polygon = PackedVector2Array(950.38, 649, 1163.38, 585, 1163.38, 611, 950.38, 675)
+
+[node name="Collider3" type="CollisionPolygon2D" parent="Lane1Floor"]
+polygon = PackedVector2Array(1163.38, 585, 1187.38, 585, 1187.38, 611, 1163.38, 611)
+
+[node name="Visual" type="Polygon2D" parent="Lane1Floor"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(190, 709.8, 950.38, 649, 1163.38, 585, 1187.38, 585, 1187.38, 611, 1163.38, 611, 950.38, 675, 190, 735.8)
+
+[node name="Lane1CeilingLeft" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Lane1CeilingLeft"]
+polygon = PackedVector2Array(190, 571.8, 500, 547.01, 500, 573.01, 190, 597.8)
+
+[node name="Visual" type="Polygon2D" parent="Lane1CeilingLeft"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(190, 571.8, 500, 547.01, 500, 573.01, 190, 597.8)
+
+[node name="Lane1CeilingRight" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Lane1CeilingRight"]
+polygon = PackedVector2Array(740, 527.82, 950.38, 511, 950.38, 537, 740, 553.82)
+
+[node name="Collider2" type="CollisionPolygon2D" parent="Lane1CeilingRight"]
+polygon = PackedVector2Array(950.38, 511, 1036.62, 485.09, 1036.62, 511.09, 950.38, 537)
+
+[node name="Visual" type="Polygon2D" parent="Lane1CeilingRight"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(740, 527.82, 950.38, 511, 1036.62, 485.09, 1036.62, 511.09, 950.38, 537, 740, 553.82)
+
+[node name="ChamberLeft" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="ChamberLeft"]
+polygon = PackedVector2Array(476, 340, 500, 340, 500, 574.01, 476, 575.93)
+
+[node name="Visual" type="Polygon2D" parent="ChamberLeft"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(476, 340, 500, 340, 500, 574.01, 476, 575.93)
+
+[node name="ChamberRight" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="ChamberRight"]
+polygon = PackedVector2Array(740, 340, 764, 340, 764, 552.9, 740, 554.82)
+
+[node name="Visual" type="Polygon2D" parent="ChamberRight"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(740, 340, 764, 340, 764, 552.9, 740, 554.82)
+
+[node name="ChamberRoof" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="ChamberRoof"]
+polygon = PackedVector2Array(476, 340, 764, 340, 764, 368, 476, 368)
+
+[node name="Visual" type="Polygon2D" parent="ChamberRoof"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(476, 340, 764, 340, 764, 368, 476, 368)
+
+[node name="BaffleA" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="BaffleA"]
+polygon = PackedVector2Array(350, 578.21, 370, 578.21, 370, 638.21, 350, 638.21)
+
+[node name="Visual" type="Polygon2D" parent="BaffleA"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(350, 578.21, 370, 578.21, 370, 638.21, 350, 638.21)
+
+[node name="BaffleB" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="BaffleB"]
+polygon = PackedVector2Array(890, 535.03, 910, 535.03, 910, 595.03, 890, 595.03)
+
+[node name="Visual" type="Polygon2D" parent="BaffleB"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(890, 535.03, 910, 535.03, 910, 595.03, 890, 595.03)
+
+[node name="Lane2Floor" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Lane2Floor"]
+polygon = PackedVector2Array(30, 836, 280, 886, 280, 916, 30, 866)
+
+[node name="Collider2" type="CollisionPolygon2D" parent="Lane2Floor"]
+polygon = PackedVector2Array(280, 886, 1100, 935.2, 1100, 965.2, 280, 916)
+
+[node name="Collider3" type="CollisionPolygon2D" parent="Lane2Floor"]
+polygon = PackedVector2Array(1100, 935.2, 1420, 1050, 1420, 1080, 1100, 965.2)
+
+[node name="Visual" type="Polygon2D" parent="Lane2Floor"]
+color = Color(0.2, 0.26, 0.3, 1)
+polygon = PackedVector2Array(30, 836, 280, 886, 1100, 935.2, 1420, 1050, 1420, 1080, 1100, 965.2, 280, 916, 30, 866)
+
+[node name="ValveA" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_peg")
+
+[node name="Collider" type="CollisionShape2D" parent="ValveA"]
+position = Vector2(440, 793.71)
+shape = SubResource("Circle_peg")
+
+[node name="Visual" type="Polygon2D" parent="ValveA"]
+color = Color(0.98, 0.72, 0.3, 1)
+polygon = PackedVector2Array(457, 793.71, 456.42, 798.1, 454.72, 802.21, 452.02, 805.73, 448.5, 808.43, 444.4, 810.13, 440, 810.71, 435.6, 810.13, 431.5, 808.43, 427.98, 805.73, 425.28, 802.21, 423.58, 798.1, 423, 793.71, 423.58, 789.31, 425.28, 785.21, 427.98, 781.68, 431.5, 778.98, 435.6, 777.28, 440, 776.71, 444.4, 777.28, 448.5, 778.98, 452.02, 781.68, 454.72, 785.21, 456.42, 789.31)
+
+[node name="ValveB" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_peg")
+
+[node name="Collider" type="CollisionShape2D" parent="ValveB"]
+position = Vector2(600, 816.11)
+shape = SubResource("Circle_peg")
+
+[node name="Visual" type="Polygon2D" parent="ValveB"]
+color = Color(0.98, 0.72, 0.3, 1)
+polygon = PackedVector2Array(617, 816.11, 616.42, 820.51, 614.72, 824.61, 612.02, 828.13, 608.5, 830.83, 604.4, 832.53, 600, 833.11, 595.6, 832.53, 591.5, 830.83, 587.98, 828.13, 585.28, 824.61, 583.58, 820.51, 583, 816.11, 583.58, 811.71, 585.28, 807.61, 587.98, 804.09, 591.5, 801.39, 595.6, 799.69, 600, 799.11, 604.4, 799.69, 608.5, 801.39, 612.02, 804.09, 614.72, 807.61, 616.42, 811.71)
+
+[node name="Impeller" type="AnimatableBody2D" parent="."]
+physics_material_override = SubResource("PM_peg")
+script = ExtResource("4_spinner")
+speed = -1.2
+position = Vector2(760, 802.51)
+
+[node name="Collider" type="CollisionPolygon2D" parent="Impeller"]
+polygon = PackedVector2Array(-10, -56, 10, -56, 10, -10, 56, -10, 56, 10, 10, 10, 10, 56, -10, 56, -10, 10, -56, 10, -56, -10, -10, -10)
+
+[node name="Visual" type="Polygon2D" parent="Impeller"]
+color = Color(0.6, 0.66, 0.68, 1)
+polygon = PackedVector2Array(-10, -56, 10, -56, 10, -10, 56, -10, 56, 10, 10, 10, 10, 56, -10, 56, -10, 10, -56, 10, -56, -10, -10, -10)
+
+[node name="Duck" type="AnimatableBody2D" parent="."]
+physics_material_override = SubResource("PM_duck")
+script = ExtResource("5_duck")
+position = Vector2(620, 556)
+
+[node name="Collider" type="CollisionShape2D" parent="Duck"]
+shape = SubResource("Circle_duck")
+
+[node name="Bowl" type="Node2D" parent="."]
+script = ExtResource("2_bowl")
+kind = "flush"
+telegraph_seconds = 1.5
+active_seconds = 3.5
+exit_degrees = PackedFloat32Array(90)
+
+[node name="Zone" type="Area2D" parent="Bowl"]
+position = Vector2(1100, 230)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bowl/Zone"]
+shape = SubResource("Circle_basin")
+
+[node name="Surge" type="Node2D" parent="."]
+script = ExtResource("3_current")
+kind = "surge"
+tint = Color(0.6, 1, 0.75, 1)
+against_chance = 0.0
+
+[node name="LaneOne" type="Area2D" parent="Surge"]
+position = Vector2(680, 614.62)
+rotation = 3.07
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Surge/LaneOne"]
+shape = SubResource("Rect_current_1")
+
+[node name="LaneTwo" type="Area2D" parent="Surge"]
+position = Vector2(560, 847.8)
+rotation = 0.08
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Surge/LaneTwo"]
+shape = SubResource("Rect_current_2")
+
+[node name="Centerline" type="Path2D" parent="."]
+curve = SubResource("Curve_center")
+
+[node name="Line" type="Line2D" parent="Centerline"]
+z_index = -5
+width = 2.0
+default_color = Color(1, 1, 1, 0.12)
+points = PackedVector2Array(60, 0, 280, 80, 848.1, 157.8, 1100, 230, 1100, 470, 1100, 554, 800, 606, 420, 636.4, 250, 655, 110, 790, 110, 802, 300, 837.2, 700, 861.2, 1070, 895.2, 1180, 990)
+
+[node name="SpawnOrigin" type="Marker2D" parent="."]
+position = Vector2(45, -10)
+
+[node name="StartArea" type="Polygon2D" parent="."]
+z_index = -5
+color = Color(0.3, 0.7, 0.4, 0.25)
+polygon = PackedVector2Array(30, -150, 300, -150, 300, 60, 30, 60)
+
+[node name="Finish" type="Area2D" parent="."]
+position = Vector2(930, 950)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Finish"]
+position = Vector2(455, 0)
+shape = SubResource("Rect_finish")
+
+[node name="Visual" type="Polygon2D" parent="Finish"]
+z_index = -5
+color = Color(0.95, 0.85, 0.2, 0.3)
+polygon = PackedVector2Array(-30, -110, 940, -110, 940, 110, -30, 110)
+
+[node name="Grate" type="Node2D" parent="."]
+z_index = 1
+
+[node name="Bar1" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1200, 1034, 1204, 1034, 1204, 1050, 1200, 1050)
+
+[node name="Bar2" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1214, 1034, 1218, 1034, 1218, 1050, 1214, 1050)
+
+[node name="Bar3" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1228, 1034, 1232, 1034, 1232, 1050, 1228, 1050)
+
+[node name="Bar4" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1242, 1034, 1246, 1034, 1246, 1050, 1242, 1050)
+
+[node name="Bar5" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1256, 1034, 1260, 1034, 1260, 1050, 1256, 1050)
+
+[node name="Bar6" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1270, 1034, 1274, 1034, 1274, 1050, 1270, 1050)
+
+[node name="Bar7" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1284, 1034, 1288, 1034, 1288, 1050, 1284, 1050)
+
+[node name="Bar8" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1298, 1034, 1302, 1034, 1302, 1050, 1298, 1050)
+
+[node name="Bar9" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1312, 1034, 1316, 1034, 1316, 1050, 1312, 1050)
+
+[node name="Bar10" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1326, 1034, 1330, 1034, 1330, 1050, 1326, 1050)
+
+[node name="Bar11" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1340, 1034, 1344, 1034, 1344, 1050, 1340, 1050)
+
+[node name="Bar12" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1354, 1034, 1358, 1034, 1358, 1050, 1354, 1050)
+
+[node name="Bar13" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1368, 1034, 1372, 1034, 1372, 1050, 1368, 1050)
+
+[node name="Bar14" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1382, 1034, 1386, 1034, 1386, 1050, 1382, 1050)
+
+[node name="Bar15" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1396, 1034, 1400, 1034, 1400, 1050, 1396, 1050)
+
+[node name="Bar16" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1410, 1034, 1414, 1034, 1414, 1050, 1410, 1050)
+
+[node name="Bar17" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1424, 1034, 1428, 1034, 1428, 1050, 1424, 1050)
+
+[node name="Bar18" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1438, 1034, 1442, 1034, 1442, 1050, 1438, 1050)
+
+[node name="Bar19" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1452, 1034, 1456, 1034, 1456, 1050, 1452, 1050)
+
+[node name="Bar20" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1466, 1034, 1470, 1034, 1470, 1050, 1466, 1050)
+
+[node name="Bar21" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1480, 1034, 1484, 1034, 1484, 1050, 1480, 1050)
+
+[node name="Bar22" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1494, 1034, 1498, 1034, 1498, 1050, 1494, 1050)
+
+[node name="Bar23" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1508, 1034, 1512, 1034, 1512, 1050, 1508, 1050)
+
+[node name="Bar24" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1522, 1034, 1526, 1034, 1526, 1050, 1522, 1050)
+
+[node name="Bar25" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1536, 1034, 1540, 1034, 1540, 1050, 1536, 1050)
+
+[node name="Bar26" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1550, 1034, 1554, 1034, 1554, 1050, 1550, 1050)
+
+[node name="Bar27" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1564, 1034, 1568, 1034, 1568, 1050, 1564, 1050)
+
+[node name="Bar28" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1578, 1034, 1582, 1034, 1582, 1050, 1578, 1050)
+
+[node name="Bar29" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1592, 1034, 1596, 1034, 1596, 1050, 1592, 1050)
+
+[node name="Bar30" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1606, 1034, 1610, 1034, 1610, 1050, 1606, 1050)
+
+[node name="Bar31" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1620, 1034, 1624, 1034, 1624, 1050, 1620, 1050)
+
+[node name="Bar32" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1634, 1034, 1638, 1034, 1638, 1050, 1634, 1050)
+
+[node name="Bar33" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1648, 1034, 1652, 1034, 1652, 1050, 1648, 1050)
+
+[node name="Bar34" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1662, 1034, 1666, 1034, 1666, 1050, 1662, 1050)
+
+[node name="Bar35" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1676, 1034, 1680, 1034, 1680, 1050, 1676, 1050)
+
+[node name="Bar36" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1690, 1034, 1694, 1034, 1694, 1050, 1690, 1050)
+
+[node name="Bar37" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1704, 1034, 1708, 1034, 1708, 1050, 1704, 1050)
+
+[node name="Bar38" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1718, 1034, 1722, 1034, 1722, 1050, 1718, 1050)
+
+[node name="Bar39" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1732, 1034, 1736, 1034, 1736, 1050, 1732, 1050)
+
+[node name="Bar40" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1746, 1034, 1750, 1034, 1750, 1050, 1746, 1050)
+
+[node name="Bar41" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1760, 1034, 1764, 1034, 1764, 1050, 1760, 1050)
+
+[node name="Bar42" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1774, 1034, 1778, 1034, 1778, 1050, 1774, 1050)
+
+[node name="BarTop" type="Polygon2D" parent="Grate"]
+color = Color(0.55, 0.62, 0.62, 0.9)
+polygon = PackedVector2Array(1194, 1030, 1782, 1030, 1782, 1036, 1194, 1036)
+
+[node name="Decor" type="Node2D" parent="."]
+z_index = -20
+
+[node name="PaperRoll" type="Polygon2D" parent="Decor"]
+color = Color(0.85, 0.92, 0.94, 0.2)
+polygon = PackedVector2Array(1784, 130, 1782.4, 144.24, 1777.66, 157.77, 1770.04, 169.9, 1759.9, 180.04, 1747.77, 187.66, 1734.24, 192.4, 1720, 194, 1705.76, 192.4, 1692.23, 187.66, 1680.1, 180.04, 1669.96, 169.9, 1662.34, 157.77, 1657.6, 144.24, 1656, 130, 1657.6, 115.76, 1662.34, 102.23, 1669.96, 90.1, 1680.1, 79.96, 1692.23, 72.34, 1705.76, 67.6, 1720, 66, 1734.24, 67.6, 1747.77, 72.34, 1759.9, 79.96, 1770.04, 90.1, 1777.66, 102.23, 1782.4, 115.76)
+
+[node name="PaperCore" type="Polygon2D" parent="Decor"]
+color = Color(0.02, 0.06, 0.06, 0.6)
+polygon = PackedVector2Array(1738, 130, 1737.55, 134.01, 1736.22, 137.81, 1734.07, 141.22, 1731.22, 144.07, 1727.81, 146.22, 1724.01, 147.55, 1720, 148, 1715.99, 147.55, 1712.19, 146.22, 1708.78, 144.07, 1705.93, 141.22, 1703.78, 137.81, 1702.45, 134.01, 1702, 130, 1702.45, 125.99, 1703.78, 122.19, 1705.93, 118.78, 1708.78, 115.93, 1712.19, 113.78, 1715.99, 112.45, 1720, 112, 1724.01, 112.45, 1727.81, 113.78, 1731.22, 115.93, 1734.07, 118.78, 1736.22, 122.19, 1737.55, 125.99)
+
+[node name="PaperStrip" type="Polygon2D" parent="Decor"]
+color = Color(0.85, 0.92, 0.94, 0.12)
+polygon = PackedVector2Array(1664, 140, 1776, 140, 1776, 530, 1762, 514, 1748, 530, 1734, 514, 1720, 530, 1706, 514, 1692, 530, 1678, 514, 1664, 530)
+
+[node name="PlungerHandle" type="Polygon2D" parent="Decor"]
+color = Color(0.55, 0.42, 0.3, 0.45)
+polygon = PackedVector2Array(1786, 560, 1800, 560, 1800, 830, 1786, 830)
+
+[node name="PlungerCup" type="Polygon2D" parent="Decor"]
+color = Color(0.75, 0.25, 0.22, 0.4)
+polygon = PackedVector2Array(1694, 880, 1695.91, 863.95, 1701.5, 849, 1710.4, 836.16, 1722, 826.31, 1735.51, 820.11, 1750, 818, 1764.49, 820.11, 1778, 826.31, 1789.6, 836.16, 1798.5, 849, 1804.09, 863.95, 1806, 880)
+
+[node name="TreasureSpots" type="Node2D" parent="."]
+
+[node name="S0" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(230, 44)
+
+[node name="S1" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(420, 76.18)
+
+[node name="S2" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(600, 99.56)
+
+[node name="S3" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(760, 120.34)
+
+[node name="S4" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1000, 608.09)
+
+[node name="S5" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(820, 633.43)
+
+[node name="S6" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(600, 651.02)
+
+[node name="S7" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(380, 668.61)
+
+[node name="S8" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(300, 861.2)
+
+[node name="S9" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(440, 869.6)
+
+[node name="S10" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(640, 881.6)
+
+[node name="S11" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(880, 896)
+
+[node name="S12" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1050, 906.2)
+
+[node name="S13" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1650, 1018)

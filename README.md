@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and collapsing ruined towers on Sunken City. The Jellyfish
+Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, collapsing ruined towers on Sunken City and a flush on Toilet Flush. The Jellyfish
 
 Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
@@ -289,6 +289,15 @@ drawn from the race seed) and whose digestive pools slow any fish that wades thr
 squeezes fish along all the time (`peristalsis.gd`). The hazard is a burp jet that shoves fish
 along one of the three lanes at a seeded moment. At the finish a blowhole (`blowhole.gd`) throws
 every fish that has crossed the line up into the air, and leaves the ones still racing alone.
+
+Toilet Flush starts with a slide into a porcelain bowl (`scripts/tracks/flush_bowl.gd`, a `Whirlpool`
+with one drain at the bottom and a shorter dwell). Its hazard is the flush: the lever on the cistern
+swings down and the vortex spins up. The drain leads into a sewer pipe: a rubber duck
+(`scripts/tracks/duck_bumper.gd`) bobs in a chamber above the first lane, a propeller turns in the
+second, and a second hazard, a surge, pushes the pack along one of the two lanes (always forward).
+The duck's starting point comes from the race seed and both the duck and the lever are replayed in
+the finish replay. The finish zone starts on the last stretch of the second lane and covers the pit
+at the end, so a pile of finished fish does not hold back the ones still to arrive.
 
 ### Finish replay and moving map parts
 
