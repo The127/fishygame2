@@ -14,6 +14,10 @@ const DEPTH_EASE: float = 0.6
 const PITCH_EASE: float = 1.2
 const MAX_PITCH: float = 0.35
 const FADE_SECONDS: float = 1.0
+## Where a trail starts behind the fish (pixels at scale 1), and how far the depth scale may
+## drift before the particles are resized.
+const TRAIL_TAIL: float = 10.0
+const TRAIL_RESIZE_STEP: float = 0.05
 
 var contestant: Contestant
 var visual: FishVisual
@@ -35,6 +39,9 @@ var _pitch: float = 0.0
 var _target_pitch: float = 0.0
 var _wander_left: float = 0.0
 var _rng: RandomNumberGenerator
+var _trail: CPUParticles2D
+var _trail_base_scale: Vector2 = Vector2.ONE
+var _trail_depth_scale: float = 1.0
 
 
 func _init(p_rng: RandomNumberGenerator) -> void:
@@ -52,6 +59,7 @@ func assign(who: Contestant) -> void:
 	visual.pattern = who.pattern
 	visual.accessory = who.accessory
 	visual.skin = who.skin
+	_build_trail(who.trail)
 	world_x = _rng.randf()
 	depth_y = _rng.randf_range(0.12, 0.8)
 	z = _rng.randf()
@@ -84,9 +92,42 @@ func step(delta: float, world_width: float) -> Vector2:
 	return velocity
 
 
+## Moves and shows the trail behind the fish. [param active] is false for fish that are hidden
+## or far away, which stop emitting. Call after the fish and its visual are placed.
+func update_trail(active: bool, depth_scale: float) -> void:
+	if _trail == null:
+		return
+	_trail.emitting = active
+	if not active:
+		return
+	var behind: Vector2 = Vector2.from_angle(visual.heading) * TRAIL_TAIL * depth_scale
+	_trail.global_position = global_position - behind
+	_trail.z_index = visual.z_index - 1
+	_trail.modulate = visual.modulate
+	if absf(depth_scale - _trail_depth_scale) > TRAIL_RESIZE_STEP * _trail_depth_scale:
+		_trail_depth_scale = depth_scale
+		_trail.scale_amount_min = _trail_base_scale.x * depth_scale
+		_trail.scale_amount_max = _trail_base_scale.y * depth_scale
+
+
 ## True once a fish that was told to leave has faded away.
 func is_gone() -> bool:
 	return fading_out and fade <= 0.0
+
+
+## Gives the fish the emitter for [param kind] ([enum FishTrail.Kind]). The plain trail (0) is
+## skipped: the tank already has its own bubbles.
+func _build_trail(kind: int) -> void:
+	if _trail != null:
+		_trail.queue_free()
+		_trail = null
+	if kind <= 0:
+		return
+	_trail = FishTrail.make(kind)
+	_trail.top_level = true
+	_trail_base_scale = Vector2(_trail.scale_amount_min, _trail.scale_amount_max)
+	_trail_depth_scale = 1.0
+	add_child(_trail)
 
 
 func _pick_wander() -> void:

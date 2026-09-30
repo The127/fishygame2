@@ -160,6 +160,7 @@ func _update_fish(fish: AquariumFish, delta: float) -> void:
 	if want_frozen != visual.frozen:
 		visual.frozen = want_frozen
 	if not fish.visible:
+		fish.update_trail(false, depth_scale)
 		return
 	visual.face(velocity, delta)
 	visual.scale *= depth_scale
@@ -167,6 +168,7 @@ func _update_fish(fish: AquariumFish, delta: float) -> void:
 	var fog: float = fish.z * FOG_AMOUNT
 	var tint: Color = Color.WHITE.lerp(FOG_TINT, fog)
 	visual.modulate = Color(tint.r, tint.g, tint.b, fish.fade * lerpf(1.0, 0.75, fish.z))
+	fish.update_trail(not visual.frozen and not fish.fading_out, depth_scale)
 
 
 ## While fish wait, swaps one swimmer out every [constant ROTATE_SECONDS]: it fades, and
