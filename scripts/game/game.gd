@@ -2,20 +2,6 @@ class_name Game
 extends Node2D
 ## Wires chat commands, the round state machine, the race and the UI together.
 
-## Milliseconds between "#top" replies in chat, shared by everyone.
-const TOP_COOLDOWN_MSEC: int = 30000
-
-## Milliseconds between "#help" replies in chat, shared by everyone.
-const HELP_COOLDOWN_MSEC: int = 30000
-
-## Milliseconds before the same viewer gets another "#stats" reply.
-const STATS_COOLDOWN_MSEC: int = 15000
-
-## Commands that put a viewer on the leaderboard, so their name is remembered.
-const NAMED_COMMANDS: PackedStringArray = [
-	"join", "bet", "boost", "curse", "points", "fish", "color", "hat", "shop", "stats"
-]
-
 ## Most payouts named in the race result line.
 const RESULT_PAYOUTS: int = 3
 
@@ -46,10 +32,6 @@ var settings: GameSettings = null
 ## for the plain slice) instead of a random one.
 var forced_event: Variant = null
 
-var _last_top_msec: int = -TOP_COOLDOWN_MSEC
-var _last_help_msec: int = -HELP_COOLDOWN_MSEC
-var _last_stats_msec: Dictionary[String, int] = {}
-
 var _event: String = RaceEvent.NOTHING
 var _event_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _map_choice: String = TrackCatalog.RANDOM_ID
@@ -65,6 +47,7 @@ var _pending_results: Array[Dictionary] = []
 var _replies: ChatReplies = ChatReplies.new()
 var _batcher: ChatBatcher = _replies.batcher
 var _meow: Meow = Meow.new()
+var _viewer_commands: ViewerCommands = ViewerCommands.new()
 var _payouts: Array[Dictionary] = []
 ## The streamer power waiting for a click on the track (a StreamerPowers.Kind), or -1.
 var _armed_power: int = -1
@@ -96,12 +79,16 @@ func _ready() -> void:
 		settings.load_settings()
 	_apply_settings()
 	# First, so the name is stored before a bet or effect saves the points.
-	Chat.command_received.connect(_remember_name)
-	Chat.message_received.connect(_backfill_name)
+	_viewer_commands.points = _betting.points
+	_viewer_commands.settings = settings
+	_viewer_commands.reply_ready.connect(Chat.send_message)
+	add_child(_viewer_commands)
+	Chat.command_received.connect(_viewer_commands.remember_name)
+	Chat.message_received.connect(_viewer_commands.backfill_name)
 	Chat.command_received.connect(_flow.handle_command)
 	Chat.command_received.connect(_betting.handle_command)
 	Chat.command_received.connect(_chaos.handle_command)
-	Chat.command_received.connect(_on_command)
+	Chat.command_received.connect(_viewer_commands.handle_command)
 	Chat.command_received.connect(_shop.handle_command)
 	_chaos.points = _betting.points
 	_shop.points = _betting.points
@@ -284,69 +271,6 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 			_overlay.show_racing()
 		_:
 			_event = RaceEvent.NOTHING
-
-
-func _remember_name(msg: ChatMessage, command: String, _args: PackedStringArray) -> void:
-	if NAMED_COMMANDS.has(command):
-		_betting.points.set_name(msg.user_id, _viewer_name(msg))
-
-
-## Any chat line from a viewer who is already ranked fills in or refreshes their name, so
-## entries saved before names were recorded get one as soon as the viewer says anything.
-func _backfill_name(msg: ChatMessage) -> void:
-	var points: PointsStore = _betting.points
-	if not points.has_entry(msg.user_id):
-		return
-	if points.set_name(msg.user_id, _viewer_name(msg)):
-		points.save_to_disk()
-
-
-func _on_command(msg: ChatMessage, command: String, args: PackedStringArray) -> void:
-	if command == "help":
-		_reply_help()
-		return
-	if command == "stats":
-		_reply_stats(msg, args)
-		return
-	if command != "top":
-		return
-	var now: int = Time.get_ticks_msec()
-	if now - _last_top_msec < TOP_COOLDOWN_MSEC:
-		return
-	_last_top_msec = now
-	Chat.send_message(Leaderboard.chat_text(_betting.points.top_by_points(Leaderboard.CHAT_ROWS)))
-
-
-func _reply_help() -> void:
-	if not settings.chat_replies:
-		return
-	var now: int = Time.get_ticks_msec()
-	if now - _last_help_msec < HELP_COOLDOWN_MSEC:
-		return
-	_last_help_msec = now
-	Chat.send_message(HelpText.CHAT_REPLY)
-
-
-## "#stats" shows the caller's record, "#stats @name" someone else's. Each viewer has a cooldown.
-func _reply_stats(msg: ChatMessage, args: PackedStringArray) -> void:
-	if not settings.chat_replies:
-		return
-	var now: int = Time.get_ticks_msec()
-	if (
-		_last_stats_msec.has(msg.user_id)
-		and now - _last_stats_msec[msg.user_id] < STATS_COOLDOWN_MSEC
-	):
-		return
-	_last_stats_msec[msg.user_id] = now
-	var points: PointsStore = _betting.points
-	var user_id: String = msg.user_id
-	if not args.is_empty():
-		var asked: String = " ".join(args)
-		user_id = points.find_by_name(asked)
-		if user_id.is_empty():
-			Chat.send_message("No stats found for that name.")
-			return
-	Chat.send_message(StatsText.chat_text(points, user_id))
 
 
 func _on_treasure_collected(id: int, kind: int, value: int) -> void:
@@ -827,10 +751,6 @@ func _result_text(
 	if not sections.is_empty():
 		text += " " + ". ".join(sections)
 	return text
-
-
-func _viewer_name(msg: ChatMessage) -> String:
-	return ChatReplies.viewer_name(msg)
 
 
 func _on_race_started(contestants: Array[Contestant]) -> void:

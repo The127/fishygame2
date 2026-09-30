@@ -21,7 +21,7 @@ func test_top_is_rate_limited_for_everyone() -> void:
 	_say("0", "#top")
 	_say("1", "#top")
 	assert_eq(_source.sent.size(), 1)
-	_game._last_top_msec -= Game.TOP_COOLDOWN_MSEC
+	_game._viewer_commands._last_top_msec -= ViewerCommands.TOP_COOLDOWN_MSEC
 	_say("1", "#top")
 	assert_eq(_source.sent.size(), 2)
 

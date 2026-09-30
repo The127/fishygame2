@@ -16,7 +16,7 @@ func test_help_is_rate_limited_for_everyone() -> void:
 	_say("0", "#help")
 	_say("1", "#help")
 	assert_eq(_source.sent.size(), 1)
-	_game._last_help_msec -= Game.HELP_COOLDOWN_MSEC
+	_game._viewer_commands._last_help_msec -= ViewerCommands.HELP_COOLDOWN_MSEC
 	_say("1", "#help")
 	assert_eq(_source.sent.size(), 2)
 

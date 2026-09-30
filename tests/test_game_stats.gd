@@ -116,7 +116,7 @@ func test_stats_cooldown_is_per_viewer() -> void:
 	assert_eq(_source.sent.size(), 1)
 	_say("1", "#stats")
 	assert_eq(_source.sent.size(), 2)
-	_game._last_stats_msec["0"] -= Game.STATS_COOLDOWN_MSEC
+	_game._viewer_commands._last_stats_msec["0"] -= ViewerCommands.STATS_COOLDOWN_MSEC
 	_say("0", "#stats")
 	assert_eq(_source.sent.size(), 3)
 
