@@ -521,4 +521,33 @@ THEMES = {
             {"kind": "pulse", "bpm": 50, "freq": 65.0, "decay": 0.2, "gain": 0.3},
         ),
     },
+    # Ebb tide: slow D dorian, a low swell like the sea breathing out and dripping bells.
+    "tide": {
+        "seed": 31,
+        "chords": (
+            (38, 50, 57, 60, 65),
+            (34, 46, 53, 57, 62),
+            (41, 48, 55, 60, 64),
+            (36, 48, 55, 59, 62),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.09,
+        "trem_rate": 0.08,
+        "trem_depth": 0.35,
+        "rumble_cutoff": 240.0,
+        "rumble_gain": 0.6,
+        "layers": (
+            {"kind": "pulse", "bpm": 60, "freq": 55.0, "decay": 0.3, "gain": 0.3},
+            {"kind": "swirl", "low": 200.0, "high": 1400.0, "rate": 0.08, "gain": 0.05},
+            {
+                "kind": "plucks",
+                "count": 14,
+                "notes": (74, 77, 79, 81, 84, 86),
+                "decay": 0.6,
+                "gain": 0.08,
+                "bell": True,
+                "gaps": (0.5, 1.0, 1.5),
+            },
+        ),
+    },
 }

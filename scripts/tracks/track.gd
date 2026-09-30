@@ -23,6 +23,8 @@ const FORWARD_SAMPLE: float = 30.0
 ## Look of the map, a key of TrackPalettes.PALETTES.
 @export var style_id: String = TrackPalettes.DEFAULT_STYLE
 
+var _tide: WaterLevel
+
 @onready var _finish: Area2D = $Finish
 @onready var _centerline: Path2D = $Centerline
 @onready var _spawn_origin: Marker2D = $SpawnOrigin
@@ -30,6 +32,9 @@ const FORWARD_SAMPLE: float = 30.0
 
 func _ready() -> void:
 	_finish.body_entered.connect(_on_finish_body_entered)
+	for child: Node in get_children():
+		if child is WaterLevel:
+			_tide = child as WaterLevel
 	for hazard: Hazard in get_hazards():
 		hazard.telegraph_started.connect(hazard_started.emit)
 		if hazard is AnglerHazard:
@@ -119,13 +124,38 @@ func stop_hazards() -> void:
 		hazard.disarm()
 
 
-## Puts the map's geysers back to sleep and its gravity back to down.
+## Puts the map's geysers back to sleep, its gravity back to down and its tide full again.
 func stop_gimmicks() -> void:
 	for geyser: Geyser in get_geysers():
 		geyser.disarm()
 	for child: Node in get_children():
 		if child is GravityFlipper:
 			(child as GravityFlipper).disarm()
+	if _tide != null:
+		_tide.stop()
+
+
+## Tells the map how many fish race, for gimmicks that pace themselves to the field. Call before
+## [method seed_gimmicks].
+func set_field_size(count: int) -> void:
+	if _tide != null:
+		_tide.set_field_size(count)
+
+
+## Stops the tide where it is. The next [method stop_gimmicks] refills it.
+func hold_tide() -> void:
+	if _tide != null:
+		_tide.hold()
+
+
+## Whether the map drains during a race (fish above the waterline get stranded).
+func has_tide() -> bool:
+	return _tide != null
+
+
+## World y of the waterline right now. Only meaningful when [method has_tide] is true.
+func get_water_level() -> float:
+	return _tide.level if _tide != null else -INF
 
 
 func get_geysers() -> Array[Geyser]:

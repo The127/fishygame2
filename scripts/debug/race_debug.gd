@@ -17,6 +17,7 @@ var _track: Track
 var _hazard_events: PackedStringArray = []
 var _treasures_found: int = 0
 var _treasures_total: int = 0
+var _stranded: int = 0
 
 @onready var _race: Race = $Race
 
@@ -24,6 +25,7 @@ var _treasures_total: int = 0
 func _ready() -> void:
 	_race.marble_finished.connect(_on_marble_finished)
 	_race.fish_snapped.connect(_on_fish_snapped)
+	_race.fish_stranded.connect(_on_fish_stranded)
 	_race.race_finished.connect(_on_race_finished)
 	_race.treasure_collected.connect(_on_treasure_collected)
 	for arg: String in OS.get_cmdline_user_args():
@@ -80,6 +82,7 @@ func _start_race() -> void:
 		)
 	)
 	_hazard_events.clear()
+	_stranded = 0
 	_race.time_limit = time_limit
 	_treasures_found = 0
 	_race.start(_track, marble_count, rng, hazard_frequency, event_id)
@@ -93,6 +96,11 @@ func _on_hazard_started(kind: String) -> void:
 
 func _on_fish_snapped(ids: Array[int]) -> void:
 	print("  snap: marbles %s at t=%.2fs" % [ids, _race.elapsed])
+
+
+func _on_fish_stranded(id: int) -> void:
+	_stranded += 1
+	print("  stranded: marble %d at t=%.2fs" % [id, _race.elapsed])
 
 
 func _on_fish_eaten(marble: Marble) -> void:
@@ -126,16 +134,18 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 	if _autorun:
 		var unfinished: int = 0
 		for r: Dictionary in results:
-			if not r["finished"] and not _race.is_snapped(int(r["id"])):
+			var id: int = int(r["id"])
+			if not r["finished"] and not _race.is_snapped(id) and not _race.is_stranded(id):
 				unfinished += 1
 		print(
 			(
-				"RESULT map=%s seed=%d time=%.2f unfinished=%d hazards=%d treasures=%d/%d order=%s"
+				"RESULT map=%s seed=%d time=%.2f unfinished=%d stranded=%d hazards=%d treasures=%d/%d order=%s"
 				% [
 					map_id,
 					seed_value,
 					_race.elapsed,
 					unfinished,
+					_stranded,
 					_hazard_events.size(),
 					_treasures_found,
 					_treasures_total,

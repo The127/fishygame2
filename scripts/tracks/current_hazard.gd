@@ -14,6 +14,8 @@ const WISP_LENGTH: float = 90.0
 const CHEVRON_SPACING: float = 150.0
 
 @export var tint: Color = Color(0.4, 0.95, 0.85)
+## Chance that a current runs against its lane. A map that already strands slow fish sets 0.
+@export_range(0.0, 1.0) var against_chance: float = AGAINST_CHANCE
 
 var _zones: Array[Area2D] = []
 var _zone: Area2D = null
@@ -53,7 +55,7 @@ func _begin_telegraph(rng: RandomNumberGenerator) -> void:
 	if _zones.is_empty():
 		return
 	_zone = _zones[rng.randi_range(0, _zones.size() - 1)]
-	_flow = -1.0 if rng.randf() < AGAINST_CHANCE else 1.0
+	_flow = -1.0 if rng.randf() < against_chance else 1.0
 	var shape: CollisionShape2D = _zone.get_node("CollisionShape2D") as CollisionShape2D
 	_size = (shape.shape as RectangleShape2D).size
 

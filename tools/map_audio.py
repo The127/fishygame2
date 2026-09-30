@@ -112,6 +112,14 @@ JINGLES = {
                   (0.84, 62, 1.7, 0.7), (0.84, 65, 1.7, 0.7), (0.84, 57, 1.7, 0.7)),
         "echo": (0.3, 2, 0.4),
     },
+    # Ebb tide: D dorian bells that fall like a wave leaving, then a warm settled chord.
+    "tide": {
+        "partials": BELL,
+        "notes": ((0.0, 86, 1.4, 0.5), (0.16, 81, 1.4, 0.5), (0.32, 77, 1.4, 0.5),
+                  (0.48, 74, 1.4, 0.5), (0.72, 69, 2.0, 0.9), (0.72, 62, 2.0, 0.9),
+                  (0.72, 50, 2.0, 0.9)),
+        "echo": (0.3, 3, 0.45),
+    },
 }
 
 
@@ -394,6 +402,13 @@ def _gravity(out, rng):
     bubbles(out, rng, 6, 500.0, 1100.0, 0.08)
 
 
+def _tide(out, rng):
+    bed(out, rng, 0.0, 450.0, 0.9, swell=0.6, cycles=1)
+    bed(out, rng, 500.0, 2400.0, 0.25, swell=0.7, cycles=1, phase=math.pi)
+    drips(out, rng, (1.1, 3.4, 5.0, 6.8), 1100.0, 0.14)
+    bubbles(out, rng, 4, 500.0, 1000.0, 0.08)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -405,6 +420,7 @@ AMBIENCE = {
     "coral": (38, _coral),
     "kraken": (39, _kraken),
     "gravity": (40, _gravity),
+    "tide": (41, _tide),
 }
 
 

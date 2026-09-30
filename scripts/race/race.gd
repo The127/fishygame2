@@ -6,6 +6,8 @@ signal marble_finished(id: int, place: int)
 signal race_finished(results: Array[Dictionary])
 ## A Thanos snap just turned these fish to dust.
 signal fish_snapped(ids: Array[int])
+## The tide just left this fish stranded above the waterline.
+signal fish_stranded(id: int)
 ## The winner just crossed with `chaser_id` about to follow. Visual cue only.
 signal photo_finish(winner_id: int, chaser_id: int)
 ## A fish picked up a treasure worth `value` points. `kind` is a [enum Treasure.Kind].
@@ -93,6 +95,7 @@ func start(
 		marble.global_position = _track.get_spawn_position(i) + jitter
 		_marbles[i] = marble
 	_ranking = RaceRanking.new(ids)
+	_track.set_field_size(count)
 	_track.seed_gimmicks(rng)
 	# Read before any later draw and never advanced, so treasures cannot shift a race's layout.
 	_place_treasures(hash(rng.state) if treasures_enabled else 0)
@@ -352,6 +355,9 @@ func _physics_process(delta: float) -> void:
 	_hold_in_nets()
 	_collect_treasures()
 	elapsed += delta
+	_strand_dry_fish(delta)
+	if not running:
+		return
 	if _snap_pending and elapsed >= _snap_time:
 		_snap()
 	if _recorder != null and _recorder.should_sample(elapsed):
@@ -385,12 +391,34 @@ func _on_marble_reached_finish(body: Node2D) -> void:
 		_finish_race()
 
 
-## Whether every fish that is still in the race has finished (snapped fish do not count).
+## Whether every fish that is still in the race has finished (snapped and stranded fish do not
+## count).
 func _all_racers_finished() -> bool:
 	for id: int in _ranking.get_unfinished_ids():
-		if not (_marbles[id] as Marble).snapped:
+		if not (_marbles[id] as Marble).is_out():
 			return false
 	return true
+
+
+## Whether the fish was left high and dry by the tide.
+func is_stranded(id: int) -> bool:
+	return _marbles.has(id) and (_marbles[id] as Marble).stranded
+
+
+## On a map with a draining tide, fish that lie above the waterline for too long are stranded.
+## Ends the race when that leaves nobody still swimming.
+func _strand_dry_fish(delta: float) -> void:
+	if not _track.has_tide():
+		return
+	var waterline: float = _track.get_water_level()
+	var any_stranded: bool = false
+	for id: int in _marbles:
+		var marble: Marble = _live_marble(id)
+		if marble != null and marble.update_dryness(waterline, delta):
+			any_stranded = true
+			fish_stranded.emit(id)
+	if any_stranded and _all_racers_finished():
+		_finish_race()
 
 
 ## Whether the fish was turned to dust by a Thanos snap.
@@ -479,7 +507,9 @@ func _on_burst_played(
 func _finish_race() -> void:
 	running = false
 	_track.stop_hazards()
+	_track.hold_tide()
 	for marble: Marble in _marbles.values():
+		marble.finish_strand()
 		marble.set_deferred("freeze", true)
 	var results: Array[Dictionary] = _ranking.get_results(get_progress_map())
 	race_finished.emit(results)

@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tide that sloshes the flip gates on Coral Maze and tentacle swats on Kraken's Lair. The Jellyfish
+Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair and a rip current on Ebb Tide. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers. Their tentacles briefly catch and drag along any fish that
 touches them (then let go, and ignore that fish for a few seconds). The hazard is a surge that speeds them up.
@@ -235,6 +235,15 @@ toward the finish has baffles that grow from the floor or hang from the ceiling,
 fish can only get past each one while gravity points the right way, and a flip can send the leader
 back behind the pack. The arrows flash for a second before each flip. The flip times come from
 the race seed, and the finish spans the whole corridor so both orientations reach it.
+
+Ebb Tide is a race against the map: the water starts above everything and drains from the top
+down (`scripts/tracks/water_level.gd`). A fish that lies above the waterline for two seconds is
+stranded: it flops, fades away and is DNF, like a fish caught by the Thanos snap. The drain is tuned
+so that a few of the slowest fish are caught in a normal field and takes a little longer for bigger
+fields. If the tide strands everyone, the race ends as a normal "nobody finished". Its hazard is a
+rip current that only ever flows with the lane. The debug race prints `stranded=N` and the
+seed sweeps do not count stranded fish as a jam, so check a map change with the drain turned off
+(set `drain_seconds` very high) to be sure no fish really gets stuck.
 
 ### Finish replay and moving map parts
 
