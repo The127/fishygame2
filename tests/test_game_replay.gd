@@ -29,11 +29,11 @@ func _run_race_with_clip(order: Array[int]) -> void:
 
 
 func _wait_for_replay() -> void:
-	await wait_seconds(Game.REPLAY_BEAT + Game.REPLAY_FADE + 0.1)
+	await wait_seconds(RaceSequence.REPLAY_BEAT + RaceSequence.REPLAY_FADE + 0.1)
 
 
 func _replay_node() -> FinishReplay:
-	for child: Node in _game.get_children():
+	for child: Node in _game.get_node("RaceSequence").get_children():
 		if child is FinishReplay:
 			return child as FinishReplay
 	return null
@@ -165,4 +165,26 @@ func test_leaving_the_round_during_the_beat_cancels_the_replay() -> void:
 	_finish_marbles([0, 1])
 	_flow.stop()
 	await _wait_for_replay()
+	assert_false(_replay_node().active)
+
+
+func test_leaving_the_round_during_the_fade_out_leaves_no_black_flash() -> void:
+	_start_race(2)
+	var recorder: ReplayRecorder = _race.get_recorder()
+	recorder.sample(
+		-1.0,
+		PackedVector2Array([Vector2.ZERO, Vector2.ZERO]),
+		PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
+	)
+	recorder.sample(
+		0.0,
+		PackedVector2Array([Vector2.ZERO, Vector2.ZERO]),
+		PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
+	)
+	_finish_marbles([0, 1])
+	await wait_seconds(RaceSequence.REPLAY_BEAT + RaceSequence.REPLAY_FADE * 0.5)
+	_flow.stop()
+	await _wait_for_replay()
+	var fader: ColorRect = _game.get_node("Overlay")._fader
+	assert_eq(fader.modulate.a, 0.0, "no fade back in flashes the idle screen black")
 	assert_false(_replay_node().active)
