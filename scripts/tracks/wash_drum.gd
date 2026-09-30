@@ -123,17 +123,17 @@ func _build() -> void:
 	# The door frame glows at both edges of the gap.
 	var end: float = start + float(SEGMENTS - door_segments) * step
 	for edge: Array in [[start, 1.0], [end, -1.0]]:
-		var angle: float = edge[0]
+		var edge_angle: float = edge[0]
 		var side: float = edge[1]
 		var lamp: Polygon2D = Polygon2D.new()
 		lamp.name = "DoorFrame"
 		lamp.color = DOOR_COLOR
 		lamp.polygon = PackedVector2Array(
 			[
-				Vector2.from_angle(angle) * (inner - 6.0),
-				Vector2.from_angle(angle) * (outer_radius + 6.0),
-				Vector2.from_angle(angle - side * 0.03) * (outer_radius + 6.0),
-				Vector2.from_angle(angle - side * 0.03) * (inner - 6.0),
+				Vector2.from_angle(edge_angle) * (inner - 6.0),
+				Vector2.from_angle(edge_angle) * (outer_radius + 6.0),
+				Vector2.from_angle(edge_angle - side * 0.03) * (outer_radius + 6.0),
+				Vector2.from_angle(edge_angle - side * 0.03) * (inner - 6.0),
 			]
 		)
 		lamp.z_index = 1

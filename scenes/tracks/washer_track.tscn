@@ -148,7 +148,7 @@ position = Vector2(892, 535)
 [node name="StartArea" type="Polygon2D" parent="."]
 z_index = -5
 color = Color(0.3, 0.7, 0.4, 0.25)
-polygon = PackedVector2Array(870, 380, 1080, 380, 1080, 575, 870, 575)
+polygon = PackedVector2Array(900, 400, 1020, 400, 1020, 560, 900, 560)
 
 [node name="Finish" type="Area2D" parent="."]
 position = Vector2(370, 1010)
