@@ -4,203 +4,6 @@ extends Node2D
 ## shafts, mist, drifting motes, stone-textured walls and glowing pegs. Purely visual:
 ## colliders and physics are untouched. The colors of the pegs come from the track scene.
 
-const PALETTES: Dictionary = {
-	"kelp":
-	{
-		"sky_top": Color(0.03, 0.16, 0.2),
-		"sky_bottom": Color(0.005, 0.025, 0.045),
-		"far": Color(0.035, 0.13, 0.15),
-		"mid": Color(0.03, 0.115, 0.125),
-		"near": Color(0.004, 0.02, 0.028),
-		"plant": Color(0.035, 0.2, 0.17),
-		"stone_dark": Color(0.05, 0.08, 0.1),
-		"stone_light": Color(0.14, 0.21, 0.23),
-		"rim": Color(0.35, 0.9, 0.78),
-		"ray": Color(0.4, 0.95, 0.85),
-		"fog": Color(0.1, 0.4, 0.42),
-		"mote": Color(0.6, 1.0, 0.9),
-		"layer_kind": EnvLayer.Kind.KELP,
-		"far_kind": EnvLayer.Kind.SPIRES,
-		"sway_scale": 1.0,
-	},
-	"crystal":
-	{
-		"sky_top": Color(0.08, 0.06, 0.22),
-		"sky_bottom": Color(0.01, 0.008, 0.05),
-		"far": Color(0.1, 0.08, 0.26),
-		"mid": Color(0.065, 0.05, 0.18),
-		"near": Color(0.012, 0.008, 0.04),
-		"plant": Color(0.09, 0.07, 0.24),
-		"stone_dark": Color(0.06, 0.055, 0.11),
-		"stone_light": Color(0.17, 0.16, 0.3),
-		"rim": Color(0.55, 0.65, 1.0),
-		"ray": Color(0.6, 0.55, 1.0),
-		"fog": Color(0.22, 0.18, 0.5),
-		"mote": Color(0.8, 0.85, 1.0),
-		"layer_kind": EnvLayer.Kind.SHARDS,
-		"far_kind": EnvLayer.Kind.SHARDS,
-		"sway_scale": 1.0,
-	},
-	"jelly":
-	{
-		"sky_top": Color(0.03, 0.09, 0.25),
-		"sky_bottom": Color(0.005, 0.01, 0.06),
-		"far": Color(0.05, 0.12, 0.3),
-		"mid": Color(0.04, 0.09, 0.24),
-		"near": Color(0.006, 0.012, 0.05),
-		"plant": Color(0.1, 0.08, 0.3),
-		"stone_dark": Color(0.05, 0.05, 0.14),
-		"stone_light": Color(0.16, 0.14, 0.34),
-		"rim": Color(1.0, 0.45, 0.85),
-		"ray": Color(0.4, 0.8, 1.0),
-		"fog": Color(0.1, 0.2, 0.5),
-		"mote": Color(0.6, 0.9, 1.0),
-		"layer_kind": EnvLayer.Kind.BLOOMS,
-		"far_kind": EnvLayer.Kind.SPIRES,
-		"sway_scale": 0.8,
-	},
-	"wreck":
-	{
-		"sky_top": Color(0.05, 0.13, 0.13),
-		"sky_bottom": Color(0.008, 0.02, 0.025),
-		"far": Color(0.05, 0.1, 0.1),
-		"mid": Color(0.04, 0.085, 0.08),
-		"near": Color(0.012, 0.02, 0.02),
-		"plant": Color(0.08, 0.075, 0.06),
-		"stone_dark": Color(0.1, 0.07, 0.05),
-		"stone_light": Color(0.32, 0.21, 0.11),
-		"rim": Color(1.0, 0.72, 0.32),
-		"ray": Color(0.85, 0.9, 0.65),
-		"fog": Color(0.2, 0.32, 0.25),
-		"mote": Color(1.0, 0.88, 0.6),
-		"layer_kind": EnvLayer.Kind.MASTS,
-		"far_kind": EnvLayer.Kind.SPIRES,
-		"sway_scale": 0.25,
-	},
-	"whirlpool":
-	{
-		"sky_top": Color(0.03, 0.09, 0.26),
-		"sky_bottom": Color(0.004, 0.012, 0.06),
-		"far": Color(0.04, 0.1, 0.24),
-		"mid": Color(0.03, 0.08, 0.19),
-		"near": Color(0.005, 0.014, 0.04),
-		"plant": Color(0.04, 0.14, 0.28),
-		"stone_dark": Color(0.04, 0.07, 0.14),
-		"stone_light": Color(0.13, 0.22, 0.38),
-		"rim": Color(0.4, 0.8, 1.0),
-		"ray": Color(0.45, 0.75, 1.0),
-		"fog": Color(0.1, 0.25, 0.55),
-		"mote": Color(0.7, 0.92, 1.0),
-		"layer_kind": EnvLayer.Kind.KELP,
-		"far_kind": EnvLayer.Kind.SPIRES,
-		"sway_scale": 1.6,
-	},
-	"abyss":
-	{
-		"sky_top": Color(0.006, 0.018, 0.045),
-		"sky_bottom": Color(0.0, 0.004, 0.014),
-		"far": Color(0.01, 0.028, 0.05),
-		"mid": Color(0.008, 0.022, 0.04),
-		"near": Color(0.0, 0.004, 0.012),
-		"plant": Color(0.012, 0.045, 0.06),
-		"stone_dark": Color(0.025, 0.04, 0.065),
-		"stone_light": Color(0.09, 0.14, 0.19),
-		"rim": Color(0.3, 0.85, 0.9),
-		"ray": Color(0.08, 0.22, 0.3),
-		"fog": Color(0.02, 0.08, 0.14),
-		"mote": Color(0.4, 0.95, 1.0),
-		"layer_kind": EnvLayer.Kind.KELP,
-		"far_kind": EnvLayer.Kind.SPIRES,
-		"sway_scale": 0.7,
-	},
-	"volcanic":
-	{
-		"sky_top": Color(0.16, 0.05, 0.04),
-		"sky_bottom": Color(0.03, 0.008, 0.01),
-		"far": Color(0.18, 0.06, 0.04),
-		"mid": Color(0.12, 0.04, 0.035),
-		"near": Color(0.02, 0.006, 0.008),
-		"plant": Color(0.2, 0.07, 0.04),
-		"stone_dark": Color(0.07, 0.045, 0.05),
-		"stone_light": Color(0.24, 0.14, 0.12),
-		"rim": Color(1.0, 0.5, 0.2),
-		"ray": Color(1.0, 0.45, 0.2),
-		"fog": Color(0.5, 0.16, 0.08),
-		"mote": Color(1.0, 0.7, 0.35),
-		"layer_kind": EnvLayer.Kind.SPIRES,
-		"far_kind": EnvLayer.Kind.SPIRES,
-		"sway_scale": 0.15,
-	},
-	"coral":
-	{
-		"sky_top": Color(0.13, 0.05, 0.14),
-		"sky_bottom": Color(0.02, 0.01, 0.04),
-		"far": Color(0.15, 0.06, 0.16),
-		"mid": Color(0.11, 0.05, 0.13),
-		"near": Color(0.03, 0.01, 0.035),
-		"plant": Color(0.2, 0.07, 0.17),
-		"stone_dark": Color(0.1, 0.05, 0.1),
-		"stone_light": Color(0.36, 0.16, 0.26),
-		"rim": Color(1.0, 0.5, 0.58),
-		"ray": Color(1.0, 0.7, 0.75),
-		"fog": Color(0.38, 0.14, 0.32),
-		"mote": Color(1.0, 0.78, 0.85),
-		"layer_kind": EnvLayer.Kind.CORAL,
-		"far_kind": EnvLayer.Kind.SPIRES,
-		"sway_scale": 0.6,
-	},
-	"kraken":
-	{
-		"sky_top": Color(0.1, 0.03, 0.16),
-		"sky_bottom": Color(0.012, 0.004, 0.03),
-		"far": Color(0.12, 0.04, 0.19),
-		"mid": Color(0.085, 0.03, 0.14),
-		"near": Color(0.02, 0.006, 0.035),
-		"plant": Color(0.17, 0.05, 0.24),
-		"stone_dark": Color(0.07, 0.035, 0.1),
-		"stone_light": Color(0.27, 0.13, 0.34),
-		"rim": Color(0.55, 1.0, 0.4),
-		"ray": Color(0.6, 0.9, 0.55),
-		"fog": Color(0.24, 0.1, 0.36),
-		"mote": Color(0.75, 1.0, 0.6),
-		"layer_kind": EnvLayer.Kind.TENTACLES,
-		"far_kind": EnvLayer.Kind.SPIRES,
-		"sway_scale": 1.3,
-	},
-	"gravity":
-	{
-		"sky_top": Color(0.05, 0.05, 0.2),
-		"sky_bottom": Color(0.01, 0.01, 0.06),
-		"far": Color(0.07, 0.07, 0.25),
-		"mid": Color(0.05, 0.05, 0.18),
-		"near": Color(0.01, 0.01, 0.04),
-		"plant": Color(0.09, 0.08, 0.3),
-		"stone_dark": Color(0.05, 0.05, 0.12),
-		"stone_light": Color(0.2, 0.2, 0.42),
-		"rim": Color(0.6, 0.65, 1.0),
-		"ray": Color(0.5, 0.55, 1.0),
-		"fog": Color(0.14, 0.12, 0.4),
-		"mote": Color(0.8, 0.85, 1.0),
-		"layer_kind": EnvLayer.Kind.SHARDS,
-		"far_kind": EnvLayer.Kind.SPIRES,
-		"sway_scale": 0.3,
-	},
-}
-const DEFAULT_STYLE: String = "kelp"
-
-## Foreground shapes per style: what hangs from the top and what grows from the bottom.
-const FOREGROUND: Dictionary = {
-	"kelp": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
-	"crystal": [EnvLayer.Kind.SHARDS, EnvLayer.Kind.SHARDS],
-	"jelly": [EnvLayer.Kind.BLOOMS, EnvLayer.Kind.KELP],
-	"wreck": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.MASTS],
-	"whirlpool": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
-	"abyss": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
-	"volcanic": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SPIRES],
-	"coral": [EnvLayer.Kind.CORAL, EnvLayer.Kind.CORAL],
-	"kraken": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.TENTACLES],
-	"gravity": [EnvLayer.Kind.SHARDS, EnvLayer.Kind.SHARDS],
-}
 ## Foreground sits over the fish (z 5) and their trails, under bursts (z 8) and names (z 10).
 const FOREGROUND_Z: int = 7
 const FOREGROUND_ALPHA: float = 0.82
@@ -228,7 +31,9 @@ var _motes: CPUParticles2D
 
 
 func dress(track: Track, style_id: String) -> void:
-	_palette = PALETTES.get(style_id, PALETTES[DEFAULT_STYLE])
+	_palette = TrackPalettes.PALETTES.get(
+		style_id, TrackPalettes.PALETTES[TrackPalettes.DEFAULT_STYLE]
+	)
 	_hide_flat_artwork(track)
 	_add_background()
 	_add_rays()
@@ -368,7 +173,9 @@ func _add_layer(
 ## as a whole (one group, so overlapping shapes do not darken each other) and never placed
 ## over the spawn column or the finish zone.
 func _add_foreground(track: Track, style_id: String) -> void:
-	var kinds: Array = FOREGROUND.get(style_id, FOREGROUND[DEFAULT_STYLE])
+	var kinds: Array = TrackPalettes.FOREGROUND.get(
+		style_id, TrackPalettes.FOREGROUND[TrackPalettes.DEFAULT_STYLE]
+	)
 	var blocked: Array[Vector2] = _foreground_blocked_ranges(track)
 	var group: CanvasGroup = CanvasGroup.new()
 	group.name = "Foreground"
