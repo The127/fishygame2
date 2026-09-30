@@ -433,6 +433,8 @@ func _on_fish_eaten(marble: Marble) -> void:
 	if marble.id >= 0 and marble.id < contestants.size():
 		_betting.points.stats.record_eaten(contestants[marble.id].user_id)
 		_betting.points.save_to_disk()
+
+
 ## Reports the results to the flow, after a finish replay when the setting asks for one.
 func _on_race_finished(results: Array[Dictionary]) -> void:
 	var recorder: ReplayRecorder = _race.get_recorder()
