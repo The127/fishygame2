@@ -109,7 +109,7 @@ func _physics_process(delta: float) -> void:
 	for body: Node2D in get_overlapping_bodies():
 		if body is Marble:
 			var marble: Marble = body as Marble
-			if not marble.eaten and not marble.has_finished:
+			if not marble.eaten and not marble.has_finished and not marble.freeze:
 				_dissolve(marble)
 
 
