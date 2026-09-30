@@ -113,7 +113,7 @@ func _replay_extra() -> PackedFloat32Array:
 func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
 	_lair = int(Replayable.step(from, to, weight, REPLAY_BASE))
 	_stage = int(Replayable.step(from, to, weight, REPLAY_BASE + 1)) as Stage
-	_stage_time = Replayable.mix(from, to, weight, REPLAY_BASE + 2)
+	_stage_time = Replayable.step(from, to, weight, REPLAY_BASE + 2)
 	for i: int in _lures.size():
 		var start: int = REPLAY_BASE + 3 + i * AnglerLure.SNAPSHOT_FLOATS
 		_lures[i].show_snapshot(

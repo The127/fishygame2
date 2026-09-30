@@ -232,7 +232,7 @@ func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: floa
 ```
 
 Put the state on the node that owns it (a hazard records its jellyfish, lures and so on itself).
-While a replay plays, the node's `_physics_process` is switched off and `AnimatableBody2D`s stop
+While a replay plays, the node's `_process` and `_physics_process` are switched off and `AnimatableBody2D`s stop
 syncing to physics, so nothing moves on its own; afterwards the node gets back the state it had
 before. Keep the state small (a few dozen floats): it is stored about 30 times a second. Fish
 that vanish during the clip (swallowed by an anglerfish, Thanos snap) are replayed too. Particle

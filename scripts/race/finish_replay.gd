@@ -36,7 +36,8 @@ var _home_positions: Dictionary = {}
 var _home_looks: Dictionary = {}
 var _home_states: Array[PackedFloat32Array] = []
 ## Moving bodies under the replayable nodes, and whether each one synced to physics before.
-var _home_sync: Dictionary[AnimatableBody2D, bool] = {}
+## Untyped: a typed key that was freed makes iterating the dictionary raise an error.
+var _home_sync: Dictionary = {}
 
 
 ## Playback speed at clip time `time` for a winner crossing at `finish_time`.
@@ -204,6 +205,7 @@ func _begin_nodes() -> void:
 			continue
 		_home_states.append(node.call(Replayable.STATE_METHOD))
 		node.set_physics_process(false)
+		node.set_process(false)
 		_free_moving_bodies(node)
 		if node.has_method("replay_begin"):
 			node.call("replay_begin")
@@ -224,7 +226,7 @@ func _apply_nodes(weight: float) -> void:
 ## A body synced to physics ignores being moved outside a physics frame, but the replay moves
 ## things every rendered frame, so it is switched off while the replay plays.
 func _free_moving_bodies(node: Node) -> void:
-	if node is AnimatableBody2D and not _home_sync.has(node as AnimatableBody2D):
+	if node is AnimatableBody2D and not _home_sync.has(node):
 		var body: AnimatableBody2D = node as AnimatableBody2D
 		_home_sync[body] = body.sync_to_physics
 		body.sync_to_physics = false
@@ -241,12 +243,13 @@ func _end_nodes() -> void:
 			continue
 		node.call(Replayable.APPLY_METHOD, _home_states[n], _home_states[n], 0.0)
 		node.set_physics_process(true)
+		node.set_process(true)
 		if node.has_method("replay_end"):
 			node.call("replay_end")
 	_home_states.clear()
-	for body: AnimatableBody2D in _home_sync:
-		if is_instance_valid(body):
-			body.sync_to_physics = _home_sync[body]
+	for key: Variant in _home_sync.keys():
+		if is_instance_valid(key):
+			(key as AnimatableBody2D).sync_to_physics = _home_sync[key]
 	_home_sync.clear()
 
 
