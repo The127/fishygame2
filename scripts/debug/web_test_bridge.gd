@@ -46,6 +46,7 @@ func _snapshot() -> Dictionary:
 	return {
 		"flow": GameFlow.State.keys()[_flow.state],
 		"fps": Engine.get_frames_per_second(),
+		"perf": _perf(),
 		"players": _flow.get_contestants().size(),
 		"podiums": _podiums,
 		"podium": _last_podium,
@@ -54,7 +55,19 @@ func _snapshot() -> Dictionary:
 	}
 
 
+func _perf() -> Dictionary:
+	return {
+		"process_ms": Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
+		"physics_ms": Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
+		"draw_calls": Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+		"objects": Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+		"nodes": Performance.get_monitor(Performance.OBJECT_NODE_COUNT),
+		"static_mem_mb": Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
+	}
+
+
 ## act("open"), act("start"), act("stop"), act("players", count),
+## act("map", map_id) picks a map (an empty id is random),
 ## act("chat", user_id, text), which also tracks that viewer's balance.
 func _on_act(args: Array) -> void:
 	var action: String = str(args[0])
@@ -67,6 +80,8 @@ func _on_act(args: Array) -> void:
 			_panel.stop_pressed.emit()
 		"players":
 			_panel.add_debug_players_pressed.emit(int(args[1]))
+		"map":
+			_panel.map_selected.emit(str(args[1]))
 		"chat":
 			var user_id: String = str(args[1])
 			_watched[user_id] = true
