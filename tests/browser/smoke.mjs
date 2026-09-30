@@ -147,8 +147,11 @@ async function main() {
     if (podium.podium.length < 1) fail("podium was empty");
     log(`podium: ${podium.podium.join(", ")}`);
     const settled = podium.balances.alice;
-    // 5 racers pay 5x: bob winning gives 900 + 500, anything else leaves 900.
-    const expected = podium.podium[0] === "bob" ? 1400 : 900;
+    // Pool-style payouts: twice the pool goes to the winning stakes. Alice is the only bettor,
+    // so a win pays 2 * her stake on top of the 900 she kept; a loss leaves 900.
+    const stake = 100;
+    const kept = 1000 - stake;
+    const expected = podium.podium[0] === "bob" ? kept + 2 * stake : kept;
     if (settled !== expected) {
       fail(`alice ended with ${settled}, expected ${expected} (winner: ${podium.podium[0]})`);
     }
