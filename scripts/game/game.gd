@@ -753,10 +753,6 @@ func _result_text(
 	return text
 
 
-func _viewer_name(msg: ChatMessage) -> String:
-	return ChatReplies.viewer_name(msg)
-
-
 func _on_race_started(contestants: Array[Contestant]) -> void:
 	Sound.play(Sound.Sfx.GO)
 	var rng := RandomNumberGenerator.new()

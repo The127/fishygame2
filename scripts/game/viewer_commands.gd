@@ -36,7 +36,7 @@ var _last_stats_msec: Dictionary[String, int] = {}
 ## Feed it Chat.command_received, before anything that saves points.
 func remember_name(msg: ChatMessage, command: String, _args: PackedStringArray) -> void:
 	if NAMED_COMMANDS.has(command):
-		points.set_name(msg.user_id, _viewer_name(msg))
+		points.set_name(msg.user_id, ChatReplies.viewer_name(msg))
 
 
 ## Any chat line from a viewer who is already ranked fills in or refreshes their name, so
@@ -45,7 +45,7 @@ func remember_name(msg: ChatMessage, command: String, _args: PackedStringArray) 
 func backfill_name(msg: ChatMessage) -> void:
 	if not points.has_entry(msg.user_id):
 		return
-	if points.set_name(msg.user_id, _viewer_name(msg)):
+	if points.set_name(msg.user_id, ChatReplies.viewer_name(msg)):
 		points.save_to_disk()
 
 
@@ -97,7 +97,3 @@ func _reply_stats(msg: ChatMessage, args: PackedStringArray) -> void:
 			reply_ready.emit("No stats found for that name.")
 			return
 	reply_ready.emit(StatsText.chat_text(points, user_id))
-
-
-func _viewer_name(msg: ChatMessage) -> String:
-	return msg.display_name if msg.display_name != "" else msg.login
