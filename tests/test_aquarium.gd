@@ -121,3 +121,43 @@ func test_screen_shows_a_hint_when_nobody_exists_yet() -> void:
 	add_child_autofree(screen)
 	await wait_process_frames(2)
 	assert_true((screen.get_node("Empty") as Label).visible)
+
+
+func test_fish_with_a_trail_draw_it_behind_them() -> void:
+	var tank: AquariumTank = _make_tank(2)
+	var plain: AquariumFish = tank.swimmers()[0]
+	var trailed: AquariumFish = tank.swimmers()[1]
+	trailed.contestant.trail = FishTrail.Kind.STARS
+	trailed.assign(trailed.contestant)
+	trailed.z = 0.0
+	trailed.world_x = 0.2
+	plain.z = 0.0
+	for i: int in 10:
+		tank._process(1.0 / 30.0)
+	assert_null(plain._trail, "the plain trail is left to the tank's own bubbles")
+	assert_not_null(trailed._trail)
+	assert_true(trailed._trail.top_level)
+	assert_true(trailed._trail.emitting)
+	assert_gt(
+		trailed._trail.scale_amount_max,
+		FishTrail.make(FishTrail.Kind.STARS).scale_amount_max,
+		"near fish get bigger particles"
+	)
+
+
+func test_far_fish_do_not_emit_a_trail() -> void:
+	var tank: AquariumTank = _make_tank(1)
+	var fish: AquariumFish = tank.swimmers()[0]
+	fish.contestant.trail = FishTrail.Kind.RAINBOW
+	fish.assign(fish.contestant)
+	fish.fade = 1.0
+	fish.world_x = 0.2
+	fish.z = 1.0
+	fish._target_z = 1.0
+	tank._process(1.0 / 30.0)
+	assert_false(fish._trail.emitting)
+	fish.z = 0.0
+	fish._target_z = 0.0
+	for i: int in 3:
+		tank._process(1.0 / 30.0)
+	assert_true(fish._trail.emitting, "it emits again once the fish is near")
