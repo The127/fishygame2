@@ -136,18 +136,18 @@ func test_betting_still_open_during_countdown() -> void:
 	assert_true(_betting.has_bet("v1"))
 
 
-func test_winning_bet_pays_amount_times_racers() -> void:
+func test_winning_bet_takes_the_doubled_pool() -> void:
 	_bet("v1", "V1", "#bet Alice 100")
 	_bet("v2", "V2", "#bet Bob 100")
 	_betting.on_state_changed(GameFlow.State.RACING, GameFlow.State.COUNTDOWN)
 	watch_signals(_betting)
 	_betting.on_podium_ready(_podium(_alice))
-	assert_eq(_balance("v1"), 1100)
+	assert_eq(_balance("v1"), 900 + 400, "pool of 200, doubled")
 	assert_eq(_balance("v2"), 900)
 	assert_false(_betting.has_bet("v1"))
 	var results: Array = get_signal_parameters(_betting, "payouts_settled", 0)[0]
 	assert_eq(results.size(), 2)
-	assert_eq(results[0]["payout"], 200)
+	assert_eq(results[0]["payout"], 400)
 	assert_eq(results[1]["payout"], 0)
 
 

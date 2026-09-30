@@ -13,7 +13,7 @@ const RANDOM_MAP: String = TrackCatalog.RANDOM_ID
 ## settings screen shows them. Each only applies while [member chat_replies] is on.
 const CHAT_TOGGLES: Array[Dictionary] = [
 	{"key": "reply_joins", "label": "Confirm #join"},
-	{"key": "reply_bets", "label": "Confirm #bet"},
+	{"key": "reply_bets", "label": "Confirm #bet and #pick"},
 	{"key": "reply_chaos", "label": "Confirm #boost and #curse"},
 	{"key": "reply_shop", "label": "Confirm #fish and #color"},
 	{"key": "reply_results", "label": "Announce race results"},
@@ -35,6 +35,7 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "starting_balance", "label": "Starting points", "min": 0, "max": 1000000, "step": 100},
 	{"key": "min_bet", "label": "Min bet", "min": 1, "max": 1000000, "step": 10},
 	{"key": "max_bet", "label": "Max bet (0 = no limit)", "min": 0, "max": 1000000, "step": 100},
+	{"key": "pick_reward", "label": "Free pick reward", "min": 0, "max": 1000000, "step": 10},
 	{"key": "boost_cost", "label": "Boost cost", "min": 0, "max": 1000000, "step": 10},
 	{"key": "curse_cost", "label": "Curse cost", "min": 0, "max": 1000000, "step": 10},
 	{"key": "species_price", "label": "Fish species price", "min": 0, "max": 1000000, "step": 50},
@@ -83,6 +84,7 @@ var auto_join_seconds: int = 60
 var starting_balance: int = 1000
 var min_bet: int = 1
 var max_bet: int = 0
+var pick_reward: int = 50
 var boost_cost: int = 100
 var curse_cost: int = 150
 var species_price: int = 500

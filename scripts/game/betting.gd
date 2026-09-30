@@ -3,16 +3,23 @@ extends Node
 ## Viewers bet points on who wins. Bets are taken from the balance right away and
 ## paid out at the podium; the game scene feeds it the round events and chat commands.
 ##
-## Rules: one bet per viewer per round, open during the lobby and the countdown.
-## A bet on the winner pays amount * racer count (stake included). If nobody finished,
-## or the round is aborted, every bet is refunded.
+## Rules: one bet per viewer per round, open during the lobby and the countdown, for
+## anyone in chat (joined or not). Payouts are pool-style: all stakes of the round are
+## doubled and split among the bettors on the winner in proportion to their stakes. If
+## nobody bet on the winner, the stakes are lost. If nobody finished, or the round is
+## aborted, every bet is refunded.
+## A free "#pick <fish>" costs nothing: one per viewer per round, it pays [member pick_reward]
+## if the fish wins. It works alongside a bet.
 
 signal bet_placed(msg: ChatMessage, target: Contestant, amount: int)
 signal bet_rejected(msg: ChatMessage, reason: String)
 signal balance_reported(msg: ChatMessage, balance: int)
 ## Total bets or bettor count changed (also fires with empty state on a reset).
 signal bets_changed(summary: String)
-## One entry per bet: {user_id, name, target, amount, payout}. payout is 0 for a lost bet.
+signal pick_placed(msg: ChatMessage, target: Contestant)
+signal pick_rejected(msg: ChatMessage, reason: String)
+## One entry per bet or winning pick: {user_id, name, target, amount, payout, kind}. kind is
+## "bet" or "pick". payout is 0 for a lost bet; amount is 0 for a pick.
 signal payouts_settled(results: Array[Dictionary])
 
 @export var points_path: String = PointsStore.DEFAULT_PATH
@@ -21,6 +28,8 @@ signal payouts_settled(results: Array[Dictionary])
 @export var min_bet: int = 1
 ## Largest accepted bet. 0 means no limit.
 @export var max_bet: int = 0
+## Points a correct free pick pays.
+@export var pick_reward: int = 50
 
 var points: PointsStore = null
 
@@ -28,6 +37,8 @@ var _open: bool = false
 var _roster: Array[Contestant] = []
 ## user_id -> {"name": String, "target": Contestant, "amount": int}
 var _bets: Dictionary = {}
+## user_id -> {"name": String, "target": Contestant}
+var _picks: Dictionary = {}
 
 
 func _ready() -> void:
@@ -43,6 +54,8 @@ func handle_command(msg: ChatMessage, command: String, args: PackedStringArray) 
 	match command:
 		"bet":
 			place_bet(msg, args)
+		"pick":
+			place_pick(msg, args)
 		"points":
 			balance_reported.emit(msg, points.get_balance(msg.user_id))
 
@@ -77,11 +90,33 @@ func place_bet(msg: ChatMessage, args: PackedStringArray) -> bool:
 	if not reason.is_empty():
 		bet_rejected.emit(msg, reason)
 		return false
-	var name_to_show: String = msg.display_name if msg.display_name != "" else msg.login
-	_bets[msg.user_id] = {"name": name_to_show, "target": target, "amount": amount}
+	_bets[msg.user_id] = {"name": _display(msg), "target": target, "amount": amount}
 	points.add_stake(msg.user_id, amount)
 	points.save_to_disk()
 	bet_placed.emit(msg, target, amount)
+	bets_changed.emit(summary())
+	return true
+
+
+## Chat entry point for "#pick <name>". Free, one per viewer per round.
+func place_pick(msg: ChatMessage, args: PackedStringArray) -> bool:
+	var target: Contestant = null
+	var reason: String = ""
+	if not _open:
+		reason = "closed"
+	elif args.is_empty():
+		reason = "usage"
+	elif _picks.has(msg.user_id):
+		reason = "already_picked"
+	else:
+		target = _find_contestant(" ".join(args))
+		if target == null:
+			reason = "unknown_fish"
+	if not reason.is_empty():
+		pick_rejected.emit(msg, reason)
+		return false
+	_picks[msg.user_id] = {"name": _display(msg), "target": target}
+	pick_placed.emit(msg, target)
 	bets_changed.emit(summary())
 	return true
 
@@ -94,6 +129,10 @@ func has_bet(user_id: String) -> bool:
 	return _bets.has(user_id)
 
 
+func has_pick(user_id: String) -> bool:
+	return _picks.has(user_id)
+
+
 func total_wagered() -> int:
 	var total: int = 0
 	for bet: Dictionary in _bets.values():
@@ -102,9 +141,12 @@ func total_wagered() -> int:
 
 
 func summary() -> String:
-	if _bets.is_empty():
-		return ""
-	return "%d bets, %d points wagered" % [_bets.size(), total_wagered()]
+	var parts: PackedStringArray = []
+	if not _bets.is_empty():
+		parts.append("%d bets, %d points wagered" % [_bets.size(), total_wagered()])
+	if not _picks.is_empty():
+		parts.append("%d picks" % _picks.size())
+	return ", ".join(parts)
 
 
 ## Feed it GameFlow.state_changed.
@@ -112,6 +154,7 @@ func on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> 
 	match new_state:
 		GameFlow.State.LOBBY:
 			_refund_all()
+			_picks.clear()
 			_roster.clear()
 			_open = true
 			bets_changed.emit(summary())
@@ -120,11 +163,13 @@ func on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> 
 		GameFlow.State.IDLE:
 			_open = false
 			_refund_all()
+			_picks.clear()
 			_roster.clear()
 			bets_changed.emit(summary())
 
 
 ## Feed it GameFlow.podium_ready.
+@warning_ignore("integer_division")
 func on_podium_ready(podium: Array[Dictionary]) -> void:
 	_open = false
 	var winner_id: String = ""
@@ -132,33 +177,54 @@ func on_podium_ready(podium: Array[Dictionary]) -> void:
 		winner_id = str(podium[0]["user_id"])
 	if winner_id.is_empty():
 		_refund_all()
+		_picks.clear()
 		return
 	points.add_win(winner_id)
 	points.set_name(winner_id, str(podium[0]["name"]))
-	var odds: int = _roster.size()
 	var results: Array[Dictionary] = []
+	# Pool-style: the whole pool, doubled, shared by the winning stakes. Rounded down.
+	var pool: int = total_wagered()
+	var winning_stakes: int = 0
+	for bet: Dictionary in _bets.values():
+		if (bet["target"] as Contestant).user_id == winner_id:
+			winning_stakes += int(bet["amount"])
 	for user_id: String in _bets:
 		var bet: Dictionary = _bets[user_id]
 		var target: Contestant = bet["target"]
 		var amount: int = int(bet["amount"])
-		var payout: int = amount * odds if target.user_id == winner_id else 0
+		var payout: int = 0
+		if target.user_id == winner_id and winning_stakes > 0:
+			payout = 2 * pool * amount / winning_stakes
 		if payout > 0:
 			points.add(user_id, payout)
-		(
-			results
-			. append(
-				{
-					"user_id": user_id,
-					"name": bet["name"],
-					"target": target.display_name,
-					"amount": amount,
-					"payout": payout,
-				}
-			)
-		)
+		results.append(_result("bet", user_id, bet, amount, payout))
+	if pick_reward > 0:
+		for user_id: String in _picks:
+			var pick: Dictionary = _picks[user_id]
+			if (pick["target"] as Contestant).user_id == winner_id:
+				points.add(user_id, pick_reward)
+				results.append(_result("pick", user_id, pick, 0, pick_reward))
+	_picks.clear()
 	_clear_bets()
 	points.save_to_disk()
 	payouts_settled.emit(results)
+
+
+func _result(
+	kind: String, user_id: String, entry: Dictionary, amount: int, payout: int
+) -> Dictionary:
+	return {
+		"user_id": user_id,
+		"name": entry["name"],
+		"target": (entry["target"] as Contestant).display_name,
+		"amount": amount,
+		"payout": payout,
+		"kind": kind,
+	}
+
+
+func _display(msg: ChatMessage) -> String:
+	return msg.display_name if msg.display_name != "" else msg.login
 
 
 func _refund_all() -> void:

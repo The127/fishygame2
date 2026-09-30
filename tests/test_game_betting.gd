@@ -65,7 +65,7 @@ func test_bet_on_unjoined_viewer_rejected() -> void:
 	assert_eq(get_signal_parameters(_betting, "bet_rejected", 0)[1], "unknown_fish")
 
 
-func test_winning_bet_pays_amount_times_racer_count() -> void:
+func test_winning_bet_takes_the_doubled_pool() -> void:
 	_join(4)
 	_say("100", "#bet user1 100")
 	_say("101", "#bet user2 200")
@@ -74,7 +74,7 @@ func test_winning_bet_pays_amount_times_racer_count() -> void:
 	watch_signals(_betting)
 	_finish_marbles([1, 0, 2, 3])
 	assert_signal_emit_count(_betting, "payouts_settled", 1)
-	assert_eq(_balance("100"), 900 + 400, "100 * 4 racers")
+	assert_eq(_balance("100"), 900 + 600, "pool of 300, doubled")
 	assert_eq(_balance("101"), 800, "lost bets are gone")
 	assert_false(_betting.has_bet("100"), "bets are cleared after settling")
 	var results: Array = get_signal_parameters(_betting, "payouts_settled", 0)[0]
@@ -172,3 +172,15 @@ func test_bet_during_podium_rejected() -> void:
 	_say("100", "#bet user0 100")
 	assert_eq(get_signal_parameters(_betting, "bet_rejected", 0)[1], "closed")
 	assert_eq(_balance("100"), 1000)
+
+
+func test_pick_from_a_viewer_who_never_joined_pays_the_reward() -> void:
+	_join(2)
+	_say("500", "#pick user0")
+	_say("501", "#bet user0 100")
+	assert_eq(_balance("500"), 1000, "a pick costs nothing")
+	_flow.start_race()
+	_flow.tick(3.0)
+	_finish_marbles([0, 1])
+	assert_eq(_balance("500"), 1000 + _betting.pick_reward)
+	assert_eq(_balance("501"), 900 + 200)

@@ -30,6 +30,7 @@ const TABS: Array[Dictionary] = [
 			"starting_balance",
 			"min_bet",
 			"max_bet",
+			"pick_reward",
 			"boost_cost",
 			"curse_cost",
 			"viewer_cooldown",
