@@ -634,4 +634,33 @@ THEMES = {
              "high": 3500.0, "gain": 0.05},
         ),
     },
+    # Inside the whale: slow D minor, a heartbeat under a warbling pad and gurgling bells.
+    "whale": {
+        "seed": 34,
+        "chords": (
+            (38, 50, 57, 62, 65),
+            (34, 46, 53, 58, 62),
+            (41, 53, 57, 60, 65),
+            (36, 48, 55, 60, 64),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.09,
+        "trem_rate": 0.22,
+        "trem_depth": 0.4,
+        "rumble_cutoff": 200.0,
+        "rumble_gain": 0.7,
+        "layers": (
+            {"kind": "pulse", "bpm": 72, "freq": 52.0, "decay": 0.22, "gain": 0.5},
+            {"kind": "swirl", "low": 150.0, "high": 900.0, "rate": 0.12, "gain": 0.05},
+            {
+                "kind": "plucks",
+                "count": 12,
+                "notes": (69, 72, 74, 77, 81),
+                "decay": 0.5,
+                "gain": 0.07,
+                "bell": True,
+                "gaps": (0.5, 0.75, 1.5),
+            },
+        ),
+    },
 }

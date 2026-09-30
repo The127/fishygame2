@@ -206,7 +206,7 @@ Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
 Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and collapsing ruined towers on Sunken City. The Jellyfish
 
-Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine. The Jellyfish
+Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers. Their tentacles briefly catch and drag along any fish that
 touches them (then let go, and ignore that fish for a few seconds). The hazard is a surge that speeds them up.
@@ -281,6 +281,14 @@ fish for minutes in testing. The drum waits a seeded moment before it starts and
 rim can not hit a fish. Its hazard is a spin cycle (`scripts/tracks/spin_cycle_hazard.gd`): the drum
 whirls through one or two whole laps, sometimes counterclockwise, then drops back into its tumble
 exactly where it was. The drum keeps tumbling when hazards are off.
+
+Inside the Whale swallows the fish at the start: a throat slide drops into a stomach whose
+pink muscle lobes swell and relax (`scripts/tracks/pulsing_bumper.gd`, the pulse starts at a point
+drawn from the race seed) and whose digestive pools slow any fish that wades through them
+(`digestive_pool.gd`, a drag and a little buoyancy, never a stop). A gut in the last intestine
+squeezes fish along all the time (`peristalsis.gd`). The hazard is a burp jet that shoves fish
+along one of the three lanes at a seeded moment. At the finish a blowhole (`blowhole.gd`) throws
+every fish that has crossed the line up into the air, and leaves the ones still racing alone.
 
 ### Finish replay and moving map parts
 

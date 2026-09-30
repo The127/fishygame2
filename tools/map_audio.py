@@ -144,6 +144,14 @@ JINGLES = {
                   (1.0, 84, 1.7, 0.8)),
         "echo": (0.3, 1, 0.3),
     },
+    # Inside the whale: a wobbly bell line that gets swallowed, then a fat low chord.
+    "whale": {
+        "partials": BELL,
+        "notes": ((0.0, 81, 1.2, 0.5), (0.14, 76, 1.2, 0.5), (0.28, 79, 1.2, 0.5),
+                  (0.42, 72, 1.2, 0.5), (0.56, 76, 1.2, 0.5), (0.8, 57, 2.0, 0.9),
+                  (0.8, 64, 2.0, 0.9), (0.8, 45, 2.0, 0.9)),
+        "echo": (0.3, 3, 0.4),
+    },
 }
 
 
@@ -456,6 +464,34 @@ def _washer(out, rng):
     bubbles(out, rng, 8, 500.0, 1100.0, 0.1)
 
 
+def heartbeat(out: list, beats: tuple, freq: float, gain: float):
+    """Lub-dub: two soft low thumps per beat."""
+    for start in beats:
+        for k, (delay, g) in enumerate(((0.0, 1.0), (0.32, 0.65))):
+            thump = [math.sin(TAU * freq * (1.0 - 0.3 * i / AMB_RATE) * i / AMB_RATE)
+                     * math.exp(-i / (0.09 * AMB_RATE)) for i in range(int(0.3 * AMB_RATE))]
+            add(out, thump, start + delay, gain * g)
+
+
+def gurgles(out: list, rng: random.Random, times: tuple, low: float, high: float, gain: float):
+    """Wet glugs: short falling tones with a wobble."""
+    for start in times:
+        f0 = rng.uniform(low, high)
+        length = rng.uniform(0.25, 0.5)
+        glug = [math.sin(TAU * f0 * (1.0 - 0.5 * i / (length * AMB_RATE)) * i / AMB_RATE
+                         + 2.0 * math.sin(TAU * 18.0 * i / AMB_RATE))
+                * math.sin(math.pi * i / (length * AMB_RATE)) ** 2
+                for i in range(int(length * AMB_RATE))]
+        add(out, glug, start, gain)
+
+
+def _whale(out, rng):
+    bed(out, rng, 0.0, 300.0, 0.8, swell=0.4, cycles=1)
+    heartbeat(out, (0.5, 2.5, 4.5, 6.5), 55.0, 0.9)
+    gurgles(out, rng, (1.3, 3.3, 5.6, 7.2), 140.0, 260.0, 0.35)
+    bubbles(out, rng, 5, 300.0, 700.0, 0.09)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -471,6 +507,7 @@ AMBIENCE = {
     "fork": (42, _fork),
     "city": (43, _city),
     "washer": (50, _washer),
+    "whale": (51, _whale),
 }
 
 
