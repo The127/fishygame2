@@ -118,5 +118,5 @@ func test_own_fish_boost_and_curse_rejected_without_charge() -> void:
 
 
 func test_own_fish_rejections_have_their_own_notice_text() -> void:
-	assert_eq(Game.CHAOS_REJECTIONS["self_boost"], "you can't boost your own fish")
-	assert_eq(Game.CHAOS_REJECTIONS["self_curse"], "you can't curse your own fish")
+	assert_eq(ChatReplies.CHAOS_REJECTIONS["self_boost"], "you can't boost your own fish")
+	assert_eq(ChatReplies.CHAOS_REJECTIONS["self_curse"], "you can't curse your own fish")
