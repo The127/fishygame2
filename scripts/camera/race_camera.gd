@@ -36,7 +36,13 @@ const PHOTO_FRAME: Vector2 = Vector2(480.0, 270.0)
 ## Easing rate during the hold. Applied in real time, not slowed with the game.
 const PHOTO_RATE: float = 4.0
 
+## Pixels a punch shakes the view by at most, and how fast it dies away (per second).
+const PUNCH_DECAY: float = 5.0
+const PUNCH_CUTOFF: float = 0.3
+
 var _holding: bool = false
+var _punch: float = 0.0
+var _punch_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _bounds: Rect2 = Rect2(0.0, 0.0, 1920.0, 1080.0)
 var _following: bool = false
 var _target_center: Vector2 = Vector2(960.0, 540.0)
@@ -56,6 +62,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_update_punch(delta)
 	if _holding:
 		_process_hold(delta)
 		return
@@ -84,6 +91,29 @@ func _process(delta: float) -> void:
 		step = step.limit_length(JUMP_PAN_SPEED * delta)
 	_center = CameraFraming.clamp_center(current + step, new_zoom, _play_size(), _bounds)
 	_place(new_zoom)
+
+
+## A brief shake of the view, `strength` pixels at first. Only moves the camera offset, so
+## framing and follow easing are untouched.
+func punch(strength: float) -> void:
+	_punch = maxf(_punch, strength)
+
+
+## Current shake strength in pixels (0 when calm).
+func punch_strength() -> float:
+	return _punch
+
+
+func _update_punch(delta: float) -> void:
+	if _punch <= 0.0:
+		return
+	# The game may be slowed (photo finish); the shake dies away in real time.
+	_punch *= exp(-PUNCH_DECAY * delta / maxf(Engine.time_scale, 0.05))
+	if _punch < PUNCH_CUTOFF:
+		_punch = 0.0
+		offset = Vector2.ZERO
+		return
+	offset = Vector2(_punch_rng.randf_range(-1.0, 1.0), _punch_rng.randf_range(-1.0, 1.0)) * _punch
 
 
 ## Photo finish: hold a tight frame on `point`. Ignores follow() until release_hold().

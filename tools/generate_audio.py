@@ -244,6 +244,112 @@ def sfx_kraken_swoosh() -> list:
     return out
 
 
+def band(samples: list, low: float, high: float) -> list:
+    """Band-passed copy: keeps roughly `low`..`high` Hz."""
+    top = lowpass(samples, high)
+    return [a - b for a, b in zip(top, lowpass(top, low))]
+
+
+def sfx_rod_cast() -> list:
+    """Line whistling down, then a plop and a few bubbles."""
+    rng = random.Random(41)
+    out = [0.0] * n_samples(0.55)
+    whoosh = band(noise(0.22, rng), 900.0, 4200.0)
+    whoosh = [w * math.sin(math.pi * i / len(whoosh)) ** 1.5 for i, w in enumerate(whoosh)]
+    mix_into(out, whoosh, 0, 1.2)
+    plop = tone(lambda t: 900.0 * math.exp(-t / 0.05) + 180.0, 0.25, pluck_env(0.003, 0.07))
+    mix_into(out, plop, n_samples(0.2), 0.9)
+    for start, f in ((0.3, 700.0), (0.38, 960.0)):
+        bubble = tone(lambda t, f=f: f * (1.0 + 1.5 * t), 0.1, pluck_env(0.003, 0.03))
+        mix_into(out, bubble, n_samples(start), 0.3)
+    return out
+
+
+def sfx_rod_catch() -> list:
+    """A sharp tug: a plucked line twang rising in pitch over reel clicks."""
+    rng = random.Random(43)
+    seconds = 0.65
+    out = tone(
+        lambda t: 300.0 + 700.0 * min(1.0, t / 0.12),
+        seconds,
+        pluck_env(0.004, 0.14),
+        ((1.0, 1.0), (2.0, 0.5), (3.0, 0.3)),
+    )
+    for k in range(9):
+        click = lowpass(noise(0.012, rng), 3000.0)
+        mix_into(out, click, n_samples(0.12 + 0.05 * k), 0.8 - 0.05 * k)
+    return out
+
+
+def sfx_net_cast() -> list:
+    """A soft cloth swish that opens up, with a flutter of fine ripples."""
+    rng = random.Random(47)
+    seconds = 0.6
+    hiss = band(noise(seconds, rng), 500.0, 3200.0)
+    out = []
+    for i, h in enumerate(hiss):
+        t = i / SAMPLE_RATE
+        env = math.sin(math.pi * min(1.0, t / seconds)) ** 2
+        flutter = 0.7 + 0.3 * math.sin(TAU * 26.0 * t)
+        out.append(h * env * flutter)
+    shimmer = tone(lambda t: 1500.0 + 1800.0 * t, 0.35, pluck_env(0.05, 0.12))
+    mix_into(out, shimmer, n_samples(0.15), 0.12)
+    return out
+
+
+def sfx_net_catch() -> list:
+    """Rope creaking tight: a falling filtered-noise squeak and two dull thumps."""
+    rng = random.Random(53)
+    seconds = 0.55
+    raw = noise(seconds, rng)
+    out = []
+    y = 0.0
+    for i, s in enumerate(raw):
+        t = i / SAMPLE_RATE
+        cutoff = 1800.0 - 1100.0 * min(1.0, t / 0.4)
+        y += (1.0 - math.exp(-TAU * cutoff / SAMPLE_RATE)) * (s - y)
+        out.append(y * math.exp(-t / 0.25) * (0.6 + 0.4 * math.sin(TAU * 38.0 * t)))
+    for start, f in ((0.0, 120.0), (0.12, 95.0)):
+        mix_into(out, tone(lambda t, f=f: f, 0.2, pluck_env(0.004, 0.06)), n_samples(start), 0.9)
+    return out
+
+
+def sfx_blast_cast() -> list:
+    """A quick rising charge whine that drops into a deep underwater boom."""
+    rng = random.Random(59)
+    out = [0.0] * n_samples(0.85)
+    charge = tone(
+        lambda t: 200.0 * math.pow(6.0, t / 0.14),
+        0.14,
+        lambda t: min(1.0, t / 0.02),
+        ((1.0, 1.0), (2.0, 0.3)),
+    )
+    mix_into(out, charge, 0, 0.6)
+    boom = tone(
+        lambda t: 40.0 + 90.0 * math.exp(-t / 0.08),
+        0.7,
+        pluck_env(0.004, 0.22),
+        ((1.0, 1.0), (2.0, 0.4)),
+    )
+    mix_into(out, boom, n_samples(0.14), 1.0)
+    crack = lowpass(noise(0.3, rng), 1800.0)
+    crack = [c * math.exp(-i / SAMPLE_RATE / 0.07) for i, c in enumerate(crack)]
+    mix_into(out, crack, n_samples(0.14), 0.9)
+    return out
+
+
+def sfx_blast_hit() -> list:
+    """Bubbles scattering: a cluster of fast rising blips."""
+    rng = random.Random(61)
+    out = [0.0] * n_samples(0.5)
+    for _ in range(12):
+        start = rng.uniform(0.0, 0.3)
+        f = rng.uniform(500.0, 1500.0)
+        bubble = tone(lambda t, f=f: f * (1.0 + 2.0 * t), 0.1, pluck_env(0.003, 0.03))
+        mix_into(out, bubble, n_samples(start), rng.uniform(0.3, 0.7))
+    return out
+
+
 def sfx_win() -> list:
     """Bright arpeggio into a held chord with a soft echo."""
     seconds = 2.4
@@ -349,6 +455,12 @@ def main() -> None:
         "sfx_meow.wav": sfx_meow,
         "sfx_kraken_grumble.wav": sfx_kraken_grumble,
         "sfx_kraken_swoosh.wav": sfx_kraken_swoosh,
+        "sfx_rod_cast.wav": sfx_rod_cast,
+        "sfx_rod_catch.wav": sfx_rod_catch,
+        "sfx_net_cast.wav": sfx_net_cast,
+        "sfx_net_catch.wav": sfx_net_catch,
+        "sfx_blast_cast.wav": sfx_blast_cast,
+        "sfx_blast_hit.wav": sfx_blast_hit,
     }
     for name, make in effects.items():
         write_wav(name, fade_edges(make()), SFX_PEAK)
