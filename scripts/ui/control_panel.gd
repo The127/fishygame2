@@ -19,8 +19,10 @@ signal mute_toggled(muted: bool)
 signal power_pressed(kind: int)
 ## Streamer wants to skip the finish replay (button or Space).
 signal skip_replay_pressed
-## Streamer wants to leave for the home screen (button or Esc).
+## Streamer wants to leave for the home screen (button).
 signal home_pressed
+## Streamer pressed Esc: step back one level (podium to an empty map). Never goes home.
+signal back_pressed
 ## Streamer confirmed leaving after [method ask_leave].
 signal leave_confirmed
 
@@ -117,7 +119,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _confirm.visible:
 			cancel_leave()
 		else:
-			home_pressed.emit()
+			back_pressed.emit()
 
 
 func _process(delta: float) -> void:

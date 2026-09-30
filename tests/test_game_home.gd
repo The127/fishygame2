@@ -43,16 +43,40 @@ func test_stay_dismisses_the_question() -> void:
 	assert_eq(_flow.state, GameFlow.State.RACING)
 
 
-func test_esc_key_requests_home_and_cancels_the_question() -> void:
-	_start_race(2)
+func _press_esc() -> void:
 	var esc := InputEventKey.new()
 	esc.keycode = KEY_ESCAPE
 	esc.pressed = true
 	_panel._unhandled_input(esc)
-	assert_true((_panel.get_node("Panel/Box/LeaveConfirm") as Control).visible)
-	_panel._unhandled_input(esc)
+
+
+func test_esc_mid_race_does_nothing_and_never_goes_home() -> void:
+	_start_race(2)
+	_press_esc()
+	assert_eq(_flow.state, GameFlow.State.RACING)
+	assert_false((_panel.get_node("Panel/Box/LeaveConfirm") as Control).visible)
+
+
+func test_esc_cancels_an_open_leave_question() -> void:
+	_start_race(2)
+	_panel.home_pressed.emit()
+	_press_esc()
 	assert_false((_panel.get_node("Panel/Box/LeaveConfirm") as Control).visible)
 	assert_eq(_flow.state, GameFlow.State.RACING)
+
+
+func test_esc_on_the_podium_returns_to_an_empty_map() -> void:
+	_start_race(2)
+	_finish_marbles([1, 0])
+	assert_eq(_flow.state, GameFlow.State.PODIUM)
+	_press_esc()
+	assert_eq(_flow.state, GameFlow.State.LOBBY)
+	assert_eq(_flow.get_contestants().size(), 0)
+
+
+func test_esc_in_an_empty_lobby_does_nothing() -> void:
+	_press_esc()
+	assert_eq(_flow.state, GameFlow.State.LOBBY)
 
 
 func test_confirmed_leave_refunds_bets_and_chaos_and_stops_auto_mode() -> void:
