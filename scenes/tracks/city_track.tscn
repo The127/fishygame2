@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
 [ext_resource type="Script" path="res://scripts/tracks/ruin_hazard.gd" id="2_ruin"]
+[ext_resource type="Script" path="res://scripts/tracks/pulsing_bumper.gd" id="3_bell"]
+[ext_resource type="Script" path="res://scripts/tracks/drift_zone.gd" id="4_drift"]
 
 [sub_resource type="PhysicsMaterial" id="PM_track"]
 friction = 0.6
@@ -79,6 +81,16 @@ size = Vector2(440, 200)
 
 [sub_resource type="RectangleShape2D" id="Rect_zone18"]
 size = Vector2(170, 72)
+
+[sub_resource type="PhysicsMaterial" id="PM_bell"]
+friction = 0.2
+bounce = 0.8
+
+[sub_resource type="CircleShape2D" id="Circle_bell"]
+radius = 17.0
+
+[sub_resource type="RectangleShape2D" id="Rect_drift"]
+size = Vector2(360, 120)
 
 [node name="Track" type="Node2D"]
 script = ExtResource("1_track")
@@ -964,6 +976,72 @@ physics_material_override = SubResource("PM_track")
 [node name="Visual" type="Polygon2D" parent="Ruins/RuinTC3/Slab"]
 color = Color(0.34, 0.4, 0.54, 1)
 polygon = PackedVector2Array(-48.37, 0.33, -17.75, -20.22, 21.97, -15.53, 46.96, 11.59)
+
+[node name="Bell1" type="AnimatableBody2D" parent="."]
+position = Vector2(600, 140)
+physics_material_override = SubResource("PM_bell")
+script = ExtResource("3_bell")
+phase = 0.0
+
+[node name="Collider" type="CollisionShape2D" parent="Bell1"]
+shape = SubResource("Circle_bell")
+
+[node name="Visual" type="Polygon2D" parent="Bell1"]
+color = Color(0.85, 0.6, 0.25, 1)
+polygon = PackedVector2Array(-5, -17, 5, -17, 12, -10, 15, 2, 19, 12, -19, 12, -15, 2, -12, -10)
+
+[node name="Rim" type="Line2D" parent="Bell1"]
+width = 2.0
+default_color = Color(1, 0.85, 0.5, 0.8)
+points = PackedVector2Array(-5, -17, 5, -17, 12, -10, 15, 2, 19, 12, -19, 12, -15, 2, -12, -10, -5, -17)
+joint_mode = 2
+
+[node name="Bell2" type="AnimatableBody2D" parent="."]
+position = Vector2(1100, 478)
+physics_material_override = SubResource("PM_bell")
+script = ExtResource("3_bell")
+phase = 0.33
+
+[node name="Collider" type="CollisionShape2D" parent="Bell2"]
+shape = SubResource("Circle_bell")
+
+[node name="Visual" type="Polygon2D" parent="Bell2"]
+color = Color(0.85, 0.6, 0.25, 1)
+polygon = PackedVector2Array(-5, -17, 5, -17, 12, -10, 15, 2, 19, 12, -19, 12, -15, 2, -12, -10)
+
+[node name="Rim" type="Line2D" parent="Bell2"]
+width = 2.0
+default_color = Color(1, 0.85, 0.5, 0.8)
+points = PackedVector2Array(-5, -17, 5, -17, 12, -10, 15, 2, 19, 12, -19, 12, -15, 2, -12, -10, -5, -17)
+joint_mode = 2
+
+[node name="Bell3" type="AnimatableBody2D" parent="."]
+position = Vector2(540, 760)
+physics_material_override = SubResource("PM_bell")
+script = ExtResource("3_bell")
+phase = 0.66
+
+[node name="Collider" type="CollisionShape2D" parent="Bell3"]
+shape = SubResource("Circle_bell")
+
+[node name="Visual" type="Polygon2D" parent="Bell3"]
+color = Color(0.85, 0.6, 0.25, 1)
+polygon = PackedVector2Array(-5, -17, 5, -17, 12, -10, 15, 2, 19, 12, -19, 12, -15, 2, -12, -10)
+
+[node name="Rim" type="Line2D" parent="Bell3"]
+width = 2.0
+default_color = Color(1, 0.85, 0.5, 0.8)
+points = PackedVector2Array(-5, -17, 5, -17, 12, -10, 15, 2, 19, 12, -19, 12, -15, 2, -12, -10, -5, -17)
+joint_mode = 2
+
+[node name="Plaza" type="Area2D" parent="."]
+position = Vector2(307.0, 112.3)
+rotation = 0.11746
+monitorable = false
+script = ExtResource("4_drift")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Plaza"]
+shape = SubResource("Rect_drift")
 
 [node name="TreasureSpots" type="Node2D" parent="."]
 
