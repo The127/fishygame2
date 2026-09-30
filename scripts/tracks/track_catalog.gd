@@ -46,6 +46,11 @@ const MAPS: Array[Dictionary] = [
 		"name": "Coral Maze",
 		"scene": preload("res://scenes/tracks/coral_track.tscn"),
 	},
+	{
+		"id": "kraken",
+		"name": "Kraken's Lair",
+		"scene": preload("res://scenes/tracks/kraken_track.tscn"),
+	},
 ]
 
 

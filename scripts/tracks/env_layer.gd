@@ -5,7 +5,7 @@ extends Node2D
 ## The shapes are tessellated once into a single mesh (one draw call per layer) instead of
 ## thousands of canvas draw commands.
 
-enum Kind { SPIRES, KELP, SHARDS, MASTS, BLOOMS, CORAL }
+enum Kind { SPIRES, KELP, SHARDS, MASTS, BLOOMS, CORAL, TENTACLES }
 
 const WIDTH: float = 2400.0
 const FLOOR_Y: float = 1080.0
@@ -84,6 +84,8 @@ func _build() -> void:
 				_draw_bloom(Vector2(x, base_y), h * flip)
 			Kind.CORAL:
 				_draw_coral(Vector2(x, base_y), h * flip)
+			Kind.TENTACLES:
+				_draw_tentacle(Vector2(x, base_y), h * flip)
 	if _vertices.is_empty():
 		_mesh = null
 		return
@@ -182,6 +184,51 @@ func _draw_coral_branch(from: Vector2, direction: Vector2, length: float, depth:
 		_draw_coral_branch(
 			to, direction.rotated(_rng.randf_range(-0.15, 0.15)), length * 0.55, depth - 2
 		)
+
+
+## A kraken tentacle: a wavering, tapering arm that curls at the tip, with a row of suckers.
+func _draw_tentacle(base: Vector2, height: float) -> void:
+	var up: float = -signf(height)
+	var steps: int = 16
+	var step: float = absf(height) / float(steps)
+	var heading: float = -PI * 0.5 * up
+	var phase: float = _rng.randf_range(0.0, TAU)
+	var wobble: float = _rng.randf_range(0.18, 0.32)
+	var curl: float = _rng.randf_range(-1.0, 1.0)
+	var points: PackedVector2Array = PackedVector2Array([base])
+	var widths: PackedFloat32Array = PackedFloat32Array()
+	var thickness: float = 12.0 + absf(height) * 0.09
+	for i: int in steps:
+		var t: float = float(i) / float(steps)
+		heading += sin(t * 5.0 + phase) * wobble * 0.5 + curl * pow(t, 3.0) * 0.55
+		points.append(points[i] + Vector2.from_angle(heading) * step)
+		widths.append(lerpf(thickness, 2.0, pow(t, 0.8)))
+	widths.append(2.0)
+	_add_tapered(points, widths, color)
+	if highlight.a > 0.0:
+		for i: int in range(3, steps, 2):
+			var side: Vector2 = (points[i + 1] - points[i]).orthogonal().normalized()
+			_add_circle(points[i] - side * widths[i] * 0.2, maxf(widths[i] * 0.14, 1.5), highlight)
+
+
+## A stroke whose width changes from point to point, with mitered joints.
+func _add_tapered(points: PackedVector2Array, widths: PackedFloat32Array, fill: Color) -> void:
+	var count: int = points.size()
+	var first: int = _vertices.size()
+	for i: int in count:
+		var before: Vector2 = (points[i] - points[maxi(i - 1, 0)]).normalized()
+		var after: Vector2 = (points[mini(i + 1, count - 1)] - points[i]).normalized()
+		var tangent: Vector2 = (before + after).normalized()
+		if tangent == Vector2.ZERO:
+			tangent = after if after != Vector2.ZERO else before
+		var normal: Vector2 = Vector2(-tangent.y, tangent.x)
+		_vertices.append(points[i] + normal * widths[i] * 0.5)
+		_vertices.append(points[i] - normal * widths[i] * 0.5)
+		_colors.append(fill)
+		_colors.append(fill)
+	for i: int in count - 1:
+		var a: int = first + i * 2
+		_indices.append_array(PackedInt32Array([a, a + 1, a + 2, a + 1, a + 3, a + 2]))
 
 
 ## A broken mast with a yard and a torn sail, or every third one a curved hull rib.

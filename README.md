@@ -180,7 +180,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents, a surge that spins up the vortex on
-Whirlpool and a tide that sloshes the flip gates on Coral Maze. The Jellyfish
+Whirlpool, a tide that sloshes the flip gates on Coral Maze and tentacle swats on Kraken's Lair. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers. Their tentacles briefly catch and drag along any fish that
 touches them (then let go, and ignore that fish for a few seconds). The hazard is a surge that speeds them up.
@@ -199,6 +199,12 @@ Coral Maze's gimmick is the flip gate (`scripts/tracks/flip_gate.gd`): a tilting
 ledge that flips every time a fish rolls off it, so the order fish arrive in decides which of the
 four routes each one takes. Gates start in the same state every race, so a seed replays the same
 routes.
+
+Kraken's Lair has three switchback ramps under the gaze of a huge kraken eye. Its hazard
+(`scripts/tracks/kraken_hazard.gd`) is a swat: a dashed arc and the eye snapping open warn that
+one or two of the four tentacles rooted below the frame are about to sweep across the ramps and fling
+every fish they touch sideways, forwards or back. The sweeps are a force field rather than a solid
+body, so a fish is thrown along instead of being crushed. The eye is `scripts/tracks/kraken_eye.gd`.
 
 Basic sanity checks:
 
