@@ -39,9 +39,12 @@ const TOP_COOLDOWN_MSEC: int = 30000
 ## Milliseconds between "#help" replies in chat, shared by everyone.
 const HELP_COOLDOWN_MSEC: int = 30000
 
+## Milliseconds before the same viewer gets another "#stats" reply.
+const STATS_COOLDOWN_MSEC: int = 15000
+
 ## Commands that put a viewer on the leaderboard, so their name is remembered.
 const NAMED_COMMANDS: PackedStringArray = [
-	"join", "bet", "boost", "curse", "points", "fish", "color", "shop"
+	"join", "bet", "boost", "curse", "points", "fish", "color", "shop", "stats"
 ]
 
 ## Most payouts named in the race result line.
@@ -58,6 +61,7 @@ var settings: GameSettings = null
 var _last_reply_msec: Dictionary[String, int] = {}
 var _last_top_msec: int = -TOP_COOLDOWN_MSEC
 var _last_help_msec: int = -HELP_COOLDOWN_MSEC
+var _last_stats_msec: Dictionary[String, int] = {}
 
 var _map_choice: String = TrackCatalog.RANDOM_ID
 var _map_id: String = ""
@@ -109,6 +113,7 @@ func _ready() -> void:
 	_flow.state_changed.connect(_chaos.on_state_changed)
 	_chaos.effect_requested.connect(_on_effect_requested)
 	_chaos.effect_applied.connect(_on_effect_applied)
+	_chaos.effect_applied.connect(_record_effect_stats)
 	_chaos.effect_rejected.connect(_on_effect_rejected)
 	Chat.message_received.connect(_cheer.handle_message)
 	_flow.player_joined.connect(_cheer.add_contestant)
@@ -124,9 +129,11 @@ func _ready() -> void:
 	_betting.bets_changed.connect(_overlay.show_bets)
 	_betting.payouts_settled.connect(_overlay.show_payouts)
 	_betting.payouts_settled.connect(_on_payouts_settled)
+	_betting.payouts_settled.connect(_record_bet_stats)
 	_betting.bet_placed.connect(_on_bet_placed)
 	_betting.bet_rejected.connect(_on_bet_rejected)
 	_betting.balance_reported.connect(_on_balance_reported)
+	_race.race_finished.connect(_record_race_stats)
 	_race.race_finished.connect(_flow.report_race_finished)
 	_panel.open_lobby_pressed.connect(_flow.open_lobby)
 	_panel.start_pressed.connect(_flow.start_race)
@@ -226,9 +233,12 @@ func _backfill_name(msg: ChatMessage) -> void:
 		points.save_to_disk()
 
 
-func _on_command(_msg: ChatMessage, command: String, _args: PackedStringArray) -> void:
+func _on_command(msg: ChatMessage, command: String, args: PackedStringArray) -> void:
 	if command == "help":
 		_reply_help()
+		return
+	if command == "stats":
+		_reply_stats(msg, args)
 		return
 	if command != "top":
 		return
@@ -247,6 +257,69 @@ func _reply_help() -> void:
 		return
 	_last_help_msec = now
 	Chat.send_message(HelpText.CHAT_REPLY)
+
+
+## "#stats" shows the caller's record, "#stats @name" someone else's. Each viewer has a cooldown.
+func _reply_stats(msg: ChatMessage, args: PackedStringArray) -> void:
+	if not settings.chat_replies:
+		return
+	var now: int = Time.get_ticks_msec()
+	if (
+		_last_stats_msec.has(msg.user_id)
+		and now - _last_stats_msec[msg.user_id] < STATS_COOLDOWN_MSEC
+	):
+		return
+	_last_stats_msec[msg.user_id] = now
+	var points: PointsStore = _betting.points
+	var user_id: String = msg.user_id
+	if not args.is_empty():
+		var asked: String = " ".join(args)
+		user_id = points.find_by_name(asked)
+		if user_id.is_empty():
+			Chat.send_message(
+				(
+					"No stats for %s, they have to join a race first."
+					% asked.left(PointsStore.MAX_NAME_LENGTH)
+				)
+			)
+			return
+	Chat.send_message(StatsText.chat_text(points, user_id))
+
+
+## Feed it Race.race_finished: counts the race for everyone on the field and keeps the times
+## and podium places. Ids are roster indexes.
+func _record_race_stats(results: Array[Dictionary]) -> void:
+	var points: PointsStore = _betting.points
+	var contestants: Array[Contestant] = _flow.get_contestants()
+	for r: Dictionary in results:
+		var id: int = int(r["id"])
+		if id < 0 or id >= contestants.size():
+			continue
+		var user_id: String = contestants[id].user_id
+		points.stats.record_race(user_id)
+		if bool(r["finished"]):
+			points.stats.record_finish_time(user_id, _map_id, float(r["time"]))
+			if int(r["place"]) <= _flow.podium_size:
+				points.stats.record_podium(user_id)
+	points.save_to_disk()
+
+
+## Feed it Betting.payouts_settled. Refunds are not reported there, so they never count.
+func _record_bet_stats(results: Array[Dictionary]) -> void:
+	var points: PointsStore = _betting.points
+	for r: Dictionary in results:
+		points.stats.record_bet(str(r["user_id"]), int(r["amount"]), int(r["payout"]))
+	points.save_to_disk()
+
+
+func _record_effect_stats(
+	msg: ChatMessage, _target: Contestant, kind: Chaos.Kind, _cost: int
+) -> void:
+	if kind == Chaos.Kind.BOOST:
+		_betting.points.stats.record_boost(msg.user_id)
+	else:
+		_betting.points.stats.record_curse(msg.user_id)
+	_betting.points.save_to_disk()
 
 
 func _show_leaderboard() -> void:

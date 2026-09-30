@@ -14,8 +14,9 @@ extends RefCounted
 ##
 ## Also keeps the all-time leaderboard data: race wins per viewer and the last display name
 ## seen for each viewer. Version 1 files have neither; they load with no wins and no names.
+## Version 3 adds [member stats], the per-viewer counters for "#stats"; older files load with none.
 
-const FORMAT_VERSION: int = 2
+const FORMAT_VERSION: int = 3
 const DEFAULT_PATH: String = "user://points.json"
 ## Longest display name kept for the leaderboard.
 const MAX_NAME_LENGTH: int = 32
@@ -23,6 +24,8 @@ const MAX_NAME_LENGTH: int = 32
 const MAX_BALANCE: int = 1_000_000_000_000
 
 var starting_balance: int = 1000
+## Lifetime counters per viewer, saved in the same file as the balances.
+var stats: ViewerStats = ViewerStats.new()
 ## Empty means in-memory only.
 var save_path: String = ""
 
@@ -115,6 +118,19 @@ func set_name(user_id: String, display_name: String) -> bool:
 	return true
 
 
+## The id of the viewer last seen under this name (ignoring case and a leading "@"), or "".
+## If several viewers share a name the lowest id wins, so the answer is stable.
+func find_by_name(display_name: String) -> String:
+	var wanted: String = display_name.strip_edges().trim_prefix("@").to_lower()
+	if wanted.is_empty():
+		return ""
+	var found: String = ""
+	for user_id: String in _names:
+		if str(_names[user_id]).to_lower() == wanted and (found.is_empty() or user_id < found):
+			found = user_id
+	return found
+
+
 ## Whether the viewer is ranked on a board (has a balance or a win).
 func has_entry(user_id: String) -> bool:
 	return _balances.has(user_id) or _wins.has(user_id)
@@ -148,6 +164,7 @@ func load_from_disk() -> bool:
 	_loaded_at = 0.0
 	_wins.clear()
 	_names.clear()
+	stats.load_dict({})
 	if save_path.is_empty():
 		return true
 	var ok: bool = _load_files()
@@ -194,6 +211,7 @@ func save_to_disk() -> bool:
 				"stakes": _stakes,
 				"wins": _wins,
 				"names": _names,
+				"stats": stats.to_dict(),
 			}
 		)
 	)
@@ -283,6 +301,7 @@ func _apply(data: Dictionary) -> void:
 	_wins = _clean(wins) if wins is Dictionary else {}
 	var names: Variant = data.get("names", {})
 	_names = _clean_names(names) if names is Dictionary else {}
+	stats.load_dict(data.get("stats", {}))
 
 
 ## Returns the parsed save data, or an empty dictionary if the file is missing or invalid.
