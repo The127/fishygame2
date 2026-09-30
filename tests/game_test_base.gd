@@ -33,6 +33,7 @@ func before_each() -> void:
 	_game.settings.max_players = 4
 	_game.settings.countdown_seconds = 3
 	_flow.podium_seconds = 5.0
+	_game.settings.finish_replay = GameSettings.REPLAY_OFF
 	_configure(_game.settings)
 	add_child_autofree(_game)
 

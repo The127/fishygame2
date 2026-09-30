@@ -58,6 +58,10 @@ var label_text: String = "":
 		if _label != null:
 			_label.text = value
 
+## While a finish replay drives this marble, its heading comes from [member replay_velocity].
+var replaying: bool = false
+var replay_velocity: Vector2 = Vector2.ZERO
+
 var _curse_left: float = 0.0
 var _layer_before_eaten: int = 0
 var _mask_before_eaten: int = 0
@@ -217,7 +221,7 @@ func celebrate() -> void:
 
 
 func _process(delta: float) -> void:
-	_fish.face(linear_velocity, delta)
+	_fish.face(replay_velocity if replaying else linear_velocity, delta)
 	_trail.global_position = global_position
 	_trail.emitting = linear_velocity.length() > 60.0 and not freeze
 	var size: Vector2 = _label.get_minimum_size()

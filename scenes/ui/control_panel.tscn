@@ -173,6 +173,12 @@ layout_mode = 2
 focus_mode = 0
 text = "Home (Esc)"
 
+[node name="SkipReplay" type="Button" parent="Panel/Box"]
+visible = false
+layout_mode = 2
+focus_mode = 0
+text = "Skip replay (Space)"
+
 [node name="LeaveConfirm" type="VBoxContainer" parent="Panel/Box"]
 visible = false
 layout_mode = 2
