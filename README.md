@@ -351,6 +351,16 @@ of the finish replay (`replay_state()` holds the clock, the cycle shift and the 
 typical 10-fish race loses two or three fish to the pits; `race_debug` prints `dissolved=N` in its
 `RESULT` line.
 
+The whale is alive. A huge mouth (`whale_mouth.gd`, in a slow parallax layer behind the map) gapes
+above the throat, with daylight beyond its teeth: the jaws breathe open and closed, the tongue sways,
+and a hazard can make it yawn by setting `WhaleMouth.yawn`. The two long stretches of stomach floor
+(`wiggling_floor.gd`) ripple with a muscle wave that runs with the fish. The wave is smaller than the
+slope it lies on, so the floor never turns uphill and no dip can trap a fish, and it fades to nothing
+at both ends so it joins the acid pit hatches and the rest of the floor. The floor builds its colliders
+from a top line (`surface`), so a new rippling stretch is one `WigglingFloor` node with a `Visual`
+Polygon2D. Mouth and floor run on the physics clock, the wave is seeded and both are part of the finish
+replay.
+
 Toilet Flush starts with a slide into a porcelain bowl (`scripts/tracks/flush_bowl.gd`, a `Whirlpool`
 with one drain at the bottom and a shorter dwell). Its hazard is the flush: the lever on the cistern
 swings down and the vortex spins up. The drain leads into a sewer pipe: a rubber duck

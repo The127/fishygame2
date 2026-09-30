@@ -76,6 +76,8 @@ func test_the_whale_replay_matches_the_recording_at_every_frame() -> void:
 		assert_true(nodes.has(lobe), "%s is recorded" % lobe.name)
 	assert_true(nodes.has(_track.find_child("Blowhole")), "the blowhole is recorded")
 	assert_true(nodes.has(_burps), "the burp jet is recorded")
+	assert_true(nodes.has(_track.find_child("Mouth")), "the mouth is recorded")
+	assert_true(nodes.has(_track.find_child("StomachWaveA")), "the rippling floor is recorded")
 	assert_true(nodes.has(_track.find_child("AcidA")), "the acid pit is recorded")
 	assert_true(nodes.has(_track.find_child("AcidB")), "the second acid pit is recorded")
 	var bad: Array[String] = []
