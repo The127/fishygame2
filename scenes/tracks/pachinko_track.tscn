@@ -88,11 +88,11 @@ polygon = PackedVector2Array(640, 620, 1800, 760, 1797.364, 781.842, 637.364, 64
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="LaneALip"]
-polygon = PackedVector2Array(620, 580, 640, 580, 640, 652, 620, 652)
+polygon = PackedVector2Array(620, 592, 640, 578, 640, 652, 620, 652)
 
 [node name="Visual" type="Polygon2D" parent="LaneALip"]
 color = Color(0.22, 0.2, 0.35, 1)
-polygon = PackedVector2Array(620, 580, 640, 580, 640, 652, 620, 652)
+polygon = PackedVector2Array(620, 592, 640, 578, 640, 652, 620, 652)
 
 [node name="LaneB" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
