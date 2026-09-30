@@ -29,11 +29,12 @@ func _fish(at: Vector2) -> Marble:
 	return marble
 
 
-func test_the_whale_is_a_map_with_a_burp_hazard() -> void:
+func test_the_whale_is_a_map_with_a_burp_and_a_gulp_hazard() -> void:
 	assert_true(TrackCatalog.has_map("whale"))
 	var track: Track = _whale()
-	assert_eq(track.get_hazards().size(), 1)
+	assert_eq(track.get_hazards().size(), 2)
 	assert_eq(track.get_hazards()[0].kind, "burp")
+	assert_eq(track.get_hazards()[1].kind, "gulp")
 
 
 func test_the_stomach_lobes_swell_and_relax() -> void:

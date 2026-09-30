@@ -382,6 +382,13 @@ from a top line (`surface`), so a new rippling stretch is one `WigglingFloor` no
 Polygon2D. Mouth and floor run on the physics clock, the wave is seeded and both are part of the finish
 replay.
 
+The whale also gulps (`gulp_hazard.gd`, the `gulp` event). The telegraph is the mouth in the
+background yawning wide (the hazard emits `yawn_changed`, the scene connects it to the mouth); then a
+rush of water drags sea junk (`gulp_debris.gd`: barrels, crates, planks) in through the top of the map
+and it tumbles down the throat as real bodies that bump the fish. The junk is a small pool created once,
+so a gulp never allocates in a race. Junk that lands in an acid pit dissolves, anything else fizzles
+out after ten seconds, so it can never clog the map. The pool is part of the finish replay.
+
 Toilet Flush starts with a slide into a porcelain bowl (`scripts/tracks/flush_bowl.gd`, a `Whirlpool`
 with one drain at the bottom and a shorter dwell). Its hazard is the flush: the lever on the cistern
 swings down and the vortex spins up. The drain leads into a sewer pipe: a rubber duck

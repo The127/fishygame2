@@ -99,6 +99,8 @@ func _ready() -> void:
 			(hazard as RuinHazard).burst_played.connect(burst_played.emit)
 		if hazard is CoralHazard:
 			(hazard as CoralHazard).burst_played.connect(burst_played.emit)
+		if hazard is GulpHazard:
+			(hazard as GulpHazard).burst_played.connect(burst_played.emit)
 		if hazard is SpinCycleHazard:
 			(hazard as SpinCycleHazard).burst_played.connect(burst_played.emit)
 	for node: Node in find_children("*", "PortalPair", true, false):
