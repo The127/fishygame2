@@ -71,20 +71,32 @@ const TABS: Array[Dictionary] = [
 	},
 ]
 
+## Yes/no settings: the [GameSettings] property, and the caption beside its checkbox. The chat
+## reply toggles come from [constant GameSettings.CHAT_TOGGLES]. A new boolean setting needs one
+## row here and a place in [constant TABS].
+const TOGGLES: Array[Dictionary] = [
+	{"key": "hazards_enabled", "label": "Map hazards (currents, eels, planks)"},
+	{"key": "powers_enabled", "label": "Streamer powers (rod, net, bubble blast)"},
+	{"key": "treasures_enabled", "label": "Treasures (fish earn points)"},
+	{"key": "random_events", "label": "Random events (a wheel before each race)"},
+	{"key": "auto_mode", "label": "Auto mode (rounds run on their own)"},
+	{"key": "chat_replies", "label": "Reply in chat"},
+	{"key": "colorblind", "label": "Colorblind mode (alternate colors and fish markings)"},
+	{"key": "welcome_hat", "label": "Free hat for a viewer's first race"},
+]
+
+## Number settings that are greyed out while the boolean setting they depend on is off.
+const DEPENDENTS: Dictionary[String, Array] = {
+	"hazards_enabled": ["hazard_frequency"],
+	"powers_enabled": ["power_cooldown", "powers_per_race"],
+}
+
 var settings: GameSettings = null
 
 var _spinners: Dictionary[String, SpinBox] = {}
 var _captions: Dictionary[String, String] = {}
 var _map_picker: OptionButton
-var _auto_mode: CheckBox
-var _hazards: CheckBox
-var _powers: CheckBox
-var _random_events: CheckBox
-var _treasures: CheckBox
-var _chat_replies: CheckBox
-var _reply_toggles: Dictionary[String, CheckBox] = {}
-var _colorblind: CheckBox
-var _welcome_hat: CheckBox
+var _toggles: Dictionary[String, CheckBox] = {}
 var _status: Label
 var _preview: PaddingPreview
 
@@ -210,45 +222,15 @@ func _build_controls() -> Dictionary[String, Control]:
 	UiStyle.style_button(_map_picker, 20)
 	_captions["default_map"] = "Default map"
 	controls["default_map"] = _map_picker
-	_hazards = _make_check("On")
-	_hazards.toggled.connect(_on_hazards_toggled)
-	_captions["hazards_enabled"] = "Map hazards (currents, eels, planks)"
-	controls["hazards_enabled"] = _hazards
-	_powers = _make_check("On")
-	_powers.toggled.connect(_on_powers_toggled)
-	_captions["powers_enabled"] = "Streamer powers (rod, net, bubble blast)"
-	controls["powers_enabled"] = _powers
-	_treasures = _make_check("On")
-	_treasures.toggled.connect(_on_treasures_toggled)
-	_captions["treasures_enabled"] = "Treasures (fish earn points)"
-	controls["treasures_enabled"] = _treasures
-	_random_events = _make_check("On")
-	_random_events.toggled.connect(_on_random_events_toggled)
-	_captions["random_events"] = "Random events (a wheel before each race)"
-	controls["random_events"] = _random_events
-	_auto_mode = _make_check("On")
-	_auto_mode.toggled.connect(_on_auto_mode_toggled)
-	_captions["auto_mode"] = "Auto mode (rounds run on their own)"
-	controls["auto_mode"] = _auto_mode
-	_chat_replies = _make_check("On")
-	_chat_replies.toggled.connect(_on_chat_replies_toggled)
-	_captions["chat_replies"] = "Reply in chat"
-	controls["chat_replies"] = _chat_replies
-	for toggle: Dictionary in GameSettings.CHAT_TOGGLES:
-		var key: String = toggle["key"]
+	var toggles: Array[Dictionary] = TOGGLES.duplicate()
+	toggles.append_array(GameSettings.CHAT_TOGGLES)
+	for toggle: Dictionary in toggles:
+		var key := String(toggle["key"])
 		var check := _make_check("On")
-		check.toggled.connect(_on_reply_toggled.bind(key))
-		_reply_toggles[key] = check
+		check.toggled.connect(_on_toggle_toggled.bind(key))
+		_toggles[key] = check
 		_captions[key] = String(toggle["label"])
 		controls[key] = check
-	_colorblind = _make_check("On")
-	_colorblind.toggled.connect(_on_colorblind_toggled)
-	_captions["colorblind"] = "Colorblind mode (alternate colors and fish markings)"
-	controls["colorblind"] = _colorblind
-	_welcome_hat = _make_check("On")
-	_welcome_hat.toggled.connect(_on_welcome_hat_toggled)
-	_captions["welcome_hat"] = "Free hat for a viewer's first race"
-	controls["welcome_hat"] = _welcome_hat
 	return controls
 
 
@@ -313,19 +295,11 @@ func _refresh() -> void:
 	for i: int in _map_picker.item_count:
 		if String(_map_picker.get_item_metadata(i)) == settings.default_map:
 			_map_picker.select(i)
-	_hazards.set_pressed_no_signal(settings.hazards_enabled)
-	_spinners["hazard_frequency"].editable = settings.hazards_enabled
-	_powers.set_pressed_no_signal(settings.powers_enabled)
-	_spinners["power_cooldown"].editable = settings.powers_enabled
-	_spinners["powers_per_race"].editable = settings.powers_enabled
-	_treasures.set_pressed_no_signal(settings.treasures_enabled)
-	_random_events.set_pressed_no_signal(settings.random_events)
-	_auto_mode.set_pressed_no_signal(settings.auto_mode)
-	_chat_replies.set_pressed_no_signal(settings.chat_replies)
-	for key: String in _reply_toggles:
-		_reply_toggles[key].set_pressed_no_signal(bool(settings.get(key)))
-	_colorblind.set_pressed_no_signal(settings.colorblind)
-	_welcome_hat.set_pressed_no_signal(settings.welcome_hat)
+	for key: String in _toggles:
+		var on: bool = bool(settings.get(key))
+		_toggles[key].set_pressed_no_signal(on)
+		for dependent: String in DEPENDENTS.get(key, []):
+			_spinners[dependent].editable = on
 	_preview.set_play_fraction(settings.play_fraction())
 
 
@@ -345,48 +319,8 @@ func _on_map_picked(index: int) -> void:
 	_commit()
 
 
-func _on_hazards_toggled(pressed: bool) -> void:
-	settings.hazards_enabled = pressed
-	_commit()
-
-
-func _on_powers_toggled(pressed: bool) -> void:
-	settings.powers_enabled = pressed
-	_commit()
-
-
-func _on_treasures_toggled(pressed: bool) -> void:
-	settings.treasures_enabled = pressed
-	_commit()
-
-
-func _on_random_events_toggled(pressed: bool) -> void:
-	settings.random_events = pressed
-	_commit()
-
-
-func _on_auto_mode_toggled(pressed: bool) -> void:
-	settings.auto_mode = pressed
-	_commit()
-
-
-func _on_chat_replies_toggled(pressed: bool) -> void:
-	settings.chat_replies = pressed
-	_commit()
-
-
-func _on_reply_toggled(pressed: bool, key: String) -> void:
+func _on_toggle_toggled(pressed: bool, key: String) -> void:
 	settings.set(key, pressed)
-	_commit()
-
-
-func _on_colorblind_toggled(pressed: bool) -> void:
-	settings.colorblind = pressed
-	_commit()
-
-
-func _on_welcome_hat_toggled(pressed: bool) -> void:
-	settings.welcome_hat = pressed
 	_commit()
 
 
