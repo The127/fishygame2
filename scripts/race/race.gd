@@ -92,6 +92,8 @@ func clear() -> void:
 ## The recorded finish of this race, for [FinishReplay]. Null before the first race.
 func get_recorder() -> ReplayRecorder:
 	return _recorder
+
+
 ## Seconds left before the time limit, or -1.0 when there is no limit or no race is running.
 func time_left() -> float:
 	if not running or time_limit <= 0.0:
