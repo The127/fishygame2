@@ -1,5 +1,5 @@
 extends GutTest
-## Flip gates on the coral map: each marble that rolls off a gate flips it, and a race
+## Flip gates on the cave map: each marble that rolls off a gate flips it, and a race
 ## always starts them in the same state.
 
 const MARBLE_SCENE: String = "res://scenes/marble.tscn"
@@ -8,7 +8,7 @@ var _track: Track
 
 
 func before_each() -> void:
-	_track = TrackCatalog.instantiate("coral")
+	_track = TrackCatalog.instantiate("cave")
 	add_child_autofree(_track)
 	# A body only takes its transform inside physics frames.
 	await wait_physics_frames(12)
@@ -30,7 +30,7 @@ func _marble_at(pos: Vector2) -> Marble:
 	return marble
 
 
-func test_coral_map_has_six_gates_in_three_tiers() -> void:
+func test_cave_map_has_six_gates_in_three_tiers() -> void:
 	var tiers: Dictionary = {}
 	for gate: FlipGate in _gates():
 		tiers[snappedf(gate.position.y, 1.0)] = true
@@ -106,10 +106,10 @@ func test_stopping_hazards_puts_every_gate_back() -> void:
 		assert_eq(_gates()[i].state, start[i])
 
 
-func test_tide_throws_the_gates_and_the_same_seed_throws_them_the_same_way() -> void:
+func test_tremor_throws_the_gates_and_the_same_seed_throws_them_the_same_way() -> void:
 	var runs: Array[Array] = []
 	for i: int in 2:
-		var track: Track = TrackCatalog.instantiate("coral")
+		var track: Track = TrackCatalog.instantiate("cave")
 		add_child_autofree(track)
 		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 		rng.seed = 12
@@ -126,7 +126,7 @@ func test_tide_throws_the_gates_and_the_same_seed_throws_them_the_same_way() -> 
 	assert_true(runs[0].has(1) and runs[0].has(-1))
 
 
-func test_tide_warns_with_the_arrows_before_it_hits() -> void:
+func test_tremor_warns_with_the_arrows_before_it_hits() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 3
 	_track.arm_hazards(rng, 3)
@@ -144,4 +144,4 @@ func test_tide_warns_with_the_arrows_before_it_hits() -> void:
 	var after: Array[int] = []
 	for gate: FlipGate in _gates():
 		after.append(gate.state)
-	assert_eq(after, before, "gates hold still while the tide is only telegraphed")
+	assert_eq(after, before, "gates hold still while the tremor is only telegraphed")

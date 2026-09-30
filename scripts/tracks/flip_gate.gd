@@ -11,9 +11,9 @@ signal flipped(new_state: int)
 
 ## How fast the paddle swings, in radians per second. Kept gentle so it never flings a marble.
 const FLIP_SPEED: float = 3.6
-const ARROW_COLOR: Color = Color(1.0, 0.55, 0.5)
+const ARROW_COLOR: Color = Color(0.5, 0.85, 1.0)
 const ALARM_COLOR: Color = Color(1.0, 0.9, 0.5)
-const RIM_COLOR: Color = Color(1.0, 0.6, 0.6)
+const RIM_COLOR: Color = Color(0.6, 0.9, 1.0)
 const ARROW_OFFSET: Vector2 = Vector2(0.0, -62.0)
 const ARROW_SIZE: float = 15.0
 ## Seconds the arrow stays bright after a flip.

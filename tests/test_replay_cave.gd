@@ -1,15 +1,15 @@
 extends GutTest
-## The finish replay on the Coral Maze map: a real race with the tide armed is recorded, then
+## The finish replay on the Crystal Cave map: a real race with the tremor armed is recorded, then
 ## played back and compared with what was recorded.
 
 const MARBLE_SCENE: String = "res://scenes/marble.tscn"
 const STEP: float = 1.0 / 60.0
-## Race second the clip is built around: the tide is throwing the gates about it.
+## Race second the clip is built around: the tremor is throwing the gates about it.
 const ANCHOR: float = 5.0
 
 var _track: Track
 var _race: Race
-var _tide: TideHazard
+var _tremor: TremorHazard
 var _gates: Array[FlipGate] = []
 
 
@@ -19,25 +19,25 @@ func _rng(seed_value: int) -> RandomNumberGenerator:
 	return rng
 
 
-## Runs a race on the Coral in which the tide telegraphs and throws the gates, and one gate is
+## Runs a race on the cave in which the tremor telegraphs and throws the gates, and one gate is
 ## flipped by hand, around the winner's crossing. Returns the recorder.
 func _record_race() -> ReplayRecorder:
 	_gates.clear()
-	_track = TrackCatalog.instantiate("coral")
+	_track = TrackCatalog.instantiate("cave")
 	add_child_autofree(_track)
 	_race = Race.new()
 	_race.marble_scene = load(MARBLE_SCENE) as PackedScene
 	add_child_autofree(_race)
 	_race.start(_track, 6, _rng(11), 5)
-	_tide = _track.get_hazards()[0] as TideHazard
-	assert_not_null(_tide)
-	assert_true(_tide.is_armed())
-	for child: Node in _tide.get_children():
+	_tremor = _track.get_hazards()[0] as TremorHazard
+	assert_not_null(_tremor)
+	assert_true(_tremor.is_armed())
+	for child: Node in _tremor.get_children():
 		if child is FlipGate:
 			_gates.append(child as FlipGate)
 	assert_eq(_gates.size(), 6)
 	# The telegraph begins two seconds before the anchor, the throws half a second after it.
-	_tide.clock = _tide.get_schedule()[0] - (ANCHOR - 2.0)
+	_tremor.clock = _tremor.get_schedule()[0] - (ANCHOR - 2.0)
 	var flipped_by_hand: bool = false
 	while _race.elapsed < ANCHOR:
 		await get_tree().physics_frame
@@ -71,7 +71,7 @@ func _paddle(gate: FlipGate) -> AnimatableBody2D:
 	return gate.get_node("Paddle") as AnimatableBody2D
 
 
-func test_coral_replay_matches_the_recording_at_every_frame() -> void:
+func test_cave_replay_matches_the_recording_at_every_frame() -> void:
 	var recorder: ReplayRecorder = await _record_race()
 	var replay: FinishReplay = FinishReplay.new()
 	add_child_autofree(replay)
@@ -80,7 +80,7 @@ func test_coral_replay_matches_the_recording_at_every_frame() -> void:
 	for gate: FlipGate in _gates:
 		assert_true(nodes.has(gate), "%s is recorded" % gate.name)
 		assert_false(_paddle(gate).sync_to_physics, "%s paddle follows the replay" % gate.name)
-	assert_true(nodes.has(_tide), "the tide is recorded")
+	assert_true(nodes.has(_tremor), "the tremor is recorded")
 	var bad: Array[String] = []
 	var flips: int = 0
 	var swinging: int = 0

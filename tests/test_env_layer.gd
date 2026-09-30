@@ -71,3 +71,11 @@ func test_floor_shapes_are_rooted_at_the_layers_floor_line() -> void:
 	for v: Vector2 in _vertices(high):
 		high_bottom = maxf(high_bottom, v.y)
 	assert_almost_eq(high_bottom - low_bottom, 800.0, 0.01)
+
+
+func test_crystal_clusters_are_the_same_for_a_seed_and_differ_between_seeds() -> void:
+	var a: EnvLayer = _layer(EnvLayer.Kind.CRYSTALS, 5)
+	var b: EnvLayer = _layer(EnvLayer.Kind.CRYSTALS, 5)
+	var c: EnvLayer = _layer(EnvLayer.Kind.CRYSTALS, 6)
+	assert_eq(_vertices(a), _vertices(b))
+	assert_ne(_vertices(a), _vertices(c))

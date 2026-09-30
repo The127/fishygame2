@@ -204,9 +204,9 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko (a tall machine with three peg levels: a dense field, a sparse one with pulsing bumpers and one of spinners) and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush and a backwash that tips a ramp on Switchback. The Jellyfish
+Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush and a backwash that tips a ramp on Switchback. The Jellyfish
 
-Whirlpool, a tide that sloshes the flip gates on Coral Maze, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
+Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
 and kick marbles away like very bouncy bumpers. Their tentacles briefly catch and drag along any fish that
 touches them (then let go, and ignore that fish for a few seconds). The hazard is a surge that speeds them up.
@@ -226,7 +226,7 @@ Volcanic Vents also has timed geysers (`scripts/tracks/geyser.gd`) that throw ma
 sideways. They belong to the map, so they erupt whatever the hazard setting is. Each vent's phase and
 period come from the race seed, so a seed replays the same eruptions.
 
-Coral Maze's gimmick is the flip gate (`scripts/tracks/flip_gate.gd`): a tilting paddle under a
+Crystal Cave's gimmick is the flip gate (`scripts/tracks/flip_gate.gd`): a tilting paddle under a
 ledge that flips every time a fish rolls off it, so the order fish arrive in decides which of the
 four routes each one takes. Gates start in the same state every race, so a seed replays the same
 routes.

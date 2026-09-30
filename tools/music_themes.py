@@ -399,31 +399,27 @@ THEMES = {
             {"kind": "crackle", "count": 70, "gain": 0.05},
         ),
     },
-    # Coral maze: bright G major, bouncy bass and a marimba arpeggio.
-    "coral": {
+    # Crystal cave: slow A aeolian pads, hollow drips that ring on in long echoes, a few glass
+    # chimes.
+    "cave": {
         "seed": 28,
         "chords": (
-            (43, 55, 59, 62, 67),
-            (40, 52, 55, 59, 64),
-            (36, 55, 60, 64, 67),
-            (38, 54, 57, 62, 66),
+            (33, 45, 52, 57, 60),
+            (29, 41, 48, 53, 57),
+            (36, 48, 55, 59, 64),
+            (31, 43, 50, 55, 59),
         ),
-        "pad_partials": WARM,
-        "pad_gain": 0.07,
-        "trem_rate": 0.13,
-        "trem_depth": 0.25,
+        "pad_partials": GLASS,
+        "pad_gain": 0.08,
+        "trem_rate": 0.07,
+        "trem_depth": 0.3,
         "layers": (
-            {"kind": "arp", "bpm": 120, "div": 2, "decay": 0.16, "gain": 0.09, "accent": 4,
-             "partials": MALLET,
-             "pattern": (79, 83, 86, 83, 79, 83, 88, 86,
-                         76, 79, 83, 79, 76, 79, 83, 88,
-                         72, 76, 79, 76, 72, 76, 84, 79,
-                         74, 78, 81, 78, 74, 78, 86, 81)},
-            {"kind": "bass", "bpm": 120, "div": 1, "decay": 0.3, "gain": 0.30,
-             "pattern": (43, None, 50, None, 40, None, 47, None, 36, None, 43, None, 38, None,
-                         45, None)},
-            {"kind": "hiss", "bpm": 120, "every": 1, "offset": 0, "decay": 0.03, "low": 3000.0,
-             "high": 6000.0, "gain": 0.02},
+            {"kind": "pings", "times": (1.5, 5.1, 9.0, 13.4, 17.2, 20.6), "freq": hz(93),
+             "decay": 0.25, "gain": 0.22, "gaps": (0.55, 1.1, 1.65, 2.2)},
+            {"kind": "pings", "times": (3.3, 11.0, 15.2, 22.4), "freq": hz(81),
+             "decay": 0.3, "gain": 0.16, "gaps": (0.7, 1.4, 2.1)},
+            {"kind": "plucks", "count": 9, "notes": (69, 72, 76, 79, 81, 84), "decay": 1.1,
+             "gain": 0.06, "bell": True, "gaps": (0.5, 1.0, 1.5)},
         ),
     },
     # Kraken's lair: D minor brass drone, slow war drum and a low tolling bell.

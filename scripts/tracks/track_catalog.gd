@@ -64,12 +64,12 @@ const MAPS: Array[Dictionary] = [
 		"jingle": "res://assets/audio/jingle_vents.wav",
 	},
 	{
-		"id": "coral",
-		"name": "Coral Maze",
-		"scene": preload("res://scenes/tracks/coral_track.tscn"),
-		"music": "res://assets/audio/music_coral.wav",
-		"ambience": "res://assets/audio/ambience_coral.wav",
-		"jingle": "res://assets/audio/jingle_coral.wav",
+		"id": "cave",
+		"name": "Crystal Cave",
+		"scene": preload("res://scenes/tracks/cave_track.tscn"),
+		"music": "res://assets/audio/music_cave.wav",
+		"ambience": "res://assets/audio/ambience_cave.wav",
+		"jingle": "res://assets/audio/jingle_cave.wav",
 	},
 	{
 		"id": "kraken",

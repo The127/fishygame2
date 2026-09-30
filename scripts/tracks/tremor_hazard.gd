@@ -1,11 +1,11 @@
-class_name TideHazard
+class_name TremorHazard
 extends Hazard
-## A surge of tide sloshes the flip gates (its children), throwing each one to a random side
-## a few times in a row. The telegraph makes every gate's arrow flash a warning.
+## A tremor rattles the cave and shakes the flip gates (its children), throwing each one to a
+## random side a few times in a row. The telegraph makes every gate's arrow flash a warning.
 
 ## How many times the gates are thrown during one event.
 const BURSTS: int = 3
-const BUBBLE_COLOR: Color = Color(1.0, 0.8, 0.85)
+const SPARKLE_COLOR: Color = Color(0.8, 0.95, 1.0)
 
 var _gates: Array[FlipGate] = []
 ## One side (+1 or -1) per gate for each burst, drawn when the event begins.
@@ -40,7 +40,7 @@ func _process_active(_delta: float) -> void:
 			var before: int = gate.state
 			gate.set_state(_sides[_next_burst * _gates.size() + i])
 			if gate.state != before:
-				RaceFx.burst(self, gate.global_position, BUBBLE_COLOR, 10, 90.0)
+				RaceFx.burst(self, gate.global_position, SPARKLE_COLOR, 10, 90.0)
 		_next_burst += 1
 
 
