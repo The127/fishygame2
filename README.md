@@ -104,9 +104,21 @@ they are saved in `user://audio.cfg` (browser storage in the web build). All aud
 by `tools/generate_audio.py`, see `assets/audio/README.md`.
 
 Browsers block audio until the first click or key press; the game resumes it on that input, so
-clicking "Open lobby" on the home screen is enough. OBS browser sources normally allow autoplay;
-if there is no sound, tick "Control audio via OBS" on the source and check it is not muted in
-the OBS audio mixer.
+clicking "Open lobby" on the home screen is enough. Until then a small "Click anywhere to enable
+sound" note shows at the bottom of the screen, and it disappears after the first click.
+
+The web export must keep `audio/general/default_playback_type.web=0` (stream playback) in
+`project.godot`. Godot's default for the web, sample playback, plays nothing with the Music,
+Ambience and SFX buses used here.
+
+OBS browser source (streamer):
+
+- Audio is captured per browser source. In the source's properties tick **Control audio via OBS**;
+  the source then gets its own track in the Audio Mixer, where you set its volume and make sure it
+  is not muted. Without that option the sound goes to the desktop audio instead (or nowhere).
+- OBS's browser (CEF) normally lets pages autoplay, so no click is needed. If the hint note shows
+  in OBS, right-click the source, choose **Interact** and click once inside the window.
+- After changing the audio options, reload the source (Refresh cache of current page).
 
 ## Twitch login (streamer setup)
 

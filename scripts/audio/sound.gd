@@ -6,8 +6,10 @@ extends Node
 ## each change.
 ##
 ## Web export: browsers keep audio suspended until the first click or key press. Godot
-## resumes it on that input and the already playing music simply becomes audible, so
-## nothing needs unlocking here. An OBS browser source can be allowed to autoplay.
+## resumes it on that input and the already playing music simply becomes audible; until then
+## [SoundHint] shows a "click to enable sound" note. An OBS browser source can be allowed to
+## autoplay. The web build must use stream playback (project setting audio/general/
+## default_playback_type.web = 0): the default "sample" playback is silent with these buses.
 
 enum Sfx { JOIN, TICK, GO, BOOST, CURSE, SPLASH, WIN, MEOW }
 
@@ -71,6 +73,7 @@ func _ready() -> void:
 	_ambience = CrossfadeLoop.new(AudioSettings.BUS_AMBIENCE)
 	add_child(_music)
 	add_child(_ambience)
+	add_child(SoundHint.new())
 	if _audible:
 		_music.fade_to(_music_stream(_theme), MUSIC_FADE_IN)
 

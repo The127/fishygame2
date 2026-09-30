@@ -156,3 +156,9 @@ func test_play_win_never_crashes_for_any_theme() -> void:
 		Sound.play_win()
 	Sound.set_music_theme(Sound.HOME_THEME)
 	pass_test("played a win sting for every theme")
+
+
+func test_sound_hint_only_for_suspended_context() -> void:
+	assert_true(SoundHint.is_blocked("suspended"))
+	assert_false(SoundHint.is_blocked("running"))
+	assert_false(SoundHint.is_blocked("none"))
