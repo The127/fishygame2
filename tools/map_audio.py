@@ -152,6 +152,18 @@ JINGLES = {
                   (0.8, 64, 2.0, 0.9), (0.8, 45, 2.0, 0.9)),
         "echo": (0.3, 3, 0.4),
     },
+    # Toilet flush: a bright C major run that spirals down the drain, a whoosh and a cheeky ding.
+    "flush": {
+        "partials": MALLET,
+        "glide": 0.6,
+        "hiss": 0.3,
+        "notes": ((0.0, 84, 0.5, 0.2), (0.1, 79, 0.5, 0.2), (0.2, 76, 0.5, 0.2),
+                  (0.3, 72, 0.5, 0.2), (0.4, 67, 0.5, 0.2), (0.5, 64, 0.5, 0.2),
+                  (0.75, 60, 1.7, 0.7), (0.75, 64, 1.7, 0.7), (0.75, 67, 1.7, 0.7),
+                  (0.75, 48, 1.7, 0.7)),
+        "bell": (1.3, 96, 1.4),
+        "echo": (0.3, 2, 0.4),
+    },
 }
 
 
@@ -492,6 +504,14 @@ def _whale(out, rng):
     bubbles(out, rng, 5, 300.0, 700.0, 0.09)
 
 
+def _flush(out, rng):
+    bed(out, rng, 0.0, 300.0, 0.9, swell=0.6, cycles=1)
+    bed(out, rng, 300.0, 1600.0, 0.3, swell=0.8, cycles=2, phase=math.pi / 3.0)
+    drips(out, rng, (0.8, 2.6, 4.1, 6.3, 7.3), 800.0, 0.16)
+    bubbles(out, rng, 8, 200.0, 600.0, 0.12)
+    clanks(out, (1.5, 5.2), 180.0, 0.12)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -508,6 +528,7 @@ AMBIENCE = {
     "city": (43, _city),
     "washer": (50, _washer),
     "whale": (51, _whale),
+    "flush": (62, _flush),
 }
 
 
