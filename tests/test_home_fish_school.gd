@@ -68,3 +68,37 @@ func test_fish_mesh_has_parts_and_normals() -> void:
 	assert_eq(parts.size(), 3, "body, fin and eye are tagged")
 	var aabb: AABB = mesh.get_aabb()
 	assert_gt(aabb.size.x, aabb.size.y, "longer than tall")
+
+
+func test_fish_at_hits_the_front_most_fish_on_the_ray() -> void:
+	var school: HomeFishSchool = HomeFishSchool.new(3, 9)
+	school.positions[0] = Vector3(0.0, 0.0, 0.0)
+	school.positions[1] = Vector3(0.0, 0.0, -5.0)
+	school.positions[2] = Vector3(8.0, 0.0, 0.0)
+	var origin: Vector3 = Vector3(0.0, 0.0, 10.0)
+	assert_eq(school.fish_at(origin, Vector3(0.0, 0.0, -1.0)), 0, "nearest fish on the ray")
+	assert_eq(school.fish_at(origin, Vector3(0.0, 1.0, -1.0)), -1, "a miss hits nothing")
+	assert_eq(school.fish_at(Vector3(0.0, 0.0, -20.0), Vector3(0.0, 0.0, -1.0)), -1, "not behind")
+
+
+func test_ear_mesh_is_one_surface_in_fish_space() -> void:
+	var mesh: ArrayMesh = HomeFishMesh.build_ears(Color.RED)
+	assert_eq(mesh.get_surface_count(), 1)
+	var top: float = -INF
+	for v: Vector3 in mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		top = maxf(top, v.y)
+		assert_between(v.x, 0.3, 0.7, "ears sit on the head")
+	assert_gt(top, 0.4, "the ears stand above the body")
+
+
+func test_hit_radius_scales_with_fish_size() -> void:
+	var school: HomeFishSchool = HomeFishSchool.new(1, 9)
+	school.positions[0] = Vector3.ZERO
+	school.sizes[0] = 1.0
+	var origin: Vector3 = Vector3(0.0, 0.0, 10.0)
+	var dir: Vector3 = Vector3(0.0, 0.0, -1.0)
+	var edge: float = HomeFishSchool.HIT_RADIUS
+	assert_eq(school.fish_at(origin + Vector3(edge * 0.9, 0.0, 0.0), dir), 0)
+	assert_eq(school.fish_at(origin + Vector3(edge * 1.1, 0.0, 0.0), dir), -1)
+	school.sizes[0] = 2.0
+	assert_eq(school.fish_at(origin + Vector3(edge * 1.1, 0.0, 0.0), dir), 0, "bigger is easier")

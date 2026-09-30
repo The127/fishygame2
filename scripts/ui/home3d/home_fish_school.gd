@@ -13,6 +13,8 @@ const AGILITY: float = 1.6
 ## How fast the drawn heading follows the velocity (per second).
 const TURN_RATE: float = 4.0
 const SCARE_SPEED: float = 7.0
+## How close a click ray must pass to a fish's center to hit it, in world units per fish size.
+const HIT_RADIUS: float = 0.6
 
 var count: int = 0
 var positions: PackedVector3Array = PackedVector3Array()
@@ -76,6 +78,22 @@ func scare(ray_origin: Vector3, ray_dir: Vector3, radius: float) -> void:
 		var away: Vector3 = offset / dist if dist > 0.001 else Vector3.UP
 		var strength: float = SCARE_SPEED * (1.0 - dist / radius)
 		velocities[i] += (away + dir * 0.5).normalized() * strength
+
+
+## The front-most fish the ray passes through, or -1. Bigger fish are easier to hit.
+func fish_at(ray_origin: Vector3, ray_dir: Vector3) -> int:
+	var dir: Vector3 = ray_dir.normalized()
+	var best: int = -1
+	var best_along: float = INF
+	for i: int in count:
+		var along: float = (positions[i] - ray_origin).dot(dir)
+		if along <= 0.0 or along >= best_along:
+			continue
+		var dist: float = (positions[i] - (ray_origin + dir * along)).length()
+		if dist < HIT_RADIUS * sizes[i]:
+			best = i
+			best_along = along
+	return best
 
 
 ## Fish nose points along +X; the body stays upright while it turns.

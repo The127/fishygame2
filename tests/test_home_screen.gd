@@ -196,3 +196,57 @@ func test_title_ends_with_roman_numeral_two() -> void:
 	add_child_autofree(home)
 	var title: Label = home.get_node("Center/Box/Title")
 	assert_eq(title.text, "FISHY MARBLE RUN II")
+
+
+func test_ten_clicks_on_fish_give_one_of_them_cat_ears() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	var scene: HomeScene3D = home.get_node("Scene3D")
+	for i: int in HomeScene3D.EARS_CLICKS - 1:
+		scene.fish_clicked(4)
+	assert_eq(scene.ears_fish, -1, "nine clicks are not enough")
+	scene.fish_clicked(7)
+	assert_eq(scene.ears_fish, 7, "the tenth click's fish gets the ears")
+	var ears: MeshInstance3D = scene.ears
+	assert_not_null(ears)
+	scene.fish_clicked(2)
+	assert_eq(scene.ears_fish, 7, "only one fish gets ears")
+	assert_eq(scene.ears, ears)
+
+
+func test_clicks_on_a_missing_fish_are_ignored() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	var scene: HomeScene3D = home.get_node("Scene3D")
+	for i: int in HomeScene3D.EARS_CLICKS + 2:
+		scene.fish_clicked(-1)
+		scene.fish_clicked(HomeScene3D.FISH_COUNT)
+	assert_eq(scene.ears_fish, -1)
+
+
+func test_ears_follow_their_fish() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	var scene: HomeScene3D = home.get_node("Scene3D")
+	for i: int in HomeScene3D.EARS_CLICKS:
+		scene.fish_clicked(3)
+	scene.school.positions[3] = Vector3(1.0, 2.0, 3.0)
+	scene._process(0.0)
+	assert_eq(scene.ears.position, scene.school.fish_transform(3).origin)
+
+
+func test_only_clicks_that_hit_a_fish_are_counted() -> void:
+	var home: HomeScreen = _make_home()
+	add_child_autofree(home)
+	home.set_deferred("size", Vector2(1280, 720))
+	await wait_process_frames(2)
+	var scene: HomeScene3D = home.get_node("Scene3D")
+	for i: int in scene.school.count:
+		scene.school.positions[i] = Vector3(500.0, 500.0, 500.0)
+	scene._gui_input(_click(MOUSE_BUTTON_LEFT, true, scene.size / 2.0))
+	assert_eq(scene.fish_clicks, 0, "an empty click does not count")
+	scene.school.positions[0] = (
+		scene.camera.position + scene.camera.project_ray_normal(scene.size / 2.0) * 6.0
+	)
+	scene._gui_input(_click(MOUSE_BUTTON_LEFT, true, scene.size / 2.0))
+	assert_eq(scene.fish_clicks, 1)
