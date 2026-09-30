@@ -18,7 +18,10 @@ const BLAST_IMPULSE: float = 600.0
 const NET_DRAG: float = 14.0
 
 @export var marble_scene: PackedScene
+## Safety net: ends the race even without a time limit, so a jam can never hang a round.
 @export var timeout_seconds: float = 90.0
+## Race length in seconds; fish still racing at that point are DNF. 0 or less means no limit.
+@export var time_limit: float = 0.0
 
 var elapsed: float = 0.0
 var running: bool = false
@@ -89,6 +92,11 @@ func clear() -> void:
 ## The recorded finish of this race, for [FinishReplay]. Null before the first race.
 func get_recorder() -> ReplayRecorder:
 	return _recorder
+## Seconds left before the time limit, or -1.0 when there is no limit or no race is running.
+func time_left() -> float:
+	if not running or time_limit <= 0.0:
+		return -1.0
+	return maxf(time_limit - elapsed, 0.0)
 
 
 func get_marbles() -> Array[Marble]:
@@ -251,7 +259,7 @@ func _physics_process(delta: float) -> void:
 	elapsed += delta
 	if _recorder != null and _recorder.should_sample(elapsed):
 		_record_sample()
-	if elapsed >= timeout_seconds:
+	if elapsed >= timeout_seconds or (time_limit > 0.0 and elapsed >= time_limit):
 		_finish_race()
 
 

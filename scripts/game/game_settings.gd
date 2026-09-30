@@ -32,6 +32,13 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "max_players", "label": "Max players", "min": 1, "max": 20, "step": 1},
 	{"key": "countdown_seconds", "label": "Countdown (s)", "min": 0, "max": 30, "step": 1},
 	{
+		"key": "race_time_limit",
+		"label": "Race time limit (s, 0 = none)",
+		"min": 0,
+		"max": 600,
+		"step": 5
+	},
+	{
 		"key": "auto_join_seconds",
 		"label": "Auto mode join window (s)",
 		"min": 5,
@@ -101,6 +108,8 @@ const FIELDS: Array[Dictionary] = [
 var min_players: int = 1
 var max_players: int = 20
 var countdown_seconds: int = 3
+## Seconds a race may last before unfinished fish are DNF. 0 means no limit.
+var race_time_limit: int = 60
 var auto_join_seconds: int = 60
 ## Replay of the finish before the podium: REPLAY_OFF, REPLAY_CLOSE or REPLAY_ALWAYS.
 var finish_replay: int = 1

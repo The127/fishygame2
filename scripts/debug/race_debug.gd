@@ -1,12 +1,14 @@
 class_name RaceDebug
 extends Node2D
 ## Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7 --map=pachinko --count=20 --hazards=3
-## --hazards is the hazard frequency (0 turns hazard events off).
+## --hazards is the hazard frequency (0 turns hazard events off). --limit is the race time limit in
+## seconds (default 0, none): fish still racing then are DNF, which does not fail an autorun.
 
 @export var seed_value: int = 1
 @export var marble_count: int = 10
 @export var map_id: String = "zigzag"
 @export var hazard_frequency: int = 3
+@export var time_limit: float = 0.0
 
 var _autorun: bool = false
 var _track: Track
@@ -27,6 +29,8 @@ func _ready() -> void:
 			marble_count = maxi(1, int(arg.substr(8)))
 		elif arg.begins_with("--map="):
 			map_id = arg.substr(6)
+		elif arg.begins_with("--limit="):
+			time_limit = maxf(0.0, float(arg.substr(8)))
 		elif arg.begins_with("--hazards="):
 			hazard_frequency = clampi(int(arg.substr(10)), 0, 5)
 	if not TrackCatalog.has_map(map_id):
@@ -62,6 +66,7 @@ func _start_race() -> void:
 		)
 	)
 	_hazard_events.clear()
+	_race.time_limit = time_limit
 	_race.start(_track, marble_count, rng, hazard_frequency)
 
 
@@ -105,4 +110,4 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 				]
 			)
 		)
-		get_tree().quit(1 if unfinished > 0 else 0)
+		get_tree().quit(1 if unfinished > 0 and time_limit <= 0.0 else 0)
