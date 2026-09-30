@@ -103,3 +103,20 @@ func test_boost_after_race_over_is_closed() -> void:
 	watch_signals(_chaos)
 	_say("100", "#boost user0")
 	assert_eq(get_signal_parameters(_chaos, "effect_rejected", 0)[1], "closed")
+
+
+func test_own_fish_boost_and_curse_rejected_without_charge() -> void:
+	_start_race(2)
+	watch_signals(_chaos)
+	_say("0", "#boost user0")
+	_say("0", "#curse user0")
+	assert_eq(get_signal_parameters(_chaos, "effect_rejected", 0)[1], "self_boost")
+	assert_eq(get_signal_parameters(_chaos, "effect_rejected", 1)[1], "self_curse")
+	assert_signal_emit_count(_chaos, "effect_applied", 0)
+	assert_eq(_balance("0"), 1000)
+	assert_false(_marble(0).is_cursed())
+
+
+func test_own_fish_rejections_have_their_own_notice_text() -> void:
+	assert_eq(Game.CHAOS_REJECTIONS["self_boost"], "you can't boost your own fish")
+	assert_eq(Game.CHAOS_REJECTIONS["self_curse"], "you can't curse your own fish")

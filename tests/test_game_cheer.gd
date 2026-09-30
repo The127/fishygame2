@@ -50,3 +50,11 @@ func test_cheer_does_not_touch_other_fish() -> void:
 	var children: int = other.get_child_count()
 	_cheer_say("0", "User1 Kappa")
 	assert_eq(other.get_child_count(), children)
+
+
+func test_viewer_can_cheer_their_own_fish() -> void:
+	_start_race(2)
+	var marble: Marble = _marble(0)
+	var before: int = marble.get_child_count()
+	_cheer_say("0", "go User0 Kappa")
+	assert_gt(marble.get_child_count(), before, "own fish can be cheered")
