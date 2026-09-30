@@ -315,6 +315,9 @@ func _record_race_stats(results: Array[Dictionary]) -> void:
 func _record_bet_stats(results: Array[Dictionary]) -> void:
 	var points: PointsStore = _betting.points
 	for r: Dictionary in results:
+		# Free picks are not bets: they never count towards bets won, lost or the net.
+		if r.get("kind", "bet") != "bet":
+			continue
 		points.stats.record_bet(str(r["user_id"]), int(r["amount"]), int(r["payout"]))
 	points.save_to_disk()
 
