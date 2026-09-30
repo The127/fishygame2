@@ -126,11 +126,11 @@ polygon = PackedVector2Array(600, 324.693, 770, 370.244, 765.859, 385.699, 595.8
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="StopAR"]
-polygon = PackedVector2Array(659, 166.693, 659, 99.693, 667, 83.693, 675, 99.693, 675, 166.693)
+polygon = PackedVector2Array(659, 166.693, 659, 32.693, 667, 16.693, 675, 32.693, 675, 166.693)
 
 [node name="Visual" type="Polygon2D" parent="StopAR"]
 color = Color(0.32, 0.13, 0.2, 1)
-polygon = PackedVector2Array(659, 166.693, 659, 99.693, 667, 83.693, 675, 99.693, 675, 166.693)
+polygon = PackedVector2Array(659, 166.693, 659, 32.693, 667, 16.693, 675, 32.693, 675, 166.693)
 
 [node name="RoofBL" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
@@ -186,11 +186,11 @@ polygon = PackedVector2Array(800, 540.244, 970, 585.795, 965.859, 601.25, 795.85
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="StopCR"]
-polygon = PackedVector2Array(859, 382.244, 859, 315.244, 867, 299.244, 875, 315.244, 875, 382.244)
+polygon = PackedVector2Array(859, 382.244, 859, 248.244, 867, 232.244, 875, 248.244, 875, 382.244)
 
 [node name="Visual" type="Polygon2D" parent="StopCR"]
 color = Color(0.32, 0.13, 0.2, 1)
-polygon = PackedVector2Array(859, 382.244, 859, 315.244, 867, 299.244, 875, 315.244, 875, 382.244)
+polygon = PackedVector2Array(859, 382.244, 859, 248.244, 867, 232.244, 875, 248.244, 875, 382.244)
 
 [node name="RoofDL" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
@@ -266,11 +266,11 @@ polygon = PackedVector2Array(1000, 755.795, 1120, 787.949, 1115.86, 803.404, 995
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="StopFR"]
-polygon = PackedVector2Array(1059, 597.795, 1059, 530.795, 1067, 514.795, 1075, 530.795, 1075, 597.795)
+polygon = PackedVector2Array(1059, 597.795, 1059, 463.795, 1067, 447.795, 1075, 463.795, 1075, 597.795)
 
 [node name="Visual" type="Polygon2D" parent="StopFR"]
 color = Color(0.32, 0.13, 0.2, 1)
-polygon = PackedVector2Array(1059, 597.795, 1059, 530.795, 1067, 514.795, 1075, 530.795, 1075, 597.795)
+polygon = PackedVector2Array(1059, 597.795, 1059, 463.795, 1067, 447.795, 1075, 463.795, 1075, 597.795)
 
 [node name="Polyp1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
