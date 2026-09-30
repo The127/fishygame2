@@ -265,11 +265,16 @@ Ebb Tide is a race against the map: the water starts above everything and drains
 down (`scripts/tracks/water_level.gd`). A fish that lies above the waterline for two seconds is
 stranded: it flops, fades away and is DNF, like a fish caught by the Thanos snap. The drain is tuned
 so that a few of the slowest fish are caught in a normal field and takes a little longer for bigger
-fields. If the tide strands everyone, the race ends as a normal "nobody finished". Its hazard is a
-rip current that only ever flows with the lane. The debug race prints `stranded=N` and the
+fields. If the tide strands everyone, the race ends as a normal "nobody finished". Invisible
+`TideTrigger` zones (`scripts/tracks/tide_trigger.gd`) are spread along the course: the first fish
+through one is the furthest along, and the water crashes down to that trigger's `level_y` and holds
+there until the steady drain catches up. A trigger fires once per race and only ever lowers the
+water, so a long lead shortens everyone else's time. Levels are tuned to sit just above the tail
+of the pack (20 fish strand 0 to 4 per race), so set them from seed sweeps, not by eye. Its hazard
+is a rip current that only ever flows with the lane. The debug race prints `stranded=N` and the
 seed sweeps do not count stranded fish as a jam, so check a map change with the drain turned off
-(set `drain_seconds` very high) to be sure no fish really gets stuck. The finish replay shows the
-waterline, the rip current and stranded fish (hop and fade) as they were; the rocking of a flopping
+(set `drain_seconds` very high and every trigger's `level_y` very negative) to be sure no fish really gets stuck. The finish replay shows the
+waterline (and the surface flare while it crashes down), the rip current and stranded fish (hop and fade) as they were; the rocking of a flopping
 fish and its gasp flashes are not replayed.
 
 Fork Reef has three separate starts (`SpawnOrigin` and the markers under `Starts` in

@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
 [ext_resource type="Script" path="res://scripts/tracks/water_level.gd" id="2_water"]
 [ext_resource type="Script" path="res://scripts/tracks/current_hazard.gd" id="3_current"]
+[ext_resource type="Script" path="res://scripts/tracks/tide_trigger.gd" id="4_trigger"]
 
 [sub_resource type="PhysicsMaterial" id="PM_track"]
 friction = 0.6
@@ -26,6 +27,9 @@ size = Vector2(1560, 90)
 
 [sub_resource type="RectangleShape2D" id="Rect_current_3"]
 size = Vector2(1200, 90)
+
+[sub_resource type="RectangleShape2D" id="Rect_trigger"]
+size = Vector2(120, 260)
 
 [sub_resource type="Curve2D" id="Curve_center"]
 _data = {
@@ -267,7 +271,47 @@ shape = SubResource("Rect_current_3")
 script = ExtResource("2_water")
 start_y = -420
 start_delay = 3
-drain_seconds = 33
+drain_seconds = 40
+
+[node name="TideTrigger1" type="Area2D" parent="."]
+position = Vector2(1690, 400)
+script = ExtResource("4_trigger")
+level_y = 175
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TideTrigger1"]
+shape = SubResource("Rect_trigger")
+
+[node name="TideTrigger2" type="Area2D" parent="."]
+position = Vector2(1000, 520)
+script = ExtResource("4_trigger")
+level_y = 265
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TideTrigger2"]
+shape = SubResource("Rect_trigger")
+
+[node name="TideTrigger3" type="Area2D" parent="."]
+position = Vector2(200, 690)
+script = ExtResource("4_trigger")
+level_y = 300
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TideTrigger3"]
+shape = SubResource("Rect_trigger")
+
+[node name="TideTrigger4" type="Area2D" parent="."]
+position = Vector2(700, 830)
+script = ExtResource("4_trigger")
+level_y = 460
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TideTrigger4"]
+shape = SubResource("Rect_trigger")
+
+[node name="TideTrigger5" type="Area2D" parent="."]
+position = Vector2(1250, 930)
+script = ExtResource("4_trigger")
+level_y = 525
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TideTrigger5"]
+shape = SubResource("Rect_trigger")
 
 [node name="Centerline" type="Path2D" parent="."]
 curve = SubResource("Curve_center")

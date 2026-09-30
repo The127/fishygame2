@@ -42,6 +42,7 @@ var _start_of: Array[int] = []
 var _slot_of: Array[int] = []
 
 var _tide: WaterLevel
+var _tide_triggers: Array[TideTrigger] = []
 
 @onready var _finish: Area2D = $Finish
 @onready var _centerline: Path2D = $Centerline
@@ -67,6 +68,10 @@ func _ready() -> void:
 	for child: Node in get_children():
 		if child is WaterLevel:
 			_tide = child as WaterLevel
+	for child: Node in get_children():
+		if child is TideTrigger and _tide != null:
+			_tide_triggers.append(child as TideTrigger)
+			(child as TideTrigger).tripped.connect(_tide.drop_to)
 	for hazard: Hazard in get_hazards():
 		hazard.telegraph_started.connect(hazard_started.emit)
 		hazard.active_started.connect(hazard_active.emit)
@@ -94,6 +99,8 @@ func _ready() -> void:
 func seed_gimmicks(rng: RandomNumberGenerator) -> void:
 	# Read before any draw and never advanced, so the duck cannot shift a race's layout.
 	var duck_seed: int = hash(rng.state)
+	for trigger: TideTrigger in _tide_triggers:
+		trigger.rearm()
 	for child: Node in get_children():
 		if child.has_method("reseed"):
 			child.call("reseed", rng.randi())
@@ -176,6 +183,8 @@ func stop_gimmicks() -> void:
 			child.call("stop_gimmick")
 	if _tide != null:
 		_tide.stop()
+	for trigger: TideTrigger in _tide_triggers:
+		trigger.rearm()
 
 
 ## Tells the map how many fish race, for gimmicks that pace themselves to the field. Call before

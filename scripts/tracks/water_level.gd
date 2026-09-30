@@ -5,6 +5,8 @@ extends Node2D
 ## there too long (see [method Marble.update_dryness]). This node only moves and draws the
 ## waterline. Time advances in the physics step while draining, so a seed always drains the same.
 
+## How fast the waterline crashes down to a level a [TideTrigger] sets, in pixels per second.
+const SURGE_SPEED: float = 420.0
 ## Half-width of the drawn water, wide enough for any camera frame, and the x it is centered on.
 const HALF_WIDTH: float = 1600.0
 const CENTER_X: float = 960.0
@@ -38,16 +40,23 @@ var level: float = -260.0
 var draining: bool = false
 var clock: float = 0.0
 
+## Lowest waterline a trigger has asked for so far. The water is never above it afterwards.
+var _goal: float = -260.0
 var _drain_time: float = 44.0
 var _fish_count: int = 20
 var _surface: Line2D
 var _glow: Line2D
 var _time: float = 0.0
+var _last_level: float = -260.0
+## How hard the surface is glowing because the water is crashing down, 0 to 1.
+var _flare: float = 0.0
 
 
 func _ready() -> void:
 	z_index = 4
 	level = start_y
+	_goal = start_y
+	_last_level = start_y
 	_drain_time = drain_seconds
 	_build()
 	_apply()
@@ -73,6 +82,7 @@ func reseed(seed_value: int) -> void:
 	_drain_time = drain_seconds_for(_fish_count) * (1.0 + rng.randf_range(-variation, variation))
 	clock = 0.0
 	level = start_y
+	_goal = start_y
 	draining = true
 	_apply()
 
@@ -82,7 +92,16 @@ func stop() -> void:
 	draining = false
 	clock = 0.0
 	level = start_y
+	_goal = start_y
 	_apply()
+
+
+## Makes the water crash down to world y `target` (a [TideTrigger] was tripped) and hold there
+## until the steady drain catches up. Only ever lowers the water: a target above the waterline, or
+## a race that is not draining, changes nothing.
+func drop_to(target: float) -> void:
+	if draining:
+		_goal = maxf(_goal, target)
 
 
 ## Stops draining and leaves the waterline where it is, for the end of a race.
@@ -100,12 +119,18 @@ func _physics_process(delta: float) -> void:
 		return
 	clock += delta
 	var t: float = clampf((clock - start_delay) / maxf(_drain_time, 0.001), 0.0, 1.0)
-	level = lerpf(start_y, end_y, t)
+	var scheduled: float = lerpf(start_y, end_y, t)
+	# The steady drain is the slowest the water falls. A tripped trigger sends it down faster, at a
+	# speed that never lets it rise.
+	var target: float = maxf(scheduled, _goal)
+	if target > level:
+		level = minf(target, level + SURGE_SPEED * delta)
 	_apply()
 
 
 func _process(delta: float) -> void:
 	_time += delta
+	_flare_up(delta)
 	_wave()
 
 
@@ -119,6 +144,18 @@ func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, weight: floa
 	_time = Replayable.mix(from, to, weight, 1)
 	_apply()
 	_wave()
+
+
+## Makes the surface flare while the water is crashing down. It follows how fast the waterline
+## moves, so the finish replay flares the same way without recording anything extra.
+func _flare_up(delta: float) -> void:
+	var speed: float = (level - _last_level) / maxf(delta, 0.001)
+	_last_level = level
+	var want: float = clampf((speed - 60.0) / 240.0, 0.0, 1.0)
+	_flare = move_toward(_flare, want, delta * (8.0 if want > _flare else 2.5))
+	_glow.width = 14.0 + 40.0 * _flare
+	_glow.default_color = Color(SURFACE_COLOR, 0.2 + 0.5 * _flare)
+	_surface.width = 3.0 + 3.0 * _flare
 
 
 func _apply() -> void:
