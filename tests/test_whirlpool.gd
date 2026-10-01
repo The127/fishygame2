@@ -134,6 +134,22 @@ func test_a_released_marble_passes_its_gate_and_the_gate_shuts_behind_it() -> vo
 	assert_true(whirlpool._passing.is_empty(), "gate pass handed back")
 
 
+func test_a_marble_freed_during_its_gate_pass_is_dropped_quietly() -> void:
+	var whirlpool: Whirlpool = _whirlpool()
+	var center: Vector2 = whirlpool.get_center()
+	var dir: Vector2 = whirlpool.get_exit_direction(1)
+	var marble: Marble = _marble(center + dir * whirlpool.get_radius() * 0.8)
+	marble.id = 0
+	await wait_physics_frames(3)
+	whirlpool._needed[marble.get_instance_id()] = 0.0
+	whirlpool._dwell[marble.get_instance_id()] = Whirlpool.MIN_DWELL
+	await wait_physics_frames(3)
+	assert_false(whirlpool._passing.is_empty(), "released")
+	marble.free()
+	await wait_physics_frames(int(Whirlpool.EJECT_COOLDOWN * 60.0) + 10)
+	assert_true(whirlpool._passing.is_empty(), "pass dropped")
+
+
 func test_the_vortex_runs_without_hazards_armed() -> void:
 	var whirlpool: Whirlpool = _whirlpool()
 	assert_false(whirlpool.is_armed())

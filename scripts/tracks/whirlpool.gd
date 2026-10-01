@@ -62,7 +62,7 @@ var _dwell: Dictionary[int, float] = {}
 var _cooldown: Dictionary[int, float] = {}
 var _gates: Array[StaticBody2D] = []
 ## Marbles that are allowed through a gate until their cooldown ends, by marble.
-var _passing: Dictionary[int, Marble] = {}
+var _passing: Dictionary[int, Variant] = {}
 
 
 func _ready() -> void:
@@ -188,10 +188,11 @@ func _open_gate(marble: Marble, exit: int) -> void:
 
 
 func _close_gates_behind(key: int) -> void:
-	var marble: Marble = _passing.get(key)
+	var entry: Variant = _passing.get(key)
 	_passing.erase(key)
-	if marble == null or not is_instance_valid(marble):
+	if not is_instance_valid(entry):
 		return
+	var marble: Marble = entry as Marble
 	for gate: StaticBody2D in _gates:
 		marble.remove_collision_exception_with(gate)
 
@@ -260,6 +261,9 @@ func _reset() -> void:
 	_surge = 0.0
 	for key: int in _passing.keys():
 		_close_gates_behind(key)
+	_cooldown.clear()
+	_dwell.clear()
+	_needed.clear()
 
 
 func _draw() -> void:
