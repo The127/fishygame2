@@ -31,9 +31,10 @@ const POLYP_COLORS: Array[Color] = [
 const SPORE_COLOR: Color = Color(1.0, 0.8, 0.6)
 ## Branches that hang from the tongue once it has grown, and how many times each one forks.
 const ROOTS: int = 7
-const FORK_DEPTH: int = 3
 ## Buds on the two faces of the opening while the coral sleeps.
 const BUDS: int = 3
+## Seconds between moves of the sway and the twinkle of grown coral.
+const ANIMATE_STEP: float = 1.0 / 30.0
 
 ## +1 when the lane descends to the right, -1 when it descends to the left.
 @export_enum("Left:-1", "Right:1") var flow: int = 1
@@ -55,11 +56,26 @@ var glow: float = 0.0
 var hesitation: float = 0.0
 
 var _plug: AnimatableBody2D
+## The reach the plug was last put at, so a plug that has not moved is left alone.
+var _plug_reach: float = NAN
 var _time_in_stage: float = 0.0
 var _clock: float = 0.0
 var _seed: int = 1
 var _spores: float = 0.0
 var _roots: Array[Dictionary] = []
+## The drawn branches, one per root, and the buds on the faces of the opening.
+var _branches: Array[CoralBranch] = []
+var _buds: Array[Dictionary] = []
+## Layers the grown coral is drawn on, so a drawing that does not change is kept: the tongue, the
+## flecks of light on it (they twinkle) and, after them, the branches.
+var _tongue_layer: Node2D
+var _fleck_layer: Node2D
+## The growth the tongue layer was last drawn at.
+var _tongue_growth: float = -1.0
+## The race clock when the sway and the twinkle were last moved, and whether the last drawing of
+## the bed itself showed buds.
+var _animated_at: float = -1.0
+var _buds_drawn: bool = true
 
 @onready var _trigger: Area2D = $Trigger
 
@@ -67,6 +83,8 @@ var _roots: Array[Dictionary] = []
 func _ready() -> void:
 	_seed = hash(name) + 17
 	_build_plug()
+	_tongue_layer = _add_layer("Tongue", _draw_tongue)
+	_fleck_layer = _add_layer("Flecks", _draw_flecks)
 	_build_roots()
 	z_index = 2
 	reset()
@@ -160,11 +178,26 @@ func apply_replay(
 
 ## Puts the plug and the drawing where the state says. The plug is given position and angle in
 ## one go: set one after the other, a physics body ignores the first.
-func pose() -> void:
-	if _plug != null:
+func pose(force_plug: bool = false) -> void:
+	if _plug != null and (force_plug or _reach() != _plug_reach):
 		var reach: float = _reach()
+		_plug_reach = reach
 		_plug.transform = Transform2D(0.0, _at(reach, 0.0) - _at(-REST_INSET, 0.0))
-	queue_redraw()
+	var shown: bool = growth > 0.04
+	if _tongue_layer != null and (shown or _tongue_layer.visible):
+		_tongue_layer.visible = shown
+		_fleck_layer.visible = shown
+		# The sway and the twinkle are slow: a third of the frames is enough for them.
+		if growth != _tongue_growth or absf(_clock - _animated_at) >= ANIMATE_STEP:
+			_animated_at = _clock
+			_pose_branches()
+			if shown:
+				_fleck_layer.queue_redraw()
+			if growth != _tongue_growth:
+				_tongue_growth = growth
+				_tongue_layer.queue_redraw()
+	if growth < 1.0 or _buds_drawn:
+		queue_redraw()
 
 
 ## Where the closed opening's far edge, the plug's leading end, is along the lane right now.
@@ -212,19 +245,37 @@ func _build_roots() -> void:
 	_roots.clear()
 	for i: int in ROOTS:
 		var across: float = (float(i) + rng.randf_range(0.25, 0.75)) / float(ROOTS)
-		(
-			_roots
-			. append(
-				{
-					"at": across,
-					"length": rng.randf_range(34.0, 62.0),
-					"lean": rng.randf_range(-0.35, 0.35),
-					"phase": rng.randf_range(0.0, TAU),
-					"color": POLYP_COLORS[rng.randi_range(0, POLYP_COLORS.size() - 1)],
-					"seed": rng.randi(),
-				}
+		var root: Dictionary = {
+			"at": across,
+			"length": rng.randf_range(34.0, 62.0),
+			"lean": rng.randf_range(-0.35, 0.35),
+			"phase": rng.randf_range(0.0, TAU),
+			"color": POLYP_COLORS[rng.randi_range(0, POLYP_COLORS.size() - 1)],
+			"seed": rng.randi(),
+		}
+		_roots.append(root)
+		var branch: CoralBranch = CoralBranch.new()
+		branch.name = "Branch%d" % i
+		branch.visible = false
+		branch.setup(float(root["length"]), root["color"], TONGUE_COLOR, int(root["seed"]))
+		add_child(branch)
+		_branches.append(branch)
+	# The buds' colors and how far each one reaches, drawn from the seed once.
+	rng.seed = _seed + 5
+	_buds.clear()
+	for face: int in 2:
+		for i: int in BUDS:
+			(
+				_buds
+				. append(
+					{
+						"face": face,
+						"index": i,
+						"color": POLYP_COLORS[rng.randi_range(0, POLYP_COLORS.size() - 1)],
+						"reach": 5.0 + rng.randf_range(0.0, 4.0),
+					}
+				)
 			)
-		)
 
 
 func _spore(at_growth: float, amount: int) -> void:
@@ -234,37 +285,43 @@ func _spore(at_growth: float, amount: int) -> void:
 	burst_played.emit(where, SPORE_COLOR, amount, 70.0, gravity)
 
 
+func _add_layer(layer_name: String, drawer: Callable) -> Node2D:
+	var layer: Node2D = Node2D.new()
+	layer.name = layer_name
+	layer.visible = false
+	layer.draw.connect(drawer.bind(layer))
+	add_child(layer)
+	return layer
+
+
 func _draw() -> void:
+	_buds_drawn = growth < 1.0
 	_draw_buds()
-	if growth > 0.04:
-		_draw_tongue()
-		_draw_branches()
 
 
 ## Sleeping buds on the two faces of the opening. They glow when the coral is about to wake.
 func _draw_buds() -> void:
-	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-	rng.seed = _seed + 5
-	var breathe: float = 0.5 + 0.5 * sin(_clock * 1.6 + float(_seed % 7))
 	var fade: float = 1.0 - growth
-	for face: int in 2:
-		var u: float = 0.0 if face == 0 else gap_width
-		var side: float = 1.0 if face == 0 else -1.0
-		for i: int in BUDS:
-			var v: float = 5.0 + (thickness - 8.0) * (float(i) + 0.5) / float(BUDS)
-			var color: Color = POLYP_COLORS[rng.randi_range(0, POLYP_COLORS.size() - 1)]
-			var base: Vector2 = _at(u, v)
-			var reach: float = 5.0 + rng.randf_range(0.0, 4.0) + 6.0 * glow
-			var tip: Vector2 = base + Vector2(side * float(flow) * reach, 0.0)
-			var alpha: float = (0.65 + 0.25 * breathe + 0.4 * glow) * fade
-			draw_line(base, tip, Color(TONGUE_COLOR, alpha), 3.0)
-			if glow > 0.05:
-				draw_circle(tip, 7.0 + 6.0 * glow, Color(color, 0.22 * glow * fade))
-			draw_circle(tip, 3.2 + 1.6 * glow, Color(color.lightened(0.25 * glow), alpha))
+	if fade <= 0.0:
+		return
+	var breathe: float = 0.5 + 0.5 * sin(_clock * 1.6 + float(_seed % 7))
+	for bud: Dictionary in _buds:
+		var u: float = 0.0 if int(bud["face"]) == 0 else gap_width
+		var side: float = 1.0 if int(bud["face"]) == 0 else -1.0
+		var v: float = 5.0 + (thickness - 8.0) * (float(bud["index"]) + 0.5) / float(BUDS)
+		var color: Color = bud["color"]
+		var base: Vector2 = _at(u, v)
+		var reach: float = float(bud["reach"]) + 6.0 * glow
+		var tip: Vector2 = base + Vector2(side * float(flow) * reach, 0.0)
+		var alpha: float = (0.65 + 0.25 * breathe + 0.4 * glow) * fade
+		draw_line(base, tip, Color(TONGUE_COLOR, alpha), 3.0)
+		if glow > 0.05:
+			draw_circle(tip, 7.0 + 6.0 * glow, Color(color, 0.22 * glow * fade))
+		draw_circle(tip, 3.2 + 1.6 * glow, Color(color.lightened(0.25 * glow), alpha))
 
 
-## The tongue of coral that has grown out of the lane into the opening.
-func _draw_tongue() -> void:
+## The tongue of coral that has grown out of the lane into the opening, drawn on `layer`.
+func _draw_tongue(layer: Node2D) -> void:
 	var reach: float = _reach()
 	var top: PackedVector2Array = PackedVector2Array()
 	var bottom: PackedVector2Array = PackedVector2Array()
@@ -276,53 +333,38 @@ func _draw_tongue() -> void:
 		bottom.append(_at(u, thickness + lump))
 	bottom.reverse()
 	var outline: PackedVector2Array = top + bottom
-	draw_colored_polygon(outline, TONGUE_COLOR)
-	draw_polyline(top, Color(TONGUE_EDGE, 0.85), 2.0, true)
-	draw_circle(_at(reach, thickness * 0.5), thickness * 0.5, TONGUE_COLOR)
-	# Flecks of light along the tongue.
+	layer.draw_colored_polygon(outline, TONGUE_COLOR)
+	layer.draw_polyline(top, Color(TONGUE_EDGE, 0.85), 2.0, true)
+	layer.draw_circle(_at(reach, thickness * 0.5), thickness * 0.5, TONGUE_COLOR)
+
+
+## Flecks of light along the tongue, drawn on `layer`.
+func _draw_flecks(layer: Node2D) -> void:
+	var reach: float = _reach()
 	for i: int in 5:
 		var u: float = reach * (float(i) + 0.5) / 5.0
 		var twinkle: float = 0.5 + 0.5 * sin(_clock * 3.0 + float(i) * 1.9)
-		draw_circle(_at(u, thickness * 0.45), 1.8, Color(1.0, 0.92, 0.75, 0.35 + 0.4 * twinkle))
+		layer.draw_circle(
+			_at(u, thickness * 0.45), 1.8, Color(1.0, 0.92, 0.75, 0.35 + 0.4 * twinkle)
+		)
 
 
-## Branches that hang from the tongue into the opening and keep forking as the coral grows.
-func _draw_branches() -> void:
+## Places the branches that hang from the tongue into the opening and sways them. A branch
+## keeps its drawing once it has grown: only its angle changes.
+func _pose_branches() -> void:
+	var shown: bool = growth > 0.04
 	var reach: float = _reach()
 	for i: int in _roots.size():
 		var root: Dictionary = _roots[i]
+		var branch: CoralBranch = _branches[i]
 		var own: float = clampf(growth * 1.5 - float(root["at"]) * 0.5, 0.0, 1.0)
-		if own <= 0.0:
-			continue
 		var u: float = maxf(reach * float(root["at"]) + 4.0, 0.0)
-		if u > reach:
+		var grown: bool = shown and own > 0.0 and u <= reach
+		if branch.visible != grown:
+			branch.visible = grown
+		if not grown:
 			continue
-		var start: Vector2 = _at(u, thickness - 2.0)
+		branch.position = _at(u, thickness - 2.0)
 		var sway: float = sin(_clock * 1.3 + float(root["phase"])) * 0.09
-		var lean: float = float(root["lean"]) + sway
-		var down: Vector2 = Vector2(0.0, 1.0).rotated(lean)
-		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-		rng.seed = int(root["seed"])
-		_draw_branch(start, down, float(root["length"]) * own, FORK_DEPTH, root["color"], rng, own)
-
-
-func _draw_branch(
-	from: Vector2,
-	direction: Vector2,
-	length: float,
-	depth: int,
-	color: Color,
-	rng: RandomNumberGenerator,
-	own: float
-) -> void:
-	var to: Vector2 = from + direction * length
-	var width: float = 2.0 + float(depth) * 1.6
-	draw_line(from, to, TONGUE_COLOR.lerp(color, 0.25 * float(FORK_DEPTH - depth)), width, true)
-	if depth == 0:
-		draw_circle(to, 3.4 * own + 0.6, color)
-		draw_circle(to, 6.0 * own, Color(color, 0.22))
-		return
-	var spread: float = rng.randf_range(0.35, 0.6)
-	var shrink: float = rng.randf_range(0.62, 0.78)
-	_draw_branch(to, direction.rotated(-spread), length * shrink, depth - 1, color, rng, own)
-	_draw_branch(to, direction.rotated(spread * 0.9), length * shrink, depth - 1, color, rng, own)
+		branch.rotation = float(root["lean"]) + sway
+		branch.grow_to(own)

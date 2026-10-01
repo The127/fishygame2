@@ -19,6 +19,17 @@ const SAG_SPEED: float = 30.0
 ## Fish ids a [method snapshot] keeps per jellyfish (-1 for an empty slot), and floats in it.
 const HELD_SLOTS: int = 3
 const SNAPSHOT_FLOATS: int = 5 + HELD_SLOTS
+## Seconds between redraws of a jellyfish that is on screen.
+const REDRAW_STEP: float = 1.0 / 30.0
+## Segments a tentacle is drawn in.
+const TENTACLE_STEPS: int = 8
+## How far past the drawing, in pixels, the jellyfish counts as on screen.
+const SCREEN_MARGIN: float = 80.0
+
+## The bell's outline on a unit circle, from its left edge over the top to its right edge.
+static var _dome_unit: PackedVector2Array = PackedVector2Array()
+## One material for every jellyfish, so the glowing ones are drawn in one batch.
+static var _glow_material: CanvasItemMaterial
 
 ## Radius of the bell (the part marbles bounce off).
 @export var radius: float = 42.0
@@ -44,6 +55,14 @@ var _held: Dictionary = {}
 var _immune: Dictionary = {}
 var _sting: float = 0.0
 var _sting_area: Area2D
+## Marbles inside the tentacles' reach right now (the keys; see [member _held] for why untyped).
+var _in_sting: Dictionary = {}
+## Whether any view shows the jellyfish. Only then is it drawn again every frame.
+var _on_screen: bool = false
+var _since_redraw: float = 0.0
+## Where each tentacle hangs (x) and how long it is, by tentacle.
+var _tentacle_x: PackedFloat32Array = PackedFloat32Array()
+var _tentacle_length: PackedFloat32Array = PackedFloat32Array()
 ## Replay: the fish by id while a replay plays (null otherwise) and the ids shown as held.
 var _replay_fish: Variant = null
 var _shown_held: Array[int] = []
@@ -77,11 +96,23 @@ func _ready() -> void:
 	sting_shape.shape = sting_rect
 	sting_shape.position = Vector2(0.0, radius * 1.55)
 	_sting_area.add_child(sting_shape)
+	_sting_area.body_entered.connect(_on_sting_body_entered)
+	_sting_area.body_exited.connect(_on_sting_body_exited)
 	add_child(_sting_area)
-	var glow_material: CanvasItemMaterial = CanvasItemMaterial.new()
-	glow_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	material = glow_material
+	if _glow_material == null:
+		_glow_material = CanvasItemMaterial.new()
+		_glow_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	material = _glow_material
 	z_index = -1
+	_plan_drawing()
+	# Off screen there is nothing to draw, so the jellyfish only redraws while a view shows it.
+	var notifier: VisibleOnScreenNotifier2D = VisibleOnScreenNotifier2D.new()
+	var reach: float = radius * 2.4 + SCREEN_MARGIN
+	notifier.rect = Rect2(-reach, -reach, reach * 2.0, reach * 2.0)
+	notifier.screen_entered.connect(_on_screen_entered)
+	notifier.screen_exited.connect(_on_screen_exited)
+	add_child(notifier)
+	set_process(false)
 
 
 ## Picks the path for a race and rewinds to its start.
@@ -184,6 +215,9 @@ func catch_marble(marble: Marble) -> bool:
 ## Keys are checked before they are used as marbles: a finished race frees its marbles while
 ## the jellyfish keep running.
 func _update_catches(delta: float) -> void:
+	if _immune.is_empty() and _held.is_empty() and _in_sting.is_empty():
+		_sting = maxf(_sting - delta * 2.0, 0.0)
+		return
 	for key: Variant in _immune.keys():
 		if not is_instance_valid(key):
 			_immune.erase(key)
@@ -203,16 +237,41 @@ func _update_catches(delta: float) -> void:
 			continue
 		var wanted: Vector2 = _velocity + Vector2(0.0, SAG_SPEED)
 		marble.apply_central_force((wanted - marble.linear_velocity) * GRIP * marble.mass)
-	if _sting_area != null and is_inside_tree():
-		for body: Node2D in _sting_area.get_overlapping_bodies():
-			if body is Marble:
-				catch_marble(body as Marble)
+	for key: Variant in _in_sting.keys():
+		if is_instance_valid(key):
+			catch_marble(key as Marble)
+		else:
+			_in_sting.erase(key)
 	if _held.is_empty():
 		_sting = maxf(_sting - delta * 2.0, 0.0)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	# The pulse and the sway are slow, so the drawing moves at 30 frames a second at most.
+	_since_redraw += delta
+	if _since_redraw >= REDRAW_STEP:
+		_since_redraw = 0.0
+		queue_redraw()
+
+
+func _on_screen_entered() -> void:
+	_on_screen = true
+	set_process(true)
 	queue_redraw()
+
+
+func _on_screen_exited() -> void:
+	_on_screen = false
+	set_process(false)
+
+
+func _on_sting_body_entered(body: Node2D) -> void:
+	if body is Marble:
+		_in_sting[body] = true
+
+
+func _on_sting_body_exited(body: Node2D) -> void:
+	_in_sting.erase(body)
 
 
 func _on_ring_body_entered(body: Node2D) -> void:
@@ -225,6 +284,20 @@ func _on_ring_body_entered(body: Node2D) -> void:
 	marble.apply_central_impulse(away.normalized() * KICK * kick_scale * marble.mass)
 
 
+## Works out what the drawing reuses every frame: the outline of the bell and where the tentacles
+## hang.
+func _plan_drawing() -> void:
+	if _dome_unit.is_empty():
+		for step: int in SKIRT_SEGMENTS + 1:
+			var a: float = PI + PI * float(step) / float(SKIRT_SEGMENTS)
+			_dome_unit.append(Vector2(cos(a), sin(a)))
+	_tentacle_x.resize(TENTACLES)
+	_tentacle_length.resize(TENTACLES)
+	for i: int in TENTACLES:
+		_tentacle_x[i] = lerpf(-radius * 0.7, radius * 0.7, float(i) / float(TENTACLES - 1))
+		_tentacle_length[i] = radius * (1.5 + 0.5 * sin(float(i) * 2.3))
+
+
 func _draw() -> void:
 	var beat: float = 0.5 + 0.5 * sin(_clock * 2.4 + _pulse_phase)
 	var squash: float = 1.0 + 0.06 * beat
@@ -234,26 +307,28 @@ func _draw() -> void:
 		var r: float = radius * (2.4 - 0.45 * float(i))
 		draw_circle(Vector2.ZERO, r, Color(tint, (0.03 + 0.05 * excite) * float(i + 1)))
 	# Bell: a dome over a scalloped skirt.
-	var dome: PackedVector2Array = PackedVector2Array()
-	for s: int in SKIRT_SEGMENTS + 1:
-		var a: float = PI + PI * float(s) / float(SKIRT_SEGMENTS)
-		dome.append(Vector2(cos(a) * radius * squash, sin(a) * radius / squash))
+	var dome: PackedVector2Array = (
+		Transform2D(Vector2(radius * squash, 0.0), Vector2(0.0, radius / squash), Vector2.ZERO)
+		* _dome_unit
+	)
 	dome.append(Vector2(radius * 0.85, radius * 0.18))
 	dome.append(Vector2(-radius * 0.85, radius * 0.18))
 	draw_colored_polygon(dome, Color(tint, 0.35 * glow))
 	draw_polyline(dome, Color(tint.lightened(0.4), 0.85 * glow), 2.5, true)
 	draw_circle(Vector2(0.0, -radius * 0.25), radius * 0.4, Color(tint.lightened(0.6), 0.25 * glow))
 	# Tentacles trail below and sway with the drift clock.
+	var grip: float = _sting
+	var color: Color = Color(tint.lightened(0.5 * grip), (0.5 + 0.4 * grip) * glow)
+	var points: PackedVector2Array = PackedVector2Array()
+	points.resize(TENTACLE_STEPS)
+	var sway_scale: float = radius * 0.16
 	for i: int in TENTACLES:
-		var x: float = lerpf(-radius * 0.7, radius * 0.7, float(i) / float(TENTACLES - 1))
-		var length: float = radius * (1.5 + 0.5 * sin(float(i) * 2.3))
-		var points: PackedVector2Array = PackedVector2Array()
-		for s: int in 8:
-			var t: float = float(s) / 7.0
-			var sway: float = sin(_clock * 3.0 - t * 4.0 + float(i)) * radius * 0.16 * t
-			points.append(Vector2(x + sway, radius * 0.15 + length * t))
-		var grip: float = _sting
-		var color: Color = Color(tint.lightened(0.5 * grip), (0.5 + 0.4 * grip) * glow)
+		var x: float = _tentacle_x[i]
+		var length: float = _tentacle_length[i]
+		for s: int in TENTACLE_STEPS:
+			var t: float = float(s) / float(TENTACLE_STEPS - 1)
+			var sway: float = sin(_clock * 3.0 - t * 4.0 + float(i)) * sway_scale * t
+			points[s] = Vector2(x + sway, radius * 0.15 + length * t)
 		draw_polyline(points, color, 3.0 + grip, true)
 	# A crackle of light from the tentacles to every fish they hold.
 	for there: Vector2 in _held_points():

@@ -80,7 +80,7 @@ func _physics_process(delta: float) -> void:
 	if _repose:
 		_repose = false
 		for bed: CoralBed in _beds:
-			bed.pose()
+			bed.pose(true)
 
 
 ## Part of the finish replay: the plugs are synced to physics again, so pose them in the next frame.
