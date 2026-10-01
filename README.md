@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko (a tall machine with three peg levels: a dense field, a sparse one with pulsing bumpers and one of spinners) and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback, overgrowth on Coral Garden and a tilt on Pinball Reef (somebody bumps the cabinet and every fish is shoved back and forth sideways, `scripts/tracks/tilt_hazard.gd`). The Jellyfish
+Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback, overgrowth on Coral Garden and a tilt on Pinball Reef (somebody bumps the cabinet and every fish is shoved back and forth sideways, `scripts/tracks/tilt_hazard.gd`) and an aftershock on Earthquake Fault (the floor shudders and hops every fish, `scripts/tracks/aftershock_hazard.gd`). The Jellyfish
 
 Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
@@ -410,6 +410,24 @@ With no chat input a seed replays the same race, so the seed sweeps and CI run o
 The finish replay records the blade angles, the plunger and the bumper glow through the generic
 replay hook; the tally and the fish names on it are not replayed. Fish sometimes get flung back up a
 bank, so races take 10 to 45 seconds with auto-fire only.
+
+Earthquake Fault is the other map chat plays. The fish zigzag down three rock shelves with four
+cracks in them (`scripts/tracks/fault_crack.gd`), each shut with a plug of rock until a quake splits
+it. Two are shortcuts, holes right through a shelf that drop the fish onto the shelf below. Two are
+pits, hollows full of rubble that slow the fish and push them on out the far side, so none is ever
+trapped. Viewers type `#shake` (`ShakeCommands` turns the chat line into a request, `Game` passes it
+to the fault, `scripts/tracks/quake_fault.gd`). When enough of them have shaken inside 8 seconds,
+the ground rumbles for a moment and then a crack opens, the view jolts and every fish is thrown
+about. The presses needed are 40% of the joined viewers (at least 3, at most 12), one viewer counts
+for at most two, a meter in the top left shows how close it is, and a quake has a 12 second cooldown.
+Which crack opens is a seeded order, taking the first one the pack has not passed yet. If chat stays
+quiet, one quake still happens at a time drawn from the race seed (6 to 11 s), so the seed sweeps
+and CI run on that automatic quake only. `race_debug.tscn --shake` has made-up viewers spam `#shake`
+for a manual check. The cracks and the fault use the generic replay hook, so the finish replay shows
+the plugs falling away (the meter and the view shake are not replayed). The map's random event is an
+aftershock, which hops the fish but never opens a crack. Races take 20 to 50 seconds.
+Floor parts that are not direct children of the track join the stone look through the group
+`track_stone`.
 
 ### Finish replay and moving map parts
 

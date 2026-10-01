@@ -190,6 +190,16 @@ JINGLES = {
                   (0.91, 57, 1.8, 0.8)),
         "echo": (0.25, 2, 0.4),
     },
+    # Earthquake fault: two low rumbling hits, then a brass D phrygian rise that settles.
+    "fault": {
+        "partials": BRASS,
+        "notes": ((0.0, 26, 0.5, 0.1), (0.0, 38, 0.5, 0.1), (0.25, 26, 0.5, 0.1),
+                  (0.25, 38, 0.5, 0.1), (0.6, 62, 0.9, 0.3), (0.75, 65, 0.9, 0.3),
+                  (0.9, 69, 0.9, 0.3), (1.05, 70, 1.8, 0.8), (1.05, 50, 1.8, 0.8),
+                  (1.05, 57, 1.8, 0.8), (1.05, 62, 1.8, 0.8)),
+        "hiss": 0.3,
+        "echo": (0.25, 2, 0.4),
+    },
 }
 
 
@@ -555,6 +565,16 @@ def _switchback(out, rng):
     bubbles(out, rng, 6, 250.0, 650.0, 0.1)
 
 
+def _fault(out, rng):
+    # A deep rumble that swells, rock splitting and grinding, falling grit and a hot hiss.
+    bed(out, rng, 0.0, 120.0, 1.0, swell=0.7, cycles=2)
+    bed(out, rng, 120.0, 600.0, 0.25, swell=0.9, cycles=3, phase=math.pi / 3.0)
+    thumps(out, rng, (0.4, 2.1, 4.0, 5.9), 100.0, 0.8)
+    clanks(out, (1.2, 3.3, 6.4), 140.0, 0.16)
+    creaks(out, rng, (0.9, 4.6), 80.0, 200.0, 0.2)
+    steam(out, rng, (2.8, 7.0), 0.18)
+
+
 def _pinball(out, rng):
     # A low hum of the machine with arcade blips, bumper pops and a faint ball rattle.
     bed(out, rng, 0.0, 300.0, 0.8, swell=0.4, cycles=2)
@@ -584,6 +604,7 @@ AMBIENCE = {
     "flush": (62, _flush),
     "switchback": (72, _switchback),
     "pinball": (44, _pinball),
+    "fault": (73, _fault),
 }
 
 

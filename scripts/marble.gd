@@ -2,6 +2,8 @@ class_name Marble
 extends RigidBody2D
 ## A fish marble. The visual is drawn by FishVisual, tinted by `color`.
 
+## Group every fish is in, for map parts that act on all of them.
+const GROUP: StringName = &"marbles"
 const RADIUS: float = 14.0
 
 ## Seconds a curse keeps the marble slowed.
@@ -134,6 +136,7 @@ var _trail: CPUParticles2D
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	_fish = FishVisual.new()
 	_fish.color = color
 	_fish.species = species if species >= 0 else id

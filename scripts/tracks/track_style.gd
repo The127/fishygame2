@@ -12,6 +12,8 @@ const FOREGROUND_MARGIN: float = 170.0
 ## Bottom shapes are rooted this far below the frame (EnvLayer's floor line).
 const FLOOR_BELOW_FRAME: float = 60.0
 
+## Group of stone bodies that are not direct children of the track but are dressed like them.
+const STONE_GROUP: StringName = &"track_stone"
 const STONE_SHADER: Shader = preload("res://assets/shaders/env/stone.gdshader")
 const FOG_SHADER: Shader = preload("res://assets/shaders/env/fog.gdshader")
 const VIEW: Vector2 = Vector2(1920.0, 1080.0)
@@ -56,6 +58,10 @@ func dress(track: Track, style_id: String) -> void:
 	for child: Node in track.get_children():
 		if child is StaticBody2D:
 			_dress_body(child as StaticBody2D)
+	# Parts nested under a map's own node (the floor plugs of a fault) opt in with this group.
+	for node: Node in track.find_children("*", "StaticBody2D", true, false):
+		if node.is_in_group(STONE_GROUP):
+			_dress_body(node as StaticBody2D)
 
 
 func _process(delta: float) -> void:
