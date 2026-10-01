@@ -9,7 +9,7 @@ const COMMIT: String = ""
 const BUILT_AT: String = ""
 
 
-## "v0.9.0 · a1b2c3d · 2026-09-30 16:40 UTC" for a stamped build, "v0.9.0 · dev" otherwise.
+## "v1.0.0 · a1b2c3d · 2026-09-30 16:40 UTC" for a stamped build, "v1.0.0 · dev" otherwise.
 static func label() -> String:
 	return compose(version(), COMMIT, BUILT_AT)
 
