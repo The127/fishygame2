@@ -37,6 +37,8 @@ func before_each() -> void:
 	_game.settings.second_reward = 0
 	_game.settings.third_reward = 0
 	_game.settings.countdown_seconds = 3
+	# A fixed map: the helpers below finish fish at the gate, which a looping map ignores.
+	_game.settings.default_map = "zigzag"
 	_flow.podium_seconds = 5.0
 	_game.settings.finish_replay = GameSettings.REPLAY_OFF
 	_configure(_game.settings)

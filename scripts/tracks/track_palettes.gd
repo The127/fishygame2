@@ -363,6 +363,25 @@ const PALETTES: Dictionary = {
 		"far_kind": EnvLayer.Kind.SPIRES,
 		"sway_scale": 0.1,
 	},
+	"riptide":
+	{
+		"sky_top": Color(0.02, 0.13, 0.22),
+		"sky_bottom": Color(0.0, 0.02, 0.05),
+		"far": Color(0.03, 0.12, 0.2),
+		"mid": Color(0.025, 0.09, 0.16),
+		"near": Color(0.004, 0.02, 0.04),
+		"plant": Color(0.03, 0.15, 0.22),
+		"stone_dark": Color(0.03, 0.07, 0.1),
+		"stone_light": Color(0.13, 0.26, 0.32),
+		"rim": Color(0.45, 0.85, 1.0),
+		"ray": Color(0.4, 0.9, 1.0),
+		"fog": Color(0.05, 0.25, 0.4),
+		"mote": Color(0.7, 0.95, 1.0),
+		"layer_kind": EnvLayer.Kind.KELP,
+		"far_kind": EnvLayer.Kind.SPIRES,
+		"sway_scale": 1.3,
+		"foreground_height": 0.65,
+	},
 }
 const DEFAULT_STYLE: String = "kelp"
 
@@ -388,4 +407,5 @@ const FOREGROUND: Dictionary = {
 	"switchback": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.RUINS],
 	"pinball": [EnvLayer.Kind.BLOOMS, EnvLayer.Kind.CORAL],
 	"fault": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SHARDS],
+	"riptide": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
 }

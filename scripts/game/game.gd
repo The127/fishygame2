@@ -40,6 +40,7 @@ var _sequence: RaceSequence = RaceSequence.new()
 var _replies: ChatReplies = ChatReplies.new()
 var _batcher: ChatBatcher = _replies.batcher
 var _meow: Meow = Meow.new()
+var _haunt: Haunt = Haunt.new()
 var _viewer_commands: ViewerCommands = ViewerCommands.new()
 var _flipper_commands: FlipperCommands = FlipperCommands.new()
 var _shake_commands: ShakeCommands = ShakeCommands.new()
@@ -100,6 +101,17 @@ func _ready() -> void:
 	_replies.notice.connect(_overlay.show_notice)
 	_replies.chat_line.connect(Chat.send_message)
 	add_child(_meow)
+	_haunt.blocker = _race.eddy_blocker
+	add_child(_haunt)
+	Chat.command_received.connect(_haunt.handle_command)
+	_flow.player_joined.connect(_haunt.add_contestant)
+	_flow.state_changed.connect(_haunt.on_state_changed)
+	_haunt.eddy_requested.connect(_race.drop_eddy)
+	_haunt.eddy_sent.connect(_replies.eddy_sent)
+	_haunt.eddy_rejected.connect(_replies.eddy_rejected)
+	_race.race_finished.connect(_haunt.on_race_finished)
+	_race.round_cut.connect(_on_round_cut)
+	_race.eddy_dropped.connect(_on_eddy_dropped)
 	_flow.state_changed.connect(_on_state_changed)
 	_flow.player_joined.connect(_on_player_joined)
 	_flow.join_rejected.connect(_on_join_rejected)
@@ -226,7 +238,11 @@ func _apply_settings() -> void:
 func _process(_delta: float) -> void:
 	if _flow.state == GameFlow.State.LOBBY:
 		_refresh_lobby()
-	if _flow.state == GameFlow.State.RACING and _race.running:
+	if (
+		_flow.state == GameFlow.State.RACING
+		and _race.running
+		and (_track == null or _track.follow_camera)
+	):
 		_camera.follow(_race.get_position_map(), _race.get_progress_map())
 	var left: float = _race.time_left()
 	_overlay.show_race_timer(ceili(left) if left >= 0.0 and left <= TIMER_SECONDS else -1)
@@ -404,6 +420,19 @@ func _on_fish_dissolved(id: int) -> void:
 	if id >= 0 and id < contestants.size():
 		who = "@" + contestants[id].display_name
 	_overlay.show_notice("%s was dissolved in stomach acid!" % who, 3.0)
+
+
+## A round race cut these fish: a chill note, the names and how to get back in as an eddy.
+func _on_round_cut(round_number: int, ids: Array[int]) -> void:
+	Sound.play(Sound.Sfx.CURSE)
+	var names: PackedStringArray = []
+	for id: int in ids:
+		names.append("@" + _contestant_name(id))
+	_replies.round_cut(round_number, names)
+
+
+func _on_eddy_dropped(_id: int) -> void:
+	Sound.play(Sound.Sfx.BLAST_CAST)
 
 
 func _on_photo_finish(_winner_id: int, _chaser_id: int) -> void:

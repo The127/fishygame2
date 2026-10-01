@@ -62,6 +62,7 @@ func test_maps_with_moving_parts_register_them() -> void:
 		"garden": CoralHazard,
 		"flush": DuckBumper,
 		"switchback": SwitchbackRamp,
+		"riptide": EddyRing,
 	}
 	for id: String in expected:
 		if not TrackCatalog.has_map(id):

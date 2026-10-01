@@ -3,6 +3,7 @@ extends Node2D
 ## Headless: godot --headless --fixed-fps 60 res://scenes/debug/race_debug.tscn -- --autorun --seed=7 --map=pachinko --count=20 --hazards=3
 ## --hazards is the hazard frequency (0 turns hazard events off). --limit is the race time limit in
 ## seconds (default 0, none): fish still racing then are DNF, which does not fail an autorun.
+## --eddies=<seconds> makes the cut fish of a round race send out an eddy that often (default 2, 0 for none), standing in for chat.
 ## --event=<id> runs the race under a RaceEvent (low_gravity, double_hazards, lights_out, bouncy, thanos_snap).
 ## --shake has made-up viewers spam "#shake" the whole race, for the quakes of a map with a fault.
 
@@ -27,6 +28,11 @@ var _treasures_found: int = 0
 var _treasures_total: int = 0
 var _stranded: int = 0
 var _dissolved: int = 0
+var _cut: int = 0
+var _eddies: int = 0
+var _eddy_every: float = 2.0
+var _eddy_clock: float = 0.0
+var _eddy_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 @onready var _race: Race = $Race
 
@@ -36,6 +42,8 @@ func _ready() -> void:
 	_race.fish_snapped.connect(_on_fish_snapped)
 	_race.fish_stranded.connect(_on_fish_stranded)
 	_race.fish_dissolved.connect(_on_fish_dissolved)
+	_race.round_cut.connect(_on_round_cut)
+	_race.eddy_dropped.connect(_on_eddy_dropped)
 	_race.race_finished.connect(_on_race_finished)
 	_race.treasure_collected.connect(_on_treasure_collected)
 	for arg: String in OS.get_cmdline_user_args():
@@ -53,6 +61,8 @@ func _ready() -> void:
 			time_limit = maxf(0.0, float(arg.substr(8)))
 		elif arg.begins_with("--event="):
 			event_id = arg.substr(8)
+		elif arg.begins_with("--eddies="):
+			_eddy_every = maxf(0.0, float(arg.substr(9)))
 		elif arg.begins_with("--hazards="):
 			hazard_frequency = clampi(int(arg.substr(10)), 0, 5)
 	if event_id != RaceEvent.NOTHING and not RaceEvent.is_event(event_id):
@@ -77,6 +87,11 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_send_eddies(delta)
+	_spam_shake(delta)
+
+
+func _spam_shake(delta: float) -> void:
 	if not _shake:
 		return
 	_shake_in -= delta
@@ -111,10 +126,40 @@ func _start_race() -> void:
 	_hazard_events.clear()
 	_stranded = 0
 	_dissolved = 0
+	_cut = 0
+	_eddies = 0
+	_eddy_clock = 0.0
+	_eddy_rng.seed = seed_value
 	_race.time_limit = time_limit
 	_treasures_found = 0
 	_race.start(_track, marble_count, rng, hazard_frequency, event_id)
 	_treasures_total = _race.treasures_left()
+
+
+func _send_eddies(delta: float) -> void:
+	# Cut fish stand in for chat: a random one of them sends out an eddy every so often.
+	if _eddy_every <= 0.0 or not _race.running:
+		return
+	_eddy_clock += delta
+	if _eddy_clock < _eddy_every:
+		return
+	_eddy_clock = 0.0
+	var cut: Array[int] = []
+	for marble: Marble in _race.get_marbles():
+		if marble.eliminated:
+			cut.append(marble.id)
+	if not cut.is_empty():
+		_race.drop_eddy(cut[_eddy_rng.randi_range(0, cut.size() - 1)])
+
+
+func _on_round_cut(round_number: int, ids: Array[int]) -> void:
+	_cut += ids.size()
+	print("  cut: marbles %s after lap %d at t=%.2fs" % [ids, round_number, _race.elapsed])
+
+
+func _on_eddy_dropped(id: int) -> void:
+	_eddies += 1
+	print("  eddy: marble %d at t=%.2fs" % [id, _race.elapsed])
 
 
 func _on_hazard_started(kind: String) -> void:
@@ -174,6 +219,7 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 				and not _race.is_snapped(id)
 				and not _race.is_stranded(id)
 				and not _race.is_dissolved(id)
+				and not _race.is_eliminated(id)
 			):
 				unfinished += 1
 		var starts: String = ""
@@ -184,7 +230,7 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 			starts = " starts=%s" % ",".join(by_marble)
 		print(
 			(
-				"RESULT map=%s seed=%d time=%.2f unfinished=%d stranded=%d dissolved=%d hazards=%d treasures=%d/%d order=%s%s"
+				"RESULT map=%s seed=%d time=%.2f unfinished=%d stranded=%d dissolved=%d cut=%d eddies=%d hazards=%d treasures=%d/%d order=%s%s"
 				% [
 					map_id,
 					seed_value,
@@ -192,6 +238,8 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 					unfinished,
 					_stranded,
 					_dissolved,
+					_cut,
+					_eddies,
 					_hazard_events.size(),
 					_treasures_found,
 					_treasures_total,

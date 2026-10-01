@@ -188,6 +188,15 @@ JINGLES = {
                   (0.2, 45, 0.25, 0.04), (0.55, 81, 1.4, 0.5), (0.67, 84, 1.4, 0.5),
                   (0.79, 88, 1.4, 0.5), (0.91, 93, 1.8, 0.8), (0.91, 69, 1.8, 0.8),
                   (0.91, 57, 1.8, 0.8)),
+    },
+    # Riptide Rounds: a rising G minor run that breaks into a bright major chord, with a cold bell.
+    "riptide": {
+        "partials": GLASS,
+        "notes": ((0.0, 67, 0.5, 0.18), (0.08, 70, 0.5, 0.18), (0.16, 74, 0.5, 0.18),
+                  (0.24, 79, 0.5, 0.18), (0.32, 82, 0.5, 0.18), (0.4, 86, 0.6, 0.2),
+                  (0.6, 79, 1.8, 0.7), (0.6, 83, 1.8, 0.7), (0.6, 86, 1.8, 0.7),
+                  (0.6, 55, 1.8, 0.7)),
+        "bell": (1.0, 98, 1.5),
         "echo": (0.25, 2, 0.4),
     },
     # Earthquake fault: two low rumbling hits, then a brass D phrygian rise that settles.
@@ -584,6 +593,14 @@ def _pinball(out, rng):
     tinkles(out, rng, (0.8, 4.3), 1500.0, 2400.0, 0.06)
 
 
+def _riptide(out, rng):
+    bed(out, rng, 300.0, 1400.0, 0.5, swell=0.5, cycles=2)
+    bed(out, rng, 0.0, 260.0, 0.6, swell=0.3, cycles=1, phase=math.pi / 2.0)
+    shimmer(out, rng, (0.7, 2.9, 5.2), 1500.0, 3200.0, 0.035)
+    pings(out, (1.9,), 1250.0, 0.08)
+    bubbles(out, rng, 7, 400.0, 1100.0, 0.09)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -605,6 +622,7 @@ AMBIENCE = {
     "switchback": (72, _switchback),
     "pinball": (44, _pinball),
     "fault": (73, _fault),
+    "riptide": (72, _riptide),
 }
 
 

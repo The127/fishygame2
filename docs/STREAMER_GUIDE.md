@@ -92,6 +92,7 @@ Post this list in a panel or pinned message. `#help` in chat shows a short versi
 | `#bet <name> <amount>` | Bet points on a fish by its name (the viewer name on it). `#bet <name> all` bets everything. One bet per round. Winning bets share the pool. |
 | `#boost <name>` | Only during a race. Costs points. Gives that fish a push during the race. Not on your own fish. |
 | `#curse <name>` | Only during a race. Costs points. Hinders that fish. Not on your own fish. |
+| `#eddy` | Only on Riptide Rounds, only after your fish was flushed out. Free. Your ghost flies out of the lagoon and spins as an eddy on the course ahead of the leader for a few seconds, shoving the fish that swim through it. Every viewer has a short cooldown and only a few eddies can spin at once. |
 | `#points` | Shows your points. |
 | `#stats` | Shows your record. `#stats @name` shows someone else's. |
 | `#top` | The points leaderboard. |
@@ -106,6 +107,7 @@ Also:
 
 - **Cheering is free.** During a race, a chat message that names a fish (or `@name`) and contains an emote gives that fish a small push forward. Each viewer has a cooldown, so it cannot decide a race alone.
 - **Points** come from winning: 100 / 50 / 25 for 1st, 2nd and 3rd, plus any treasure (coin, pearl, chest) the fish picks up on the way. New viewers start with 1000 points. Points are saved in the browser source.
+- **Riptide Rounds** is a looping map: three laps of a current, and after each of the first two the slowest third of the fish are flushed out. Those fish are not done: their ghosts wait in the lagoon in the middle, and their viewers can send them back onto the course with `#eddy`. The game announces each cut in chat and on screen. Flushed-out fish count as not finished, so the placement rewards (100 / 50 / 25) go to the fish that finish the third lap first.
 - **`#meow`** is a hidden extra. During a race, your own fish meows. It is not in `#help`, so viewers have to find it.
 
 ## 7. Debug mode (testing without viewers)

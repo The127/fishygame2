@@ -216,8 +216,10 @@ func _add_foreground(track: Track, style_id: String) -> void:
 	# bottom shapes rise from just below it.
 	# Shapes hanging from the top would cover the starts up there, so they avoid every start.
 	var blocked_top: Array[Vector2] = blocked + _extra_start_ranges(track)
-	_add_foreground_layer(group, kinds[0], 21, 6, 290.0, 450.0, true, blocked_top)
-	_add_foreground_layer(group, kinds[1], 22, 5, 130.0, 300.0, false, blocked)
+	# A map whose fish race along the edges of the frame keeps the shapes low.
+	var scale: float = float(_palette.get("foreground_height", 1.0))
+	_add_foreground_layer(group, kinds[0], 21, 6, 290.0 * scale, 450.0 * scale, true, blocked_top)
+	_add_foreground_layer(group, kinds[1], 22, 5, 130.0 * scale, 300.0 * scale, false, blocked)
 
 
 func _add_foreground_layer(

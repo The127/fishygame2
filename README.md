@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko (a tall machine with three peg levels: a dense field, a sparse one with pulsing bumpers and one of spinners) and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback, overgrowth on Coral Garden and a tilt on Pinball Reef (somebody bumps the cabinet and every fish is shoved back and forth sideways, `scripts/tracks/tilt_hazard.gd`) and an aftershock on Earthquake Fault (the floor shudders and hops every fish, `scripts/tracks/aftershock_hazard.gd`). The Jellyfish
+Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback, overgrowth on Coral Garden and a tilt on Pinball Reef (somebody bumps the cabinet and every fish is shoved back and forth sideways, `scripts/tracks/tilt_hazard.gd`) and an aftershock on Earthquake Fault (the floor shudders and hops every fish, `scripts/tracks/aftershock_hazard.gd`) and a restless ghost that stirs up an eddy on Riptide Rounds. The Jellyfish
 
 Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
@@ -428,6 +428,23 @@ the plugs falling away (the meter and the view shake are not replayed). The map'
 aftershock, which hops the fish but never opens a crack. Races take 20 to 50 seconds.
 Floor parts that are not direct children of the track join the stone look through the group
 `track_stone`.
+
+Riptide Rounds is a looping map and the one round race (`scripts/race/race_rounds.gd`). The fish are carried round a
+stadium-shaped channel by a current, with no gravity and no slopes (`scripts/tracks/ring_channel.gd` builds the loop and the
+walls, `scripts/tracks/ring_current.gd` is the water: fastest down the middle, with slow crests that travel against it and a small
+seeded knack for each fish). A race is `laps` laps (three here). When the lap line has been crossed by everyone but the
+slowest third of the fish still racing (a third, rounded down, never the last two fish) after lap 1 and after lap 2, the rest
+are cut. The last lap is a plain finish. A cut fish is out of the race for good: it counts as unfinished (ranked by how far
+it got), so results, the 100/50/25 payouts and stats treat it like a stranded fish. It is drained into the still lagoon at the
+middle of the ring and waits there as a ghost (`scripts/tracks/eddy_ring.gd`). Its viewer types `#eddy` (`scripts/game/haunt.gd`,
+free, a cooldown per viewer, at most three eddies at a time) and the ghost flies out and spins for five seconds as an eddy
+(a small whirlpool, tangential drag and a pull to the middle) on the lane a little ahead of the leader, shoving and slowing
+the fish that swim through it. The ghosts are the cut fish themselves (frozen `Marble`s that the map moves), so the finish
+replay shows them; the swirls record their own state through `Replayable`. The finish is the lap line, so fish that finish
+are taken out of the physics and wait in the lagoon too, instead of circling among the others. Nothing on this map is a timer:
+the cut is the lap line itself. The camera keeps the whole ring in view (`Track.follow_camera`). To make another map a round
+race give its `Track` a closed `Centerline` and `laps`. It has no timed hazard: the eddies are its hazard. The debug race
+(and so the seed sweeps) has a cut fish send an eddy every two seconds, standing in for chat; `--eddies=0` turns that off.
 
 ### Finish replay and moving map parts
 

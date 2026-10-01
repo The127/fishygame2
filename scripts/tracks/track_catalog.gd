@@ -167,6 +167,14 @@ const MAPS: Array[Dictionary] = [
 		"ambience": "res://assets/audio/ambience_fault.wav",
 		"jingle": "res://assets/audio/jingle_fault.wav",
 	},
+	{
+		"id": "riptide",
+		"name": "Riptide Rounds",
+		"scene": preload("res://scenes/tracks/riptide_track.tscn"),
+		"music": "res://assets/audio/music_riptide.wav",
+		"ambience": "res://assets/audio/ambience_riptide.wav",
+		"jingle": "res://assets/audio/jingle_riptide.wav",
+	},
 ]
 
 
