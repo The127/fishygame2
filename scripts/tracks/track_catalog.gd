@@ -151,6 +151,14 @@ const MAPS: Array[Dictionary] = [
 		"ambience": "res://assets/audio/ambience_switchback.wav",
 		"jingle": "res://assets/audio/jingle_switchback.wav",
 	},
+	{
+		"id": "pinball",
+		"name": "Pinball Reef",
+		"scene": preload("res://scenes/tracks/pinball_track.tscn"),
+		"music": "res://assets/audio/music_pinball.wav",
+		"ambience": "res://assets/audio/ambience_pinball.wav",
+		"jingle": "res://assets/audio/jingle_pinball.wav",
+	},
 ]
 
 

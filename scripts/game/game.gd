@@ -41,6 +41,7 @@ var _replies: ChatReplies = ChatReplies.new()
 var _batcher: ChatBatcher = _replies.batcher
 var _meow: Meow = Meow.new()
 var _viewer_commands: ViewerCommands = ViewerCommands.new()
+var _flipper_commands: FlipperCommands = FlipperCommands.new()
 var _payouts: Array[Dictionary] = []
 ## The streamer power waiting for a click on the track (a StreamerPowers.Kind), or -1.
 var _armed_power: int = -1
@@ -83,6 +84,9 @@ func _ready() -> void:
 	Chat.command_received.connect(_chaos.handle_command)
 	Chat.command_received.connect(_viewer_commands.handle_command)
 	Chat.command_received.connect(_shop.handle_command)
+	add_child(_flipper_commands)
+	Chat.command_received.connect(_flipper_commands.handle_command)
+	_flipper_commands.flippers_requested.connect(_on_flippers_requested)
 	_chaos.points = _betting.points
 	_shop.points = _betting.points
 	_shop.equipped.connect(_on_shop_equipped)
@@ -553,11 +557,20 @@ func _load_map() -> void:
 	_track.fish_eaten.connect(_on_fish_eaten)
 	_track.hazard_started.connect(_on_hazard_started)
 	_track.hazard_active.connect(_on_hazard_active)
+	_track.flipper_tally_changed.connect(_overlay.show_flipper_tally)
 	add_child(_track)
 	move_child(_track, 0)
 	_camera.set_bounds(_track.view_bounds)
 	Sound.set_music_theme(id)
 	_camera.show_overview(true)
+
+
+## A viewer pressed "#left" or "#right". Only a race on a map with flippers reacts (its table is
+## in the chat group), and not while its finish replay plays.
+func _on_flippers_requested(side: int, who: String) -> void:
+	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
+		return
+	get_tree().call_group(PinballTable.CHAT_GROUP, "fire", side, who)
 
 
 func _on_join_rejected(msg: ChatMessage, reason: String) -> void:

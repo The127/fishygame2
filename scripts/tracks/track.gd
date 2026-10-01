@@ -25,6 +25,8 @@ signal fish_eaten(marble: Marble)
 signal fish_dissolved(marble: Marble)
 ## A map part (anglerfish, portal) let off a particle burst. The finish replay plays it again.
 signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
+## The chat tally of a map with flippers changed. Empty text hides it.
+signal flipper_tally_changed(text: String)
 
 ## Distance in pixels either side of a point used to estimate the track direction.
 const FORWARD_SAMPLE: float = 30.0
@@ -53,6 +55,7 @@ var _slot_of: Array[int] = []
 
 var _tide: WaterLevel
 var _tide_triggers: Array[TideTrigger] = []
+var _pinball: PinballTable
 
 @onready var _finish: Area2D = $Finish
 @onready var _centerline: Path2D = $Centerline
@@ -83,6 +86,9 @@ func _ready() -> void:
 	for child: Node in get_children():
 		if child is WaterLevel:
 			_tide = child as WaterLevel
+		if child is PinballTable:
+			_pinball = child as PinballTable
+			_pinball.tally_changed.connect(flipper_tally_changed.emit)
 	for child: Node in get_children():
 		if child is TideTrigger and _tide != null:
 			_tide_triggers.append(child as TideTrigger)
@@ -206,6 +212,8 @@ func stop_gimmicks() -> void:
 		_tide.stop()
 	for trigger: TideTrigger in _tide_triggers:
 		trigger.rearm()
+	if _pinball != null:
+		_pinball.disarm()
 
 
 ## Tells the map how many fish race, for gimmicks that pace themselves to the field. Call before
