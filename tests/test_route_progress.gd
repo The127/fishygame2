@@ -75,3 +75,44 @@ func test_vents_fish_thrown_up_off_the_last_ramp_stay_on_it() -> void:
 	assert_lt(absf(steps.x), MAX_STEP, "no jump on the way up")
 	assert_gt(steps.y, -MAX_STEP, "no jump on the way up")
 	assert_gt(track.get_progress(Vector2(900, 735)), 0.7, "still on the last ramp")
+
+
+func test_wreck_progress_is_smooth_down_the_drop_from_the_upper_deck() -> void:
+	var path: Array[Vector2] = [
+		Vector2(950, 285),
+		Vector2(1340, 330),
+		Vector2(1420, 400),
+		Vector2(1450, 520),
+		Vector2(1430, 640),
+		Vector2(1152, 680),
+	]
+	var steps: Vector2 = _walk(_track("wreck"), path)
+	assert_lt(steps.x, MAX_STEP, "no jump on the way down")
+	assert_gt(steps.y, -MAX_STEP, "no jump on the way down")
+
+
+func test_cave_progress_depends_on_depth_across_the_whole_maze() -> void:
+	# The route is a thin line down the left, so across the maze the nearest point on it flipped
+	# between its top and its bottom.
+	var track: Track = _track("cave")
+	var last: float = 0.0
+	for y: int in range(180, 960, 40):
+		var left: float = track.get_progress(Vector2(100, y))
+		for x: int in range(300, 1800, 300):
+			assert_almost_eq(track.get_progress(Vector2(x, y)), left, 0.0001, "(%d, %d)" % [x, y])
+		assert_gt(left, last, "deeper is further on at y %d" % y)
+		last = left
+	assert_lt(track.get_progress(Vector2(900, 170)), track.get_progress(Vector2(900, 180)) + 0.01)
+
+
+func test_jelly_progress_depends_on_depth_below_the_first_ramp() -> void:
+	# Under the ramp the nearest route point flipped between the ramp and the first drop.
+	var track: Track = _track("jelly")
+	var steps: Vector2 = _walk(
+		track, [Vector2(100, 700), Vector2(400, 790), Vector2(780, 930), Vector2(960, 1100)]
+	)
+	assert_lt(steps.x, MAX_STEP, "no jump rolling down the first floor")
+	assert_gt(steps.y, -MAX_STEP, "no jump rolling down the first floor")
+	assert_almost_eq(
+		track.get_progress(Vector2(400, 800)), track.get_progress(Vector2(1500, 800)), 0.0001
+	)

@@ -35,6 +35,8 @@ point_count = 9
 script = ExtResource("1_track")
 view_bounds = Rect2(0, -160, 1920, 1240)
 spawn_columns = 5
+depth_zone_top = 170.0
+depth_zone_bottom = 960.0
 style_id = "cave"
 
 [node name="Backdrop" type="Polygon2D" parent="."]
