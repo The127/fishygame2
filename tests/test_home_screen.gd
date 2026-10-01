@@ -284,3 +284,28 @@ func test_settings_screen_saves_every_toggle() -> void:
 	for key: String in keys:
 		assert_eq(screen._toggles[key].button_pressed, bool(GameSettings.new().get(key)), key)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func test_danger_area_wipes_saved_viewer_data_after_confirming() -> void:
+	var points_path: String = PointsStore.DEFAULT_PATH
+	var shop_path: String = Shop.DEFAULT_PATH
+	var extras: Array[String] = [".tmp", ".bak", ".corrupt-1"]
+	for path: String in [points_path, shop_path]:
+		for suffix: String in [""] + extras:
+			var file := FileAccess.open(path + suffix, FileAccess.WRITE)
+			file.store_string("{}")
+			file.close()
+	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
+	screen.settings = GameSettings.new()
+	add_child_autofree(screen)
+	var wipe: Button = screen.find_child("WipeSave", true, false)
+	wipe.pressed.emit()
+	assert_true(screen._wipe_dialog.visible, "asks first")
+	for path: String in [points_path, shop_path]:
+		assert_true(FileAccess.file_exists(path), "nothing deleted before confirming")
+	screen._wipe_dialog.confirmed.emit()
+	for path: String in [points_path, shop_path]:
+		for suffix: String in [""] + extras:
+			assert_false(FileAccess.file_exists(path + suffix), path + suffix)
+	var tabs: TabContainer = screen.find_children("*", "TabContainer", true, false)[0]
+	assert_true(tabs.find_child(SettingsScreen.DANGER_TITLE, true, false) != null)

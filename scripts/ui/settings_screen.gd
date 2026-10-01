@@ -7,6 +7,7 @@ const ONBOARDING_SCENE: String = "res://scenes/ui/onboarding_screen.tscn"
 const RANDOM_LABEL: String = "Random"
 const PANEL_WIDTH: float = 640.0
 const PREVIEW_KEY: String = "preview"
+const DANGER_TITLE: String = "Danger area"
 ## Tab layout: each item is a setting key (or [constant PREVIEW_KEY]).
 const TABS: Array[Dictionary] = [
 	{
@@ -110,6 +111,7 @@ var _map_picker: OptionButton
 var _toggles: Dictionary[String, CheckBox] = {}
 var _status: Label
 var _preview: PaddingPreview
+var _wipe_dialog: ConfirmationDialog
 
 
 func _ready() -> void:
@@ -176,6 +178,7 @@ func _build() -> void:
 			leftover.append(key)
 	if not leftover.is_empty():
 		_add_tab(tabs, "More", leftover, controls, placed)
+	tabs.add_child(_build_danger_tab())
 	_status = Label.new()
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiStyle.style_label(_status, 18, 600, UiStyle.MUTED)
@@ -202,6 +205,46 @@ func _build() -> void:
 	back.pressed.connect(_on_back_pressed)
 	UiStyle.style_button(back, 20)
 	buttons.add_child(back)
+
+
+## The "Danger area" tab: actions that cannot be undone, each behind a confirmation.
+func _build_danger_tab() -> Control:
+	var scroll := ScrollContainer.new()
+	scroll.name = DANGER_TITLE
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	scroll.add_child(margin)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	margin.add_child(box)
+	var info := Label.new()
+	info.text = (
+		"Deletes every viewer's points, wins, stats and names, and everything they bought "
+		+ "in the shop. Settings and the Twitch login are kept. This cannot be undone."
+	)
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiStyle.style_label(info, 22, 600, UiStyle.MUTED)
+	box.add_child(info)
+	var wipe := Button.new()
+	wipe.name = "WipeSave"
+	wipe.text = "RESET SAVE STATE"
+	wipe.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	wipe.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	wipe.pressed.connect(_on_wipe_pressed)
+	UiStyle.style_button(wipe, 20)
+	box.add_child(wipe)
+	_wipe_dialog = ConfirmationDialog.new()
+	_wipe_dialog.title = "Reset save state?"
+	_wipe_dialog.dialog_text = "All viewer points, wins, stats and shop items will be deleted."
+	_wipe_dialog.ok_button_text = "DELETE EVERYTHING"
+	_wipe_dialog.cancel_button_text = "CANCEL"
+	_wipe_dialog.confirmed.connect(wipe_save_state)
+	box.add_child(_wipe_dialog)
+	return scroll
 
 
 ## Creates every control, keyed by the setting it edits (plus [constant PREVIEW_KEY]).
@@ -344,6 +387,17 @@ func _on_toggle_toggled(pressed: bool, key: String) -> void:
 func reset_pressed() -> void:
 	settings.reset_to_defaults()
 	_commit("Defaults restored")
+
+
+func _on_wipe_pressed() -> void:
+	_wipe_dialog.popup_centered()
+
+
+## Deletes the saved viewer data (points, wins, stats, shop). Settings and Twitch login stay.
+func wipe_save_state() -> void:
+	PointsStore.erase_saved(PointsStore.DEFAULT_PATH)
+	ShopStore.erase_saved(Shop.DEFAULT_PATH)
+	_status.text = "Save state deleted"
 
 
 func _unhandled_input(event: InputEvent) -> void:

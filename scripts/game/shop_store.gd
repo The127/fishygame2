@@ -172,7 +172,16 @@ func _mirror_enabled() -> bool:
 
 
 func _mirror_key() -> String:
-	return "fishygame2.shop:" + save_path
+	return _mirror_key_for(save_path)
+
+
+static func _mirror_key_for(path: String) -> String:
+	return "fishygame2.shop:" + path
+
+
+## Deletes the saved data at [param path] (files and the web mirror). Call before loading again.
+static func erase_saved(path: String) -> void:
+	SaveWipe.erase(path, _mirror_key_for(path))
 
 
 func _mirror_write(text: String) -> void:
