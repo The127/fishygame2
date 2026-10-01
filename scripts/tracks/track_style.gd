@@ -22,6 +22,10 @@ const VIEW: Vector2 = Vector2(1920.0, 1080.0)
 const LAYER_PERIOD: float = 1360.0
 ## Background shapes of a repeated (tall map) layer fade out over this many pixels at their base.
 const SEAM_FADE: float = 140.0
+## The sky is flat color beyond this distance around the frame, which no camera view reaches.
+const SKY_REACH: float = 40000.0
+## Parallax layers repeat at least this many times to each side. More are added when the view is wide.
+const MIN_REPEAT_TIMES: int = 3
 const FOG_RECT: Rect2 = Rect2(-160.0, -260.0, 2240.0, 1500.0)
 const PEG_GLOW_SIZE: float = 128.0
 const FINISH_COLOR: Color = Color(1.0, 0.86, 0.3)
@@ -36,6 +40,7 @@ var _pegs: Array[Dictionary] = []
 var _finish_glows: Array[Node2D] = []
 var _rays: Array[Polygon2D] = []
 var _fogs: Array[ColorRect] = []
+var _layers: Array[Parallax2D] = []
 var _motes: CPUParticles2D
 ## How far the map reaches below the base frame (0 for a one-screen map).
 var _extra_height: float = 0.0
@@ -86,9 +91,27 @@ func _follow_view() -> void:
 	for fog: ColorRect in _fogs:
 		fog.global_position = view.position
 		fog.size = view.size
+	_cover_view_with_layers(view.size)
 	if _motes != null:
 		_motes.global_position = Vector2(view.get_center().x, view.end.y + 30.0)
 		_motes.emission_rect_extents = Vector2(view.size.x * 0.5 + 40.0, 10.0)
+
+
+## Repeat count that spans a view of `size` world pixels with room to spare, whether the engine
+## counts `repeat_times` per side or in total.
+static func repeat_times_for(size: Vector2, repeat_size: Vector2) -> int:
+	var times: int = MIN_REPEAT_TIMES
+	for axis: int in 2:
+		if repeat_size[axis] > 0.0:
+			times = maxi(times, ceili(size[axis] / repeat_size[axis]) + 2)
+	return times
+
+
+func _cover_view_with_layers(size: Vector2) -> void:
+	for layer: Parallax2D in _layers:
+		var times: int = repeat_times_for(size, layer.repeat_size)
+		if times != layer.repeat_times:
+			layer.repeat_times = times
 
 
 func _hide_flat_artwork(track: Track) -> void:
@@ -108,26 +131,32 @@ func _parallax(scroll_scale: float, z: int) -> Parallax2D:
 	var layer: Parallax2D = Parallax2D.new()
 	layer.scroll_scale = Vector2(scroll_scale, scroll_scale)
 	layer.z_index = z
-	if _extra_height > 0.0:
-		layer.repeat_size = Vector2(0.0, LAYER_PERIOD)
-		layer.repeat_times = 3
+	# The scenery repeats sideways so a view wider than the frame (a tall map zoomed out, or a
+	# streamer's blocked padding) never shows bare space next to it.
+	layer.repeat_size = Vector2(EnvLayer.WIDTH, LAYER_PERIOD if _extra_height > 0.0 else 0.0)
+	layer.repeat_times = MIN_REPEAT_TIMES
 	add_child(layer)
+	_layers.append(layer)
 	return layer
 
 
 func _add_background() -> void:
-	var sky: Polygon2D = Polygon2D.new()
-	sky.polygon = PackedVector2Array(
-		[
-			Vector2(-500, -500),
-			Vector2(2420, -500),
-			Vector2(2420, _floor_y + 500.0),
-			Vector2(-500, _floor_y + 500.0)
-		]
-	)
+	# A gradient over the frame (with margin) and flat color beyond it in every direction, so
+	# the sky covers whatever the camera shows, however wide or padded the view is.
+	var xs: Array[float] = [-SKY_REACH, SKY_REACH]
+	var ys: Array[float] = [-SKY_REACH, -500.0, _floor_y + 500.0, _floor_y + SKY_REACH]
 	var top: Color = _palette["sky_top"]
 	var bottom: Color = _palette["sky_bottom"]
-	sky.vertex_colors = PackedColorArray([top, top, bottom, bottom])
+	var points: PackedVector2Array = PackedVector2Array()
+	var colors: PackedColorArray = PackedColorArray()
+	for y_index: int in ys.size():
+		for x: float in xs:
+			points.append(Vector2(x, ys[y_index]))
+			colors.append(top if y_index < 2 else bottom)
+	var sky: Polygon2D = Polygon2D.new()
+	sky.polygon = points
+	sky.vertex_colors = colors
+	sky.polygons = [[0, 1, 3, 2], [2, 3, 5, 4], [4, 5, 7, 6]]
 	sky.z_index = -60
 	add_child(sky)
 
