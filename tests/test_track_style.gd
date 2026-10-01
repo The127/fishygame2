@@ -129,3 +129,32 @@ func test_every_style_has_a_palette_and_foreground() -> void:
 		assert_true(TrackPalettes.FOREGROUND.has(id), "%s has a foreground" % id)
 	for id: String in TrackPalettes.FOREGROUND:
 		assert_true(TrackPalettes.PALETTES.has(id), "%s has a palette" % id)
+
+
+func test_layers_repeat_sideways_on_every_map() -> void:
+	for id: String in TrackCatalog.ids():
+		var track: Track = TrackCatalog.instantiate(id)
+		add_child_autofree(track)
+		var style: TrackStyle = track.find_children("*", "TrackStyle", false, false)[0]
+		for layer: Node in style.find_children("*", "Parallax2D", false, false):
+			assert_eq((layer as Parallax2D).repeat_size.x, EnvLayer.WIDTH, "%s repeats" % id)
+
+
+func test_sky_covers_a_view_far_wider_than_the_frame() -> void:
+	var track: Track = TrackCatalog.instantiate("pachinko")
+	add_child_autofree(track)
+	var style: TrackStyle = track.find_children("*", "TrackStyle", false, false)[0]
+	var sky: Polygon2D = style.find_children("*", "Polygon2D", false, false)[0]
+	var bounds: Rect2 = Rect2(sky.polygon[0], Vector2.ZERO)
+	for point: Vector2 in sky.polygon:
+		bounds = bounds.expand(point)
+	var view: Rect2 = Rect2(-6000.0, -3000.0, 12000.0, 9000.0)
+	assert_true(bounds.encloses(view), "sky reaches past a wide, zoomed out view")
+
+
+func test_wide_view_adds_layer_repeats() -> void:
+	var narrow: int = TrackStyle.repeat_times_for(Vector2(1920.0, 1080.0), Vector2(2400.0, 0.0))
+	var wide: int = TrackStyle.repeat_times_for(Vector2(12000.0, 1080.0), Vector2(2400.0, 0.0))
+	assert_eq(narrow, TrackStyle.MIN_REPEAT_TIMES)
+	assert_gt(wide, narrow)
+	assert_gte(wide * 2 + 1, ceili(12000.0 / 2400.0), "enough copies to span the view")
