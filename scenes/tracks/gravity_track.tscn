@@ -161,6 +161,26 @@ polygon = PackedVector2Array(1414, 630, 1426, 630, 1440, 644, 1440, 996, 1426, 1
 color = Color(0.14, 0.13, 0.26, 1)
 polygon = PackedVector2Array(1414, 630, 1426, 630, 1440, 644, 1440, 996, 1426, 1010, 1414, 1010, 1400, 996, 1400, 644)
 
+[node name="FunnelLow" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="FunnelLow"]
+polygon = PackedVector2Array(1100, 1010, 1400, 630, 1400, 1010)
+
+[node name="Visual" type="Polygon2D" parent="FunnelLow"]
+color = Color(0.14, 0.13, 0.26, 1)
+polygon = PackedVector2Array(1100, 1010, 1400, 630, 1400, 1010)
+
+[node name="FunnelHigh" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="FunnelHigh"]
+polygon = PackedVector2Array(1100, 70, 1400, 70, 1400, 450)
+
+[node name="Visual" type="Polygon2D" parent="FunnelHigh"]
+color = Color(0.14, 0.13, 0.26, 1)
+polygon = PackedVector2Array(1100, 70, 1400, 70, 1400, 450)
+
 [node name="Valve1_0" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
