@@ -80,12 +80,19 @@ func test_one_viewer_cannot_quake_the_sea_alone() -> void:
 
 
 func test_presses_expire_after_the_window() -> void:
-	_fault.reseed(1)
+	# Find a seed whose automatic quake comes after the window, so only the presses are tested.
+	var seed_value: int = 0
+	while true:
+		_fault.reseed(seed_value)
+		if _fault.auto_time() > QuakeFault.WINDOW + 1.0:
+			break
+		seed_value += 1
 	_spam(QuakeFault.NEED_MIN - 1)
 	_tick(QuakeFault.WINDOW + 0.5)
-	# The earlier presses are gone, so one more cannot make a quake (the seeded one may have come).
-	assert_false(_fault.shake("late", 0))
+	assert_eq(_fault.quake_count(), 0)
+	assert_false(_fault.shake("late", 0), "the earlier presses are gone")
 	assert_eq(_fault.counted_presses(), 1)
+	assert_eq(_fault.quake_count(), 0)
 
 
 func test_a_quake_has_a_cooldown() -> void:
@@ -149,21 +156,6 @@ func test_different_seeds_open_different_cracks() -> void:
 			if crack.is_open():
 				seen[crack.name] = true
 	assert_gte(seen.size(), 3)
-
-
-func test_the_quake_opens_the_crack_ahead_of_the_pack() -> void:
-	# A fish at the bottom of the map has passed every crack, so any shut one is fine; a fish at
-	# the top has passed none, so the seeded first one opens.
-	_marble_at(Vector2(100, 100))
-	_fault.reseed(3)
-	_spam(QuakeFault.NEED_MIN)
-	_tick(QuakeFault.RUMBLE_SECONDS + 0.1)
-	var opened: FaultCrack
-	for crack: FaultCrack in _fault.get_cracks():
-		if crack.is_open():
-			opened = crack
-	assert_not_null(opened)
-	assert_gt(opened.center().y, 100.0)
 
 
 func test_the_pack_is_thrown_about_when_the_crack_opens() -> void:

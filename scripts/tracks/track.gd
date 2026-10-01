@@ -206,6 +206,8 @@ func arm_hazards(rng: RandomNumberGenerator, frequency: int) -> void:
 func stop_hazards() -> void:
 	for hazard: Hazard in get_hazards():
 		hazard.disarm()
+	for node: Node in find_children("*", "QuakeFault", true, false):
+		(node as QuakeFault).freeze()
 
 
 ## Puts the map's geysers back to sleep, its gravity back to down, its tide full again and any

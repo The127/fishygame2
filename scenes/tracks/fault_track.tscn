@@ -206,7 +206,7 @@ position = Vector2(700, 867.4)
 [node name="Shape" type="CollisionShape2D" parent="Fault/PitC/Zone"]
 shape = SubResource("Rect_PitC")
 
-[node name="ShelfA1" type="StaticBody2D" parent="." groups=["track_stone"]]
+[node name="ShelfA1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="./ShelfA1"]
@@ -216,7 +216,7 @@ polygon = PackedVector2Array(30, 130, 960, 241.6, 960, 275.6, 30, 164)
 color = Color(0.2, 0.15, 0.15, 1)
 polygon = PackedVector2Array(30, 130, 960, 241.6, 960, 275.6, 30, 164)
 
-[node name="ShelfA2" type="StaticBody2D" parent="." groups=["track_stone"]]
+[node name="ShelfA2" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="./ShelfA2"]
@@ -226,7 +226,7 @@ polygon = PackedVector2Array(1100, 258.4, 1735, 334.6, 1735, 368.6, 1100, 292.4)
 color = Color(0.2, 0.15, 0.15, 1)
 polygon = PackedVector2Array(1100, 258.4, 1735, 334.6, 1735, 368.6, 1100, 292.4)
 
-[node name="ShelfB1" type="StaticBody2D" parent="." groups=["track_stone"]]
+[node name="ShelfB1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="./ShelfB1"]
@@ -236,7 +236,7 @@ polygon = PackedVector2Array(190, 669, 760, 600.6, 760, 634.6, 190, 703)
 color = Color(0.2, 0.15, 0.15, 1)
 polygon = PackedVector2Array(190, 669, 760, 600.6, 760, 634.6, 190, 703)
 
-[node name="ShelfB2" type="StaticBody2D" parent="." groups=["track_stone"]]
+[node name="ShelfB2" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="./ShelfB2"]
@@ -246,7 +246,7 @@ polygon = PackedVector2Array(900, 583.8, 1420, 521.4, 1420, 555.4, 900, 617.8)
 color = Color(0.2, 0.15, 0.15, 1)
 polygon = PackedVector2Array(900, 583.8, 1420, 521.4, 1420, 555.4, 900, 617.8)
 
-[node name="ShelfB3" type="StaticBody2D" parent="." groups=["track_stone"]]
+[node name="ShelfB3" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="./ShelfB3"]
@@ -256,7 +256,7 @@ polygon = PackedVector2Array(1620, 497.4, 1890, 465, 1890, 499, 1620, 531.4)
 color = Color(0.2, 0.15, 0.15, 1)
 polygon = PackedVector2Array(1620, 497.4, 1890, 465, 1890, 499, 1620, 531.4)
 
-[node name="ShelfC1" type="StaticBody2D" parent="." groups=["track_stone"]]
+[node name="ShelfC1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="./ShelfC1"]
@@ -266,7 +266,7 @@ polygon = PackedVector2Array(30, 790, 600, 858.4, 600, 892.4, 30, 824)
 color = Color(0.2, 0.15, 0.15, 1)
 polygon = PackedVector2Array(30, 790, 600, 858.4, 600, 892.4, 30, 824)
 
-[node name="ShelfC2" type="StaticBody2D" parent="." groups=["track_stone"]]
+[node name="ShelfC2" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="./ShelfC2"]

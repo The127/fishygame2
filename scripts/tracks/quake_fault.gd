@@ -125,6 +125,20 @@ func is_armed() -> bool:
 	return _armed
 
 
+## Ends the quakes for good, at the end of a race: nothing more happens and the cracks stay as
+## they are. [method stop_gimmick] is what shuts them again for the next race.
+func freeze() -> void:
+	if not _armed:
+		return
+	_armed = false
+	_phase = Phase.CALM
+	if _target >= 0:
+		_cracks[_target].set_alert(0.0)
+	_target = -1
+	meter_changed.emit("")
+	_last_text = ""
+
+
 func get_cracks() -> Array[FaultCrack]:
 	return _cracks
 
@@ -252,7 +266,7 @@ func _lead_y() -> float:
 
 func _marbles() -> Array[Marble]:
 	var found: Array[Marble] = []
-	for node: Node in get_tree().root.find_children("*", "Marble", true, false):
+	for node: Node in get_tree().get_nodes_in_group(Marble.GROUP):
 		found.append(node as Marble)
 	return found
 
