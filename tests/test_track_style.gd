@@ -144,7 +144,11 @@ func test_sky_covers_a_view_far_wider_than_the_frame() -> void:
 	var track: Track = TrackCatalog.instantiate("pachinko")
 	add_child_autofree(track)
 	var style: TrackStyle = track.find_children("*", "TrackStyle", false, false)[0]
-	var sky: Polygon2D = style.find_children("*", "Polygon2D", false, false)[0]
+	var sky: Polygon2D = null
+	for node: Node in style.find_children("*", "Polygon2D", false, false):
+		if (node as Polygon2D).z_index == -60:
+			sky = node as Polygon2D
+	assert_not_null(sky)
 	var bounds: Rect2 = Rect2(sky.polygon[0], Vector2.ZERO)
 	for point: Vector2 in sky.polygon:
 		bounds = bounds.expand(point)
@@ -157,4 +161,17 @@ func test_wide_view_adds_layer_repeats() -> void:
 	var wide: int = TrackStyle.repeat_times_for(Vector2(12000.0, 1080.0), Vector2(2400.0, 0.0))
 	assert_eq(narrow, TrackStyle.MIN_REPEAT_TIMES)
 	assert_gt(wide, narrow)
-	assert_gte(wide * 2 + 1, ceili(12000.0 / 2400.0), "enough copies to span the view")
+	assert_gte(wide, ceili(12000.0 / 2400.0) + 2, "copies to span the view plus slack")
+
+
+func test_wide_view_raises_the_repeats_of_the_layers() -> void:
+	var track: Track = TrackCatalog.instantiate("wreck")
+	add_child_autofree(track)
+	var style: TrackStyle = track.find_children("*", "TrackStyle", false, false)[0]
+	get_viewport().canvas_transform = Transform2D(0.0, Vector2(2000.0, 0.0)).scaled_local(
+		Vector2(0.1, 0.1)
+	)
+	style._process(0.016)
+	for layer: Node in style.find_children("*", "Parallax2D", false, false):
+		assert_gt((layer as Parallax2D).repeat_times, TrackStyle.MIN_REPEAT_TIMES)
+	get_viewport().canvas_transform = Transform2D.IDENTITY

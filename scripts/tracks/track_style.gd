@@ -97,12 +97,13 @@ func _follow_view() -> void:
 		_motes.emission_rect_extents = Vector2(view.size.x * 0.5 + 40.0, 10.0)
 
 
-## Repeat counts needed so the parallax layers span a view of `size` world pixels.
+## Repeat count that spans a view of `size` world pixels with room to spare, whether the engine
+## counts `repeat_times` per side or in total.
 static func repeat_times_for(size: Vector2, repeat_size: Vector2) -> int:
 	var times: int = MIN_REPEAT_TIMES
 	for axis: int in 2:
 		if repeat_size[axis] > 0.0:
-			times = maxi(times, ceili(size[axis] / repeat_size[axis] / 2.0) + 1)
+			times = maxi(times, ceili(size[axis] / repeat_size[axis]) + 2)
 	return times
 
 
