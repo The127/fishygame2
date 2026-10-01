@@ -87,6 +87,11 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_send_eddies(delta)
+	_spam_shake(delta)
+
+
+func _spam_shake(delta: float) -> void:
 	if not _shake:
 		return
 	_shake_in -= delta
@@ -131,7 +136,7 @@ func _start_race() -> void:
 	_treasures_total = _race.treasures_left()
 
 
-func _physics_process(delta: float) -> void:
+func _send_eddies(delta: float) -> void:
 	# Cut fish stand in for chat: a random one of them sends out an eddy every so often.
 	if _eddy_every <= 0.0 or not _race.running:
 		return
