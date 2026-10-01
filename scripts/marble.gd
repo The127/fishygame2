@@ -17,6 +17,10 @@ const CHEER_IMPULSE: float = 40.0
 ## Largest cheer in emote units, so no setting makes a cheer as strong as a boost.
 const CHEER_MAX_STRENGTH: float = 8.0
 
+## Look of a fish that was cut from a round race: a pale, see-through ghost.
+const GHOST_ALPHA: float = 0.6
+const GHOST_COLOR: Color = Color(0.55, 0.9, 1.0)
+
 ## Seconds a snapped fish takes to fade away, and the color of its dust.
 const SNAP_FADE_SECONDS: float = 1.0
 const SNAP_DUST: Color = Color(0.9, 0.75, 0.35)
@@ -48,6 +52,8 @@ var snapped: bool = false
 var stranded: bool = false
 ## True once stomach acid dissolved the fish. It stays out of the race for good.
 var dissolved: bool = false
+## True once a round race cut the fish. It stays out of the race for good, as a ghost.
+var eliminated: bool = false
 ## Seconds the fish has lain above the waterline without getting wet again.
 var dry_time: float = 0.0
 ## How often anglerfish have swallowed this fish in the current race.
@@ -285,10 +291,44 @@ func snap() -> void:
 	tween.tween_callback(func() -> void: visible = false)
 
 
-## Whether the fish is out of the race for good (snapped, stranded or dissolved). It counts as
+## Whether the fish is out of the race for good (snapped, stranded, dissolved or cut). It counts as
 ## unfinished.
 func is_out() -> bool:
-	return snapped or stranded or dissolved
+	return snapped or stranded or dissolved or eliminated
+
+
+## A fish that finished a round race leaves the physics for good, so it does not circle the loop
+## among the fish still racing. The map moves it from then on. Also sets [member eaten], so the
+## race and the hazards leave it alone.
+func retire() -> void:
+	if eaten:
+		return
+	eaten = true
+	collision_layer = 0
+	collision_mask = 0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	freeze = true
+
+
+## A round race cuts the fish: it leaves the physics for good and stays on as a see-through ghost
+## that the map moves around itself. Also sets [member eaten], so the race and the hazards leave
+## it alone.
+func eliminate() -> void:
+	if eaten:
+		return
+	eaten = true
+	eliminated = true
+	collision_layer = 0
+	collision_mask = 0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	freeze = true
+	modulate.a = GHOST_ALPHA
+	RaceFx.burst(get_parent(), global_position, GHOST_COLOR, 26, 160.0, Vector2(0.0, -40.0))
+	if _fish != null:
+		_fish.aura = GHOST_COLOR
+		_fish.flash(GHOST_COLOR, 0.9)
 
 
 ## Tracks how long the fish has been above the waterline at `waterline_y` (world pixels, the

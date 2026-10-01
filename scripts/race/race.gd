@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name Race
 extends Node2D
 ## Spawns marbles on a track, tracks the finish order and emits results.
@@ -12,10 +13,18 @@ signal fish_dissolved(id: int)
 signal fish_stranded(id: int)
 ## The winner just crossed with `chaser_id` about to follow. Visual cue only.
 signal photo_finish(winner_id: int, chaser_id: int)
+## A round race cut these fish after `round_number` laps (1 is the first cut).
+signal round_cut(round_number: int, ids: Array[int])
+## A cut fish sent out an eddy.
+signal eddy_dropped(id: int)
 ## A fish picked up a treasure worth `value` points. `kind` is a [enum Treasure.Kind].
 signal treasure_collected(id: int, kind: int, value: int)
 
 const SPAWN_JITTER: float = 3.0
+## How far ahead of the leader an eddy lands, as a fraction of a lap, and how far off the middle of
+## the lane it may land. The ghost needs a moment to fly out, so it aims at where the leader will be.
+const EDDY_LEAD: float = 0.15
+const EDDY_SIDE: float = 50.0
 @export var marble_scene: PackedScene
 ## Safety net: ends the race even without a time limit, so a jam can never hang a round.
 @export var timeout_seconds: float = 90.0
@@ -37,6 +46,9 @@ var _ranking: RaceRanking
 var _marbles: Dictionary = {}
 var _powers: RacePowers
 var _treasures: RaceTreasures
+## Lap counting and cuts on a map that has laps, else null.
+var _rounds: RaceRounds
+var _eddy_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _snap_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _snap_pending: bool = false
 var _snap_time: float = 0.0
@@ -71,10 +83,13 @@ func start(
 	if not _track.burst_played.is_connected(_on_burst_played):
 		_track.burst_played.connect(_on_burst_played)
 	_track.fish_dissolved.connect(_on_fish_dissolved)
+	if not _track.ghost_restless.is_connected(_on_ghost_restless):
+		_track.ghost_restless.connect(_on_ghost_restless)
 	# Read before any draw and never advanced, so a snap cannot shift the race's layout.
 	_snap_rng.seed = hash(rng.state)
 	_snap_pending = event == RaceEvent.THANOS_SNAP
 	_snap_time = _snap_rng.randf_range(RaceEvent.SNAP_MIN_SECONDS, RaceEvent.SNAP_MAX_SECONDS)
+	_eddy_rng.seed = hash(rng.state) + 1
 	_track.plan_starts(count, rng)
 	var ids: Array[int] = []
 	for i: int in count:
@@ -96,6 +111,7 @@ func start(
 		marble.global_position = _track.get_spawn_position(i) + jitter
 		_marbles[i] = marble
 	_ranking = RaceRanking.new(ids)
+	_rounds = RaceRounds.new(ids, _track.laps) if _track.has_rounds() else null
 	_track.set_field_size(count)
 	_track.seed_gimmicks(rng)
 	# Read before any later draw and never advanced, so treasures cannot shift a race's layout.
@@ -125,10 +141,13 @@ func clear() -> void:
 		_track.burst_played.disconnect(_on_burst_played)
 	if _track != null and _track.fish_dissolved.is_connected(_on_fish_dissolved):
 		_track.fish_dissolved.disconnect(_on_fish_dissolved)
+	if _track != null and _track.ghost_restless.is_connected(_on_ghost_restless):
+		_track.ghost_restless.disconnect(_on_ghost_restless)
 	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
 		_track.marble_reached_finish.disconnect(_on_marble_reached_finish)
 	_track = null
 	_ranking = null
+	_rounds = null
 	_powers.clear()
 	_treasures.clear()
 	for marble: Marble in _marbles.values():
@@ -231,11 +250,13 @@ func get_progress_map() -> Dictionary:
 	for id: int in _marbles:
 		var marble: Marble = _marbles[id]
 		# A snapped or dissolved fish ranks behind every other fish that did not finish.
-		progress[id] = (
-			-1.0
-			if marble.snapped or marble.dissolved
-			else _track.get_progress(marble.global_position)
-		)
+		if marble.snapped or marble.dissolved:
+			progress[id] = -1.0
+		elif _rounds != null:
+			# Laps and the part of this one. A cut fish keeps what it had when it was cut.
+			progress[id] = _rounds.total(id)
+		else:
+			progress[id] = _track.get_progress(marble.global_position)
 	return progress
 
 
@@ -262,6 +283,9 @@ func _physics_process(delta: float) -> void:
 	_strand_dry_fish(delta)
 	if not running:
 		return
+	_run_rounds()
+	if not running:
+		return
 	if _snap_pending and elapsed >= _snap_time:
 		_snap()
 	if _recorder != null and _recorder.should_sample(elapsed):
@@ -271,11 +295,17 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_marble_reached_finish(body: Node2D) -> void:
-	if not running or _ranking == null or not body is Marble:
+	# A round race finishes fish by counting laps instead (see _run_rounds).
+	if not running or _ranking == null or _rounds != null or not body is Marble:
 		return
 	var marble: Marble = body as Marble
 	if _marbles.get(marble.id) != marble:
 		return
+	_finish_marble(marble)
+
+
+## Records the fish's finish. Does nothing if it has finished already.
+func _finish_marble(marble: Marble) -> void:
 	var place: int = _ranking.record_finish(marble.id, elapsed)
 	if place == 0:
 		return
@@ -302,6 +332,83 @@ func _all_racers_finished() -> bool:
 		if not (_marbles[id] as Marble).is_out():
 			return false
 	return true
+
+
+## Whether a round race cut the fish.
+func is_eliminated(id: int) -> bool:
+	return _marbles.has(id) and (_marbles[id] as Marble).eliminated
+
+
+## Counts laps on a map that has them: cuts the slowest third when the lap is won and finishes the
+## fish that complete the last one.
+func _run_rounds() -> void:
+	if _rounds == null:
+		return
+	var racing: Array[int] = []
+	for id: int in _marbles:
+		var marble: Marble = _live_marble(id)
+		if marble == null or marble.is_out():
+			continue
+		_rounds.update(id, _track.get_progress(marble.global_position))
+		racing.append(id)
+	racing.sort()
+	var cut: Array[int] = _rounds.take_cut(racing)
+	if not cut.is_empty():
+		for id: int in cut:
+			var marble: Marble = _marbles[id]
+			_record_event(ReplayRecorder.Kind.SPLASH, marble)
+			marble.eliminate()
+			_track.receive_ghost(marble)
+		round_cut.emit(_rounds.cut_round(cut[0]), cut)
+	# Fish that cross the line in the same frame finish in order of how far past it they are.
+	var done: Array[int] = []
+	for id: int in racing:
+		if not cut.has(id) and _rounds.has_finished(id):
+			done.append(id)
+	done.sort_custom(func(a: int, b: int) -> bool: return _rounds.total(a) > _rounds.total(b))
+	for id: int in done:
+		var marble: Marble = _marbles[id]
+		_finish_marble(marble)
+		if not running:
+			return
+		marble.retire()
+		_track.receive_ghost(marble, true)
+
+
+## Why the cut fish `id` cannot send out an eddy now: "closed" (no race running), "no_rounds"
+## (the map has none), "swimming" (the fish is still racing or finished) or whatever the map says
+## ("busy", "full"). Empty when it can.
+func eddy_blocker(id: int) -> String:
+	if not running or _rounds == null:
+		return "closed" if not running else "no_rounds"
+	if not _marbles.has(id) or not (_marbles[id] as Marble).eliminated:
+		return "swimming"
+	return _track.eddy_blocker(_marbles[id] as Marble)
+
+
+## A cut fish's ghost flies out and spins as an eddy on the course, a little ahead of the leader.
+## Returns false when it cannot (see [method eddy_blocker]).
+func drop_eddy(id: int) -> bool:
+	if eddy_blocker(id) != "":
+		return false
+	var lead: float = -INF
+	for other: int in _marbles:
+		if _live_marble(other) != null:
+			lead = maxf(lead, _rounds.total(other))
+	if lead == -INF:
+		return false
+	var at: Vector2 = _track.lane_point(lead + EDDY_LEAD)
+	at += _track.get_forward(at).orthogonal() * _eddy_rng.randf_range(-EDDY_SIDE, EDDY_SIDE)
+	if not _track.drop_eddy(_marbles[id] as Marble, at):
+		return false
+	eddy_dropped.emit(id)
+	return true
+
+
+## A ghost broke loose on its own (the map's hazard): its eddy lands like any other.
+func _on_ghost_restless(marble: Marble) -> void:
+	if running:
+		drop_eddy(marble.id)
 
 
 ## Whether the fish was left high and dry by the tide.
@@ -380,6 +487,8 @@ func _check_photo_finish(winner_id: int) -> void:
 		if id == winner_id or _ranking.is_finished(id):
 			continue
 		var marble: Marble = _marbles[id]
+		if marble.is_out():
+			continue
 		var distance: float = marble.global_position.distance_to(finish)
 		var to_finish: Vector2 = finish - marble.global_position
 		# Only the speed toward the gate counts, not sideways or backwards motion.
@@ -425,6 +534,7 @@ func _finish_race() -> void:
 	running = false
 	_track.stop_hazards()
 	_track.hold_tide()
+	_track.settle_ghosts()
 	for marble: Marble in _marbles.values():
 		marble.finish_strand()
 		marble.set_deferred("freeze", true)

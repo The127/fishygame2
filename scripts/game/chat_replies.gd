@@ -44,6 +44,20 @@ const CHAOS_REJECTIONS: Dictionary = {
 	"insufficient": "not enough points",
 }
 
+## Names listed in the line about a cut, before "and N more".
+const CUT_NAMES_SHOWN: int = 6
+
+const HAUNT_REJECTIONS: Dictionary = {
+	"closed": "eddies only work during a race",
+	"no_fish": "you have no fish in this race",
+	"no_rounds": "this map does not flush anyone out",
+	"swimming": "your fish is still in the race",
+	"no_ghost": "only a flushed-out fish can send an eddy",
+	"busy": "your ghost is already out there",
+	"full": "enough eddies are spinning already",
+	"cooldown": "your ghost needs a moment",
+}
+
 const POWER_REJECTIONS: Dictionary = {
 	"off": "streamer powers are off in the settings",
 	"closed": "powers only work during a race",
@@ -129,6 +143,32 @@ func effect_applied(msg: ChatMessage, target: Contestant, kind: Chaos.Kind) -> v
 func effect_rejected(msg: ChatMessage, reason: String) -> void:
 	var text: String = CHAOS_REJECTIONS.get(reason, "not accepted")
 	notice.emit("%s: %s" % [viewer_name(msg), text])
+
+
+func eddy_sent(msg: ChatMessage, target: Contestant) -> void:
+	var who: String = viewer_name(msg)
+	confirm("reply_chaos", "eddy", "Eddy:", "@%s" % who)
+	notice.emit("%s's ghost spun up an eddy!" % target.display_name)
+
+
+func eddy_rejected(msg: ChatMessage, reason: String) -> void:
+	var text: String = HAUNT_REJECTIONS.get(reason, "not accepted")
+	notice.emit("%s: %s" % [viewer_name(msg), text])
+
+
+## Says who a round race just cut, in chat and on the overlay. `names` are display names.
+func round_cut(round_number: int, names: PackedStringArray) -> void:
+	var shown: PackedStringArray = names.slice(0, CUT_NAMES_SHOWN)
+	var list: String = ", ".join(shown)
+	if names.size() > CUT_NAMES_SHOWN:
+		list += " and %d more" % (names.size() - CUT_NAMES_SHOWN)
+	notice.emit("Flushed out: %s" % list)
+	say(
+		(
+			"Flushed out after lap %d: %s. Flushed-out fish can send eddies with #eddy"
+			% [round_number, list]
+		)
+	)
 
 
 func shop_equipped(msg: ChatMessage, kind: String, item: String, price: int) -> void:

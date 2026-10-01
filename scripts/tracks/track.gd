@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name Track
 extends Node2D
 ## A marble run: static colliders, a start area, a finish Area2D and a centerline
@@ -23,6 +24,8 @@ signal hazard_active(kind: String)
 signal fish_eaten(marble: Marble)
 ## Stomach acid just dissolved `marble`: it is out of the race.
 signal fish_dissolved(marble: Marble)
+## A cut fish's ghost broke loose on its own and wants to send out an eddy.
+signal ghost_restless(marble: Marble)
 ## A map part (anglerfish, portal) let off a particle burst. The finish replay plays it again.
 signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
 ## The chat tally of a map with flippers changed. Empty text hides it.
@@ -56,6 +59,13 @@ const FORWARD_SAMPLE: float = 30.0
 ## must go steadily downward through the zone.
 @export var depth_zone_top: float = 0.0
 @export var depth_zone_bottom: float = 0.0
+## Laps of the centerline a race runs. The centerline is then a closed loop: a race over more
+## than one lap is a round race, where the slowest third of the fish are cut after every lap
+## but the last (see [RaceRounds]). The `Finish` is the lap line and is not used as a finish.
+@export_range(1, 9) var laps: int = 1
+## Whether the race camera follows the leading fish. A map that has to be seen whole during a
+## race turns it off, and the camera keeps the whole map in view.
+@export var follow_camera: bool = true
 
 var _starts: Array[Marker2D] = []
 var _feeders: Array[Path2D] = []
@@ -69,6 +79,7 @@ var _slot_of: Array[int] = []
 var _tide: WaterLevel
 var _tide_triggers: Array[TideTrigger] = []
 var _pinball: PinballTable
+var _eddies: EddyRing
 
 @onready var _finish: Area2D = $Finish
 @onready var _centerline: Path2D = $Centerline
@@ -99,6 +110,8 @@ func _ready() -> void:
 	for child: Node in get_children():
 		if child is WaterLevel:
 			_tide = child as WaterLevel
+		if child is EddyRing:
+			_eddies = child as EddyRing
 		if child is PinballTable:
 			_pinball = child as PinballTable
 			_pinball.tally_changed.connect(flipper_tally_changed.emit)
@@ -120,6 +133,8 @@ func _ready() -> void:
 			(hazard as CoralHazard).burst_played.connect(burst_played.emit)
 		if hazard is GulpHazard:
 			(hazard as GulpHazard).burst_played.connect(burst_played.emit)
+		if hazard is EddyRing:
+			(hazard as EddyRing).restless.connect(ghost_restless.emit)
 		if hazard is SpinCycleHazard:
 			(hazard as SpinCycleHazard).burst_played.connect(burst_played.emit)
 		if hazard is AftershockHazard:
@@ -258,6 +273,46 @@ func has_tide() -> bool:
 ## World y of the waterline right now. Only meaningful when [method has_tide] is true.
 func get_water_level() -> float:
 	return _tide.level if _tide != null else -INF
+
+
+## Whether a race on this map runs over several laps with cuts (see [member laps]).
+func has_rounds() -> bool:
+	return laps > 1
+
+
+## Global position of the centerline `fraction` (0 to 1, wrapping) of the way along it.
+func lane_point(fraction: float) -> Vector2:
+	var curve: Curve2D = _centerline.curve
+	return _centerline.to_global(
+		curve.sample_baked(fposmod(fraction, 1.0) * curve.get_baked_length())
+	)
+
+
+## Whether cut fish wait on this map and can send eddies back onto the course.
+func has_eddies() -> bool:
+	return _eddies != null
+
+
+## Hands a fish that has left the course to the map's lagoon (see [method EddyRing.add_ghost]).
+func receive_ghost(marble: Marble, victor: bool = false) -> void:
+	if _eddies != null:
+		_eddies.add_ghost(marble, victor)
+
+
+## Why the cut `marble` cannot send out an eddy now, or "" (see [method EddyRing.blocker]).
+func eddy_blocker(marble: Marble) -> String:
+	return _eddies.blocker(marble) if _eddies != null else "no_ghost"
+
+
+## Sends the cut `marble` out as an eddy at global position `at`. Returns false if it cannot.
+func drop_eddy(marble: Marble, at: Vector2) -> bool:
+	return _eddies != null and _eddies.drop(marble, at)
+
+
+## Ends the eddies that are out, for the end of a race.
+func settle_ghosts() -> void:
+	if _eddies != null:
+		_eddies.settle()
 
 
 func get_geysers() -> Array[Geyser]:
