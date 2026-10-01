@@ -94,7 +94,44 @@ func test_surge_strengthens_the_vortex_then_calms() -> void:
 	assert_gt(whirlpool.get_strength(), 1.3)
 	whirlpool.disarm()
 	assert_eq(whirlpool.get_strength(), 1.0)
-	assert_eq(whirlpool.get_spin(), 1.0)
+
+
+func test_the_spin_never_reverses() -> void:
+	var whirlpool: Whirlpool = _whirlpool()
+	for seed_value: int in range(1, 40):
+		whirlpool.arm(seed_value, 3)
+		whirlpool._begin_telegraph(_rng(seed_value))
+		assert_eq(whirlpool.get_spin(), 1.0, "seed %d" % seed_value)
+
+
+func test_a_marble_cannot_drop_out_of_a_closed_exit() -> void:
+	var whirlpool: Whirlpool = _whirlpool()
+	var center: Vector2 = whirlpool.get_center()
+	for exit: int in whirlpool.exit_degrees.size():
+		var dir: Vector2 = whirlpool.get_exit_direction(exit)
+		var marble: Marble = _marble(center + dir * whirlpool.get_radius() * 0.6)
+		marble.linear_velocity = dir * 700.0
+		await wait_physics_frames(1)
+		whirlpool._needed[marble.get_instance_id()] = 1000.0
+		await wait_physics_frames(40)
+		var gone: float = (marble.global_position - center).dot(dir)
+		assert_lt(gone, whirlpool.get_radius() + 4.0, "exit %d stayed shut" % exit)
+
+
+func test_a_released_marble_passes_its_gate_and_the_gate_shuts_behind_it() -> void:
+	var whirlpool: Whirlpool = _whirlpool()
+	var center: Vector2 = whirlpool.get_center()
+	var dir: Vector2 = whirlpool.get_exit_direction(1)
+	var marble: Marble = _marble(center + dir * whirlpool.get_radius() * 0.8)
+	marble.id = 0
+	await wait_physics_frames(3)
+	whirlpool._needed[marble.get_instance_id()] = 0.0
+	whirlpool._dwell[marble.get_instance_id()] = Whirlpool.MIN_DWELL
+	await wait_physics_frames(60)
+	var out: float = (marble.global_position - center).dot(dir)
+	assert_gt(out, whirlpool.get_radius() + 40.0, "flung out through the gate")
+	await wait_physics_frames(int(Whirlpool.EJECT_COOLDOWN * 60.0) + 10)
+	assert_true(whirlpool._passing.is_empty(), "gate pass handed back")
 
 
 func test_the_vortex_runs_without_hazards_armed() -> void:

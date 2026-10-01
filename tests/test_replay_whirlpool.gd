@@ -1,6 +1,6 @@
 extends GutTest
-## Whirlpool: a real race with the vortex armed, recorded and replayed. The swirl angle, the spin
-## direction, the surge and the telegraph glow all play back as they happened.
+## Whirlpool: a real race with the vortex armed, recorded and replayed. The swirl angle, the
+## surge and the telegraph glow all play back as they happened.
 
 const TRACK_SCENE: String = "res://scenes/tracks/whirlpool_track.tscn"
 const MARBLE_SCENE: String = "res://scenes/marble.tscn"
@@ -19,9 +19,9 @@ func _rng(seed_value: int) -> RandomNumberGenerator:
 	return rng
 
 
-## [swirl angle, spin, surge, phase, time in phase]: what the vortex draws from.
+## [swirl angle, surge, phase, time in phase]: what the vortex draws from.
 func _live_look() -> Array:
-	return [_pool._turn, _pool.get_spin(), _pool._surge, float(_pool.phase), _pool.phase_time]
+	return [_pool._turn, _pool._surge, float(_pool.phase), _pool.phase_time]
 
 
 func _matches(live: Array, options: Array) -> bool:
@@ -34,19 +34,6 @@ func _matches(live: Array, options: Array) -> bool:
 	return false
 
 
-## A seed whose first event reverses the spin, found by playing the events on a spare pool.
-func _reversing_seed() -> int:
-	for seed_value: int in range(1, 60):
-		_pool.arm(seed_value, 5)
-		var t: float = 0.0
-		while t < 12.0 and _pool.phase != Hazard.Phase.TELEGRAPH:
-			_pool.tick(0.05)
-			t += 0.05
-		if _pool.get_spin() < 0.0:
-			return seed_value
-	return 1
-
-
 func _record_race() -> ReplayRecorder:
 	_track = (load(TRACK_SCENE) as PackedScene).instantiate() as Track
 	add_child_autofree(_track)
@@ -55,7 +42,7 @@ func _record_race() -> ReplayRecorder:
 	add_child_autofree(_race)
 	_race.start(_track, 3, _rng(4), 5)
 	_pool = _track.get_hazards()[0] as Whirlpool
-	_pool.arm(_reversing_seed(), 5)
+	_pool.arm(1, 5)
 	var recorder: ReplayRecorder = _race.get_recorder()
 	# The surge is well under way a moment after the telegraph turns into the event.
 	var finish_at: float = _pool.get_schedule()[0] + _pool.telegraph_seconds + 0.8
@@ -88,7 +75,6 @@ func test_replayed_vortex_matches_the_race_across_telegraph_and_surge() -> void:
 	assert_true(recorder.has_clip())
 	var replay: FinishReplay = _replay(recorder)
 	var phases: Dictionary = {}
-	var reversed: bool = false
 	var compared: int = 0
 	for k: int in recorder.frame_count() - 1:
 		var key: float = snappedf(recorder.frame_time(k), 0.0001)
@@ -98,13 +84,11 @@ func test_replayed_vortex_matches_the_race_across_telegraph_and_surge() -> void:
 		replay._clock = recorder.frame_time(k)
 		replay._apply()
 		phases[_pool.phase] = true
-		reversed = reversed or _pool.get_spin() < 0.0
 		compared += 1
 		assert_true(_matches(_live_look(), _seen[key]), "frame %d" % k)
 	assert_true(compared > 30, "compared %d frames" % compared)
 	assert_true(phases.has(Hazard.Phase.TELEGRAPH), "the clip shows the telegraph")
 	assert_true(phases.has(Hazard.Phase.ACTIVE), "the clip shows the surge")
-	assert_true(reversed, "the clip shows the reversed spin")
 	replay.stop()
 
 

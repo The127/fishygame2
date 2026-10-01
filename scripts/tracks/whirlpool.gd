@@ -4,8 +4,10 @@ extends Hazard
 ## and spun around it. After a short dwell a marble that swings past one of the exit gaps is
 ## flung out through it, so which exit a fish takes depends on when it was released. A marble
 ## that has been circling too long is flung toward the nearest exit, so none orbits forever.
-## The hazard event is a surge: the vortex spins up, and may reverse, for a few seconds.
-## The basin is the Zone child, a circle around the whirlpool's origin.
+## The hazard event is a surge: the vortex spins up for a few seconds. It always turns the
+## same way. The basin is the Zone child, a circle around the whirlpool's origin. With
+## gated_exits the exit gaps are shut by invisible gates that open only for a marble being
+## released, so nothing drops out of the basin early.
 
 ## Inward pull in pixels per second squared at the rim, weaker toward the middle.
 const PULL: float = 1300.0
@@ -32,18 +34,23 @@ const EXIT_MIN_RADIUS: float = 0.55
 ## Strength multiplier and how quickly it fades in and out during a surge.
 const SURGE_STRENGTH: float = 1.7
 const SURGE_FADE: float = 0.5
-const REVERSE_CHANCE: float = 0.4
 const ARMS: int = 4
+## Size in pixels of a gate across an exit: wide enough to overlap the rim on both sides, and
+## thick enough that a fast marble cannot get through it.
+const GATE_WIDTH: float = 170.0
+const GATE_THICKNESS: float = 24.0
 
 ## Directions, in degrees, of the exit gaps around the basin (0 is right, 90 is down).
 @export var exit_degrees: PackedFloat32Array = PackedFloat32Array()
 ## Race progress of a fish circling in the basin. Set to where the entry ramp reaches the rim.
 @export_range(0.0, 1.0) var hold_progress: float = 0.45
+## Shut each exit with a gate that only the marble released through it can pass.
+@export var gated_exits: bool = false
 @export var tint: Color = Color(0.45, 0.85, 1.0)
 
 var _zone: Area2D
 var _radius: float = 260.0
-## +1 spins clockwise on screen, -1 the other way.
+## +1 spins clockwise on screen.
 var _spin: float = 1.0
 var _surge: float = 0.0
 var _turn: float = 0.0
@@ -53,12 +60,32 @@ var _needed: Dictionary[int, float] = {}
 var _salt: float = 0.0
 var _dwell: Dictionary[int, float] = {}
 var _cooldown: Dictionary[int, float] = {}
+var _gates: Array[StaticBody2D] = []
+## Marbles that are allowed through a gate until their cooldown ends, by marble.
+var _passing: Dictionary[int, Marble] = {}
 
 
 func _ready() -> void:
 	_zone = get_node("Zone") as Area2D
 	var shape: CollisionShape2D = _zone.get_node("CollisionShape2D") as CollisionShape2D
 	_radius = (shape.shape as CircleShape2D).radius
+	if gated_exits:
+		_build_gates()
+
+
+func _build_gates() -> void:
+	for i: int in exit_degrees.size():
+		var dir: Vector2 = get_exit_direction(i)
+		var gate: StaticBody2D = StaticBody2D.new()
+		var collider: CollisionShape2D = CollisionShape2D.new()
+		var box: RectangleShape2D = RectangleShape2D.new()
+		box.size = Vector2(GATE_THICKNESS, GATE_WIDTH)
+		collider.shape = box
+		gate.add_child(collider)
+		gate.position = to_local(_zone.global_position) + dir * (_radius + GATE_THICKNESS * 0.33)
+		gate.rotation = dir.angle()
+		add_child(gate)
+		_gates.append(gate)
 
 
 ## Current strength of the vortex, 1 at rest and higher during a surge.
@@ -126,6 +153,7 @@ func _stir(delta: float) -> void:
 		_cooldown[id] -= delta
 		if _cooldown[id] <= 0.0:
 			_cooldown.erase(id)
+			_close_gates_behind(id)
 	var inside: Dictionary[int, bool] = {}
 	var strength: float = get_strength()
 	for body: Node2D in _zone.get_overlapping_bodies():
@@ -149,6 +177,23 @@ func _stir(delta: float) -> void:
 		if not inside.has(key):
 			_dwell.erase(key)
 			_needed.erase(key)
+
+
+## Lets the marble through the gate of the given exit, until its cooldown ends.
+func _open_gate(marble: Marble, exit: int) -> void:
+	if exit >= _gates.size():
+		return
+	marble.add_collision_exception_with(_gates[exit])
+	_passing[marble.get_instance_id()] = marble
+
+
+func _close_gates_behind(key: int) -> void:
+	var marble: Marble = _passing.get(key)
+	_passing.erase(key)
+	if marble == null or not is_instance_valid(marble):
+		return
+	for gate: StaticBody2D in _gates:
+		marble.remove_collision_exception_with(gate)
 
 
 func _pull(marble: Marble, strength: float) -> void:
@@ -197,31 +242,24 @@ func _try_release(marble: Marble, dwell: float, needed: float) -> bool:
 	var mouth: Vector2 = _zone.global_position + get_exit_direction(best) * _radius
 	var heading: Vector2 = (mouth - marble.global_position).normalized()
 	var change: Vector2 = heading * EJECT_SPEED - marble.linear_velocity
+	_open_gate(marble, best)
 	marble.apply_central_impulse(change * marble.mass)
 	return true
 
 
 func _replay_extra() -> PackedFloat32Array:
-	return PackedFloat32Array([_turn, _spin, _surge])
+	return PackedFloat32Array([_turn, _surge])
 
 
 func _apply_replay_extra(from: PackedFloat32Array, to: PackedFloat32Array, weight: float) -> void:
 	_turn = Replayable.mix(from, to, weight, REPLAY_BASE)
-	_spin = Replayable.step(from, to, weight, REPLAY_BASE + 1)
-	_surge = Replayable.mix(from, to, weight, REPLAY_BASE + 2)
-
-
-func _begin_telegraph(rng: RandomNumberGenerator) -> void:
-	_spin = -1.0 if rng.randf() < REVERSE_CHANCE else 1.0
-
-
-func _end_event() -> void:
-	_spin = 1.0
+	_surge = Replayable.mix(from, to, weight, REPLAY_BASE + 1)
 
 
 func _reset() -> void:
-	_spin = 1.0
 	_surge = 0.0
+	for key: int in _passing.keys():
+		_close_gates_behind(key)
 
 
 func _draw() -> void:
