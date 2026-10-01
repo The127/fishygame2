@@ -45,10 +45,19 @@ const FORWARD_SAMPLE: float = 30.0
 ## through the centerline's first point. For a free fall through a field of pegs that a later
 ## stretch of the route passes beneath, where the nearest route point is the wrong one.
 @export var fall_zone_bottom: float = 0.0
+## Between these two world ys (both 0 turns it off) progress is measured by depth alone, running
+## from the route's progress where it crosses the top to where it crosses the bottom. For a
+## field the fish cross anywhere in its width (a peg maze, a series of drops), where the route is
+## one thin line and the nearest point on it flips between its far apart stretches. The route
+## must go steadily downward through the zone.
+@export var depth_zone_top: float = 0.0
+@export var depth_zone_bottom: float = 0.0
 
 var _starts: Array[Marker2D] = []
 var _feeders: Array[Path2D] = []
 var _branches: Array[Path2D] = []
+## Route progress at the top and bottom of the depth zone, found on first use.
+var _depth_zone_ends: Array[float] = []
 ## Start index and slot within that start, by marble index, for the current race.
 var _start_of: Array[int] = []
 var _slot_of: Array[int] = []
@@ -322,6 +331,20 @@ func get_progress(global_pos: Vector2) -> float:
 
 
 func _route_progress(global_pos: Vector2) -> float:
+	if (
+		depth_zone_bottom > depth_zone_top
+		and global_pos.y >= depth_zone_top
+		and global_pos.y <= depth_zone_bottom
+	):
+		if _depth_zone_ends.is_empty():
+			_depth_zone_ends = [
+				_centerline_progress_at_depth(depth_zone_top),
+				_centerline_progress_at_depth(depth_zone_bottom),
+			]
+		var top: float = _depth_zone_ends[0]
+		var bottom: float = _depth_zone_ends[1]
+		var depth: float = (global_pos.y - depth_zone_top) / (depth_zone_bottom - depth_zone_top)
+		return lerpf(top, bottom, depth)
 	if fall_zone_bottom > 0.0 and global_pos.y < fall_zone_bottom:
 		var start: Vector2 = _centerline.to_global(_centerline.curve.get_point_position(0))
 		global_pos = Vector2(start.x, maxf(global_pos.y, start.y))
@@ -336,6 +359,22 @@ func _route_progress(global_pos: Vector2) -> float:
 	if route < _feeders.size():
 		return merge_progress * along
 	return merge_progress + (1.0 - merge_progress) * along
+
+
+## Progress of the first point of the centerline that is at or below world y `depth`.
+func _centerline_progress_at_depth(depth: float) -> float:
+	var curve: Curve2D = _centerline.curve
+	var length: float = curve.get_baked_length()
+	if length <= 0.0:
+		return 0.0
+	var points: PackedVector2Array = curve.get_baked_points()
+	var travelled: float = 0.0
+	for i: int in points.size():
+		if i > 0:
+			travelled += points[i].distance_to(points[i - 1])
+		if _centerline.to_global(points[i]).y >= depth:
+			return travelled / length
+	return 1.0
 
 
 ## Unit vector along the route (toward the finish) nearest to a global position.
