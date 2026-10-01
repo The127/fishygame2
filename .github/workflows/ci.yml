@@ -39,9 +39,18 @@ jobs:
       - name: gdlint
         run: gdlint scripts tests
 
+  # The suite outgrew one 10 minute job, so it runs as parallel shards.
   test:
+    name: test (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      SHARD: ${{ matrix.shard }}
+      SHARDS: "4"
     steps:
       - uses: actions/checkout@v4
       - name: Install Godot
