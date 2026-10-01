@@ -263,6 +263,7 @@ kind = "whirlpool"
 telegraph_seconds = 1.5
 active_seconds = 3.5
 exit_degrees = PackedFloat32Array(25, 90, 155)
+gated_exits = true
 
 [node name="Zone" type="Area2D" parent="Whirlpool"]
 position = Vector2(960, 400)
