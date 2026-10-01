@@ -703,4 +703,28 @@ THEMES = {
             {"kind": "pulse", "bpm": 120, "freq": 60.0, "decay": 0.12, "gain": 0.25},
         ),
     },
+    # Earthquake fault: D phrygian, a slow heavy pulse, a growling bass walk and falling grit.
+    "fault": {
+        "seed": 36,
+        "chords": (
+            (26, 38, 50, 53, 57),
+            (27, 39, 51, 55, 58),
+            (26, 38, 50, 53, 57),
+            (24, 36, 48, 52, 55),
+        ),
+        "pad_partials": BRASS,
+        "pad_gain": 0.05,
+        "trem_rate": 0.12,
+        "trem_depth": 0.25,
+        "rumble_cutoff": 140.0,
+        "rumble_gain": 0.4,
+        "layers": (
+            {"kind": "pulse", "bpm": 84, "freq": 50.0, "decay": 0.16, "gain": 0.5},
+            {"kind": "bass", "bpm": 84, "div": 2, "decay": 0.24, "gain": 0.3,
+             "pattern": (38, None, 38, 39, 38, None, 41, 39)},
+            {"kind": "plucks", "count": 6, "notes": (62, 65, 69, 70), "decay": 0.5, "gain": 0.05,
+             "glide": True, "gaps": (0.5, 1.2)},
+            {"kind": "crackle", "count": 45, "gain": 0.04},
+        ),
+    },
 }

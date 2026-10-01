@@ -159,6 +159,14 @@ const MAPS: Array[Dictionary] = [
 		"ambience": "res://assets/audio/ambience_pinball.wav",
 		"jingle": "res://assets/audio/jingle_pinball.wav",
 	},
+	{
+		"id": "fault",
+		"name": "Earthquake Fault",
+		"scene": preload("res://scenes/tracks/fault_track.tscn"),
+		"music": "res://assets/audio/music_fault.wav",
+		"ambience": "res://assets/audio/ambience_fault.wav",
+		"jingle": "res://assets/audio/jingle_fault.wav",
+	},
 ]
 
 

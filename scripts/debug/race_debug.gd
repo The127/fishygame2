@@ -4,6 +4,11 @@ extends Node2D
 ## --hazards is the hazard frequency (0 turns hazard events off). --limit is the race time limit in
 ## seconds (default 0, none): fish still racing then are DNF, which does not fail an autorun.
 ## --event=<id> runs the race under a RaceEvent (low_gravity, double_hazards, lights_out, bouncy, thanos_snap).
+## --shake has made-up viewers spam "#shake" the whole race, for the quakes of a map with a fault.
+
+## Seconds between the "#shake" presses of --shake, and the viewers taking turns.
+const SHAKE_EVERY: float = 0.4
+const SHAKE_VIEWERS: int = 12
 
 @export var seed_value: int = 1
 @export var marble_count: int = 10
@@ -13,6 +18,9 @@ extends Node2D
 @export var event_id: String = RaceEvent.NOTHING
 
 var _autorun: bool = false
+var _shake: bool = false
+var _shake_in: float = 0.0
+var _shake_count: int = 0
 var _track: Track
 var _hazard_events: PackedStringArray = []
 var _treasures_found: int = 0
@@ -33,6 +41,8 @@ func _ready() -> void:
 	for arg: String in OS.get_cmdline_user_args():
 		if arg == "--autorun":
 			_autorun = true
+		elif arg == "--shake":
+			_shake = true
 		elif arg.begins_with("--seed="):
 			seed_value = int(arg.substr(7))
 		elif arg.begins_with("--count="):
@@ -64,6 +74,21 @@ func _ready() -> void:
 		_start_race()
 	else:
 		print("Press Space to start a race (seed %d)." % seed_value)
+
+
+func _physics_process(delta: float) -> void:
+	if not _shake:
+		return
+	_shake_in -= delta
+	if _shake_in <= 0.0:
+		_shake_in = SHAKE_EVERY
+		_shake_count += 1
+		get_tree().call_group(
+			QuakeFault.CHAT_GROUP,
+			"shake",
+			"viewer%d" % (_shake_count % SHAKE_VIEWERS),
+			SHAKE_VIEWERS
+		)
 
 
 func _unhandled_input(event: InputEvent) -> void:

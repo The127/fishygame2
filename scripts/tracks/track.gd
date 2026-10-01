@@ -27,6 +27,10 @@ signal fish_dissolved(marble: Marble)
 signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
 ## The chat tally of a map with flippers changed. Empty text hides it.
 signal flipper_tally_changed(text: String)
+## The quake meter of a map with a fault changed. Empty text hides it.
+signal shake_meter_changed(text: String)
+## A quake wants the view to shake, `strength` pixels at first.
+signal quake_shaken(strength: float)
 
 ## Distance in pixels either side of a point used to estimate the track direction.
 const FORWARD_SAMPLE: float = 30.0
@@ -109,11 +113,17 @@ func _ready() -> void:
 			(hazard as GulpHazard).burst_played.connect(burst_played.emit)
 		if hazard is SpinCycleHazard:
 			(hazard as SpinCycleHazard).burst_played.connect(burst_played.emit)
+		if hazard is AftershockHazard:
+			(hazard as AftershockHazard).shaken.connect(quake_shaken.emit)
 	for node: Node in find_children("*", "PortalPair", true, false):
 		(node as PortalPair).burst_played.connect(burst_played.emit)
 	for node: Node in find_children("*", "AcidPit", true, false):
 		(node as AcidPit).burst_played.connect(burst_played.emit)
 		(node as AcidPit).fish_dissolved.connect(fish_dissolved.emit)
+	for node: Node in find_children("*", "QuakeFault", true, false):
+		(node as QuakeFault).meter_changed.connect(shake_meter_changed.emit)
+		(node as QuakeFault).quake_shaken.connect(quake_shaken.emit)
+		(node as QuakeFault).burst_played.connect(burst_played.emit)
 	for node: Node in find_children("*", "ShipSinking", true, false):
 		(node as ShipSinking).burst_played.connect(burst_played.emit)
 	var style: TrackStyle = TrackStyle.new()
