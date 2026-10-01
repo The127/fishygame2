@@ -454,18 +454,18 @@ shape = SubResource("Rect_sensor")
 position = Vector2(1380, 830.571)
 rotation = 0.242
 script = ExtResource("6_door")
-length = 110
+length = 70
 open_degrees = 80
 
 [node name="Plate" type="AnimatableBody2D" parent="DoorLong"]
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="DoorLong/Plate"]
-polygon = PackedVector2Array(0, 0, 110, 0, 110, 22, 0, 22)
+polygon = PackedVector2Array(0, 0, 70, 0, 70, 22, 0, 22)
 
 [node name="Visual" type="Polygon2D" parent="DoorLong/Plate"]
 color = Color(0.85, 0.65, 0.3, 1)
-polygon = PackedVector2Array(0, 0, 110, 0, 110, 22, 0, 22)
+polygon = PackedVector2Array(0, 0, 70, 0, 70, 22, 0, 22)
 
 [node name="DoorRapids" type="Node2D" parent="."]
 position = Vector2(800, 846.117)

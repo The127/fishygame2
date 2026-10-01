@@ -148,3 +148,13 @@ func test_progress_on_both_routes_rises_toward_the_finish() -> void:
 		centerline.curve.get_point_position(centerline.curve.point_count - 1)
 	)
 	assert_gt(track.get_progress(end), 0.95)
+
+
+func test_open_long_road_door_leaves_room_for_fish_on_the_floor_below() -> void:
+	var door: TrapDoor = _fork().get_node("DoorLong") as TrapDoor
+	var plate: AnimatableBody2D = door.get_node("Plate") as AnimatableBody2D
+	plate.rotation = deg_to_rad(door.open_degrees)
+	var tip: Vector2 = plate.to_global(Vector2(door.length, 0.0))
+	# Fish roll along the tail below (floor about y 947 here, fish 28 px wide) and must pass
+	# under the hanging plate instead of being dammed up behind it.
+	assert_lt(tip.y, 947.0 - 28.0 - 4.0)

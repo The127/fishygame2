@@ -196,6 +196,8 @@ func tick(delta: float) -> void:
 	_drift = _drift.move_toward(target, DRIFT_EASE * delta)
 	_scroll += _drift * delta
 	_apply_strength()
+	if _since_flip < RETURN_SECONDS:
+		_wake_bodies()
 	queue_redraw()
 
 
@@ -266,7 +268,14 @@ func _draw_pull(rng: RandomNumberGenerator, current: int) -> int:
 func _apply() -> void:
 	_zone.gravity_direction = direction_of(pull, lean)
 	_apply_strength()
-	# A fish resting against a wall is asleep, and a new gravity does not wake it.
+	_wake_bodies()
+
+
+## A fish resting against a wall is asleep, and a new gravity does not wake it. Gravity is thin
+## for a moment after a flip, so a fish woken once falls asleep again before it gains speed
+## (it keeps its rest time) and hangs there for good. Waking it on every frame until gravity is
+## back to full lets it build up speed.
+func _wake_bodies() -> void:
 	for body: Node2D in _zone.get_overlapping_bodies():
 		if body is RigidBody2D:
 			(body as RigidBody2D).sleeping = false
