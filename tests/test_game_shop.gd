@@ -126,3 +126,25 @@ func test_bought_trail_is_used_in_the_race() -> void:
 	_flow.tick(float(_flow.countdown_seconds))
 	assert_eq(_marble(1).trail, FishTrail.Kind.RAINBOW)
 	assert_eq(_marble(0).trail, FishTrail.Kind.NONE)
+
+
+func test_shop_list_stays_out_of_chat_by_default() -> void:
+	_say("0", "#shop")
+	assert_eq(_source.sent.size(), 0)
+
+
+func test_shop_list_goes_to_chat_when_turned_on() -> void:
+	_game.settings.reply_catalog = true
+	_say("0", "#shop")
+	assert_eq(
+		_source.sent,
+		(
+			[
+				_shop.catalog_text(),
+				_shop.premium_catalog_text(),
+				_shop.hat_catalog_text(),
+				_shop.trail_catalog_text(),
+			]
+			as Array[String]
+		)
+	)

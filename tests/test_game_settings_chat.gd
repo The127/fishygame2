@@ -10,10 +10,11 @@ func after_each() -> void:
 		DirAccess.remove_absolute(path)
 
 
-func test_chat_toggles_default_on_and_round_trip() -> void:
+func test_chat_toggle_defaults_and_round_trip() -> void:
 	var settings := GameSettings.new(PATH)
 	for toggle: Dictionary in GameSettings.CHAT_TOGGLES:
-		assert_true(settings.get(toggle["key"]), "%s defaults on" % toggle["key"])
+		var on: bool = toggle["key"] != "reply_catalog"
+		assert_eq(settings.get(toggle["key"]), on, "%s default" % toggle["key"])
 	settings.reply_bets = false
 	settings.reply_results = false
 	assert_true(settings.save())

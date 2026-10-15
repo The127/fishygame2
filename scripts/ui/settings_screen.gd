@@ -69,6 +69,7 @@ const TABS: Array[Dictionary] = [
 			"reply_bets",
 			"reply_chaos",
 			"reply_shop",
+			"reply_catalog",
 			"reply_results",
 			"cheer_strength",
 			"cheer_viewer_cooldown",

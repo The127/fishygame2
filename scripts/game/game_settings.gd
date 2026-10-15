@@ -16,6 +16,7 @@ const CHAT_TOGGLES: Array[Dictionary] = [
 	{"key": "reply_bets", "label": "Confirm #bet"},
 	{"key": "reply_chaos", "label": "Confirm #boost and #curse"},
 	{"key": "reply_shop", "label": "Confirm #fish, #color, #hat and #trail"},
+	{"key": "reply_catalog", "label": "Post the shop list for #shop"},
 	{"key": "reply_results", "label": "Announce race results"},
 	{"key": "reply_powers", "label": "Announce streamer powers"},
 ]
@@ -163,6 +164,8 @@ var reply_joins: bool = true
 var reply_bets: bool = true
 var reply_chaos: bool = true
 var reply_shop: bool = true
+## Off by default: the shop list takes four long chat lines, too many for a busy chat.
+var reply_catalog: bool = false
 var reply_results: bool = true
 var reply_powers: bool = true
 ## Whether fish wear the colorblind palette and a marking each (see [FishPalette]).
