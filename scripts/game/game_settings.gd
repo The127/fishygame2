@@ -163,8 +163,9 @@ var chat_replies: bool = true
 var reply_joins: bool = true
 var reply_bets: bool = true
 var reply_chaos: bool = true
-var reply_shop: bool = true
-## Off by default: the shop list takes four long chat lines, too many for a busy chat.
+## The shop toggles are off by default: viewers shop often and the lines flood a busy chat.
+## The overlay shows every purchase either way.
+var reply_shop: bool = false
 var reply_catalog: bool = false
 var reply_results: bool = true
 var reply_powers: bool = true
