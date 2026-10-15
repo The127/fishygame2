@@ -96,6 +96,7 @@ func test_effect_applied_words_boost_and_curse() -> void:
 
 
 func test_shop_equipped_distinguishes_bought_from_switched() -> void:
+	_replies.settings.reply_shop = true
 	_replies.shop_equipped(_msg(), "hat", "crown", 30)
 	_replies.shop_equipped(_msg(), "hat", "crown", 0)
 	_replies.batcher.flush()
@@ -104,6 +105,7 @@ func test_shop_equipped_distinguishes_bought_from_switched() -> void:
 
 
 func test_balance_and_welcome_notices() -> void:
+	_replies.settings.reply_shop = true
 	_replies.balance_reported(_msg(), 120)
 	_replies.welcome("Alice", "crown")
 	_replies.batcher.flush()
@@ -111,6 +113,17 @@ func test_balance_and_welcome_notices() -> void:
 		_notices, ["Alice has 120 points", "Welcome Alice! Here's a free crown"] as Array[String]
 	)
 	assert_eq(_lines, ["Welcome! @Alice (free crown)"] as Array[String])
+
+
+func test_shop_lines_stay_out_of_chat_by_default() -> void:
+	_replies.shop_equipped(_msg(), "hat", "crown", 30)
+	_replies.welcome("Alice", "crown")
+	_replies.batcher.flush()
+	assert_eq(_lines, [] as Array[String])
+	assert_eq(
+		_notices,
+		["Alice bought crown for 30", "Welcome Alice! Here's a free crown"] as Array[String]
+	)
 
 
 func test_join_rejection_replies_once_per_viewer_per_cooldown() -> void:

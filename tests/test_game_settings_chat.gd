@@ -13,7 +13,7 @@ func after_each() -> void:
 func test_chat_toggle_defaults_and_round_trip() -> void:
 	var settings := GameSettings.new(PATH)
 	for toggle: Dictionary in GameSettings.CHAT_TOGGLES:
-		var on: bool = toggle["key"] != "reply_catalog"
+		var on: bool = not (toggle["key"] in ["reply_shop", "reply_catalog"])
 		assert_eq(settings.get(toggle["key"]), on, "%s default" % toggle["key"])
 	settings.reply_bets = false
 	settings.reply_results = false
@@ -37,9 +37,11 @@ func test_replies_enabled_needs_master_switch_and_toggle() -> void:
 
 func test_reset_restores_chat_toggles() -> void:
 	var settings := GameSettings.new()
-	settings.reply_shop = false
+	settings.reply_shop = true
+	settings.reply_joins = false
 	settings.reset_to_defaults()
-	assert_true(settings.reply_shop)
+	assert_false(settings.reply_shop)
+	assert_true(settings.reply_joins)
 
 
 func test_every_chat_toggle_key_is_a_bool_property() -> void:
