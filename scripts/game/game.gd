@@ -755,7 +755,7 @@ func _on_shop_rejected(msg: ChatMessage, reason: String) -> void:
 
 func _on_shop_catalog_requested(_msg: ChatMessage) -> void:
 	_overlay.show_notice("Shop: #fish <species>, #color <name>, #hat <name> or #trail <name>")
-	if settings.chat_replies:
+	if settings.replies_enabled("reply_catalog"):
 		Chat.send_message(_shop.catalog_text())
 		Chat.send_message(_shop.premium_catalog_text())
 		Chat.send_message(_shop.hat_catalog_text())
