@@ -151,7 +151,10 @@ async function main() {
     // so a win pays 2 * her stake on top of the 900 she kept; a loss leaves 900.
     const stake = 100;
     const kept = 1000 - stake;
-    const expected = podium.podium[0] === "bob" ? kept + 2 * stake : kept;
+    // Her own fish earns the default placement reward if it makes the podium.
+    const placementRewards = [100, 50, 25];
+    const placement = placementRewards[podium.podium.indexOf("alice")] ?? 0;
+    const expected = (podium.podium[0] === "bob" ? kept + 2 * stake : kept) + placement;
     // Her fish may also have picked up treasures: at most 4 chests of 50 points each.
     const maxTreasure = 4 * 50;
     if (settled < expected || settled > expected + maxTreasure) {
