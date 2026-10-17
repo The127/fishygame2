@@ -76,3 +76,14 @@ func test_chat_loses_the_helm_for_good_late_in_the_race() -> void:
 	assert_true(flipper.is_locked_out())
 	_run(flipper, 200.0)
 	assert_true(flipper.is_locked_out())
+
+
+func test_a_fish_that_is_out_does_not_count_as_the_rearmost() -> void:
+	var flipper: GravityFlipper = _seeded()
+	var out: Marble = _fish_at(100.0)
+	out.eaten = true
+	var racing: Marble = _fish_at(500.0)
+	for i: int in 8:
+		racing.global_position.x += GravityFlipper.STALL_PROGRESS * 2.0
+		_run(flipper, GravityFlipper.STALL_SECONDS * 0.5)
+	assert_false(flipper.is_locked_out())

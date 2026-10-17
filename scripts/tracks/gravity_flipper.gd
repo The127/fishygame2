@@ -387,7 +387,10 @@ func _watch_stall(delta: float) -> void:
 	_stall_check_in = STALL_CHECK
 	var rear: float = INF
 	for node: Node in get_tree().get_nodes_in_group(Marble.GROUP):
-		rear = minf(rear, (node as Marble).global_position.x)
+		var fish: Marble = node as Marble
+		if fish.eaten or fish.has_finished or fish.is_out():
+			continue
+		rear = minf(rear, fish.global_position.x)
 	if rear == INF or rear > _rear_best + STALL_PROGRESS:
 		_rear_best = rear if rear != INF else -INF
 		_stall_time = 0.0
