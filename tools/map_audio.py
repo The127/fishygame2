@@ -189,6 +189,14 @@ JINGLES = {
                   (0.79, 88, 1.4, 0.5), (0.91, 93, 1.8, 0.8), (0.91, 69, 1.8, 0.8),
                   (0.91, 57, 1.8, 0.8)),
     },
+    # Pinball Reef 2: a short D minor run into a bright chord, after two low knocks.
+    "pinball2": {
+        "partials": BELL,
+        "notes": ((0.0, 38, 0.25, 0.04), (0.0, 50, 0.25, 0.04), (0.2, 38, 0.25, 0.04),
+                  (0.2, 50, 0.25, 0.04), (0.5, 74, 0.5, 0.18), (0.6, 77, 0.5, 0.18),
+                  (0.7, 81, 0.5, 0.18), (0.8, 86, 0.6, 0.2), (1.0, 86, 1.8, 0.7),
+                  (1.0, 74, 1.8, 0.7), (1.0, 65, 1.8, 0.7), (1.0, 50, 1.8, 0.7)),
+    },
     # Riptide Rounds: a rising G minor run that breaks into a bright major chord, with a cold bell.
     "riptide": {
         "partials": GLASS,
@@ -593,6 +601,16 @@ def _pinball(out, rng):
     tinkles(out, rng, (0.8, 4.3), 1500.0, 2400.0, 0.06)
 
 
+def _pinball2(out, rng):
+    # A hum under the table, ball rattle, the odd bumper pop and a hatch clank, with sonar pings.
+    bed(out, rng, 0.0, 280.0, 0.8, swell=0.4, cycles=2)
+    bed(out, rng, 1500.0, 2800.0, 0.05, swell=0.9, cycles=3, phase=2.0)
+    bubbles(out, rng, 6, 800.0, 1600.0, 0.1)
+    pops(out, rng, 5, 0.14)
+    clanks(out, (2.2, 5.9), 220.0, 0.1)
+    pings(out, (3.6,), 1700.0, 0.06)
+
+
 def _riptide(out, rng):
     bed(out, rng, 300.0, 1400.0, 0.5, swell=0.5, cycles=2)
     bed(out, rng, 0.0, 260.0, 0.6, swell=0.3, cycles=1, phase=math.pi / 2.0)
@@ -621,6 +639,7 @@ AMBIENCE = {
     "flush": (62, _flush),
     "switchback": (72, _switchback),
     "pinball": (44, _pinball),
+    "pinball2": (45, _pinball2),
     "fault": (73, _fault),
     "riptide": (72, _riptide),
 }

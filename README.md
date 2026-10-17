@@ -421,6 +421,21 @@ The finish replay records the blade angles, the plunger and the bumper glow thro
 replay hook; the tally and the fish names on it are not replayed. Fish sometimes get flung back up a
 bank, so races take 10 to 45 seconds with auto-fire only.
 
+Pinball Reef 2 is the same table played harder, tall enough that the camera follows the pack up the
+lane and down. `#left` and `#right` work exactly as on Pinball Reef (same `PinballTable`, cooldowns,
+tally and auto-fire), on two banks of flippers. What is new is real pinball, and every part of it is
+set off by the fish, never by a timer. Slingshots (`slingshot.gd`, rubber faces on the slopes above the
+bottom flippers) kick any fish that touches them. A lock saucer (`lock_saucer.gd`) at the bottom of the
+top funnel holds the fish that drop in, its three lights showing how many, and when three are in it
+opens its hatch and fires them out together, a multiball. If fish are locked and none are left above
+the saucer or waiting in the plunger lane, it lets them go too, so the last fish are never stuck. A
+row of drop targets (`drop_targets.gd`) on the upper slope falls to the fish rolling over it; when all
+are down the ramp gate (`ramp_gate.gd`, a trap door in the mid-level slope) opens and flashes green,
+and the first fish to fall through it skips the middle flippers, which shuts the gate and stands the
+targets back up. The saucer, gate and targets are armed by `Track.seed_gimmicks`, and the finish
+replay records the hatch, the gate plate, the targets and the slingshot glow through the generic
+replay hook. Races take 30 to 60 seconds with auto-fire only.
+
 Earthquake Fault is the other map chat plays. The fish zigzag down three rock shelves with four
 cracks in them (`scripts/tracks/fault_crack.gd`), each shut with a plug of rock until a quake splits
 it. Two are shortcuts, holes right through a shelf that drop the fish onto the shelf below. Two are
