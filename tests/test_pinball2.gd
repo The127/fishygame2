@@ -173,16 +173,14 @@ func test_stop_gimmicks_shuts_the_saucer() -> void:
 	assert_eq(_saucer.locked_count, 0)
 
 
-func test_the_finish_covers_the_whole_drain_floor() -> void:
-	# A fish that rolls off to a side of the flippers must still drain, not rest under a slope.
-	var finish: Area2D = _track.get_node("Finish") as Area2D
-	var size: Vector2 = (
-		((finish.get_node("CollisionShape2D") as CollisionShape2D).shape as RectangleShape2D).size
+func test_a_fish_on_the_drain_floor_rolls_into_the_finish_from_either_side() -> void:
+	# The wedges either side of the finish keep a fish from resting under a slope.
+	var finished: Array[Marble] = []
+	_track.marble_reached_finish.connect(
+		func(body: Node2D) -> void: finished.append(body as Marble)
 	)
-	assert_gt(size.x, 1500.0)
-	var marble: Marble = _marble_at(Vector2(finish.global_position.x - 700.0, 1975.0))
-	var finished: Array[bool] = [false]
-	_track.marble_reached_finish.connect(func(_m: Node2D) -> void: finished[0] = true)
-	await wait_physics_frames(6)
-	assert_true(finished[0])
-	assert_not_null(marble)
+	var left: Marble = _marble_at(Vector2(200.0, 1860.0), 1.0)
+	var right: Marble = _marble_at(Vector2(1600.0, 1860.0), 1.0)
+	await wait_physics_frames(300)
+	assert_true(finished.has(left), "from the left")
+	assert_true(finished.has(right), "from the right")
