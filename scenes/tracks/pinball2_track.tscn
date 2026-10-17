@@ -147,7 +147,7 @@ polygon = PackedVector2Array(1690, 1800, 1690, 2000, 1060, 2000)
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="LaneFloor"]
-polygon = PackedVector2Array(1712, 1940, 1890, 1940, 1890, 2000, 1712, 2000)
+polygon = PackedVector2Array(1690, 1940, 1980, 1940, 1980, 2060, 1690, 2060)
 
 [node name="Visual" type="Polygon2D" parent="LaneFloor"]
 color = Color(0.2, 0.26, 0.34, 1)
