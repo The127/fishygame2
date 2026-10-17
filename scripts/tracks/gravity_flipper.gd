@@ -1,17 +1,46 @@
 class_name GravityFlipper
 extends Node2D
-## Turns gravity around the room at seeded, irregular intervals: down, up, toward the finish or
-## away from it, so walls become floors and the ceiling becomes the floor. There is no countdown.
-## The room tells instead: debris that was falling hangs still, gravity thins out to a weightless
-## beat, the wall that is about to become the floor charges with light and then the room drops
-## toward it. The flips are planned from the race seed in [method reseed], and time only advances
-## in [method tick], so a seed replays the same flips.
+## Turns gravity around the room: down, up, toward the finish or away from it, so walls become
+## floors and the ceiling becomes the floor. Chat steers it: each viewer's latest "#up", "#down",
+## "#left" or "#right" is a vote ([method vote]), and the side with the most live votes becomes
+## the floor once the room has had [constant MIN_DWELL] seconds to settle. When chat is quiet the
+## room turns by itself, at seeded and irregular intervals. There is no countdown. The room tells
+## instead: debris that was falling hangs still, gravity thins out to a weightless beat, the wall
+## that is about to become the floor charges with light and then the room drops toward it. The
+## autopilot flips are planned from the race seed in [method reseed], and time only advances in
+## [method tick], so a seed replays the same flips when nobody votes.
 ## Children: `Zone` (Area2D that overrides gravity).
 
 ## Emitted when gravity turns. `pull` is the side of the room that is now the floor.
 signal flipped(pull: Pull)
+## The chat tally changed. Empty text hides it.
+signal tally_changed(text: String)
 
 enum Pull { DOWN, UP, RIGHT, LEFT }
+
+## Group of the flipper on the map in play: the game calls [method vote] on it for chat presses.
+const CHAT_GROUP: StringName = &"chat_gravity"
+## Seconds a vote counts for. A viewer's newer vote replaces the older one.
+const VOTE_WINDOW: float = 7.0
+## Seconds after a turn before chat can turn gravity again, so a pull is something fish can use.
+const MIN_DWELL: float = 2.5
+## Seconds of build-up before a turn chat asked for.
+const CHAT_BUILD: float = 0.4
+## Seconds the fish furthest behind may go without gaining [constant STALL_PROGRESS] pixels
+## before the sea takes the wheel from chat for [constant LOCKOUT_SECONDS], so a chat that
+## fights over the helm (or trolls it) cannot trap a fish for the whole race. Every lockout of a
+## race lasts twice as long as the one before, up to [constant LOCKOUT_MAX].
+const STALL_SECONDS: float = 12.0
+const STALL_PROGRESS: float = 60.0
+const LOCKOUT_SECONDS: float = 8.0
+const LOCKOUT_MAX: float = 64.0
+## Race seconds after which chat loses the helm for good, so no race outlasts the time limit
+## because of the votes.
+const CHAT_CUTOFF: float = 60.0
+## Seconds between looks at where the fish are.
+const STALL_CHECK: float = 0.5
+## Names of the sides as chat types them, in [enum Pull] order.
+const COMMANDS: PackedStringArray = ["down", "up", "right", "left"]
 
 ## Seconds between two flips, drawn per flip.
 const MIN_INTERVAL: float = 2.8
@@ -73,11 +102,30 @@ var _since_flip: float = RETURN_SECONDS
 ## Which way the debris drifts, eased toward where gravity is not pulling.
 var _drift: Vector2 = Vector2.UP
 var _scroll: Vector2 = Vector2.ZERO
+## Live votes, oldest first: one per viewer, with the side and the clock time of the vote.
+var _vote_names: PackedStringArray = PackedStringArray()
+var _vote_sides: PackedInt32Array = PackedInt32Array()
+var _vote_times: PackedFloat32Array = PackedFloat32Array()
+## Seconds since gravity last turned, capped at [constant MIN_DWELL].
+var _dwell: float = MIN_DWELL
+## Side chat asked for that the room is charging toward, or -1, and for how long.
+var _pending: int = -1
+var _pending_time: float = 0.0
+var _chat_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _last_text: String = ""
+## Furthest x the rearmost fish has reached, and for how long it has made no progress.
+var _rear_best: float = -INF
+var _stall_time: float = 0.0
+var _stall_check_in: float = 0.0
+## Seconds chat is locked out of the helm, after a stall.
+var _lockout: float = 0.0
+var _lockouts: int = 0
 
 @onready var _zone: Area2D = $Zone
 
 
 func _ready() -> void:
+	add_to_group(CHAT_GROUP)
 	_zone.gravity_space_override = Area2D.SPACE_OVERRIDE_REPLACE
 	_zone.gravity_point = false
 	_apply()
@@ -105,6 +153,7 @@ func reseed(seed_value: int) -> void:
 	disarm()
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed_value
+	_chat_rng.seed = seed_value + 1
 	var current: int = Pull.DOWN
 	var t: float = rng.randf_range(FIRST_MIN, FIRST_MAX)
 	while t < HORIZON:
@@ -114,12 +163,25 @@ func reseed(seed_value: int) -> void:
 		_leans.append(1.0 if rng.randf() < 0.5 else -1.0)
 		t += rng.randf_range(MIN_INTERVAL, MAX_INTERVAL)
 	_armed = true
+	_emit_tally()
 	queue_redraw()
 
 
 ## Stops flipping and puts gravity back to down.
 func disarm() -> void:
+	var was_armed: bool = _armed
 	_armed = false
+	_vote_names = PackedStringArray()
+	_vote_sides = PackedInt32Array()
+	_vote_times = PackedFloat32Array()
+	_dwell = MIN_DWELL
+	_pending = -1
+	_pending_time = 0.0
+	_rear_best = -INF
+	_stall_time = 0.0
+	_stall_check_in = 0.0
+	_lockout = 0.0
+	_lockouts = 0
 	_times.clear()
 	_pulls.clear()
 	_leans.clear()
@@ -132,6 +194,9 @@ func disarm() -> void:
 	_drift = -direction_of(pull)
 	if is_node_ready():
 		_apply()
+	if was_armed:
+		tally_changed.emit("")
+	_last_text = ""
 	queue_redraw()
 
 
@@ -151,6 +216,8 @@ func get_pulls() -> Array[int]:
 
 ## Side of the room that becomes the floor at the next flip, or the current one when none is left.
 func next_pull() -> Pull:
+	if _pending >= 0:
+		return _pending as Pull
 	if _armed and _next < _pulls.size():
 		return _pulls[_next] as Pull
 	return pull
@@ -158,7 +225,9 @@ func next_pull() -> Pull:
 
 ## 0 until the last [constant WARNING_SECONDS] before a flip, then rising to 1 at the flip.
 func warning() -> float:
-	if not _armed or _next >= _times.size():
+	if _pending >= 0:
+		return clampf(_pending_time / CHAT_BUILD, 0.0, 1.0)
+	if not _armed or _next >= _times.size() or is_chat_live():
 		return 0.0
 	return clampf(1.0 - (_times[_next] - clock) / WARNING_SECONDS, 0.0, 1.0)
 
@@ -184,11 +253,17 @@ func tick(delta: float) -> void:
 	if not _armed:
 		return
 	clock += delta
+	_dwell = minf(_dwell + delta, MIN_DWELL)
+	_watch_stall(delta)
+	_prune_votes()
+	_follow_chat(delta)
+	# While chat holds the helm the planned flips pass by unused.
 	while _next < _times.size() and clock >= _times[_next]:
 		var side: Pull = _pulls[_next] as Pull
 		var new_lean: float = _leans[_next]
 		_next += 1
-		turn_to(side, new_lean)
+		if not is_chat_live():
+			turn_to(side, new_lean)
 	_flash = maxf(_flash - delta, 0.0)
 	_since_flip = minf(_since_flip + delta, RETURN_SECONDS)
 	# The debris hangs still while gravity thins out, then drifts away from the new floor.
@@ -198,7 +273,152 @@ func tick(delta: float) -> void:
 	_apply_strength()
 	if _since_flip < RETURN_SECONDS:
 		_wake_bodies()
+	_emit_tally()
 	queue_redraw()
+
+
+## A viewer typed "#up", "#down", "#left" or "#right": `side` is the floor they want. Their
+## newest vote replaces their older one. Returns whether the vote counted.
+func vote(side: Pull, who: String) -> bool:
+	if not _armed or _lockout > 0.0:
+		return false
+	var old: int = _vote_names.find(who)
+	if old >= 0:
+		_vote_names.remove_at(old)
+		_vote_sides.remove_at(old)
+		_vote_times.remove_at(old)
+	_vote_names.append(who)
+	_vote_sides.append(side)
+	_vote_times.append(clock)
+	_emit_tally()
+	queue_redraw()
+	return true
+
+
+## Live votes per side, in [enum Pull] order.
+func vote_counts() -> PackedInt32Array:
+	var counts: PackedInt32Array = PackedInt32Array([0, 0, 0, 0])
+	for side: int in _vote_sides:
+		counts[side] += 1
+	return counts
+
+
+## True while chat holds the helm: there are live votes, or a turn chat asked for is charging.
+func is_chat_live() -> bool:
+	return _pending >= 0 or not _vote_names.is_empty()
+
+
+## The side chat wants as the floor, or -1 without votes. Ties keep the current floor, else the
+## side voted for most recently wins.
+func leading_side() -> int:
+	var counts: PackedInt32Array = vote_counts()
+	var best: int = 0
+	for count: int in counts:
+		best = maxi(best, count)
+	if best == 0:
+		return -1
+	if counts[pull] == best:
+		return pull
+	for i: int in range(_vote_sides.size() - 1, -1, -1):
+		if counts[_vote_sides[i]] == best:
+			return _vote_sides[i]
+	return -1
+
+
+## Text of the on-screen tally: the votes per side, the leader in brackets.
+func tally_text() -> String:
+	if not _armed:
+		return ""
+	if _lockout > 0.0:
+		return "THE SEA TAKES THE WHEEL"
+	if _vote_names.is_empty():
+		return "STEER THE SEA   #up   #down   #left   #right"
+	var counts: PackedInt32Array = vote_counts()
+	var lead: int = leading_side()
+	var parts: PackedStringArray = PackedStringArray()
+	for side: int in [Pull.UP, Pull.LEFT, Pull.DOWN, Pull.RIGHT]:
+		var part: String = "#%s %d" % [COMMANDS[side], counts[side]]
+		parts.append("[%s]" % part if side == lead else part)
+	return "GRAVITY   " + "   ".join(parts)
+
+
+## Chat's turn: after the room has settled, charge toward the side with the most votes and
+## turn when the charge is full. The charge follows the leader and gives up if the vote falls
+## back to the current floor.
+func _follow_chat(delta: float) -> void:
+	var lead: int = leading_side()
+	if _pending >= 0:
+		if lead < 0 or lead == pull:
+			_pending = -1
+			_pending_time = 0.0
+			return
+		_pending = lead
+		_pending_time += delta
+		if _pending_time >= CHAT_BUILD:
+			turn_to(lead as Pull, 1.0 if _chat_rng.randf() < 0.5 else -1.0)
+		return
+	if _dwell >= MIN_DWELL and lead >= 0 and lead != pull:
+		_pending = lead
+		_pending_time = 0.0
+
+
+## True while the sea has taken the wheel from chat.
+func is_locked_out() -> bool:
+	return _lockout > 0.0
+
+
+## Looks at the fish furthest behind: if it has gone [constant STALL_SECONDS] without getting
+## anywhere, chat loses the helm for [constant LOCKOUT_SECONDS] and the autopilot flips instead.
+func _watch_stall(delta: float) -> void:
+	if _lockout > 0.0:
+		_lockout = maxf(_lockout - delta, 0.0)
+		if _lockout == 0.0:
+			_rear_best = -INF
+			_stall_time = 0.0
+		return
+	if clock >= CHAT_CUTOFF:
+		_start_lockout()
+		_lockout = INF
+		return
+	_stall_time += delta
+	_stall_check_in -= delta
+	if _stall_check_in > 0.0:
+		return
+	_stall_check_in = STALL_CHECK
+	var rear: float = INF
+	for node: Node in get_tree().get_nodes_in_group(Marble.GROUP):
+		rear = minf(rear, (node as Marble).global_position.x)
+	if rear == INF or rear > _rear_best + STALL_PROGRESS:
+		_rear_best = rear if rear != INF else -INF
+		_stall_time = 0.0
+	elif _stall_time >= STALL_SECONDS:
+		_start_lockout()
+
+
+func _start_lockout() -> void:
+	_lockout = minf(LOCKOUT_SECONDS * pow(2.0, float(_lockouts)), LOCKOUT_MAX)
+	_lockouts += 1
+	_stall_time = 0.0
+	_vote_names = PackedStringArray()
+	_vote_sides = PackedInt32Array()
+	_vote_times = PackedFloat32Array()
+	_pending = -1
+	_pending_time = 0.0
+	_emit_tally()
+
+
+func _prune_votes() -> void:
+	while not _vote_times.is_empty() and clock - _vote_times[0] > VOTE_WINDOW:
+		_vote_names.remove_at(0)
+		_vote_sides.remove_at(0)
+		_vote_times.remove_at(0)
+
+
+func _emit_tally() -> void:
+	var text: String = tally_text()
+	if text != _last_text:
+		_last_text = text
+		tally_changed.emit(text)
 
 
 ## Turns gravity toward `side` right now.
@@ -207,12 +427,16 @@ func turn_to(side: Pull, lean_sign: float = 1.0) -> void:
 	lean = lean_sign
 	_flash = FLASH_SECONDS
 	_since_flip = 0.0
+	_dwell = 0.0
+	_pending = -1
+	_pending_time = 0.0
 	_apply()
 	flipped.emit(side)
 
 
 ## Part of the finish replay ([Replayable]): which side is the floor, where the flip clock and
-## the build-up stand, the wave, and the drift and scroll of the debris.
+## the build-up (including a turn chat asked for) stand, the wave, and the drift and scroll of
+## the debris. The votes are not replayed.
 func replay_state() -> PackedFloat32Array:
 	return PackedFloat32Array(
 		[
@@ -226,7 +450,10 @@ func replay_state() -> PackedFloat32Array:
 			_drift.y,
 			_scroll.x,
 			_scroll.y,
-			1.0 if _armed else 0.0
+			1.0 if _armed else 0.0,
+			float(_pending),
+			_pending_time,
+			_dwell
 		]
 	)
 
@@ -241,6 +468,9 @@ func replay_apply(from: PackedFloat32Array, to: PackedFloat32Array, blend: float
 	_drift = Replayable.mix_vector(from, to, blend, 6)
 	_scroll = Replayable.mix_vector(from, to, blend, 8)
 	_armed = Replayable.step(from, to, blend, 10) > 0.5
+	_pending = int(Replayable.step(from, to, blend, 11))
+	_pending_time = Replayable.mix(from, to, blend, 12)
+	_dwell = Replayable.mix(from, to, blend, 13)
 	queue_redraw()
 
 
@@ -290,11 +520,29 @@ func _draw() -> void:
 	_draw_debris()
 	if not _armed:
 		return
+	_draw_votes()
 	var charge: float = warning()
 	if charge > 0.0:
 		_draw_charge(next_pull(), charge)
 	if _flash > 0.0:
 		_draw_wave()
+
+
+## A band along each wall that has votes, deeper the bigger its share of the votes, and brightest
+## on the side chat is leading with.
+func _draw_votes() -> void:
+	if _vote_names.is_empty():
+		return
+	var counts: PackedInt32Array = vote_counts()
+	var lead: int = leading_side()
+	for side: int in counts.size():
+		if counts[side] == 0:
+			continue
+		var share: float = float(counts[side]) / float(_vote_names.size())
+		var alpha: float = 0.16 + 0.22 * share + (0.14 if side == lead else 0.0)
+		_draw_band(
+			side as Pull, 24.0 + 80.0 * share, Color(GLOW_COLOR, alpha), Color(GLOW_COLOR, 0.0)
+		)
 
 
 ## A lit band along the wall that is about to become the floor, flickering faster as it fills.

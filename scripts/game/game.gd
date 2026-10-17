@@ -44,6 +44,7 @@ var _haunt: Haunt = Haunt.new()
 var _viewer_commands: ViewerCommands = ViewerCommands.new()
 var _flipper_commands: FlipperCommands = FlipperCommands.new()
 var _shake_commands: ShakeCommands = ShakeCommands.new()
+var _gravity_commands: GravityCommands = GravityCommands.new()
 var _payouts: Array[Dictionary] = []
 ## The streamer power waiting for a click on the track (a StreamerPowers.Kind), or -1.
 var _armed_power: int = -1
@@ -92,6 +93,9 @@ func _ready() -> void:
 	add_child(_shake_commands)
 	Chat.command_received.connect(_shake_commands.handle_command)
 	_shake_commands.shake_requested.connect(_on_shake_requested)
+	add_child(_gravity_commands)
+	Chat.command_received.connect(_gravity_commands.handle_command)
+	_gravity_commands.gravity_requested.connect(_on_gravity_requested)
 	_chaos.points = _betting.points
 	_shop.points = _betting.points
 	_shop.equipped.connect(_on_shop_equipped)
@@ -614,6 +618,14 @@ func _on_shake_requested(who: String) -> void:
 	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
 		return
 	get_tree().call_group(QuakeFault.CHAT_GROUP, "shake", who, _flow.get_contestants().size())
+
+
+## A viewer voted "#up", "#down", "#left" or "#right". Only a race on a map with a gravity flipper
+## reacts (it is in the chat group), and not while its finish replay plays.
+func _on_gravity_requested(side: GravityFlipper.Pull, who: String) -> void:
+	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
+		return
+	get_tree().call_group(GravityFlipper.CHAT_GROUP, "vote", side, who)
 
 
 func _on_join_rejected(msg: ChatMessage, reason: String) -> void:

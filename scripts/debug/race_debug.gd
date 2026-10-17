@@ -6,10 +6,14 @@ extends Node2D
 ## --eddies=<seconds> makes the cut fish of a round race send out an eddy that often (default 2, 0 for none), standing in for chat.
 ## --event=<id> runs the race under a RaceEvent (low_gravity, double_hazards, lights_out, bouncy, thanos_snap).
 ## --shake has made-up viewers spam "#shake" the whole race, for the quakes of a map with a fault.
+## --steer has made-up viewers vote for random sides the whole race, for the gravity of Gravity Flip.
 
 ## Seconds between the "#shake" presses of --shake, and the viewers taking turns.
 const SHAKE_EVERY: float = 0.4
 const SHAKE_VIEWERS: int = 12
+## Seconds between the votes of --steer, and the viewers taking turns.
+const STEER_EVERY: float = 0.5
+const STEER_VIEWERS: int = 8
 
 @export var seed_value: int = 1
 @export var marble_count: int = 10
@@ -22,6 +26,9 @@ var _autorun: bool = false
 var _shake: bool = false
 var _shake_in: float = 0.0
 var _shake_count: int = 0
+var _steer: bool = false
+var _steer_in: float = 0.0
+var _steer_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _track: Track
 var _hazard_events: PackedStringArray = []
 var _treasures_found: int = 0
@@ -51,6 +58,8 @@ func _ready() -> void:
 			_autorun = true
 		elif arg == "--shake":
 			_shake = true
+		elif arg == "--steer":
+			_steer = true
 		elif arg.begins_with("--seed="):
 			seed_value = int(arg.substr(7))
 		elif arg.begins_with("--count="):
@@ -65,6 +74,7 @@ func _ready() -> void:
 			_eddy_every = maxf(0.0, float(arg.substr(9)))
 		elif arg.begins_with("--hazards="):
 			hazard_frequency = clampi(int(arg.substr(10)), 0, 5)
+	_steer_rng.seed = seed_value
 	if event_id != RaceEvent.NOTHING and not RaceEvent.is_event(event_id):
 		push_error(
 			"Unknown event '%s' (known: %s)" % [event_id, ", ".join(RaceEvent.EVENTS.keys())]
@@ -89,6 +99,21 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_send_eddies(delta)
 	_spam_shake(delta)
+	_spam_steer(delta)
+
+
+func _spam_steer(delta: float) -> void:
+	if not _steer:
+		return
+	_steer_in -= delta
+	if _steer_in <= 0.0:
+		_steer_in = STEER_EVERY
+		get_tree().call_group(
+			GravityFlipper.CHAT_GROUP,
+			"vote",
+			_steer_rng.randi_range(0, 3),
+			"viewer%d" % _steer_rng.randi_range(0, STEER_VIEWERS - 1)
+		)
 
 
 func _spam_shake(delta: float) -> void:

@@ -259,17 +259,27 @@ body, so a fish is thrown along instead of being crushed. The kraken strikes oft
 in a typical race) and is never still in between: the eye follows the leading fish
 (`scripts/tracks/kraken_eye.gd`) and dim idle tentacles curl and probe in the deep
 (`scripts/tracks/kraken_lurkers.gd`, drawn from a clock the finish replay records).
-Gravity Flip turns the whole room every 3 to 4 seconds (`scripts/tracks/gravity_flipper.gd`): an Area2D
-that points gravity at the floor, the ceiling, the wall toward the finish or (rarely, and weaker) the wall
-behind the start, so walls become floors and the ceiling becomes the floor. The course is three
-partitions with one-way valve doors (fish pass toward the finish, never back), each room split into an
-upper and a lower lane by a tilted shelf. A door is in the top or the bottom of its partition (the last one has both), so a fish
-has to change lane in most rooms, and only some pulls carry it there: a shelf that funnels fish to the
-gap under one pull is a hill under the other. Pulls toward the finish lean up or down by seed. There is
-no countdown or arrow: for the last 1.2 seconds gravity thins out to a weightless beat, the debris
-hangs still and the wall that is about to become the floor charges with light. Flip times, sides and
-leans come from the race seed. The finish spans the whole height, so every orientation reaches it.
-The flipper joins the finish replay (the side, the charge, the wave and the debris are replayed).
+Gravity Flip is steered by chat (`scripts/tracks/gravity_flipper.gd`): an Area2D points gravity at the
+floor, the ceiling, the wall toward the finish or the wall behind the start, so walls become floors and
+the ceiling becomes the floor. Viewers type `#up`, `#down`, `#left` or `#right` (any viewer, joined or not;
+`scripts/game/gravity_commands.gd`). Each viewer has one live vote that lasts 7 seconds, the side with
+the most votes becomes the floor (a tie keeps the current floor), and chat can turn gravity at most once
+every 2.5 seconds so fish get to use a pull. The overlay tally shows the votes with the leader in
+brackets, and a band lights each wall that has votes. The course is three partitions with one-way valve
+doors (fish pass toward the finish, never back), each room split into an upper and a lower lane by a
+tilted shelf, and chevron beacons mark the door of each partition. A door is in the top, the bottom or the
+middle of its partition, so a fish has to change lane in most rooms, and only some pulls carry it there: a
+shelf that funnels fish to the gap under one pull is a hill under the other, so viewers
+who bet on different fish fight over the helm. Nothing counts down: when chat picks a turn, gravity thins
+out to a weightless beat for 0.4 seconds, the debris hangs still and the wall that is about to become the
+floor charges with light. With no votes the room turns by itself at seeded intervals of 3 to 4 seconds
+(with a 1.2 second build-up, and the wall behind the start rarely and weaker), so a quiet chat still gets
+a race and a seed replays the same flips. The sea also takes the wheel from chat
+when the fish furthest behind has gone 12 seconds without getting anywhere (for 8 seconds, then 16, then
+32), and for good after 60 seconds, so a chat that fights itself or trolls cannot stall a race.
+`--steer` in `scenes/debug/race_debug.tscn` has made-up viewers vote at random. The finish spans the whole
+height, so every orientation reaches it. The flipper joins the finish replay (the side, the charge, the
+wave and the debris are replayed, the votes are not).
 
 Switchback is three long ramps that pivot about their middle (`scripts/tracks/switchback_ramp.gd`).
 Somewhere along each ramp, at a spot drawn from the race seed, sits an invisible trigger zone: the
