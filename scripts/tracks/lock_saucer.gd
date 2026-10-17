@@ -16,7 +16,7 @@ const SWING_SPEED: float = 6.0
 ## pixels per second.
 const FIRE_SPEED: float = 380.0
 const FAN_SPEED: float = 150.0
-## Share of its swing the hatch has made when the fish are fired out, so they never hit it.
+## Share of its swing the hatch has made when the fish are fired out, so most clear it.
 const FIRE_AT: float = 0.7
 const GLOW: Color = Color(0.5, 1.0, 0.9)
 const LIT: Color = Color(1.0, 0.85, 0.35)

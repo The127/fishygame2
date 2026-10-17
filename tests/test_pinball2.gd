@@ -171,3 +171,18 @@ func test_stop_gimmicks_shuts_the_saucer() -> void:
 	assert_false(_saucer.is_armed())
 	assert_false(_saucer.is_open())
 	assert_eq(_saucer.locked_count, 0)
+
+
+func test_the_finish_covers_the_whole_drain_floor() -> void:
+	# A fish that rolls off to a side of the flippers must still drain, not rest under a slope.
+	var finish: Area2D = _track.get_node("Finish") as Area2D
+	var size: Vector2 = (
+		((finish.get_node("CollisionShape2D") as CollisionShape2D).shape as RectangleShape2D).size
+	)
+	assert_gt(size.x, 1500.0)
+	var marble: Marble = _marble_at(Vector2(finish.global_position.x - 700.0, 1975.0))
+	var finished: Array[bool] = [false]
+	_track.marble_reached_finish.connect(func(_m: Node2D) -> void: finished[0] = true)
+	await wait_physics_frames(6)
+	assert_true(finished[0])
+	assert_not_null(marble)
