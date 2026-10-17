@@ -179,8 +179,8 @@ func test_a_fish_on_the_drain_floor_rolls_into_the_finish_from_either_side() -> 
 	_track.marble_reached_finish.connect(
 		func(body: Node2D) -> void: finished.append(body as Marble)
 	)
-	var left: Marble = _marble_at(Vector2(200.0, 1860.0), 1.0)
-	var right: Marble = _marble_at(Vector2(1600.0, 1860.0), 1.0)
+	var left: Marble = _marble_at(Vector2(200.0, 1800.0), 1.0)
+	var right: Marble = _marble_at(Vector2(1600.0, 1800.0), 1.0)
 	await wait_physics_frames(300)
 	assert_true(finished.has(left), "from the left")
 	assert_true(finished.has(right), "from the right")
