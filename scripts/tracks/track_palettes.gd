@@ -345,6 +345,24 @@ const PALETTES: Dictionary = {
 		"far_kind": EnvLayer.Kind.BLOOMS,
 		"sway_scale": 0.8,
 	},
+	"pinball2":
+	{
+		"sky_top": Color(0.02, 0.12, 0.2),
+		"sky_bottom": Color(0.0, 0.02, 0.06),
+		"far": Color(0.03, 0.16, 0.26),
+		"mid": Color(0.02, 0.11, 0.19),
+		"near": Color(0.004, 0.025, 0.045),
+		"plant": Color(0.04, 0.22, 0.3),
+		"stone_dark": Color(0.03, 0.07, 0.12),
+		"stone_light": Color(0.14, 0.34, 0.45),
+		"rim": Color(0.3, 0.95, 1.0),
+		"ray": Color(0.35, 0.85, 1.0),
+		"fog": Color(0.04, 0.26, 0.4),
+		"mote": Color(1.0, 0.85, 0.5),
+		"layer_kind": EnvLayer.Kind.BLOOMS,
+		"far_kind": EnvLayer.Kind.SHARDS,
+		"sway_scale": 0.7,
+	},
 	"fault":
 	{
 		"sky_top": Color(0.14, 0.04, 0.03),
@@ -406,6 +424,7 @@ const FOREGROUND: Dictionary = {
 	"flush": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.MASTS],
 	"switchback": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.RUINS],
 	"pinball": [EnvLayer.Kind.BLOOMS, EnvLayer.Kind.CORAL],
+	"pinball2": [EnvLayer.Kind.SHARDS, EnvLayer.Kind.CORAL],
 	"fault": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SHARDS],
 	"riptide": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
 }

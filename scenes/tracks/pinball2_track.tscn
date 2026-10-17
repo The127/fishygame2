@@ -1,0 +1,650 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/tracks/track.gd" id="track"]
+[ext_resource type="Script" path="res://scripts/tracks/pinball_table.gd" id="table"]
+[ext_resource type="Script" path="res://scripts/tracks/tilt_hazard.gd" id="tilt"]
+[ext_resource type="Script" path="res://scripts/tracks/pinball_flipper.gd" id="flipper"]
+[ext_resource type="Script" path="res://scripts/tracks/slingshot.gd" id="sling"]
+[ext_resource type="Script" path="res://scripts/tracks/lock_saucer.gd" id="saucer"]
+[ext_resource type="Script" path="res://scripts/tracks/ramp_gate.gd" id="gate"]
+[ext_resource type="Script" path="res://scripts/tracks/drop_targets.gd" id="targets"]
+
+[sub_resource type="PhysicsMaterial" id="PM_track"]
+friction = 0.6
+bounce = 0.3
+
+[sub_resource type="PhysicsMaterial" id="PM_bump"]
+friction = 0.2
+bounce = 0.5
+
+[sub_resource type="PhysicsMaterial" id="PM_flipper"]
+friction = 0.8
+bounce = 0.1
+
+[sub_resource type="CircleShape2D" id="Circle_bump"]
+radius = 30.0
+
+[sub_resource type="RectangleShape2D" id="Rect_plunger"]
+size = Vector2(178, 220)
+
+[sub_resource type="RectangleShape2D" id="Rect_tilt"]
+size = Vector2(1660, 1980)
+
+[sub_resource type="RectangleShape2D" id="Rect_orbit"]
+size = Vector2(178, 240)
+
+[sub_resource type="RectangleShape2D" id="Rect_finish"]
+size = Vector2(700, 44)
+
+[sub_resource type="RectangleShape2D" id="Rect_cup"]
+size = Vector2(130, 100)
+
+[sub_resource type="RectangleShape2D" id="Rect_mouth"]
+size = Vector2(110, 60)
+
+[sub_resource type="RectangleShape2D" id="Rect_target"]
+size = Vector2(16, 44)
+
+[sub_resource type="Curve2D" id="Curve_center"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 1801, 1900, 0, 0, 0, 0, 1801, 290, 0, 0, 0, 0, 1600, 230, 0, 0, 0, 0, 1150, 330, 0, 0, 0, 0, 700, 700, 0, 0, 0, 0, 650, 850, 0, 0, 0, 0, 650, 1130, 0, 0, 0, 0, 1065, 1225, 0, 0, 0, 0, 1250, 1265, 0, 0, 0, 0, 1250, 1500, 0, 0, 0, 0, 1100, 1700, 0, 0, 0, 0, 850, 1780, 0, 0, 0, 0, 850, 1990)
+}
+point_count = 13
+
+[node name="Track" type="Node2D"]
+script = ExtResource("track")
+view_bounds = Rect2(0, 0, 1920, 2080)
+spawn_columns = 5
+fish_glow = 1.1
+style_id = "pinball2"
+
+[node name="Backdrop" type="Polygon2D" parent="."]
+z_index = -10
+color = Color(0.02, 0.06, 0.1, 1)
+polygon = PackedVector2Array(0, 0, 1920, 0, 1920, 2080, 0, 2080)
+
+[node name="Floor" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Floor"]
+polygon = PackedVector2Array(-40, 2000, 1960, 2000, 1960, 2060, -40, 2060)
+
+[node name="Visual" type="Polygon2D" parent="Floor"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(-40, 2000, 1960, 2000, 1960, 2060, -40, 2060)
+
+[node name="Ceiling" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Ceiling"]
+polygon = PackedVector2Array(-60, -460, 1980, -460, 1980, 40, -60, 40)
+
+[node name="Visual" type="Polygon2D" parent="Ceiling"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(-60, -460, 1980, -460, 1980, 40, -60, 40)
+
+[node name="WallLeft" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="WallLeft"]
+polygon = PackedVector2Array(-60, -400, 30, -400, 30, 2120, -60, 2120)
+
+[node name="Visual" type="Polygon2D" parent="WallLeft"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(-60, -400, 30, -400, 30, 2120, -60, 2120)
+
+[node name="WallRight" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="WallRight"]
+polygon = PackedVector2Array(1890, -400, 1980, -400, 1980, 2120, 1890, 2120)
+
+[node name="Visual" type="Polygon2D" parent="WallRight"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(1890, -400, 1980, -400, 1980, 2120, 1890, 2120)
+
+[node name="LaneCap" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="LaneCap"]
+polygon = PackedVector2Array(1480, 40, 1892, 40, 1892, 250)
+
+[node name="Visual" type="Polygon2D" parent="LaneCap"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(1480, 40, 1892, 40, 1892, 250)
+
+[node name="Divider" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Divider"]
+polygon = PackedVector2Array(1690, 300, 1712, 300, 1712, 2000, 1690, 2000)
+
+[node name="Visual" type="Polygon2D" parent="Divider"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(1690, 300, 1712, 300, 1712, 2000, 1690, 2000)
+
+[node name="DrainWedgeL" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="DrainWedgeL"]
+polygon = PackedVector2Array(30, 1800, 640, 2000, 30, 2000)
+
+[node name="Visual" type="Polygon2D" parent="DrainWedgeL"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(30, 1800, 640, 2000, 30, 2000)
+
+[node name="DrainWedgeR" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="DrainWedgeR"]
+polygon = PackedVector2Array(1690, 1800, 1690, 2000, 1060, 2000)
+
+[node name="Visual" type="Polygon2D" parent="DrainWedgeR"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(1690, 1800, 1690, 2000, 1060, 2000)
+
+[node name="LaneFloor" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="LaneFloor"]
+polygon = PackedVector2Array(1712, 1940, 1890, 1940, 1890, 2000, 1712, 2000)
+
+[node name="Visual" type="Polygon2D" parent="LaneFloor"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(1712, 1940, 1890, 1940, 1890, 2000, 1712, 2000)
+
+[node name="GuideAL" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="GuideAL"]
+polygon = PackedVector2Array(30, 300, 585, 760, 585, 794, 30, 334)
+
+[node name="Visual" type="Polygon2D" parent="GuideAL"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(30, 300, 585, 760, 585, 794, 30, 334)
+
+[node name="GuideAR" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="GuideAR"]
+polygon = PackedVector2Array(1690, 380, 715, 760, 715, 794, 1690, 414)
+
+[node name="Visual" type="Polygon2D" parent="GuideAR"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(1690, 380, 715, 760, 715, 794, 1690, 414)
+
+[node name="CupLeft" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="CupLeft"]
+polygon = PackedVector2Array(571, 760, 585, 760, 585, 900, 571, 900)
+
+[node name="Visual" type="Polygon2D" parent="CupLeft"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(571, 760, 585, 760, 585, 900, 571, 900)
+
+[node name="CupRight" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="CupRight"]
+polygon = PackedVector2Array(715, 760, 729, 760, 729, 900, 715, 900)
+
+[node name="Visual" type="Polygon2D" parent="CupRight"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(715, 760, 729, 760, 729, 900, 715, 900)
+
+[node name="GuideBL1" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="GuideBL1"]
+polygon = PackedVector2Array(30, 1000, 760, 1176.29, 760, 1210.29, 30, 1034)
+
+[node name="Visual" type="Polygon2D" parent="GuideBL1"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(30, 1000, 760, 1176.29, 760, 1210.29, 30, 1034)
+
+[node name="GuideBL2" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="GuideBL2"]
+polygon = PackedVector2Array(880, 1205.27, 1065.2, 1250, 1065.2, 1284, 880, 1239.27)
+
+[node name="Visual" type="Polygon2D" parent="GuideBL2"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(880, 1205.27, 1065.2, 1250, 1065.2, 1284, 880, 1239.27)
+
+[node name="GuideBR" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="GuideBR"]
+polygon = PackedVector2Array(1690, 1130, 1434.8, 1250, 1434.8, 1284, 1690, 1164)
+
+[node name="Visual" type="Polygon2D" parent="GuideBR"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(1690, 1130, 1434.8, 1250, 1434.8, 1284, 1690, 1164)
+
+[node name="GuideCL1" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="GuideCL1"]
+polygon = PackedVector2Array(30, 1450, 330, 1596.41, 330, 1630.41, 30, 1484)
+
+[node name="Visual" type="Polygon2D" parent="GuideCL1"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(30, 1450, 330, 1596.41, 330, 1630.41, 30, 1484)
+
+[node name="GuideCL2" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="GuideCL2"]
+polygon = PackedVector2Array(560, 1708.66, 665.2, 1760, 665.2, 1794, 560, 1742.66)
+
+[node name="Visual" type="Polygon2D" parent="GuideCL2"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(560, 1708.66, 665.2, 1760, 665.2, 1794, 560, 1742.66)
+
+[node name="GuideCR1" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="GuideCR1"]
+polygon = PackedVector2Array(1330, 1651.87, 1690, 1520, 1690, 1554, 1330, 1685.87)
+
+[node name="Visual" type="Polygon2D" parent="GuideCR1"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(1330, 1651.87, 1690, 1520, 1690, 1554, 1330, 1685.87)
+
+[node name="GuideCR2" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="GuideCR2"]
+polygon = PackedVector2Array(1034.8, 1760, 1130, 1725.13, 1130, 1759.13, 1034.8, 1794)
+
+[node name="Visual" type="Polygon2D" parent="GuideCR2"]
+color = Color(0.2, 0.26, 0.34, 1)
+polygon = PackedVector2Array(1034.8, 1760, 1130, 1725.13, 1130, 1759.13, 1034.8, 1794)
+
+[node name="SlingshotL" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_bump")
+script = ExtResource("sling")
+kick = Vector2(0.44, -0.9)
+
+[node name="Collider" type="CollisionPolygon2D" parent="SlingshotL"]
+polygon = PackedVector2Array(330, 1596.41, 560, 1708.66, 560, 1742.66, 330, 1630.41)
+
+[node name="Visual" type="Polygon2D" parent="SlingshotL"]
+color = Color(1, 0.8, 0.35, 1)
+polygon = PackedVector2Array(330, 1596.41, 560, 1708.66, 560, 1742.66, 330, 1630.41)
+
+[node name="Sensor" type="Area2D" parent="SlingshotL"]
+
+[node name="Shape" type="CollisionPolygon2D" parent="SlingshotL/Sensor"]
+polygon = PackedVector2Array(330, 1586.41, 560, 1698.66, 560, 1742.66, 330, 1630.41)
+
+[node name="SlingshotR" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_bump")
+script = ExtResource("sling")
+kick = Vector2(-0.34, -0.94)
+
+[node name="Collider" type="CollisionPolygon2D" parent="SlingshotR"]
+polygon = PackedVector2Array(1130, 1725.13, 1330, 1651.87, 1330, 1685.87, 1130, 1759.13)
+
+[node name="Visual" type="Polygon2D" parent="SlingshotR"]
+color = Color(1, 0.8, 0.35, 1)
+polygon = PackedVector2Array(1130, 1725.13, 1330, 1651.87, 1330, 1685.87, 1130, 1759.13)
+
+[node name="Sensor" type="Area2D" parent="SlingshotR"]
+
+[node name="Shape" type="CollisionPolygon2D" parent="SlingshotR/Sensor"]
+polygon = PackedVector2Array(1130, 1715.13, 1330, 1641.87, 1330, 1685.87, 1130, 1759.13)
+
+[node name="Bumper1" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper1"]
+position = Vector2(1450, 170)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper1"]
+color = Color(1, 0.4, 0.55, 1)
+polygon = PackedVector2Array(1480, 170, 1478.53, 179.27, 1474.27, 187.63, 1467.63, 194.27, 1459.27, 198.53, 1450, 200, 1440.73, 198.53, 1432.37, 194.27, 1425.73, 187.63, 1421.47, 179.27, 1420, 170, 1421.47, 160.73, 1425.73, 152.37, 1432.37, 145.73, 1440.73, 141.47, 1450, 140, 1459.27, 141.47, 1467.63, 145.73, 1474.27, 152.37, 1478.53, 160.73)
+
+[node name="Bumper2" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper2"]
+position = Vector2(1150, 140)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper2"]
+color = Color(0.35, 0.9, 1, 1)
+polygon = PackedVector2Array(1180, 140, 1178.53, 149.27, 1174.27, 157.63, 1167.63, 164.27, 1159.27, 168.53, 1150, 170, 1140.73, 168.53, 1132.37, 164.27, 1125.73, 157.63, 1121.47, 149.27, 1120, 140, 1121.47, 130.73, 1125.73, 122.37, 1132.37, 115.73, 1140.73, 111.47, 1150, 110, 1159.27, 111.47, 1167.63, 115.73, 1174.27, 122.37, 1178.53, 130.73)
+
+[node name="Bumper3" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper3"]
+position = Vector2(850, 230)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper3"]
+color = Color(1, 0.75, 0.3, 1)
+polygon = PackedVector2Array(880, 230, 878.53, 239.27, 874.27, 247.63, 867.63, 254.27, 859.27, 258.53, 850, 260, 840.73, 258.53, 832.37, 254.27, 825.73, 247.63, 821.47, 239.27, 820, 230, 821.47, 220.73, 825.73, 212.37, 832.37, 205.73, 840.73, 201.47, 850, 200, 859.27, 201.47, 867.63, 205.73, 874.27, 212.37, 878.53, 220.73)
+
+[node name="Bumper4" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper4"]
+position = Vector2(560, 160)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper4"]
+color = Color(1, 0.4, 0.55, 1)
+polygon = PackedVector2Array(590, 160, 588.53, 169.27, 584.27, 177.63, 577.63, 184.27, 569.27, 188.53, 560, 190, 550.73, 188.53, 542.37, 184.27, 535.73, 177.63, 531.47, 169.27, 530, 160, 531.47, 150.73, 535.73, 142.37, 542.37, 135.73, 550.73, 131.47, 560, 130, 569.27, 131.47, 577.63, 135.73, 584.27, 142.37, 588.53, 150.73)
+
+[node name="Bumper5" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper5"]
+position = Vector2(1250, 380)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper5"]
+color = Color(0.35, 0.9, 1, 1)
+polygon = PackedVector2Array(1280, 380, 1278.53, 389.27, 1274.27, 397.63, 1267.63, 404.27, 1259.27, 408.53, 1250, 410, 1240.73, 408.53, 1232.37, 404.27, 1225.73, 397.63, 1221.47, 389.27, 1220, 380, 1221.47, 370.73, 1225.73, 362.37, 1232.37, 355.73, 1240.73, 351.47, 1250, 350, 1259.27, 351.47, 1267.63, 355.73, 1274.27, 362.37, 1278.53, 370.73)
+
+[node name="Bumper6" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper6"]
+position = Vector2(930, 500)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper6"]
+color = Color(1, 0.75, 0.3, 1)
+polygon = PackedVector2Array(960, 500, 958.53, 509.27, 954.27, 517.63, 947.63, 524.27, 939.27, 528.53, 930, 530, 920.73, 528.53, 912.37, 524.27, 905.73, 517.63, 901.47, 509.27, 900, 500, 901.47, 490.73, 905.73, 482.37, 912.37, 475.73, 920.73, 471.47, 930, 470, 939.27, 471.47, 947.63, 475.73, 954.27, 482.37, 958.53, 490.73)
+
+[node name="Bumper7" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper7"]
+position = Vector2(300, 300)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper7"]
+color = Color(1, 0.4, 0.55, 1)
+polygon = PackedVector2Array(330, 300, 328.53, 309.27, 324.27, 317.63, 317.63, 324.27, 309.27, 328.53, 300, 330, 290.73, 328.53, 282.37, 324.27, 275.73, 317.63, 271.47, 309.27, 270, 300, 271.47, 290.73, 275.73, 282.37, 282.37, 275.73, 290.73, 271.47, 300, 270, 309.27, 271.47, 317.63, 275.73, 324.27, 282.37, 328.53, 290.73)
+
+[node name="Bumper8" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper8"]
+position = Vector2(170, 170)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper8"]
+color = Color(0.35, 0.9, 1, 1)
+polygon = PackedVector2Array(200, 170, 198.53, 179.27, 194.27, 187.63, 187.63, 194.27, 179.27, 198.53, 170, 200, 160.73, 198.53, 152.37, 194.27, 145.73, 187.63, 141.47, 179.27, 140, 170, 141.47, 160.73, 145.73, 152.37, 152.37, 145.73, 160.73, 141.47, 170, 140, 179.27, 141.47, 187.63, 145.73, 194.27, 152.37, 198.53, 160.73)
+
+[node name="Bumper9" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper9"]
+position = Vector2(900, 1030)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper9"]
+color = Color(1, 0.75, 0.3, 1)
+polygon = PackedVector2Array(930, 1030, 928.53, 1039.27, 924.27, 1047.63, 917.63, 1054.27, 909.27, 1058.53, 900, 1060, 890.73, 1058.53, 882.37, 1054.27, 875.73, 1047.63, 871.47, 1039.27, 870, 1030, 871.47, 1020.73, 875.73, 1012.37, 882.37, 1005.73, 890.73, 1001.47, 900, 1000, 909.27, 1001.47, 917.63, 1005.73, 924.27, 1012.37, 928.53, 1020.73)
+
+[node name="Bumper10" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper10"]
+position = Vector2(1570, 850)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper10"]
+color = Color(1, 0.4, 0.55, 1)
+polygon = PackedVector2Array(1600, 850, 1598.53, 859.27, 1594.27, 867.63, 1587.63, 874.27, 1579.27, 878.53, 1570, 880, 1560.73, 878.53, 1552.37, 874.27, 1545.73, 867.63, 1541.47, 859.27, 1540, 850, 1541.47, 840.73, 1545.73, 832.37, 1552.37, 825.73, 1560.73, 821.47, 1570, 820, 1579.27, 821.47, 1587.63, 825.73, 1594.27, 832.37, 1598.53, 840.73)
+
+[node name="Bumper11" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper11"]
+position = Vector2(1050, 1450)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper11"]
+color = Color(0.35, 0.9, 1, 1)
+polygon = PackedVector2Array(1080, 1450, 1078.53, 1459.27, 1074.27, 1467.63, 1067.63, 1474.27, 1059.27, 1478.53, 1050, 1480, 1040.73, 1478.53, 1032.37, 1474.27, 1025.73, 1467.63, 1021.47, 1459.27, 1020, 1450, 1021.47, 1440.73, 1025.73, 1432.37, 1032.37, 1425.73, 1040.73, 1421.47, 1050, 1420, 1059.27, 1421.47, 1067.63, 1425.73, 1074.27, 1432.37, 1078.53, 1440.73)
+
+[node name="Bumper12" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper12"]
+position = Vector2(520, 1500)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper12"]
+color = Color(1, 0.75, 0.3, 1)
+polygon = PackedVector2Array(550, 1500, 548.53, 1509.27, 544.27, 1517.63, 537.63, 1524.27, 529.27, 1528.53, 520, 1530, 510.73, 1528.53, 502.37, 1524.27, 495.73, 1517.63, 491.47, 1509.27, 490, 1500, 491.47, 1490.73, 495.73, 1482.37, 502.37, 1475.73, 510.73, 1471.47, 520, 1470, 529.27, 1471.47, 537.63, 1475.73, 544.27, 1482.37, 548.53, 1490.73)
+
+[node name="Bumper13" type="StaticBody2D" parent="." groups=["pinball_bumper"]]
+physics_material_override = SubResource("PM_bump")
+
+[node name="Collider" type="CollisionShape2D" parent="Bumper13"]
+position = Vector2(1560, 1400)
+shape = SubResource("Circle_bump")
+
+[node name="Visual" type="Polygon2D" parent="Bumper13"]
+color = Color(1, 0.4, 0.55, 1)
+polygon = PackedVector2Array(1590, 1400, 1588.53, 1409.27, 1584.27, 1417.63, 1577.63, 1424.27, 1569.27, 1428.53, 1560, 1430, 1550.73, 1428.53, 1542.37, 1424.27, 1535.73, 1417.63, 1531.47, 1409.27, 1530, 1400, 1531.47, 1390.73, 1535.73, 1382.37, 1542.37, 1375.73, 1550.73, 1371.47, 1560, 1370, 1569.27, 1371.47, 1577.63, 1375.73, 1584.27, 1382.37, 1588.53, 1390.73)
+
+[node name="PinballTable" type="Node2D" parent="."]
+script = ExtResource("table")
+launch_speed = 1920.0
+
+[node name="FlipperLB" type="AnimatableBody2D" parent="PinballTable"]
+position = Vector2(1065.2, 1250)
+physics_material_override = SubResource("PM_flipper")
+script = ExtResource("flipper")
+side = -1
+rotation = 0.349066
+length = 160.0
+rest_degrees = 20.0
+raise_degrees = 40.0
+
+[node name="FlipperRB" type="AnimatableBody2D" parent="PinballTable"]
+position = Vector2(1434.8, 1250)
+physics_material_override = SubResource("PM_flipper")
+script = ExtResource("flipper")
+side = 1
+rotation = 2.792527
+length = 160.0
+rest_degrees = 20.0
+raise_degrees = 40.0
+
+[node name="FlipperLC" type="AnimatableBody2D" parent="PinballTable"]
+position = Vector2(665.2, 1760)
+physics_material_override = SubResource("PM_flipper")
+script = ExtResource("flipper")
+side = -1
+rotation = 0.349066
+length = 160.0
+rest_degrees = 20.0
+raise_degrees = 40.0
+
+[node name="FlipperRC" type="AnimatableBody2D" parent="PinballTable"]
+position = Vector2(1034.8, 1760)
+physics_material_override = SubResource("PM_flipper")
+script = ExtResource("flipper")
+side = 1
+rotation = 2.792527
+length = 160.0
+rest_degrees = 20.0
+raise_degrees = 40.0
+
+[node name="Plunger" type="Area2D" parent="PinballTable"]
+position = Vector2(1801, 1830)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PinballTable/Plunger"]
+shape = SubResource("Rect_plunger")
+
+[node name="Orbit" type="Area2D" parent="PinballTable"]
+position = Vector2(1801, 170)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PinballTable/Orbit"]
+shape = SubResource("Rect_orbit")
+
+[node name="Saucer" type="Node2D" parent="."]
+z_index = 2
+position = Vector2(585, 900)
+script = ExtResource("saucer")
+lock_count = 3
+lane_x = 1690.0
+open_degrees = 85.0
+length = 130.0
+
+[node name="Hatch" type="AnimatableBody2D" parent="Saucer" groups=["track_stone"]]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Saucer/Hatch"]
+polygon = PackedVector2Array(0, -5, 130, -5, 130, 9, 0, 9)
+
+[node name="Visual" type="Polygon2D" parent="Saucer/Hatch"]
+color = Color(0.2, 0.3, 0.38, 1)
+polygon = PackedVector2Array(0, -5, 130, -5, 130, 9, 0, 9)
+
+[node name="Cup" type="Area2D" parent="Saucer"]
+position = Vector2(65, -55)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Saucer/Cup"]
+shape = SubResource("Rect_cup")
+
+[node name="RampGate" type="Node2D" parent="."]
+z_index = 2
+position = Vector2(760, 1176.29)
+script = ExtResource("gate")
+slope_degrees = 13.58
+open_degrees = 75.0
+length = 123.45
+
+[node name="Plate" type="AnimatableBody2D" parent="RampGate" groups=["track_stone"]]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="RampGate/Plate"]
+polygon = PackedVector2Array(0, 0, 123.45, 0, 123.45, 33, 0, 33)
+
+[node name="Visual" type="Polygon2D" parent="RampGate/Plate"]
+color = Color(0.2, 0.3, 0.38, 1)
+polygon = PackedVector2Array(0, 0, 123.45, 0, 123.45, 33, 0, 33)
+
+[node name="Mouth" type="Area2D" parent="RampGate"]
+position = Vector2(65, 49)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RampGate/Mouth"]
+shape = SubResource("Rect_mouth")
+
+[node name="Targets" type="Node2D" parent="RampGate"]
+position = Vector2(-760, -1176.29)
+script = ExtResource("targets")
+
+[node name="Target1" type="StaticBody2D" parent="RampGate/Targets"]
+position = Vector2(1450, 473.54)
+
+[node name="Collider" type="CollisionShape2D" parent="RampGate/Targets/Target1"]
+position = Vector2(0, -18)
+shape = SubResource("Rect_target")
+
+[node name="Target2" type="StaticBody2D" parent="RampGate/Targets"]
+position = Vector2(1360, 508.62)
+
+[node name="Collider" type="CollisionShape2D" parent="RampGate/Targets/Target2"]
+position = Vector2(0, -18)
+shape = SubResource("Rect_target")
+
+[node name="Target3" type="StaticBody2D" parent="RampGate/Targets"]
+position = Vector2(1270, 543.69)
+
+[node name="Collider" type="CollisionShape2D" parent="RampGate/Targets/Target3"]
+position = Vector2(0, -18)
+shape = SubResource("Rect_target")
+
+[node name="Target4" type="StaticBody2D" parent="RampGate/Targets"]
+position = Vector2(1180, 578.77)
+
+[node name="Collider" type="CollisionShape2D" parent="RampGate/Targets/Target4"]
+position = Vector2(0, -18)
+shape = SubResource("Rect_target")
+
+[node name="Target5" type="StaticBody2D" parent="RampGate/Targets"]
+position = Vector2(1090, 613.85)
+
+[node name="Collider" type="CollisionShape2D" parent="RampGate/Targets/Target5"]
+position = Vector2(0, -18)
+shape = SubResource("Rect_target")
+
+[node name="Tilt" type="Node2D" parent="."]
+z_index = 2
+script = ExtResource("tilt")
+kind = "tilt"
+telegraph_seconds = 1.2
+active_seconds = 2.2
+base_gap = 14.0
+
+[node name="Zone" type="Area2D" parent="Tilt"]
+position = Vector2(860, 1000)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Tilt/Zone"]
+shape = SubResource("Rect_tilt")
+
+[node name="Centerline" type="Path2D" parent="."]
+curve = SubResource("Curve_center")
+
+[node name="Line" type="Line2D" parent="Centerline"]
+z_index = -5
+width = 2.0
+default_color = Color(1, 1, 1, 0.12)
+points = PackedVector2Array(1801, 1900, 1801, 290, 1600, 230, 1150, 330, 700, 700, 650, 850, 650, 1130, 1065, 1225, 1250, 1265, 1250, 1500, 1100, 1700, 850, 1780, 850, 1990)
+
+[node name="SpawnOrigin" type="Marker2D" parent="."]
+position = Vector2(1738, 1918)
+
+[node name="StartArea" type="Polygon2D" parent="."]
+z_index = -5
+color = Color(0.3, 0.7, 0.4, 0.25)
+polygon = PackedVector2Array(1716, 1780, 1888, 1780, 1888, 1940, 1716, 1940)
+
+[node name="Finish" type="Area2D" parent="."]
+position = Vector2(850, 1985)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Finish"]
+shape = SubResource("Rect_finish")
+
+[node name="Visual" type="Polygon2D" parent="Finish"]
+z_index = -5
+color = Color(0.95, 0.85, 0.2, 0.3)
+polygon = PackedVector2Array(-350, -22, 350, -22, 350, 22, -350, 22)
+
+[node name="TreasureSpots" type="Node2D" parent="."]
+
+[node name="Spot1" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1801, 1200)
+
+[node name="Spot2" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1450, 250)
+
+[node name="Spot3" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1000, 420)
+
+[node name="Spot4" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(650, 830)
+
+[node name="Spot5" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(900, 1190)
+
+[node name="Spot6" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(1250, 1450)
+
+[node name="Spot7" type="Marker2D" parent="TreasureSpots"]
+position = Vector2(850, 1850)

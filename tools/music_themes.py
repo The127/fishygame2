@@ -703,6 +703,32 @@ THEMES = {
             {"kind": "pulse", "bpm": 120, "freq": 60.0, "decay": 0.12, "gain": 0.25},
         ),
     },
+    # Pinball Reef 2: D minor arcade at the same tempo, a wide marimba run over a heavy bass walk,
+    # with glassy plucks for the lock lights. No wave or ocean layers.
+    "pinball2": {
+        "seed": 45,
+        "chords": (
+            (38, 50, 53, 57, 62),
+            (34, 46, 50, 53, 58),
+            (41, 53, 57, 60, 65),
+            (36, 48, 52, 55, 60),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.06,
+        "trem_rate": 0.25,
+        "trem_depth": 0.2,
+        "rumble_cutoff": 200.0,
+        "rumble_gain": 0.3,
+        "layers": (
+            {"kind": "arp", "bpm": 120, "div": 2, "pattern": (62, 65, 69, 74, 69, 65, 70, 74,
+             65, 69, 72, 77, 72, 69, 67, 72), "decay": 0.12, "gain": 0.14, "accent": 4},
+            {"kind": "bass", "bpm": 120, "div": 1, "pattern": (38, 38, 34, 34, 41, 41, 36, 36),
+             "decay": 0.2, "gain": 0.3},
+            {"kind": "pulse", "bpm": 120, "freq": 55.0, "decay": 0.12, "gain": 0.25},
+            {"kind": "plucks", "count": 8, "notes": (74, 77, 81, 86), "decay": 0.3, "gain": 0.05,
+             "glide": False, "gaps": (0.4, 0.9)},
+        ),
+    },
     # Earthquake fault: D phrygian, a slow heavy pulse, a growling bass walk and falling grit.
     "fault": {
         "seed": 36,

@@ -160,6 +160,14 @@ const MAPS: Array[Dictionary] = [
 		"jingle": "res://assets/audio/jingle_pinball.wav",
 	},
 	{
+		"id": "pinball2",
+		"name": "Pinball Reef 2",
+		"scene": preload("res://scenes/tracks/pinball2_track.tscn"),
+		"music": "res://assets/audio/music_pinball2.wav",
+		"ambience": "res://assets/audio/ambience_pinball2.wav",
+		"jingle": "res://assets/audio/jingle_pinball2.wav",
+	},
+	{
 		"id": "fault",
 		"name": "Earthquake Fault",
 		"scene": preload("res://scenes/tracks/fault_track.tscn"),

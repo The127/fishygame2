@@ -39,7 +39,7 @@ const FLASH_SECONDS: float = 0.4
 ## Seconds before the plunger fires at the start, and between its later tries.
 const LAUNCH_DELAY: float = 0.9
 const RELAUNCH_SECONDS: float = 2.4
-## Speed the plunger gives a resting fish, straight up the lane, in pixels per second.
+## Default speed the plunger gives a resting fish, straight up the lane, in pixels per second.
 const LAUNCH_SPEED: float = 1350.0
 const LAUNCH_SPREAD: float = 0.04
 const LAUNCH_SIDEWAYS: float = 40.0
@@ -49,6 +49,9 @@ const ORBIT_PUSH: float = 2400.0
 const NAMES_SHOWN: int = 3
 const GLOW: Color = Color(1.0, 0.42, 0.55)
 const SPRING_LENGTH: float = 54.0
+
+## Speed the plunger gives a resting fish, in pixels per second. A taller table needs more.
+@export var launch_speed: float = LAUNCH_SPEED
 
 ## Seconds since the race started, advanced by [method tick].
 var clock: float = 0.0
@@ -225,11 +228,11 @@ func launch() -> int:
 			continue
 		var marble: Marble = body as Marble
 		# A fish already on its way up is left alone.
-		if marble.linear_velocity.y < -LAUNCH_SPEED * 0.25:
+		if marble.linear_velocity.y < -launch_speed * 0.25:
 			continue
 		var wanted: Vector2 = Vector2(
 			_launch_rng.randf_range(-LAUNCH_SIDEWAYS, LAUNCH_SIDEWAYS),
-			-LAUNCH_SPEED * (1.0 + _launch_rng.randf_range(-LAUNCH_SPREAD, LAUNCH_SPREAD))
+			-launch_speed * (1.0 + _launch_rng.randf_range(-LAUNCH_SPREAD, LAUNCH_SPREAD))
 		)
 		marble.sleeping = false
 		marble.apply_central_impulse((wanted - marble.linear_velocity) * marble.mass)

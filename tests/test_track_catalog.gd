@@ -85,14 +85,14 @@ func test_track_contract_and_spawn_slots() -> void:
 		var finish: Area2D = track.get_node("Finish") as Area2D
 		assert_not_null(finish, id)
 		var last: float = -1.0
-		# 20 is the default lobby size; every slot must sit inside the viewport and
+		# 20 is the default lobby size; every slot must sit inside the map's view bounds and
 		# start at (or near) the beginning of the centerline.
 		for i: int in 20:
 			var pos: Vector2 = track.get_spawn_position(i)
 			assert_true(
 				pos.x > MARBLE_RADIUS and pos.x < 1920.0 - MARBLE_RADIUS, "%s slot %d x" % [id, i]
 			)
-			assert_lt(pos.y, 1080.0, "%s slot %d y" % [id, i])
+			assert_lt(pos.y, track.view_bounds.end.y, "%s slot %d y" % [id, i])
 			last = maxf(last, track.get_progress(pos))
 		assert_lt(last, 0.2, "%s spawn slots are near the start" % id)
 		assert_gt(track.get_progress(finish.global_position), 0.9, "%s finish is at the end" % id)
