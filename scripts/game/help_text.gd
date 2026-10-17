@@ -6,7 +6,8 @@ extends RefCounted
 const CHAT_REPLY: String = (
 	"Commands: #join | #bet <fish> <amount> | #boost <fish> | #curse <fish> | "
 	+ "#points | #stats | #top | #shop | #fish <species> | #color <name> | #hat <name> | #trail <name> | "
-	+ "#left / #right (Pinball Reef flippers) | #shake (Earthquake Fault) | "
+	+ "#left / #right (Pinball Reef flippers, Gravity Flip) | #up / #down (Gravity Flip) | "
+	+ "#shake (Earthquake Fault) | "
 	+ "#eddy (flushed-out fish)"
 )
 
@@ -23,6 +24,7 @@ const LINES: PackedStringArray = [
 	"#top  leaderboard",
 	"#shop  fish, colors, hats and trails",
 	"#left / #right  fire the flippers (Pinball Reef)",
+	"#up / #down / #left / #right  steer gravity (Gravity Flip)",
 	"#shake  spam it to quake the seafloor (Earthquake Fault)",
 	"#help  this list",
 ]

@@ -28,7 +28,7 @@ signal fish_dissolved(marble: Marble)
 signal ghost_restless(marble: Marble)
 ## A map part (anglerfish, portal) let off a particle burst. The finish replay plays it again.
 signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
-## The chat tally of a map with flippers changed. Empty text hides it.
+## The chat tally of a map with flippers or a gravity helm changed. Empty text hides it.
 signal flipper_tally_changed(text: String)
 ## The quake meter of a map with a fault changed. Empty text hides it.
 signal shake_meter_changed(text: String)
@@ -144,6 +144,8 @@ func _ready() -> void:
 	for node: Node in find_children("*", "AcidPit", true, false):
 		(node as AcidPit).burst_played.connect(burst_played.emit)
 		(node as AcidPit).fish_dissolved.connect(fish_dissolved.emit)
+	for node: Node in find_children("*", "GravityFlipper", true, false):
+		(node as GravityFlipper).tally_changed.connect(flipper_tally_changed.emit)
 	for node: Node in find_children("*", "QuakeFault", true, false):
 		(node as QuakeFault).meter_changed.connect(shake_meter_changed.emit)
 		(node as QuakeFault).quake_shaken.connect(quake_shaken.emit)
