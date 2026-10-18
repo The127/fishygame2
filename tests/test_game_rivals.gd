@@ -71,6 +71,6 @@ func test_result_line_caps_the_rivals() -> void:
 			{"user_id": str(i), "name": "R%d" % i, "target": "X", "payout": 5, "kind": "rival"}
 		)
 	assert_eq(
-		_game._result_text("Bubbles", payouts),
+		RaceResultText.build("Bubbles", payouts),
 		"Bubbles won. Rivals: @R0 beat @X +5, @R1 beat @X +5, @R2 beat @X +5 +2 more"
 	)

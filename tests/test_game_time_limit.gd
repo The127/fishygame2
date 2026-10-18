@@ -111,7 +111,7 @@ func test_bet_on_a_dnf_fish_loses() -> void:
 
 
 func test_dnf_text_is_shortened_after_three_names() -> void:
-	var text: String = _game._result_text("A", [] as Array[Dictionary], ["b", "c", "d", "e", "f"])
+	var text: String = RaceResultText.build("A", [] as Array[Dictionary], ["b", "c", "d", "e", "f"])
 	assert_eq(text, "A won. DNF: b, c, d +2 more")
 
 

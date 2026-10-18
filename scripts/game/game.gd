@@ -2,9 +2,6 @@ class_name Game
 extends Node2D
 ## Wires chat commands, the round state machine, the race and the UI together.
 
-## Most payouts named in the race result line.
-const RESULT_PAYOUTS: int = 3
-
 ## Seconds a cast net holds fish.
 const NET_SECONDS: float = 2.5
 ## Pixels the camera shakes when the streamer blasts.
@@ -12,21 +9,22 @@ const BLAST_PUNCH: float = 14.0
 
 ## Milliseconds a "power not available" line stays in the control panel.
 const POWER_NOTE_MSEC: int = 3000
-## Most rivalries named in the race result line.
-const RESULT_RIVALS: int = 3
-## Most DNF names in the race result line.
-const RESULT_DNF: int = 3
-
 ## The overlay timer shows for this many seconds before the time limit.
 const TIMER_SECONDS: int = 10
 
 const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
+## Seconds the podium of the fake 3D round shows before the game returns to the home screen.
+const FAKE_SEQUEL_PODIUM_SECONDS: float = 9.0
 
 ## Scene opened by the Home button. Tests set it to "" to stay in place.
 var home_scene: String = HOME_SCENE
 
 ## The streamer's rules. Loaded from storage in _ready unless a caller sets it first.
 var settings: GameSettings = null
+
+## Whether this is the fake "Fishy Marble Run 3" round: one race on a fixed map, drawn in 3D,
+## then back to the home screen. Set from [ReleaseSurprise] in _ready unless a caller sets it.
+var fake_sequel: Variant = null
 
 ## Test and debug hook: when set, the wheel lands on this event (or [constant RaceEvent.NOTHING]
 ## for the plain slice) instead of a random one.
@@ -64,6 +62,8 @@ var _tournament: TournamentDirector = TournamentDirector.new()
 var _tournament_board: TournamentBoard = TournamentBoard.new()
 ## True while last round's tournament racers join again, so they get no join sound or reply.
 var _rejoining: bool = false
+## The 3D view of the fake sequel round, or null.
+var _view_3d: Race3DView
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
@@ -81,6 +81,10 @@ func _ready() -> void:
 	if settings == null:
 		settings = GameSettings.new(GameSettings.DEFAULT_PATH)
 		settings.load_settings()
+	if fake_sequel == null:
+		fake_sequel = ReleaseSurprise.stage == ReleaseSurprise.Stage.THREE
+	if fake_sequel:
+		_set_up_fake_sequel()
 	_apply_settings()
 	# First, so the name is stored before a bet or effect saves the points.
 	_viewer_commands.points = _betting.points
@@ -227,6 +231,24 @@ func _ready() -> void:
 	_flow.open_lobby()
 
 
+## The fake sequel round keeps to what the 3D view can show: no 2D-only hazards, treasures,
+## wheel, replay or click-on-the-track powers, on its own map. The changes are never saved.
+func _set_up_fake_sequel() -> void:
+	settings.save_path = ""
+	settings.default_map = ReleaseSurprise.MAP_ID
+	settings.hazards_enabled = false
+	settings.treasures_enabled = false
+	settings.random_events = false
+	settings.powers_enabled = false
+	settings.finish_replay = GameSettings.REPLAY_OFF
+	settings.auto_mode = false
+	_view_3d = Race3DView.new()
+	_view_3d.name = "View3D"
+	add_child(_view_3d)
+	# The 3D view draws the race; the 2D fish and their effects stay out of sight.
+	_race.visible = false
+
+
 func _apply_settings() -> void:
 	_replies.settings = settings
 	_flow.min_players = settings.min_players
@@ -264,7 +286,9 @@ func _apply_settings() -> void:
 	_overlay.set_play_fraction(settings.play_fraction())
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _view_3d != null:
+		_view_3d.update(_race.get_marbles(), _camera, delta)
 	if _flow.state == GameFlow.State.LOBBY:
 		_refresh_lobby()
 	if (
@@ -630,6 +654,8 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 		_flow.timer = maxf(_flow.timer, TournamentDirector.FINAL_SECONDS)
 	_tournament.refresh(_flow.state)
 	_overlay.show_dnf(dnf)
+	if fake_sequel:
+		get_tree().create_timer(FAKE_SEQUEL_PODIUM_SECONDS).timeout.connect(_end_fake_sequel)
 	if podium.is_empty():
 		if not dnf.is_empty():
 			var over: String = "time is up, nobody finished."
@@ -642,7 +668,7 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 		"reply_results",
 		"results",
 		"Race over:",
-		_result_text(str(podium[0]["name"]), payouts, dnf, haul)
+		RaceResultText.build(str(podium[0]["name"]), payouts, dnf, haul)
 	)
 
 
@@ -671,6 +697,12 @@ func _leave_to_home() -> void:
 		get_tree().change_scene_to_file(home_scene)
 
 
+## The fake 3D round is over: back to the "Fishy Marble Run 3" home screen.
+func _end_fake_sequel() -> void:
+	if is_inside_tree() and _flow.state == GameFlow.State.PODIUM:
+		_leave_to_home()
+
+
 func _on_auto_mode_toggled(enabled: bool) -> void:
 	settings.auto_mode = enabled
 	settings.save()
@@ -678,7 +710,7 @@ func _on_auto_mode_toggled(enabled: bool) -> void:
 
 
 func _on_map_selected(choice: String) -> void:
-	if choice == _map_choice:
+	if choice == _map_choice or fake_sequel:
 		return
 	_map_choice = choice
 	# Applies to the next lobby, or right away while one is open (the roster is unaffected).
@@ -705,6 +737,9 @@ func _load_map() -> void:
 	_track.quake_shaken.connect(_camera.punch)
 	add_child(_track)
 	move_child(_track, 0)
+	if _view_3d != null:
+		_track.visible = false
+		_view_3d.show_track(_track)
 	_camera.set_bounds(_track.view_bounds)
 	Sound.set_music_theme(id)
 	_camera.show_overview(true)
@@ -891,51 +926,6 @@ func _on_payouts_settled(results: Array[Dictionary]) -> void:
 ## "Bubbles won. Payouts: @a +300, @b +200. Rivals: @c beat @d +5. DNF: e, f", with at most
 ## three payouts, biggest first, three rivalries and three DNF names. Rival rewards are only
 ## listed under Rivals.
-func _result_text(
-	winner: String, payouts: Array[Dictionary], dnf: PackedStringArray = [], treasure: String = ""
-) -> String:
-	# One entry per viewer: a winner who also bet shows a single total.
-	var totals: Dictionary = {}
-	var rivals: PackedStringArray = []
-	for r: Dictionary in payouts:
-		if int(r["payout"]) <= 0:
-			continue
-		if r.get("kind", "") == "rival":
-			rivals.append("@%s beat @%s +%d" % [r["name"], r.get("target", "?"), r["payout"]])
-			continue
-		var uid: String = str(r.get("user_id", r["name"]))
-		if totals.has(uid):
-			totals[uid]["payout"] = int(totals[uid]["payout"]) + int(r["payout"])
-		else:
-			totals[uid] = {"name": r["name"], "payout": int(r["payout"])}
-	var paid: Array[Dictionary] = []
-	for total: Dictionary in totals.values():
-		paid.append(total)
-	paid.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["payout"] > b["payout"])
-	var parts: PackedStringArray = []
-	for r: Dictionary in paid.slice(0, RESULT_PAYOUTS):
-		parts.append("@%s +%d" % [r["name"], r["payout"]])
-	var sections: PackedStringArray = []
-	if not parts.is_empty():
-		sections.append("Payouts: " + ", ".join(parts))
-	if not rivals.is_empty():
-		var beaten: String = "Rivals: " + ", ".join(rivals.slice(0, RESULT_RIVALS))
-		if rivals.size() > RESULT_RIVALS:
-			beaten += " +%d more" % (rivals.size() - RESULT_RIVALS)
-		sections.append(beaten)
-	if not treasure.is_empty():
-		sections.append("Treasure: " + treasure)
-	if not dnf.is_empty():
-		var names: String = "DNF: " + ", ".join(dnf.slice(0, RESULT_DNF))
-		if dnf.size() > RESULT_DNF:
-			names += " +%d more" % (dnf.size() - RESULT_DNF)
-		sections.append(names)
-	var text: String = "%s won." % winner
-	if not sections.is_empty():
-		text += " " + ". ".join(sections)
-	return text
-
-
 func _on_race_started(contestants: Array[Contestant]) -> void:
 	Sound.play(Sound.Sfx.GO)
 	var rng := RandomNumberGenerator.new()

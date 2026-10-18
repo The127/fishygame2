@@ -18,6 +18,9 @@ const TITLE_FULL_WIDTH: float = 1100.0
 const TITLE_NUMBER_LENGTH: int = 2
 const SEQUEL_TAGLINE: String = "NOW IN 3D. CHAT JOINS AS FISH. FISH RACE DOWN THE TRACK."
 const SEQUEL_PLAY_TEXT: String = "PLAY"
+const SEQUEL_REVEAL_SHADER: String = "res://assets/shaders/surprise/sequel_reveal.gdshader"
+## Seconds the ring takes to uncover the fake sequel's flyover backdrop.
+const SEQUEL_REVEAL_SECONDS: float = 1.6
 ## Ends of the title gradient, as in title_gradient.gdshader.
 const TITLE_LEFT_COLOR: Color = Color(0.0, 0.91, 0.533)
 const TITLE_RIGHT_COLOR: Color = Color(0.541, 0.91, 1.0)
@@ -27,6 +30,7 @@ var surprise_store: ReleaseSurpriseStore = ReleaseSurpriseStore.new()
 
 var _board: LeaderboardPanel
 var _title_drop: TitleDrop
+var _flyover: TrackFlyover
 
 @onready var _box: VBoxContainer = $Center/Box
 @onready var _title: Label = $Center/Box/Title
@@ -164,8 +168,41 @@ func _show_sequel(animate: bool) -> void:
 	)
 	if animate:
 		await _title_drop.finished
+		if not is_inside_tree():
+			return
 	_tagline.text = SEQUEL_TAGLINE
 	_open_lobby.text = SEQUEL_PLAY_TEXT
+	await _show_flyover(animate, rect.get_center())
+
+
+## Swaps the underwater backdrop for the 3D course flyover of the fake sequel; with
+## [param reveal] a ring ripples out from [param from] (screen point) to uncover it.
+func _show_flyover(reveal: bool, from: Vector2) -> void:
+	var backdrop: Control = $Scene3D
+	_flyover = TrackFlyover.new()
+	_flyover.name = "Flyover"
+	add_child(_flyover)
+	move_child(_flyover, backdrop.get_index() + 1)
+	if reveal:
+		var material := ShaderMaterial.new()
+		material.shader = load(SEQUEL_REVEAL_SHADER)
+		var screen: Vector2 = size.max(Vector2.ONE)
+		material.set_shader_parameter("origin", from / screen)
+		material.set_shader_parameter("aspect", screen.x / screen.y)
+		_flyover.material = material
+		var tween: Tween = create_tween()
+		tween.tween_method(
+			func(value: float) -> void: material.set_shader_parameter("progress", value),
+			0.0,
+			1.0,
+			SEQUEL_REVEAL_SECONDS
+		)
+		await tween.finished
+		if not is_inside_tree():
+			return
+		_flyover.material = null
+	backdrop.visible = false
+	backdrop.process_mode = Node.PROCESS_MODE_DISABLED
 
 
 ## Screen rectangle of the "II" at the end of the title (its line box).

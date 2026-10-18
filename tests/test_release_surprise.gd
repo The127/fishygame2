@@ -79,6 +79,8 @@ func test_open_lobby_drops_a_3_and_a_d_on_the_title() -> void:
 	assert_gt(drop.d.position.x, drop.three.position.x, "the D sits right of the 3")
 	assert_almost_eq(drop.three.linear_velocity.y, 0.0, 0.5, "the 3 came to rest")
 	assert_lt(drop.three.bottom_y(), drop.two.top_y() + 0.1, "the 3 sits on the pancake")
+	await wait_seconds(HomeScreen.SEQUEL_REVEAL_SECONDS + 0.3)
+	assert_not_null(home.get_node_or_null("Flyover"), "the 3D course was revealed")
 	assert_false(open_lobby.disabled)
 	assert_eq(open_lobby.text, HomeScreen.SEQUEL_PLAY_TEXT)
 
@@ -133,3 +135,16 @@ func test_settings_button_arms_the_surprise_again() -> void:
 	assert_false(store.is_seen())
 	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.OFF)
 	assert_true(ReleaseSurprise.should_start(true, store))
+
+
+func test_the_fake_3_home_flies_over_the_3d_course() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE
+	var home: HomeScreen = _make_home()
+	await wait_process_frames(4)
+	var flyover: TrackFlyover = home.get_node_or_null("Flyover")
+	assert_not_null(flyover, "the course preview replaces the backdrop")
+	assert_false((home.get_node("Scene3D") as Control).visible)
+	assert_gt(flyover.track_3d.piece_count(), 5)
+	var before: Vector3 = flyover.camera.global_position
+	await wait_process_frames(10)
+	assert_ne(flyover.camera.global_position, before, "the camera keeps flying")

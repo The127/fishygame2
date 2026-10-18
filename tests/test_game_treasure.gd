@@ -41,11 +41,11 @@ func test_result_line_names_the_treasure_finders() -> void:
 		_game._haul_text == "" or _game._haul_text.contains("+"), "cleared after the podium"
 	)
 	assert_eq(
-		_game._result_text("A", [] as Array[Dictionary], [], "@b +50, @a +25"),
+		RaceResultText.build("A", [] as Array[Dictionary], [], "@b +50, @a +25"),
 		"A won. Treasure: @b +50, @a +25"
 	)
 	assert_eq(
-		_game._result_text("A", [] as Array[Dictionary], ["x"], "@b +50"),
+		RaceResultText.build("A", [] as Array[Dictionary], ["x"], "@b +50"),
 		"A won. Treasure: @b +50. DNF: x"
 	)
 
