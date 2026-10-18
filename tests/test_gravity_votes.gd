@@ -175,5 +175,11 @@ func test_the_flipper_is_in_the_chat_group() -> void:
 	assert_true(_flipper(_track()).is_in_group(GravityFlipper.CHAT_GROUP))
 
 
-func test_the_doors_have_beacons() -> void:
-	assert_eq(_track().find_children("*", "DoorBeacon", true, false).size(), 3)
+func test_every_door_has_a_beacon() -> void:
+	var track: Track = _track()
+	var doors: int = 0
+	for child: Node in track.get_children():
+		if child.name.begins_with("Valve"):
+			doors += 1
+	assert_eq(doors, 6, "two doors in each of the three partitions")
+	assert_eq(track.find_children("*", "DoorBeacon", true, false).size(), doors)
