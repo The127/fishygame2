@@ -91,6 +91,13 @@ func set_source(new_source: ChatSource) -> void:
 	source.start()
 
 
+## The Twitch user id the game posts its chat lines as, or "" without Twitch.
+func own_user_id() -> String:
+	if source is TwitchEventSubSource:
+		return (source as TwitchEventSubSource).user_id
+	return ""
+
+
 ## Posts a message to the channel through the active source.
 func send_message(text: String) -> void:
 	if source != null:

@@ -180,15 +180,19 @@ func handle_command(msg: ChatMessage, command: String, _args: PackedStringArray)
 		join(msg)
 
 
-func join(msg: ChatMessage) -> bool:
+## Puts the viewer of [param msg] in the open lobby. A rejection emits [signal join_rejected]
+## unless [param quiet] (auto-joins, see [AutoJoin]).
+func join(msg: ChatMessage, quiet: bool = false) -> bool:
+	var reason: String = ""
 	if state != State.LOBBY:
-		join_rejected.emit(msg, "closed")
-		return false
-	if _ids.has(msg.user_id):
-		join_rejected.emit(msg, "duplicate")
-		return false
-	if _contestants.size() >= max_players:
-		join_rejected.emit(msg, "full")
+		reason = "closed"
+	elif _ids.has(msg.user_id):
+		reason = "duplicate"
+	elif _contestants.size() >= max_players:
+		reason = "full"
+	if reason != "":
+		if not quiet:
+			join_rejected.emit(msg, reason)
 		return false
 	var name_to_show: String = msg.display_name if msg.display_name != "" else msg.login
 	var contestant: Contestant = Contestant.create(msg.user_id, name_to_show, _contestants.size())

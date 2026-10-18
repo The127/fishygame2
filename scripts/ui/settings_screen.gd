@@ -48,6 +48,11 @@ const PAGES: Array[Dictionary] = [
 				],
 			},
 			{"title": "Auto mode", "items": ["auto_mode", "auto_join_seconds"]},
+			{
+				"title": "Auto-join",
+				"hint": "Lurkers (#lurk) never auto-join, and the maximum players still applies.",
+				"items": ["auto_join_chatters", "auto_join_recent", "auto_join_ignore"],
+			},
 		],
 	},
 	{
@@ -180,6 +185,15 @@ const ROWS: Dictionary[String, Dictionary] = {
 	"auto_mode": {"label": "Auto mode", "hint": "Lobby, race and podium cycle on their own."},
 	"auto_join_seconds":
 	{"label": "Join window", "hint": "How long the lobby stays open.", "unit": "s"},
+	"auto_join_chatters":
+	{"label": "Auto-join chatters", "hint": "Anyone who chats joins the lobby, no #join needed."},
+	"auto_join_recent":
+	{
+		"label": "Recent chatters",
+		"hint": "Who chatted this long before a lobby opens joins it. 0 means none.",
+		"unit": "s"
+	},
+	"auto_join_ignore": {"label": "Never auto-join", "hint": "Bot accounts, separated by commas."},
 	"starting_balance":
 	{"label": "Starting points", "hint": "What a viewer has on their first visit.", "unit": "pts"},
 	"min_bet": {"label": "Minimum bet", "unit": "pts"},
@@ -249,6 +263,7 @@ const TOGGLES: Array[String] = [
 	"treasures_enabled",
 	"random_events",
 	"auto_mode",
+	"auto_join_chatters",
 	"chat_replies",
 	"colorblind",
 	"welcome_hat",
@@ -258,6 +273,9 @@ const TOGGLES: Array[String] = [
 	"impostor_duck",
 	"cardboard_fish",
 ]
+
+## Free text settings, typed into a text box.
+const TEXTS: Array[String] = ["auto_join_ignore"]
 
 ## Number settings picked from named steps instead of typed: the names, from the field's min.
 const CHOICES: Dictionary[String, Array] = {
@@ -272,6 +290,7 @@ const DEPENDENTS: Dictionary[String, Array] = {
 	"hazards_enabled": ["hazard_frequency"],
 	"powers_enabled": ["power_cooldown", "powers_per_race"],
 	"auto_mode": ["auto_join_seconds"],
+	"auto_join_chatters": ["auto_join_recent", "auto_join_ignore"],
 	"cardboard_fish": ["cardboard_fill"],
 	"release_surprise": [REPLAY_SURPRISE_KEY],
 	"impostor_duck": ["impostor_chance"],
@@ -286,6 +305,7 @@ var surprise_store: ReleaseSurpriseStore = ReleaseSurpriseStore.new()
 var _spinners: Dictionary[String, SpinBox] = {}
 var _choices: Dictionary[String, OptionButton] = {}
 var _toggles: Dictionary[String, SwitchButton] = {}
+var _texts: Dictionary[String, LineEdit] = {}
 var _map_picker: OptionButton
 var _replay: Button
 var _preview: PaddingPreview
@@ -740,6 +760,14 @@ func _build_controls() -> Dictionary[String, Control]:
 	_replay.pressed.connect(replay_surprise)
 	UiStyle.style_button(_replay, 18)
 	controls[REPLAY_SURPRISE_KEY] = _replay
+	for key: String in TEXTS:
+		var text := LineEdit.new()
+		text.custom_minimum_size.x = CONTROL_WIDTH
+		text.max_length = GameSettings.AUTO_JOIN_IGNORE_MAX
+		text.text_changed.connect(_on_text_changed.bind(key))
+		_style_field(text)
+		_texts[key] = text
+		controls[key] = text
 	var keys: Array[String] = TOGGLES.duplicate()
 	for toggle: Dictionary in GameSettings.CHAT_TOGGLES:
 		keys.append(String(toggle["key"]))
@@ -816,6 +844,10 @@ func _refresh() -> void:
 			_map_picker.select(i)
 	for key: String in _toggles:
 		_toggles[key].show_state(bool(settings.get(key)))
+	for key: String in _texts:
+		# Only when it differs, so typing keeps the caret.
+		if _texts[key].text != String(settings.get(key)):
+			_texts[key].text = String(settings.get(key))
 	for key: String in _dependents:
 		var on: bool = bool(settings.get(key))
 		for dependent: String in _dependents[key]:
@@ -828,6 +860,8 @@ func _set_enabled(key: String, on: bool) -> void:
 		_spinners[key].editable = on
 	if _choices.has(key):
 		_choices[key].disabled = not on
+	if _texts.has(key):
+		_texts[key].editable = on
 	if _toggles.has(key):
 		_toggles[key].show_state(_toggles[key].button_pressed, on)
 	if key == REPLAY_SURPRISE_KEY:
@@ -898,6 +932,11 @@ func _on_map_picked(index: int) -> void:
 
 func _on_toggle_toggled(pressed: bool, key: String) -> void:
 	settings.set(key, pressed)
+	_commit()
+
+
+func _on_text_changed(text: String, key: String) -> void:
+	settings.set(key, text)
 	_commit()
 
 

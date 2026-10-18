@@ -27,6 +27,9 @@ func test_defaults_match_the_game_defaults() -> void:
 	assert_true(settings.chat_replies)
 	assert_false(settings.auto_mode)
 	assert_eq(settings.auto_join_seconds, 60)
+	assert_false(settings.auto_join_chatters)
+	assert_eq(settings.auto_join_recent, 300)
+	assert_string_contains(settings.auto_join_ignore, "nightbot")
 	assert_eq(settings.default_map, GameSettings.RANDOM_MAP)
 	assert_true(settings.hazards_enabled)
 	assert_eq(settings.hazard_frequency, 3)
@@ -41,6 +44,9 @@ func test_save_and_load_round_trip() -> void:
 	settings.chat_replies = false
 	settings.auto_mode = true
 	settings.auto_join_seconds = 90
+	settings.auto_join_chatters = true
+	settings.auto_join_recent = 120
+	settings.auto_join_ignore = "mybot"
 	settings.hazards_enabled = false
 	settings.hazard_frequency = 5
 	assert_true(settings.save())
@@ -53,6 +59,9 @@ func test_save_and_load_round_trip() -> void:
 	assert_false(loaded.chat_replies)
 	assert_true(loaded.auto_mode)
 	assert_eq(loaded.auto_join_seconds, 90)
+	assert_true(loaded.auto_join_chatters)
+	assert_eq(loaded.auto_join_recent, 120)
+	assert_eq(loaded.auto_join_ignore, "mybot")
 	assert_false(loaded.hazards_enabled)
 	assert_eq(loaded.hazard_frequency, 5)
 
