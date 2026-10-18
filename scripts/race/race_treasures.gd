@@ -43,6 +43,7 @@ func left() -> int:
 
 
 ## The first fish within reach takes each treasure (the lowest id if several touch at once).
+## Cardboard cutouts pass over them.
 func collect() -> void:
 	for treasure: Treasure in treasures:
 		if treasure.collected:
@@ -52,6 +53,7 @@ func collect() -> void:
 			var marble: Marble = _live_marble.call(id)
 			if (
 				marble != null
+				and not marble.cardboard
 				and marble.global_position.distance_to(treasure.global_position) <= Treasure.REACH
 			):
 				finder = marble
