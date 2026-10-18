@@ -22,6 +22,7 @@ const TITLE_NUMBER_LENGTH: int = 2
 const SEQUEL_TAGLINE: String = "NOW IN 3D. CHAT JOINS AS FISH. FISH RACE DOWN THE TRACK."
 const SEQUEL_PLAY_TEXT: String = "PLAY"
 const REPLAY_SURPRISE_TEXT: String = "REPLAY 3D"
+const REPLAY_RTX_TEXT: String = "REPLAY RTX"
 const RTX_ON_TEXT: String = "RTX ON"
 const RTX_OFF_TEXT: String = "RTX OFF"
 const SEQUEL_REVEAL_SHADER: String = "res://assets/shaders/surprise/sequel_reveal.gdshader"
@@ -52,7 +53,9 @@ var _flyover: TrackFlyover
 var _four_d: FourDView
 var _replay_surprise: Button
 var _rtx_button: Button
+var _replay_rtx: Button
 var _rtx_filter: RtxFilter = RtxFilter.new()
+var _rtx_intro_running: bool = false
 var _tagline_text: String
 var _open_lobby_text: String
 var _aquarium_blink: Tween
@@ -136,8 +139,9 @@ func _add_version_tag() -> void:
 
 
 ## Small buttons stacked in the bottom left corner: one that arms the release surprise
-## again, shown once it has played (the next Open Lobby press then starts it over), and
-## below it the RTX switch, which saves to the settings. They sit on their own layer.
+## again, shown once it has played (the next Open Lobby press then starts it over), one that
+## plays the RTX unlock show again, and at the bottom the RTX switch, which saves to the
+## settings. They sit on their own layer.
 func _add_corner_buttons() -> void:
 	# Above the RTX filter, so its vignette never darkens the switch that turns it off.
 	var layer: CanvasLayer = CanvasLayer.new()
@@ -155,6 +159,13 @@ func _add_corner_buttons() -> void:
 	UiStyle.style_button(_replay_surprise, 16)
 	_replay_surprise.pressed.connect(_on_replay_surprise_pressed)
 	corner.add_child(_replay_surprise)
+	_replay_rtx = Button.new()
+	_replay_rtx.name = "ReplayRtx"
+	_replay_rtx.text = REPLAY_RTX_TEXT
+	_replay_rtx.focus_mode = Control.FOCUS_NONE
+	UiStyle.style_button(_replay_rtx, 16)
+	_replay_rtx.pressed.connect(_on_replay_rtx_pressed)
+	corner.add_child(_replay_rtx)
 	_rtx_button = Button.new()
 	_rtx_button.name = "Rtx"
 	_rtx_button.focus_mode = Control.FOCUS_NONE
@@ -172,8 +183,11 @@ func _refresh_replay_button() -> void:
 	# Kept out of the release surprise, which it would otherwise sit on top of.
 	# RTX is unlocked by the fake 3D sequel having played once.
 	_rtx_button.visible = (
-		ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF and surprise_store.has_played()
+		ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF
+		and surprise_store.has_played()
+		and not _rtx_intro_running
 	)
+	_replay_rtx.visible = _rtx_button.visible and settings.rtx_intro
 	# The unlock can happen while this screen is up (the surprise just ended).
 	_apply_rtx()
 	_replay_surprise.visible = (
@@ -192,12 +206,21 @@ func _on_rtx_pressed() -> void:
 func _apply_rtx() -> void:
 	var on: bool = settings.rtx and surprise_store.has_played()
 	_rtx_button.text = RTX_ON_TEXT if on else RTX_OFF_TEXT
-	_rtx_filter.set_enabled(on)
+	_rtx_filter.set_enabled(on and not _rtx_intro_running)
 	($Scene3D as HomeScene3D).set_rtx(on)
 
 
 func is_rtx_on() -> bool:
 	return _rtx_filter.is_enabled()
+
+
+func _on_replay_rtx_pressed() -> void:
+	_open_lobby.disabled = true
+	await play_rtx_intro()
+	if not is_inside_tree():
+		return
+	_open_lobby.disabled = false
+	_open_lobby.grab_focus()
 
 
 func _on_replay_surprise_pressed() -> void:
@@ -296,9 +319,49 @@ func start_fourth_dimension() -> void:
 	if not is_inside_tree():
 		return
 	glitch.queue_free()
+	if settings.rtx_intro and not surprise_store.is_rtx_intro_seen():
+		await play_rtx_intro()
+		if not is_inside_tree():
+			return
 	_open_lobby.disabled = false
 	_open_lobby.grab_focus()
 	surprise_ended.emit()
+
+
+## The one-time "RTX OFF / RTX ON" show that introduces the switch the sequel just unlocked,
+## then leaves RTX switched on.
+func play_rtx_intro() -> void:
+	if _rtx_intro_running:
+		return
+	_rtx_intro_running = true
+	_refresh_replay_button()
+	# The show brings its own filter; this one under it would apply the look twice.
+	_rtx_filter.set_enabled(false)
+	var intro := RtxIntro.new()
+	intro.name = "RtxIntro"
+	# The switch is hidden now, so aim at where it will appear: the corner's bottom left.
+	var corner: Rect2 = (_rtx_button.get_parent() as Control).get_global_rect()
+	var button: Vector2 = _rtx_button.get_combined_minimum_size()
+	intro.target = Vector2(corner.position.x + button.x / 2.0, corner.end.y - button.y / 2.0)
+	add_child(intro)
+	await intro.play()
+	if not is_inside_tree():
+		return
+	# Marked only now, so a reload in the middle of the show plays it again.
+	surprise_store.set_rtx_intro_seen()
+	_rtx_intro_running = false
+	# The show ends on the full RTX look, so it stays on. The switch turns it off again.
+	settings.rtx = true
+	settings.save()
+	_refresh_replay_button()
+	_rtx_button.pivot_offset = _rtx_button.size / 2.0
+	_rtx_button.scale = Vector2.ONE * 2.5
+	(
+		create_tween()
+		. tween_property(_rtx_button, "scale", Vector2.ONE, 0.35)
+		. set_trans(Tween.TRANS_ELASTIC)
+		. set_ease(Tween.EASE_OUT)
+	)
 
 
 ## Back to the real "Fishy Marble Run II" home screen, as if nothing happened.

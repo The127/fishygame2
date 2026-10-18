@@ -217,6 +217,9 @@ var random_events: bool = false
 var release_surprise: bool = true
 ## Whether the race wears the over-the-top "RTX ON" look (see [RtxFilter]). Off by default.
 var rtx: bool = false
+## Whether the RTX unlock show plays (see [RtxIntro]): once after the fake sequel, and again
+## from the REPLAY RTX button on the home screen.
+var rtx_intro: bool = true
 ## Whether a rubber duck now and then races as a fish (see [ImpostorDuck]).
 var impostor_duck: bool = true
 ## Whether cardboard cutout fish fill the empty slots when fewer than three viewers join (see
@@ -281,6 +284,7 @@ func reset_to_defaults() -> void:
 	random_events = fresh.random_events
 	release_surprise = fresh.release_surprise
 	rtx = fresh.rtx
+	rtx_intro = fresh.rtx_intro
 	impostor_duck = fresh.impostor_duck
 	cardboard_fish = fresh.cardboard_fish
 
@@ -335,6 +339,9 @@ func load_settings() -> void:
 	var ray_traced: Variant = file.get_value(SECTION, "rtx", rtx)
 	if ray_traced is bool:
 		rtx = ray_traced
+	var intro: Variant = file.get_value(SECTION, "rtx_intro", rtx_intro)
+	if intro is bool:
+		rtx_intro = intro
 	var duck: Variant = file.get_value(SECTION, "impostor_duck", impostor_duck)
 	if duck is bool:
 		impostor_duck = duck
@@ -366,6 +373,7 @@ func save() -> bool:
 	file.set_value(SECTION, "random_events", random_events)
 	file.set_value(SECTION, "release_surprise", release_surprise)
 	file.set_value(SECTION, "rtx", rtx)
+	file.set_value(SECTION, "rtx_intro", rtx_intro)
 	file.set_value(SECTION, "impostor_duck", impostor_duck)
 	file.set_value(SECTION, "cardboard_fish", cardboard_fish)
 	return file.save(save_path) == OK

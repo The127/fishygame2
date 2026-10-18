@@ -21,6 +21,18 @@ func test_rtx_is_off_by_default_and_survives_save_load_and_reset() -> void:
 	assert_false(loaded.rtx)
 
 
+func test_the_rtx_unlock_show_is_on_by_default_and_survives_save_load_and_reset() -> void:
+	assert_true(GameSettings.new().rtx_intro)
+	var settings := GameSettings.new(PATH)
+	settings.rtx_intro = false
+	assert_true(settings.save())
+	var loaded := GameSettings.new(PATH)
+	loaded.load_settings()
+	assert_false(loaded.rtx_intro)
+	loaded.reset_to_defaults()
+	assert_true(loaded.rtx_intro)
+
+
 func test_rtx_ignores_a_value_of_the_wrong_type() -> void:
 	var file: FileAccess = FileAccess.open(PATH, FileAccess.WRITE)
 	file.store_string('[game]\nrtx="yes"\n')

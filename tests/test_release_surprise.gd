@@ -197,7 +197,7 @@ func test_play_after_the_round_drops_a_4_and_glitches_back_to_2() -> void:
 	assert_not_null(four_d, "the 4D track shows")
 	assert_eq(tagline.text, HomeScreen.FOUR_D_TAGLINE)
 	assert_eq(four_d.ghost_count(), FourDView.FISH_COUNT * FourDView.GHOSTS)
-	await wait_for_signal(home.surprise_ended, 15.0)
+	await wait_for_signal(home.surprise_ended, 25.0)
 	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.OFF, "back to the real game")
 	await wait_process_frames(1)
 	for node_name: String in ["TitleDrop", "Flyover", "FourD", "Glitch"]:
@@ -208,6 +208,7 @@ func test_play_after_the_round_drops_a_4_and_glitches_back_to_2() -> void:
 	assert_false(open_lobby.disabled)
 	assert_true((home.get_node("Scene3D") as Control).visible)
 	assert_false(ReleaseSurprise.should_start(true, home.surprise_store), "plays only once")
+	assert_true(home.surprise_store.is_rtx_intro_seen(), "the RTX unlock show played")
 	assert_true(
 		(home.get_node("CornerLayer/Corner/ReplaySurprise") as Button).visible,
 		"and can be re-armed"

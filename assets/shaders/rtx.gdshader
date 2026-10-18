@@ -16,6 +16,11 @@ uniform float aberration = 0.004;
 uniform float saturation = 1.35;
 uniform float contrast = 1.15;
 uniform float vignette = 0.55;
+// The RTX unlock intro: left of this screen x the "RTX OFF" look (pixelated, grey, flat),
+// with a glowing divider on the line. Below 0 the whole screen is RTX ON.
+uniform float split = -1.0;
+// 0 to 1: a white flash over everything.
+uniform float flash = 0.0;
 
 float luma(vec3 c) {
 	return dot(c, vec3(0.2126, 0.7152, 0.0722));
@@ -26,15 +31,32 @@ vec3 bright(vec3 c) {
 	return c * smoothstep(0.32, 0.75, luma(c));
 }
 
+// Chunky low-res pixels, washed out: 2005 called.
+vec3 rtx_off(vec2 uv) {
+	vec2 cells = vec2(96.0, 54.0);
+	vec3 c = textureLod(screen_tex, (floor(uv * cells) + 0.5) / cells, 0.0).rgb;
+	c = mix(vec3(luma(c)), c, 0.25);
+	return floor(sqrt(c) * 6.0) / 6.0 * 0.75 + 0.05;
+}
+
+// The glowing line between the two halves.
+vec3 divider(vec2 uv, float pixel) {
+	if (split <= 0.0) {
+		return vec3(0.0);
+	}
+	float px = abs(uv.x - split) / pixel;
+	return vec3(0.8, 1.0, 0.5) * (exp(-px * 0.25) + 0.35 * exp(-px * 0.03));
+}
+
 void fragment() {
 	vec2 uv = SCREEN_UV;
 	vec2 from_center = uv - 0.5;
 	float edge = dot(from_center, from_center) * 4.0;
 
-	vec2 split = from_center * aberration * edge;
+	vec2 fringe = from_center * aberration * edge;
 	vec4 base = textureLod(screen_tex, uv, 0.0);
 	vec3 col = vec3(
-		textureLod(screen_tex, uv + split, 0.0).r, base.g, textureLod(screen_tex, uv - split, 0.0).b
+		textureLod(screen_tex, uv + fringe, 0.0).r, base.g, textureLod(screen_tex, uv - fringe, 0.0).b
 	);
 
 	vec3 bloom = bright(textureLod(screen_tex, uv, 2.0).rgb) * 0.5;
@@ -70,6 +92,11 @@ void fragment() {
 	col = mix(vec3(luma(col)), col, saturation);
 	col = (col - 0.5) * contrast + 0.5;
 	col *= 1.0 - vignette * smoothstep(0.35, 1.4, edge);
+	if (uv.x < split) {
+		col = rtx_off(uv);
+	}
+	col += divider(uv, SCREEN_PIXEL_SIZE.x);
+	col = mix(col, vec3(1.0), flash);
 
 	COLOR = vec4(mix(base.rgb, clamp(col, 0.0, 1.0), base.a), base.a);
 }
