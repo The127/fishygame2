@@ -46,7 +46,7 @@ func dress(marble: Marble) -> bool:
 	return true
 
 
-## Keeps the race's full [param results] for [method show_podium] and returns them without
+## Keeps the race's full [param results] for [method podium_with_duck] and returns them without
 ## the duck, for everything that settles points.
 func settle(results: Array[Dictionary]) -> Array[Dictionary]:
 	_results = results
