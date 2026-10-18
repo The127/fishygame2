@@ -36,6 +36,9 @@ const EDDY_SIDE: float = 50.0
 
 ## Whether treasures lie on the map. Set before [method start].
 @export var treasures_enabled: bool = true
+## Most fish the sushi chefs may chop in a race (see [method SushiChef.set_chop_limit]). Set
+## before [method start].
+@export var chop_limit: int = SushiChef.SHARE_LIMIT
 
 ## The random event this race runs under (see [RaceEvent]), [constant RaceEvent.NOTHING] for none.
 var event: String = RaceEvent.NOTHING
@@ -117,6 +120,7 @@ func start(
 	_ranking = RaceRanking.new(ids)
 	_rounds = RaceRounds.new(ids, _track.laps) if _track.has_rounds() else null
 	_track.set_field_size(count)
+	_track.set_chop_limit(chop_limit)
 	_track.seed_gimmicks(rng)
 	# Read before any later draw and never advanced, so treasures cannot shift a race's layout.
 	_powers.track = _track

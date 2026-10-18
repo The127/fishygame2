@@ -98,6 +98,42 @@ func test_the_limit_is_a_share_of_the_field_and_never_the_last_fish() -> void:
 	assert_eq(SushiChef.chop_limit(20), 6)
 
 
+func test_a_set_limit_counts_fish_and_still_spares_the_last() -> void:
+	assert_eq(SushiChef.chop_limit(10, 5), 5)
+	assert_eq(SushiChef.chop_limit(4, 5), 3)
+	assert_eq(SushiChef.chop_limit(10, SushiChef.UNLIMITED), 9)
+	assert_eq(SushiChef.chop_limit(2, SushiChef.UNLIMITED), 1)
+	assert_eq(SushiChef.chop_limit(1, SushiChef.UNLIMITED), 0)
+	assert_eq(SushiChef.chop_limit(10, SushiChef.SHARE_LIMIT), SushiChef.chop_limit(10))
+
+
+func test_a_fixed_limit_stops_the_knife_after_that_many_fish() -> void:
+	_chef.set_chop_limit(1)
+	for i: int in 10:
+		_fish()
+	for i: int in 40:
+		_chef.chop("viewer%d" % i)
+		_run(0.25)
+	assert_eq(_chef.chopped_count(), 1)
+	assert_false(_chef.can_swing())
+	assert_eq(_chef.meter_text(), "THE CHEF IS FULL")
+
+
+func test_unlimited_chops_every_fish_but_the_last() -> void:
+	_chef.set_chop_limit(SushiChef.UNLIMITED)
+	var fish: Array[Marble] = []
+	for i: int in 10:
+		fish.append(_fish())
+	for i: int in 60:
+		_chef.chop("viewer%d" % i)
+		_run(SushiChef.COOLDOWN * 0.5)
+	assert_eq(_chef.chopped_count(), 9)
+	assert_eq(fish.filter(func(m: Marble) -> bool: return not m.chopped).size(), 1)
+	assert_ne(_chef.meter_text(), "THE CHEF IS FULL", "an unlimited chef is never full")
+	_run(SushiChef.COOLDOWN)
+	assert_true(_chef.can_swing(), "only the cooldown holds the knife back")
+
+
 func test_without_chat_nothing_is_chopped() -> void:
 	var fish: Marble = _fish()
 	_run(30.0)
@@ -176,3 +212,14 @@ func test_the_track_passes_the_field_size_to_the_chef() -> void:
 	_chef.chop("Ann")
 	_run(SushiChef.WINDUP + 0.1)
 	assert_eq(_chef.chopped_count(), SushiChef.chop_limit(2))
+
+
+func test_the_race_passes_the_chop_limit_to_the_chef() -> void:
+	var race: Race = Race.new()
+	race.marble_scene = load(MARBLE_SCENE) as PackedScene
+	race.chop_limit = 2
+	add_child_autofree(race)
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 5
+	race.start(_track, 10, rng, 0)
+	assert_eq(_chef._limit(), 2)

@@ -7,9 +7,10 @@ extends Node2D
 ##
 ## Chat cannot wipe out the field: after each swing the knife needs [constant COOLDOWN] seconds
 ## before the next, one swing takes at most [constant PER_SWING] fish, and a race takes at most
-## [constant FIELD_SHARE] of the field, counted over every chef that shares the [ChopTally]. With no chat the chef only taps his own board, so a race
-## never depends on chat. The node sits at the point of the belt the blade lands on; its parent
-## [SushiBelts] tells it how that belt moves. Time advances only in physics frames, and the knife
+## its chop limit, counted over every chef that shares the [ChopTally]: [constant FIELD_SHARE] of
+## the field unless the streamer set another, and never the last fish. With no chat the chef only
+## taps his own board, so a race never depends on chat. The node sits at the point of the belt the
+## blade lands on; its parent [SushiBelts] tells it how that belt moves. Time advances only in physics frames, and the knife
 ## and the nigiri are part of the finish replay.
 
 ## A swing chopped `marble`. `who` is the viewer whose "#chop" started the swing.
@@ -31,6 +32,10 @@ const COOLDOWN: float = 4.0
 ## Most fish one swing chops, and the share of the field (rounded down) a race can lose.
 const PER_SWING: int = 2
 const FIELD_SHARE: float = 0.3
+## Values of [method set_chop_limit] other than a number of fish: the share of the field, or every
+## fish but the last.
+const SHARE_LIMIT: int = 0
+const UNLIMITED: int = -1
 ## Half the width of the blade along the belt, and how high above the belt it reaches a fish.
 const BLADE_HALF: float = 46.0
 const BLADE_REACH: float = 44.0
@@ -58,6 +63,7 @@ var _chopped: int = 0
 ## Fish chopped this race by every chef of the map. A lone chef keeps his own.
 var _tally: ChopTally = ChopTally.new()
 var _field: int = 0
+var _chop_limit: int = SHARE_LIMIT
 var _who: String = ""
 var _swings: int = 0
 ## How the belt under the blade moves: 1 or -1, pixels per second, and the local x of its far end.
@@ -97,6 +103,12 @@ func share_tally(tally: ChopTally) -> void:
 ## How many fish race, for the share of the field a race can lose.
 func set_field_size(count: int) -> void:
 	_field = count
+
+
+## Most fish a race can lose to the knives: a number of fish, [constant SHARE_LIMIT] or
+## [constant UNLIMITED].
+func set_chop_limit(count: int) -> void:
+	_chop_limit = count
 
 
 ## Arms the knife for a race.
@@ -154,17 +166,26 @@ func swing_count() -> int:
 	return _swings
 
 
-## Most fish a race of `field` fish can lose to the knife: a share of the field, at least one once
-## two fish race, and never the last one.
-static func chop_limit(field: int) -> int:
+## Most fish a race of `field` fish can lose to the knife under `limit` (a number of fish,
+## [constant SHARE_LIMIT] or [constant UNLIMITED]): at least one once two fish race, and never the
+## last one.
+static func chop_limit(field: int, limit: int = SHARE_LIMIT) -> int:
 	if field < 2:
 		return 0
-	return clampi(floori(float(field) * FIELD_SHARE), 1, field - 1)
+	var count: int = limit
+	if limit == SHARE_LIMIT:
+		count = floori(float(field) * FIELD_SHARE)
+	elif limit == UNLIMITED:
+		count = field - 1
+	return clampi(count, 1, field - 1)
 
 
-## Whether a "#chop" now would start a swing.
+## Whether a "#chop" now would start a swing. Without a limit only the cooldown holds the knife
+## back; a swing once every fish but the last is chopped takes nobody.
 func can_swing() -> bool:
-	return _armed and _phase == Phase.READY and _cooldown <= 0.0 and _tally.chopped < _limit()
+	if not _armed or _phase != Phase.READY or _cooldown > 0.0:
+		return false
+	return _chop_limit == UNLIMITED or _tally.chopped < _limit()
 
 
 ## A viewer typed "#chop". Returns whether it started a swing.
@@ -203,7 +224,7 @@ func tick(delta: float) -> void:
 
 ## Text of the on-screen meter.
 func meter_text() -> String:
-	if _tally.chopped >= _limit():
+	if _chop_limit != UNLIMITED and _tally.chopped >= _limit():
 		return "THE CHEF IS FULL"
 	match _phase:
 		Phase.WINDUP, Phase.STRIKE:
@@ -214,7 +235,8 @@ func meter_text() -> String:
 
 
 func _limit() -> int:
-	return chop_limit(_field if _field > 0 else get_tree().get_nodes_in_group(Marble.GROUP).size())
+	var field: int = _field if _field > 0 else get_tree().get_nodes_in_group(Marble.GROUP).size()
+	return chop_limit(field, _chop_limit)
 
 
 func _set_phase(phase: Phase) -> void:
@@ -239,7 +261,7 @@ func _strike() -> void:
 		func(a: Marble, b: Marble) -> bool:
 			return absf(to_local(a.global_position).x) < absf(to_local(b.global_position).x)
 	)
-	var room: int = mini(PER_SWING, _limit() - _tally.chopped)
+	var room: int = clampi(_limit() - _tally.chopped, 0, PER_SWING)
 	for i: int in mini(room, victims.size()):
 		_chop_fish(victims[i])
 	RaceFx.burst(self, global_position, BLADE, 8, 120.0, Vector2(0.0, 200.0))

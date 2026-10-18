@@ -16,6 +16,7 @@ func _configure(settings: GameSettings) -> void:
 	settings.pad_left = 25
 	settings.pad_top = 10
 	settings.hazard_frequency = 4
+	settings.chop_limit = GameSettings.CHOP_UNLIMITED
 
 
 func test_flow_reads_the_settings() -> void:
@@ -35,6 +36,10 @@ func test_chaos_reads_the_settings() -> void:
 	assert_eq(_chaos.curse_cost, 60)
 	assert_eq(_chaos.viewer_cooldown, 9.0)
 	assert_eq(_chaos.fish_lockout, 2.0)
+
+
+func test_race_reads_the_chop_limit() -> void:
+	assert_eq(_race.chop_limit, SushiChef.UNLIMITED)
 
 
 func test_default_map_is_used_for_the_first_lobby() -> void:

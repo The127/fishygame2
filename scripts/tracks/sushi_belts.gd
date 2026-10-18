@@ -129,6 +129,12 @@ func set_field_size(count: int) -> void:
 		chef.set_field_size(count)
 
 
+## Tells the chefs the most fish a race can lose to them (see [method SushiChef.set_chop_limit]).
+func set_chop_limit(count: int) -> void:
+	for chef: SushiChef in _chefs:
+		chef.set_chop_limit(count)
+
+
 func stop_gimmick() -> void:
 	_speeds.fill(speed)
 	_restart()

@@ -520,11 +520,14 @@ joined or not; the `MapChat` passes it to the chefs): every chef whose knife is 
 later, and up to two fish under each blade are chopped. A chopped fish is out of the race for good: it counts as unfinished (like a dissolved fish it ranks behind the
 other unfinished fish), so results, payouts and stats treat it as a DNF, and it rides on down the belt as a piece of
 nigiri in its own color. Chat cannot wipe out the field: a knife needs 4 seconds after landing before its next
-swing, and a race loses at most 30% of the field to all the knives together (rounded down, at least one once two fish
-race, never the last fish; the chefs share a `ChopTally`), after which the meter in the top left says the chefs are
-full. The belts fold the chefs' meters into that one meter. With no chat the chefs only tap their boards, so a
+swing, and a race loses at most its chop limit to all the knives together (the chefs share a `ChopTally`). The limit is
+the `chop_limit` game setting, which `Race` hands to the chefs through `Track.set_chop_limit` and `SushiBelts`: 30% of
+the field by default (rounded down), or a number of fish, at least one once two fish race and never the last fish.
+Once it is reached the meter in the top left says the chefs are full. Unlimited spares only the last fish and the
+chefs are never full; only the cooldown holds the knives back. The belts fold the chefs' meters into that one meter. With no chat the chefs only tap their boards, so a
 race never depends on chat and the seed sweeps run without a single chop. The game only shows the chop on the overlay
-and posts nothing in chat. `race_debug.tscn --chop` has made-up viewers spam `#chop` for a manual check. The belts'
+and posts nothing in chat. `race_debug.tscn --chop` has made-up viewers spam `#chop` for a manual check; `--chop-limit=<fish>` or
+`--chop-limit=unlimited` sets the limit. The belts'
 slats, the knives and the nigiri use the generic replay hook. Its hazard is the jam: one belt slows, runs backwards for 3 seconds and turns back. Races take about 30 seconds.
 
 ### Finish replay and moving map parts
