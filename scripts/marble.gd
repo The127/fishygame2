@@ -37,6 +37,8 @@ const FLOP_TINT: Color = Color(0.85, 0.75, 0.5)
 ## Seconds a fish takes to dissolve in acid, and the color of the fizz.
 const DISSOLVE_SECONDS: float = 0.6
 const ACID_COLOR: Color = Color(0.75, 1.0, 0.3)
+## Seconds a calm fish sits in the acid saying "this is fine." before it starts to dissolve.
+const CALM_SECONDS: float = 1.6
 ## Seconds a chopped fish takes to fade, leaving its nigiri behind.
 const CHOP_SECONDS: float = 0.15
 
@@ -262,14 +264,20 @@ func cheer(forward: Vector2, strength: float) -> void:
 
 ## A little cat noise for show: a "meow" bubble that drifts up and a few pink hearts.
 func meow() -> void:
+	_say("meow~", Color(1.0, 0.92, 0.96, 0.92), Color(0.25, 0.1, 0.2), MEOW_SECONDS)
+	RaceFx.burst(self, global_position, RaceFx.CHEER_COLOR, 8, 60.0, Vector2(0, -60))
+
+
+## A speech bubble over the fish that drifts up and fades out over `seconds`.
+func _say(text: String, background: Color, ink: Color, seconds: float) -> void:
 	var bubble: Label = Label.new()
 	bubble.top_level = true
-	bubble.text = "meow~"
+	bubble.text = text
 	bubble.z_index = 11
 	bubble.add_theme_font_size_override("font_size", 15)
-	bubble.add_theme_color_override("font_color", Color(0.25, 0.1, 0.2))
+	bubble.add_theme_color_override("font_color", ink)
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(1.0, 0.92, 0.96, 0.92)
+	style.bg_color = background
 	style.set_corner_radius_all(9)
 	style.content_margin_left = 7.0
 	style.content_margin_right = 7.0
@@ -281,12 +289,9 @@ func meow() -> void:
 	bubble.global_position = start
 	var tween: Tween = bubble.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(bubble, "global_position:y", start.y - 34.0, MEOW_SECONDS)
-	tween.tween_property(bubble, "modulate:a", 0.0, MEOW_SECONDS * 0.4).set_delay(
-		MEOW_SECONDS * 0.6
-	)
+	tween.tween_property(bubble, "global_position:y", start.y - 34.0, seconds)
+	tween.tween_property(bubble, "modulate:a", 0.0, seconds * 0.4).set_delay(seconds * 0.6)
 	tween.chain().tween_callback(bubble.queue_free)
-	RaceFx.burst(self, global_position, RaceFx.CHEER_COLOR, 8, 60.0, Vector2(0, -60))
 
 
 ## Knocks the marble back against `forward` and slows it for [constant CURSE_SECONDS].
@@ -460,8 +465,9 @@ func strand() -> void:
 
 ## Stomach acid eats the fish: it fizzes, sinks a little and fades, and is out of the race for
 ## good (it counts as unfinished). The acid pit draws the skeleton it leaves behind. Also sets
-## [member eaten], so the race and the hazards leave it alone.
-func dissolve() -> void:
+## [member eaten], so the race and the hazards leave it alone. A `calm` fish first sits in the
+## acid for [constant CALM_SECONDS] saying "this is fine.", then dissolves all the same.
+func dissolve(calm: bool = false) -> void:
 	if eaten:
 		return
 	eaten = true
@@ -471,14 +477,16 @@ func dissolve() -> void:
 	linear_velocity = Vector2.ZERO
 	angular_velocity = 0.0
 	freeze = true
+	var wait: float = CALM_SECONDS if calm else 0.0
 	if _fish != null:
-		_fish.flash(ACID_COLOR, DISSOLVE_SECONDS)
+		_fish.flash(ACID_COLOR, wait + DISSOLVE_SECONDS)
+	if calm:
+		_say("this is fine.", Color(1.0, 1.0, 1.0, 0.95), Color(0.1, 0.1, 0.1), wait + 0.6)
+	var sunk: float = global_position.y + 10.0
 	_strand_tween = create_tween()
 	_strand_tween.set_parallel(true)
-	_strand_tween.tween_property(
-		self, "global_position:y", global_position.y + 10.0, DISSOLVE_SECONDS
-	)
-	_strand_tween.tween_property(self, "modulate:a", 0.0, DISSOLVE_SECONDS)
+	_strand_tween.tween_property(self, "global_position:y", sunk, DISSOLVE_SECONDS).set_delay(wait)
+	_strand_tween.tween_property(self, "modulate:a", 0.0, DISSOLVE_SECONDS).set_delay(wait)
 	_strand_tween.chain().tween_callback(func() -> void: visible = false)
 
 

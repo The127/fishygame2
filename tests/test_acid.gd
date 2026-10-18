@@ -42,6 +42,7 @@ func test_the_whale_has_two_acid_pits() -> void:
 
 func test_a_fish_in_the_acid_dissolves_and_leaves_a_skeleton() -> void:
 	var pit: AcidPit = _pit(_whale(), "AcidA")
+	pit.calm_chance = 0.0
 	watch_signals(pit)
 	var fish: Marble = _fish(pit.global_position)
 	await wait_physics_frames(3)
@@ -54,6 +55,41 @@ func test_a_fish_in_the_acid_dissolves_and_leaves_a_skeleton() -> void:
 	assert_signal_emitted(pit, "burst_played")
 	await get_tree().create_timer(Marble.DISSOLVE_SECONDS + 0.2).timeout
 	assert_false(fish.visible, "the fish is gone once it has faded")
+
+
+func test_a_calm_fish_says_this_is_fine_then_dissolves() -> void:
+	var pit: AcidPit = _pit(_whale(), "AcidA")
+	pit.calm_chance = 1.0
+	var fish: Marble = _fish(pit.global_position)
+	await wait_physics_frames(3)
+	assert_true(fish.dissolved, "a calm fish is out of the race at once")
+	assert_true(_says_this_is_fine(fish), "it says this is fine.")
+	await get_tree().create_timer(Marble.DISSOLVE_SECONDS + 0.2).timeout
+	assert_true(fish.visible, "it is still sitting in the acid")
+	assert_almost_eq(fish.modulate.a, 1.0, 0.01)
+	await get_tree().create_timer(Marble.CALM_SECONDS).timeout
+	assert_false(fish.visible, "it dissolved all the same")
+
+
+func test_most_fish_do_not_take_it_calmly() -> void:
+	var pit: AcidPit = _pit(_whale(), "AcidA")
+	pit.reseed(7)
+	var calm: int = 0
+	for i: int in 40:
+		var fish: Marble = _fish(pit.global_position + Vector2(0.0, float(i % 4)))
+		await wait_physics_frames(2)
+		assert_true(fish.dissolved)
+		if _says_this_is_fine(fish):
+			calm += 1
+	assert_between(calm, 1, 20, "only some fish say this is fine")
+
+
+## Whether a speech bubble over the fish says "this is fine.".
+func _says_this_is_fine(fish: Marble) -> bool:
+	for child: Node in fish.get_children():
+		if child is Label and (child as Label).text == "this is fine.":
+			return true
+	return false
 
 
 func test_a_fish_that_already_finished_is_left_alone() -> void:

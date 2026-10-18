@@ -41,6 +41,8 @@ const LID_RIM: Color = Color(1.0, 0.55, 0.85)
 @export var move_seconds: float = 0.35
 ## Pixels the hatch sinks.
 @export var drop: float = 46.0
+## Chance that a fish takes it calmly: it sits in the acid saying "this is fine." first.
+@export_range(0.0, 1.0) var calm_chance: float = 0.2
 
 var _size: Vector2 = Vector2.ZERO
 var _lid: AnimatableBody2D
@@ -54,6 +56,8 @@ var _time: float = 0.0
 ## Skeleton slots, each `SKELETON_FLOATS` floats; a negative time of death means empty.
 var _skeletons: PackedFloat32Array = PackedFloat32Array()
 var _next_slot: int = 0
+## Picks the calm fish, reseeded with the race so a seed always plays out the same.
+var _calm_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -73,6 +77,7 @@ func reseed(seed_value: int) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed_value
 	_offset = rng.randf() * period
+	_calm_rng.seed = rng.randi()
 	_clock = 0.0
 	_move_lid()
 
@@ -136,7 +141,7 @@ func skeleton_count() -> int:
 func _dissolve(marble: Marble) -> void:
 	var at: Vector2 = marble.global_position
 	var facing: float = -1.0 if marble.linear_velocity.x < 0.0 else 1.0
-	marble.dissolve()
+	marble.dissolve(_calm_rng.randf() < calm_chance)
 	var local: Vector2 = to_local(at)
 	# The fish may touch the acid with its edge only; its bones lie in the liquid.
 	local.y = maxf(local.y, -_size.y * 0.5 + 6.0)
