@@ -48,7 +48,7 @@ func show_entry(entry: Dictionary) -> void:
 	var name_label := _make_label(str(entry["name"]), 30, 800, UiStyle.TEXT)
 	name_label.position = Vector2(0.0, TROPHY_BOTTOM.y + 8.0)
 	add_child(name_label)
-	var place_text: String = "last place, %s" % _ordinal(int(entry["place"]))
+	var place_text: String = "last to finish, %s" % _ordinal(int(entry["place"]))
 	var place_label := _make_label(place_text, 22, 600, UiStyle.MUTED)
 	place_label.position = Vector2(0.0, TROPHY_BOTTOM.y + 46.0)
 	add_child(place_label)
