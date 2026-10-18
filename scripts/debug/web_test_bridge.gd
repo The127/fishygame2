@@ -14,6 +14,8 @@ var _act_callback: JavaScriptObject
 var _elapsed: float = 0.0
 var _podiums: int = 0
 var _last_podium: Array[String] = []
+## Names of the fish that got a participation trophy, one per trophy.
+var _trophies: Array[String] = []
 var _bet_reasons: Array[String] = []
 ## user_id -> true, for the viewers whose balance goes into the snapshot.
 var _watched: Dictionary[String, bool] = {}
@@ -24,6 +26,7 @@ func setup(flow: GameFlow, betting: Betting, panel: ControlPanel) -> void:
 	_betting = betting
 	_panel = panel
 	_flow.podium_ready.connect(_on_podium_ready)
+	_flow.participation_trophy.connect(_on_participation_trophy)
 	_betting.bet_rejected.connect(_on_bet_rejected)
 	var window: JavaScriptObject = JavaScriptBridge.get_interface("window")
 	_api = JavaScriptBridge.create_object("Object")
@@ -50,6 +53,7 @@ func _snapshot() -> Dictionary:
 		"players": _flow.get_contestants().size(),
 		"podiums": _podiums,
 		"podium": _last_podium,
+		"trophies": _trophies,
 		"balances": balances,
 		"bet_rejections": _bet_reasons,
 	}
@@ -97,6 +101,10 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	_last_podium = []
 	for entry: Dictionary in podium:
 		_last_podium.append(str(entry["name"]))
+
+
+func _on_participation_trophy(entry: Dictionary) -> void:
+	_trophies.append(str(entry["name"]))
 
 
 func _on_bet_rejected(_msg: ChatMessage, reason: String) -> void:

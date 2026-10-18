@@ -9,7 +9,7 @@ const CHAT_REPLY: String = (
 	+ "#left / #right (Pinball Reef 1 and 2 flippers, Claw Machine, Gravity Flip) | "
 	+ "#grab (Claw Machine) | #up / #down (Gravity Flip) | "
 	+ "#shake (Earthquake Fault) | #roll (Board Game) | "
-	+ "#shake (Earthquake Fault) | #chop (Sushi Bar) | "
+	+ "#chop (Sushi Bar) | "
 	+ "#eddy (flushed-out fish)"
 )
 
