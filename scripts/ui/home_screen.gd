@@ -308,7 +308,8 @@ func start_fourth_dimension() -> void:
 	surprise_ended.emit()
 
 
-## The one-time "RTX OFF / RTX ON" show that introduces the switch the sequel just unlocked.
+## The one-time "RTX OFF / RTX ON" show that introduces the switch the sequel just unlocked,
+## then leaves RTX switched on.
 func play_rtx_intro() -> void:
 	surprise_store.set_rtx_intro_seen()
 	_rtx_intro_running = true
@@ -324,6 +325,9 @@ func play_rtx_intro() -> void:
 	if not is_inside_tree():
 		return
 	_rtx_intro_running = false
+	# The show ends on the full RTX look, so it stays on. The switch turns it off again.
+	settings.rtx = true
+	settings.save()
 	_refresh_replay_button()
 	_rtx_button.pivot_offset = _rtx_button.size / 2.0
 	_rtx_button.scale = Vector2.ONE * 2.5

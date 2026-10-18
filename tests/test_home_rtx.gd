@@ -90,3 +90,25 @@ func test_unlocking_while_the_home_screen_is_up_applies_a_saved_rtx_setting() ->
 	assert_true(rtx.visible)
 	assert_eq(rtx.text, HomeScreen.RTX_ON_TEXT, "shows the saved setting")
 	assert_true(home.is_rtx_on())
+
+
+func test_the_unlock_intro_plays_once_and_leaves_rtx_on() -> void:
+	var home: HomeScreen = _make_home(true)
+	var rtx: Button = home.get_node("CornerLayer/Corner/Rtx")
+	assert_false(home.surprise_store.is_rtx_intro_seen())
+	var done: Array[bool] = [false]
+	var run: Callable = func() -> void:
+		await home.play_rtx_intro()
+		done[0] = true
+	run.call()
+	await wait_process_frames(2)
+	assert_not_null(home.get_node_or_null("RtxIntro"), "the show is on")
+	assert_false(rtx.visible, "the switch waits for the end of the show")
+	assert_true(ReleaseSurpriseStore.new(PATH).is_rtx_intro_seen(), "marked right away")
+	await wait_until(func() -> bool: return done[0], RtxIntro.END_AT + 2.0)
+	await wait_process_frames(1)
+	assert_null(home.get_node_or_null("RtxIntro"), "the show cleans up")
+	assert_true(rtx.visible)
+	assert_true(home.settings.rtx, "RTX stays on after the show")
+	assert_eq(rtx.text, HomeScreen.RTX_ON_TEXT)
+	assert_true(home.is_rtx_on())
