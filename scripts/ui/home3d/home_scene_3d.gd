@@ -17,8 +17,12 @@ const SCARE_RADIUS: float = 2.6
 ## Clicks that land on a fish, in one visit, before one of the fish grows cat ears.
 const EARS_CLICKS: int = 10
 const FOG_COLOR: Color = Color(0.02, 0.09, 0.16)
+## Where the clock tower stands: back and to the right, so it sits in the bottom right corner.
+const CLOCK_TOWER_XZ: Vector2 = Vector2(11.0, -4.5)
+const CLOCK_TOWER_SCALE: float = 0.55
 
 var school: HomeFishSchool
+var clock_tower: HomeClockTower
 var camera: Camera3D
 var viewport: SubViewport
 
@@ -59,6 +63,8 @@ func _ready() -> void:
 	world.add_child(_make_rocks())
 	world.add_child(_make_kelp())
 	world.add_child(_make_glows())
+	clock_tower = _make_clock_tower()
+	world.add_child(clock_tower)
 	for shaft: MeshInstance3D in _make_shafts():
 		world.add_child(shaft)
 	world.add_child(_make_snow())
@@ -224,6 +230,18 @@ func _make_rocks() -> MultiMeshInstance3D:
 	return _multimesh_instance(multimesh)
 
 
+func _make_clock_tower() -> HomeClockTower:
+	var tower: HomeClockTower = HomeClockTower.new()
+	var x: float = CLOCK_TOWER_XZ.x
+	var z: float = CLOCK_TOWER_XZ.y
+	# Sunk a little so the plinth never floats over a dip in the dunes.
+	tower.position = Vector3(x, seabed_height(x, z) - 0.3, z)
+	# Turned towards the camera so one side face shows too.
+	tower.rotation.y = -0.4
+	tower.scale = Vector3.ONE * CLOCK_TOWER_SCALE
+	return tower
+
+
 func _make_kelp() -> MultiMeshInstance3D:
 	var blade: QuadMesh = QuadMesh.new()
 	blade.size = Vector2(0.35, KELP_HEIGHT)
@@ -237,6 +255,9 @@ func _make_kelp() -> MultiMeshInstance3D:
 	for i: int in KELP_COUNT:
 		var x: float = _rng.randf_range(-22.0, 22.0)
 		var z: float = _rng.randf_range(-22.0, -1.0)
+		# Keep the clock tower's face and sign clear: no kelp right in front of it.
+		while absf(x - CLOCK_TOWER_XZ.x) < 2.5 and z > CLOCK_TOWER_XZ.y - 1.5:
+			x = _rng.randf_range(-22.0, 22.0)
 		var scale: float = _rng.randf_range(0.6, 1.5)
 		var basis: Basis = Basis(Vector3.UP, _rng.randf() * PI).scaled_local(Vector3.ONE * scale)
 		var pos: Vector3 = Vector3(x, seabed_height(x, z) - 0.1, z)
