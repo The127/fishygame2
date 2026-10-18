@@ -38,6 +38,7 @@ var _replies: ChatReplies = ChatReplies.new()
 var _batcher: ChatBatcher = _replies.batcher
 var _meow: Meow = Meow.new()
 var _haunt: Haunt = Haunt.new()
+var _rtx: RtxFilter = RtxFilter.new()
 var _viewer_commands: ViewerCommands = ViewerCommands.new()
 var _flipper_commands: FlipperCommands = FlipperCommands.new()
 var _shake_commands: ShakeCommands = ShakeCommands.new()
@@ -120,6 +121,7 @@ func _ready() -> void:
 	_replies.notice.connect(_overlay.show_notice)
 	_replies.chat_line.connect(Chat.send_message)
 	add_child(_meow)
+	add_child(_rtx)
 	_haunt.blocker = _race.eddy_blocker
 	add_child(_haunt)
 	Chat.command_received.connect(_haunt.handle_command)
@@ -282,6 +284,8 @@ func _apply_settings() -> void:
 	_map_choice = settings.default_map
 	_camera.set_play_fraction(settings.play_fraction())
 	_overlay.set_play_fraction(settings.play_fraction())
+	_rtx.set_play_fraction(settings.play_fraction())
+	_rtx.set_enabled(settings.rtx)
 
 
 func _process(delta: float) -> void:

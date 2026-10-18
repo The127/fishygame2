@@ -190,6 +190,8 @@ var random_events: bool = false
 ## Whether the fake "Fishy Marble Run 3" release joke may play (once per browser source, on
 ## the first Open Lobby press). See [ReleaseSurprise].
 var release_surprise: bool = true
+## Whether the race wears the over-the-top "RTX ON" look (see [RtxFilter]). Off by default.
+var rtx: bool = false
 ## Empty means in-memory only.
 var save_path: String = ""
 
@@ -248,6 +250,7 @@ func reset_to_defaults() -> void:
 	treasures_enabled = fresh.treasures_enabled
 	random_events = fresh.random_events
 	release_surprise = fresh.release_surprise
+	rtx = fresh.rtx
 
 
 ## Loads the saved values; missing or malformed ones keep their current value.
@@ -297,6 +300,9 @@ func load_settings() -> void:
 	var surprise: Variant = file.get_value(SECTION, "release_surprise", release_surprise)
 	if surprise is bool:
 		release_surprise = surprise
+	var ray_traced: Variant = file.get_value(SECTION, "rtx", rtx)
+	if ray_traced is bool:
+		rtx = ray_traced
 	sanitize()
 
 
@@ -321,6 +327,7 @@ func save() -> bool:
 	file.set_value(SECTION, "treasures_enabled", treasures_enabled)
 	file.set_value(SECTION, "random_events", random_events)
 	file.set_value(SECTION, "release_surprise", release_surprise)
+	file.set_value(SECTION, "rtx", rtx)
 	return file.save(save_path) == OK
 
 
