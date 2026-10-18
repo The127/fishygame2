@@ -372,6 +372,26 @@ def sfx_win() -> list:
     return echoed
 
 
+# Seconds into sfx_slow_clap.wav of each clap; ParticipationTrophyView.CLAP_TIMES matches.
+SLOW_CLAP_TIMES = (0.0, 1.1, 2.1, 3.0, 3.8, 4.5)
+
+
+def sfx_slow_clap() -> list:
+    """One lonely pair of hands: a few slow claps in a big empty room, speeding up a little."""
+    rng = random.Random(71)
+    out = [0.0] * n_samples(SLOW_CLAP_TIMES[-1] + 0.9)
+    for i, start in enumerate(SLOW_CLAP_TIMES):
+        burst = band(noise(0.12, rng), 700.0, 2600.0)
+        decay = 0.018 * SAMPLE_RATE
+        clap = [s * min(1.0, k / 40.0) * math.exp(-k / decay) for k, s in enumerate(burst)]
+        mix_into(out, clap, n_samples(start), 0.8 + 0.05 * i)
+    # Hall echo: the room is empty.
+    echoed = list(out)
+    for k, g in ((1, 0.3), (2, 0.16), (3, 0.08)):
+        mix_into(echoed, lowpass(out, 1800.0), n_samples(0.13 * k), g)
+    return echoed
+
+
 # --- music ------------------------------------------------------------------
 
 # Am - Fmaj - Dm - Em, one chord per 8 seconds, low and dark.
@@ -461,6 +481,7 @@ def main() -> None:
         "sfx_net_catch.wav": sfx_net_catch,
         "sfx_blast_cast.wav": sfx_blast_cast,
         "sfx_blast_hit.wav": sfx_blast_hit,
+        "sfx_slow_clap.wav": sfx_slow_clap,
     }
     for name, make in effects.items():
         write_wav(name, fade_edges(make()), SFX_PEAK)

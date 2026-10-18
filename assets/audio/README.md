@@ -17,6 +17,7 @@ license terms beyond the repository's own. Re-run the script and commit the WAVs
 | `sfx_curse.wav` | `#curse` applied |
 | `sfx_splash.wav` | a fish crosses the finish |
 | `sfx_win.wav` | podium with a finished winner |
+| `sfx_slow_clap.wav` | a lone slow clap for the occasional participation trophy |
 | `sfx_meow.wav` | a viewer's fish meows (hidden chat command) |
 | `sfx_kraken_grumble.wav` | the kraken grumbles with the warning before each strike on Kraken's Lair |
 | `sfx_kraken_swoosh.wav` | the kraken's tentacles swoosh as a sweep begins |

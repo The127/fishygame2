@@ -28,6 +28,8 @@ signal payouts_settled(results: Array[Dictionary])
 @export var max_bet: int = 0
 ## Points paid to 1st, 2nd, 3rd... on the podium. Missing or zero entries pay nothing.
 @export var place_rewards: Array[int] = [100, 50, 25]
+## Points for the last finisher on a participation trophy race (GameFlow.participation_trophy).
+@export var trophy_reward: int = 300
 
 var points: PointsStore = null
 
@@ -120,6 +122,29 @@ func summary() -> String:
 ## [signal payouts_settled]) to the next settlement's report. Dropped if the round has no winner.
 func report_payouts(entries: Array[Dictionary]) -> void:
 	_reported.append_array(entries)
+
+
+## Feed it GameFlow.participation_trophy, which fires before the podium: pays
+## [member trophy_reward] and reports it (kind "trophy") with the podium's settlement.
+func on_participation_trophy(entry: Dictionary) -> void:
+	if trophy_reward <= 0:
+		return
+	var user_id: String = str(entry["user_id"])
+	points.add(user_id, trophy_reward)
+	points.set_name(user_id, str(entry["name"]))
+	(
+		_reported
+		. append(
+			{
+				"user_id": user_id,
+				"name": entry["name"],
+				"target": entry["name"],
+				"amount": 0,
+				"payout": trophy_reward,
+				"kind": "trophy",
+			}
+		)
+	)
 
 
 ## Feed it GameFlow.state_changed.

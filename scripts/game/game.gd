@@ -46,6 +46,7 @@ var _flipper_commands: FlipperCommands = FlipperCommands.new()
 var _shake_commands: ShakeCommands = ShakeCommands.new()
 var _gravity_commands: GravityCommands = GravityCommands.new()
 var _rivals: Rivals = Rivals.new()
+var _trophy: ParticipationTrophy = ParticipationTrophy.new()
 var _payouts: Array[Dictionary] = []
 ## The streamer power waiting for a click on the track (a StreamerPowers.Kind), or -1.
 var _armed_power: int = -1
@@ -125,6 +126,10 @@ func _ready() -> void:
 	_replies.chat_line.connect(Chat.send_message)
 	add_child(_meow)
 	add_child(_rtx)
+	add_child(_trophy)
+	_flow.participation_trophy.connect(_trophy.show_trophy)
+	_flow.participation_trophy.connect(_betting.on_participation_trophy)
+	_flow.state_changed.connect(_trophy.on_state_changed)
 	_haunt.blocker = _race.eddy_blocker
 	add_child(_haunt)
 	Chat.command_received.connect(_haunt.handle_command)
@@ -265,6 +270,7 @@ func _apply_settings() -> void:
 	_betting.min_bet = settings.min_bet
 	_betting.max_bet = settings.max_bet
 	_betting.place_rewards = [settings.win_reward, settings.second_reward, settings.third_reward]
+	_betting.trophy_reward = settings.win_reward * ParticipationTrophy.PRIZE_FACTOR
 	_rivals.reward = settings.rival_reward
 	_shop.species_price = settings.species_price
 	_shop.color_price = settings.color_price
@@ -288,6 +294,7 @@ func _apply_settings() -> void:
 	_camera.set_play_fraction(settings.play_fraction())
 	_overlay.set_play_fraction(settings.play_fraction())
 	_rtx.set_play_fraction(settings.play_fraction())
+	_trophy.set_play_fraction(settings.play_fraction())
 	_rtx.set_enabled(settings.rtx)
 
 

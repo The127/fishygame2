@@ -125,7 +125,8 @@ func score_round(payouts: Array[Dictionary], rewards: Array[int]) -> bool:
 	if _tournament == null:
 		return false
 	for r: Dictionary in payouts:
-		if r.get("kind", "bet") == "bet":
+		# Bets and the random participation prize never decide a tournament.
+		if r.get("kind", "bet") in ["bet", "trophy"]:
 			continue
 		_tournament.add_points(str(r["user_id"]), str(r["name"]), int(r["payout"]))
 	_tournament.finish_round()

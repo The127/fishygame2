@@ -11,6 +11,8 @@ const FISH_SCALE: float = 3.0
 ## Fish center and name sit this far above the step top; tall species reach about 65 up.
 const FISH_LIFT: float = 62.0
 const NAME_WIDTH: float = 380.0
+## The winner's cup stands on the top step this far right of the fish.
+const TROPHY_OFFSET: float = 92.0
 ## Left to right: 2nd, 1st, 3rd.
 const SLOT_PLACES: Array[int] = [2, 1, 3]
 const STEP_HEIGHTS: Dictionary = {1: 210.0, 2: 160.0, 3: 120.0}
@@ -110,3 +112,7 @@ func _draw() -> void:
 			Color(0.0, 0.03, 0.08, 0.95)
 		)
 		draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(tint, alpha))
+	if _entries.has(1):
+		var top: Rect2 = step_rect(1)
+		var at := Vector2(top.get_center().x + TROPHY_OFFSET, top.position.y)
+		Trophy.draw(self, at, Trophy.WINNER_HEIGHT)

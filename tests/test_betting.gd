@@ -232,3 +232,18 @@ func test_settled_bets_leave_no_stake() -> void:
 	_betting.on_podium_ready(_podium(_alice))
 	assert_eq(_betting.points.stake_of("v1"), 0)
 	assert_eq(_balance("v1"), 1100)
+
+
+func test_participation_trophy_pays_the_last_finisher_with_the_podium() -> void:
+	_betting.place_rewards = [100]
+	_betting.trophy_reward = 300
+	_betting.on_state_changed(GameFlow.State.RACING, GameFlow.State.COUNTDOWN)
+	watch_signals(_betting)
+	_betting.on_participation_trophy({"user_id": "b", "name": "Bob"})
+	_betting.on_podium_ready(_podium(_alice))
+	assert_eq(_balance("b"), 1300, "more than the winner")
+	assert_eq(_balance("a"), 1100)
+	var results: Array = get_signal_parameters(_betting, "payouts_settled", 0)[0]
+	var trophy: Array = results.filter(func(r: Dictionary) -> bool: return r["kind"] == "trophy")
+	assert_eq(trophy.size(), 1)
+	assert_eq(trophy[0]["payout"], 300)
