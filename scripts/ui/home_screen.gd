@@ -53,6 +53,7 @@ var _four_d: FourDView
 var _replay_surprise: Button
 var _rtx_button: Button
 var _rtx_filter: RtxFilter = RtxFilter.new()
+var _rtx_intro_running: bool = false
 var _tagline_text: String
 var _open_lobby_text: String
 var _aquarium_blink: Tween
@@ -172,7 +173,9 @@ func _refresh_replay_button() -> void:
 	# Kept out of the release surprise, which it would otherwise sit on top of.
 	# RTX is unlocked by the fake 3D sequel having played once.
 	_rtx_button.visible = (
-		ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF and surprise_store.has_played()
+		ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF
+		and surprise_store.has_played()
+		and not _rtx_intro_running
 	)
 	# The unlock can happen while this screen is up (the surprise just ended).
 	_apply_rtx()
@@ -296,9 +299,40 @@ func start_fourth_dimension() -> void:
 	if not is_inside_tree():
 		return
 	glitch.queue_free()
+	if not surprise_store.is_rtx_intro_seen():
+		await play_rtx_intro()
+		if not is_inside_tree():
+			return
 	_open_lobby.disabled = false
 	_open_lobby.grab_focus()
 	surprise_ended.emit()
+
+
+## The one-time "RTX OFF / RTX ON" show that introduces the switch the sequel just unlocked.
+func play_rtx_intro() -> void:
+	surprise_store.set_rtx_intro_seen()
+	_rtx_intro_running = true
+	_refresh_replay_button()
+	var intro := RtxIntro.new()
+	intro.name = "RtxIntro"
+	# The switch is hidden now, so aim at where it will appear: the corner's bottom left.
+	var corner: Rect2 = (_rtx_button.get_parent() as Control).get_global_rect()
+	var button: Vector2 = _rtx_button.get_combined_minimum_size()
+	intro.target = Vector2(corner.position.x + button.x / 2.0, corner.end.y - button.y / 2.0)
+	add_child(intro)
+	await intro.play()
+	if not is_inside_tree():
+		return
+	_rtx_intro_running = false
+	_refresh_replay_button()
+	_rtx_button.pivot_offset = _rtx_button.size / 2.0
+	_rtx_button.scale = Vector2.ONE * 2.5
+	(
+		create_tween()
+		. tween_property(_rtx_button, "scale", Vector2.ONE, 0.35)
+		. set_trans(Tween.TRANS_ELASTIC)
+		. set_ease(Tween.EASE_OUT)
+	)
 
 
 ## Back to the real "Fishy Marble Run II" home screen, as if nothing happened.

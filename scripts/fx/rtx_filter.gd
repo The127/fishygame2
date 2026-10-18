@@ -61,6 +61,21 @@ func is_enabled() -> bool:
 	return visible
 
 
+## Left of screen x [param x] (0 to 1) the screen shows the "RTX OFF" look, with a glowing
+## divider. Negative: RTX ON everywhere. For [RtxIntro].
+func set_split(x: float) -> void:
+	(_screen.material as ShaderMaterial).set_shader_parameter("split", x)
+
+
+## 0 to 1: a white flash over the whole screen.
+func set_flash(amount: float) -> void:
+	(_screen.material as ShaderMaterial).set_shader_parameter("flash", amount)
+
+
+func set_badge_visible(shown: bool) -> void:
+	_badge.visible = shown
+
+
 ## Puts the badge in the top left corner instead of the bottom left one.
 func set_badge_at_top(top: bool) -> void:
 	var preset: Control.LayoutPreset = (
