@@ -136,6 +136,26 @@ layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 
+[node name="TournamentRow" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="TournamentLabel" type="Label" parent="Panel/Box/TournamentRow"]
+layout_mode = 2
+text = "Tournament rounds"
+
+[node name="RoundsPicker" type="OptionButton" parent="Panel/Box/TournamentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+
+[node name="TournamentMaps" type="VBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+
+[node name="StartTournament" type="Button" parent="Panel/Box"]
+layout_mode = 2
+focus_mode = 0
+text = "Start tournament"
+
 [node name="MasterRow" type="HBoxContainer" parent="Panel/Box"]
 layout_mode = 2
 

@@ -60,6 +60,10 @@ var _dnf_names: PackedStringArray = []
 var _haul: TreasureHaul = TreasureHaul.new()
 ## The treasure part of the result line, "@a +50, @b +25", or empty.
 var _haul_text: String = ""
+var _tournament: TournamentDirector = TournamentDirector.new()
+var _tournament_board: TournamentBoard = TournamentBoard.new()
+## True while last round's tournament racers join again, so they get no join sound or reply.
+var _rejoining: bool = false
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
@@ -180,6 +184,13 @@ func _ready() -> void:
 	_panel.back_pressed.connect(_on_back_pressed)
 	_panel.leave_confirmed.connect(_leave_to_home)
 	_panel.map_selected.connect(_on_map_selected)
+	_tournament.points = _betting.points
+	add_child(_tournament)
+	add_child(_tournament_board)
+	_tournament.chat_line.connect(_replies.say)
+	_tournament.notice.connect(_overlay.show_notice)
+	_tournament.standings_changed.connect(_tournament_board.show_standings)
+	_panel.tournament_requested.connect(start_tournament)
 	_panel.auto_mode_toggled.connect(_on_auto_mode_toggled)
 	_panel.volume_changed.connect(Sound.set_volume)
 	_panel.mute_toggled.connect(Sound.set_muted)
@@ -204,6 +215,9 @@ func _ready() -> void:
 	_sequence.photo_ended.connect(_camera.release_hold)
 	# After Betting.on_podium_ready, which settles the payouts this handler reports.
 	_flow.podium_ready.connect(_on_podium_ready)
+	# Last of the state_changed connections: every roster has reset for the fresh lobby before
+	# the tournament racers join it again.
+	_flow.state_changed.connect(_on_state_settled)
 	_rng.randomize()
 	_event_rng.randomize()
 	if OS.has_feature("web") and DebugMode.is_enabled():
@@ -312,6 +326,50 @@ func _on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) ->
 			_overlay.show_racing()
 		_:
 			_event = RaceEvent.NOTHING
+	if new_state == GameFlow.State.IDLE and _tournament.is_running():
+		_tournament.cancel()
+		_restore_auto_mode()
+	_tournament.refresh(new_state)
+
+
+## Puts the last tournament round's racers back into the fresh lobby.
+func _on_state_settled(new_state: GameFlow.State, _old_state: GameFlow.State) -> void:
+	if new_state != GameFlow.State.LOBBY:
+		return
+	var racers: Array[Contestant] = _tournament.take_carry_over()
+	if racers.is_empty():
+		return
+	_rejoining = true
+	for racer: Contestant in racers:
+		_flow.join(ChatMessage.create(racer.user_id, racer.display_name, racer.display_name, ""))
+	_rejoining = false
+	_refresh_lobby()
+	_tournament.announce_round(TrackCatalog.get_name_of(_map_id))
+
+
+## Starts a tournament of one round per entry of [param maps] (map ids or
+## TrackCatalog.RANDOM_ID, repeats allowed). The rounds run on their own (auto mode for the
+## tournament only). Not during a race.
+func start_tournament(maps: PackedStringArray) -> bool:
+	if _flow.state == GameFlow.State.COUNTDOWN or _flow.state == GameFlow.State.RACING:
+		_overlay.show_notice("Start the tournament between races")
+		return false
+	if not _tournament.start(maps):
+		return false
+	_flow.set_auto_mode(true, float(settings.auto_join_seconds))
+	_panel.set_auto_mode(true)
+	if _flow.state == GameFlow.State.LOBBY:
+		_load_map()
+		_tournament.refresh(_flow.state)
+		_show_leaderboard()
+	else:
+		_flow.open_lobby()
+	return true
+
+
+func _restore_auto_mode() -> void:
+	_flow.set_auto_mode(settings.auto_mode, float(settings.auto_join_seconds))
+	_panel.set_auto_mode(settings.auto_mode)
 
 
 func _on_treasure_collected(id: int, kind: int, value: int) -> void:
@@ -392,7 +450,11 @@ func _event_badge_text() -> String:
 	return "%s: %s" % [RaceEvent.name_of(_event).to_upper(), RaceEvent.blurb_of(_event)]
 
 
+## The all-time board, left out while the tournament standings take its corner.
 func _show_leaderboard() -> void:
+	if _tournament.is_running():
+		_overlay.set_leaderboard([] as Array[Dictionary], [] as Array[Dictionary])
+		return
 	_overlay.set_leaderboard(
 		_betting.points.top_by_points(LeaderboardPanel.ROWS),
 		_betting.points.top_by_wins(LeaderboardPanel.ROWS)
@@ -400,6 +462,8 @@ func _show_leaderboard() -> void:
 
 
 func _on_player_joined(contestant: Contestant) -> void:
+	if _rejoining:
+		return
 	Sound.play(Sound.Sfx.JOIN)
 	_replies.player_joined(contestant)
 	_refresh_lobby()
@@ -495,6 +559,7 @@ func _on_replay_started() -> void:
 ## Counts the race for the viewers' stats and hands the results to the flow. Only runs when the
 ## race really ends, so a round stopped during the replay leaves no stats behind.
 func _report_results(results: Array[Dictionary]) -> void:
+	_tournament.add_treasure(_haul.totals())
 	# Before the stats, whose save covers the treasure and rival points too.
 	_haul_text = _haul.settle(_betting.points)
 	_betting.report_payouts(_rivals.settle(_standings(results)))
@@ -559,6 +624,11 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	_payouts = []
 	_dnf_names = []
 	_haul_text = ""
+	var rewards: Array[int] = [settings.win_reward, settings.second_reward, settings.third_reward]
+	if _tournament.score_round(payouts, rewards):
+		_restore_auto_mode()
+		_flow.timer = maxf(_flow.timer, TournamentDirector.FINAL_SECONDS)
+	_tournament.refresh(_flow.state)
 	_overlay.show_dnf(dnf)
 	if podium.is_empty():
 		if not dnf.is_empty():
@@ -594,6 +664,7 @@ func _on_home_pressed() -> void:
 ## Aborts the round (bets and chaos stakes are refunded), stops auto mode for this session
 ## (the saved setting stays as it is) and opens the home screen.
 func _leave_to_home() -> void:
+	_tournament.cancel()
 	_flow.set_auto_mode(false)
 	_flow.stop()
 	if not home_scene.is_empty():
@@ -611,13 +682,14 @@ func _on_map_selected(choice: String) -> void:
 		return
 	_map_choice = choice
 	# Applies to the next lobby, or right away while one is open (the roster is unaffected).
-	if _flow.state == GameFlow.State.LOBBY:
+	# A tournament plays its own maps.
+	if _flow.state == GameFlow.State.LOBBY and not _tournament.is_running():
 		_load_map()
 
 
 ## Swaps in the track for the coming race. Only called with no marbles on the field.
 func _load_map() -> void:
-	var id: String = TrackCatalog.resolve(_map_choice, _rng, _map_id)
+	var id: String = TrackCatalog.resolve(_tournament.map_choice(_map_choice), _rng, _map_id)
 	if _track != null and id == _map_id:
 		return
 	if _track != null:
@@ -877,6 +949,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 	ShopCatalog.assign_loadouts(contestants, _shop.store, settings.colorblind)
 	_haul.clear()
 	_haul_text = ""
+	_tournament.on_race_started(contestants)
 	_race.start(_track, contestants.size(), rng, settings.hazard_level(), _event)
 	_overlay.show_event_badge(_event_badge_text())
 	# Marble ids are roster ids, so match on id rather than on list order.
@@ -919,7 +992,5 @@ func _refresh_lobby() -> void:
 
 func _status_text() -> String:
 	var state_name: String = GameFlow.State.keys()[_flow.state]
-	return (
-		"%s, %d players, map: %s"
-		% [state_name, _flow.get_contestants().size(), TrackCatalog.get_name_of(_map_id)]
-	)
+	var map_name: String = TrackCatalog.get_name_of(_map_id) + _tournament.status_text()
+	return "%s, %d players, map: %s" % [state_name, _flow.get_contestants().size(), map_name]

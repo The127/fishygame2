@@ -25,6 +25,15 @@ func add(user_id: String, display_name: String, value: int) -> void:
 	_entries[user_id] = entry
 
 
+## user_id -> {"name": String, "points": int} of what each finder will be paid.
+func totals() -> Dictionary:
+	var result: Dictionary = {}
+	for user_id: String in _entries:
+		var entry: Dictionary = _entries[user_id]
+		result[user_id] = {"name": entry["name"], "points": int(entry["points"])}
+	return result
+
+
 ## Pays every finder, counts it in their stats and empties the haul. Returns the result-line
 ## text, "@a +50, @b +25" (biggest first, a few names), or "" when nothing was found.
 ## The caller saves the points.
