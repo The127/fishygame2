@@ -22,6 +22,8 @@ var settings: GameSettings = null
 ## Whether this is the fake "Fishy Marble Run 3" round: one race on a fixed map, drawn in 3D,
 ## then back to the home screen. Set from [ReleaseSurprise] in _ready unless a caller sets it.
 var fake_sequel: Variant = null
+## RTX only works once the fake sequel has played (see [method ReleaseSurpriseStore.has_played]).
+var surprise_store: ReleaseSurpriseStore = ReleaseSurpriseStore.new()
 
 ## Test and debug hook: when set, the wheel lands on this event (or [constant RaceEvent.NOTHING]
 ## for the plain slice) instead of a random one.
@@ -291,7 +293,7 @@ func _apply_settings() -> void:
 	_overlay.set_play_fraction(settings.play_fraction())
 	_rtx.set_play_fraction(settings.play_fraction())
 	_trophy.set_play_fraction(settings.play_fraction())
-	_rtx.set_enabled(settings.rtx)
+	_rtx.set_enabled(settings.rtx and surprise_store.has_played())
 
 
 func _process(delta: float) -> void:

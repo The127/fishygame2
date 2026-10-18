@@ -104,8 +104,15 @@ func test_hazards_stay_off_when_disabled() -> void:
 	assert_false(_current_track().get_hazards()[0].is_armed())
 
 
-func test_rtx_filter_follows_the_setting() -> void:
+func test_rtx_filter_follows_the_setting_once_unlocked() -> void:
+	var path: String = "user://test_applied_rtx_surprise.cfg"
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	_game.surprise_store = ReleaseSurpriseStore.new(path)
 	assert_false(_game._rtx.is_enabled())
 	_game.settings.rtx = true
 	_game._apply_settings()
+	assert_false(_game._rtx.is_enabled(), "locked until the 3D sequel played")
+	_game.surprise_store.set_played()
+	_game._apply_settings()
 	assert_true(_game._rtx.is_enabled())
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))

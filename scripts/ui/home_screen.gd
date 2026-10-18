@@ -171,7 +171,10 @@ func _add_corner_buttons() -> void:
 
 func _refresh_replay_button() -> void:
 	# Kept out of the release surprise, which it would otherwise sit on top of.
-	_rtx_button.visible = ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF
+	# RTX is unlocked by the fake 3D sequel having played once.
+	_rtx_button.visible = (
+		ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF and surprise_store.has_played()
+	)
 	_replay_surprise.visible = (
 		settings.release_surprise
 		and ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF
@@ -186,9 +189,10 @@ func _on_rtx_pressed() -> void:
 
 
 func _apply_rtx() -> void:
-	_rtx_button.text = RTX_ON_TEXT if settings.rtx else RTX_OFF_TEXT
-	_rtx_filter.set_enabled(settings.rtx)
-	($Scene3D as HomeScene3D).set_rtx(settings.rtx)
+	var on: bool = settings.rtx and surprise_store.has_played()
+	_rtx_button.text = RTX_ON_TEXT if on else RTX_OFF_TEXT
+	_rtx_filter.set_enabled(on)
+	($Scene3D as HomeScene3D).set_rtx(on)
 
 
 func is_rtx_on() -> bool:

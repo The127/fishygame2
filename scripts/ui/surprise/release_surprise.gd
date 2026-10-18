@@ -24,6 +24,7 @@ static func should_start(enabled: bool, store: ReleaseSurpriseStore) -> bool:
 ## Marks the surprise as played on this browser source and switches the game to the fake 3.
 static func begin(store: ReleaseSurpriseStore) -> void:
 	store.set_seen(true)
+	store.set_played()
 	stage = Stage.THREE
 
 
