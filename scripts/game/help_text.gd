@@ -31,6 +31,6 @@ const LINES: PackedStringArray = [
 	"#up / #down / #left / #right  steer gravity (Gravity Flip)",
 	"#shake  spam it to quake the seafloor (Earthquake Fault)",
 	"#roll  spam it to roll the dice (Board Game)",
-	"#chop  swing the chef's knife (Sushi Bar)",
+	"#chop  swing the chefs' knives (Sushi Bar)",
 	"#help  this list",
 ]
