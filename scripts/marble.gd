@@ -309,22 +309,20 @@ func is_out() -> bool:
 	return snapped or stranded or dissolved or chopped or eliminated
 
 
-## Why an unfinished fish is out of the race: "dissolved", "snapped", "stranded", "chopped", "cut",
-## "eaten"
-## (still inside an anglerfish), or empty when it was simply still swimming.
+## Why an unfinished fish is out of the race: "dissolved", "snapped", "stranded", "chopped",
+## "cut", "eaten" (still inside an anglerfish), or empty when it was simply still swimming.
 func fate() -> String:
-	if dissolved:
-		return "dissolved"
-	if snapped:
-		return "snapped"
-	if stranded:
-		return "stranded"
-	if chopped:
-		return "chopped"
-	if eliminated:
-		return "cut"
-	if eaten and not has_finished:
-		return "eaten"
+	var fates: Array[Array] = [
+		[dissolved, "dissolved"],
+		[snapped, "snapped"],
+		[stranded, "stranded"],
+		[chopped, "chopped"],
+		[eliminated, "cut"],
+		[eaten and not has_finished, "eaten"],
+	]
+	for entry: Array in fates:
+		if entry[0]:
+			return entry[1]
 	return ""
 
 
