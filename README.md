@@ -513,17 +513,18 @@ sesame pegs under the start that scatter the pack over the first belt). A fish r
 belt's speed (270 px/s, each belt up to 10% off by seed) times its own seeded knack (up to 25% faster or slower), so
 the pack strings out, and every 1.2 to 3.4 seconds each fish flops: it hops up and mostly ahead, which is how a fish
 gets past the one in front of it on a belt. Wasabi humps on the belts make the pack jostle. At the far end of a belt
-the fish drop onto the next; the last one drops them into the finish. A chef stands behind the third belt with a big
-knife (`scripts/tracks/sushi_chef.gd`). Viewers type `#chop` (`ChopCommands`, any viewer, joined or not; the
-`MapChat` passes it to the chef): the knife goes up and lands 0.55 seconds later, and up to two fish under the blade are
-chopped. A chopped fish is out of the race for good: it counts as unfinished (like a dissolved fish it ranks behind the
+the fish drop onto the next; the last one drops them into the finish. Three chefs stand behind the second, third and
+fourth belts, each with a big knife (`scripts/tracks/sushi_chef.gd`). Viewers type `#chop` (`ChopCommands`, any viewer,
+joined or not; the `MapChat` passes it to the chefs): every chef whose knife is ready raises it and it lands 0.55 seconds
+later, and up to two fish under each blade are chopped. A chopped fish is out of the race for good: it counts as unfinished (like a dissolved fish it ranks behind the
 other unfinished fish), so results, payouts and stats treat it as a DNF, and it rides on down the belt as a piece of
-nigiri in its own color. Chat cannot wipe out the field: the knife needs 4 seconds after landing before the next
-swing, and a race loses at most 30% of the field to it (rounded down, at least one once two fish race, never the last
-fish), after which the meter in the top left says the chef is full. With no chat the chef only taps his board, so a
+nigiri in its own color. Chat cannot wipe out the field: a knife needs 4 seconds after landing before its next
+swing, and a race loses at most 30% of the field to all the knives together (rounded down, at least one once two fish
+race, never the last fish; the chefs share a `ChopTally`), after which the meter in the top left says the chefs are
+full. The belts fold the chefs' meters into that one meter. With no chat the chefs only tap their boards, so a
 race never depends on chat and the seed sweeps run without a single chop. The game only shows the chop on the overlay
 and posts nothing in chat. `race_debug.tscn --chop` has made-up viewers spam `#chop` for a manual check. The belts'
-slats, the knife and the nigiri use the generic replay hook. Its hazard is the jam: one belt slows, runs backwards for 3 seconds and turns back. Races take about 30 seconds.
+slats, the knives and the nigiri use the generic replay hook. Its hazard is the jam: one belt slows, runs backwards for 3 seconds and turns back. Races take about 30 seconds.
 
 ### Finish replay and moving map parts
 

@@ -8,8 +8,13 @@ extends Path2D
 ## with each belt (a little faster or slower than the belt itself), drawn from the race seed, so
 ## the order changes along the way and a seed replays the same race. Now and then a fish flops:
 ## it hops up and a little ahead, so it can pass the fish riding in front of it. The belts draw their own
-## moving slats from a clock that the finish replay records. A [SushiChef] child stands over the
-## belt nearest to it; this node tells it how that belt moves and passes the race on to it.
+## moving slats from a clock that the finish replay records. Each [SushiChef] child stands over the
+## belt nearest to it; this node tells it how that belt moves and passes the race on to it. The
+## chefs share one [ChopTally], so the field share a race can lose counts every knife, and this
+## node folds their meters into one.
+
+## The chefs' chat meter changed. Empty text hides it.
+signal meter_changed(text: String)
 
 ## Group the walls and pegs join so [TrackStyle] dresses them like a map's own stone.
 const STONE_GROUP: StringName = TrackStyle.STONE_GROUP
@@ -77,6 +82,8 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _knack_seed: int = 0
 var _bodies: Array[StaticBody2D] = []
 var _chefs: Array[SushiChef] = []
+var _tally: ChopTally = ChopTally.new()
+var _meter: String = ""
 ## Race second of each fish's next flop, and how many flops it has had, by marble id.
 var _next_flop: Dictionary = {}
 var _flops: Dictionary = {}
@@ -98,7 +105,10 @@ func _ready() -> void:
 	_build_pegs()
 	for child: Node in get_children():
 		if child is SushiChef:
-			_chefs.append(child as SushiChef)
+			var chef: SushiChef = child as SushiChef
+			_chefs.append(chef)
+			chef.share_tally(_tally)
+			chef.meter_changed.connect(_on_chef_meter.unbind(1))
 	_apply_speeds()
 
 
@@ -139,6 +149,33 @@ func _restart() -> void:
 
 func get_chefs() -> Array[SushiChef]:
 	return _chefs
+
+
+## Text of the one meter for every chef: a swing anywhere shows, then a knife ready to swing, and
+## the chefs are full or sharpening only when all of them are.
+func meter_text() -> String:
+	var texts: PackedStringArray = PackedStringArray()
+	for chef: SushiChef in _chefs:
+		if chef.is_armed():
+			texts.append(chef.meter_text())
+	if texts.is_empty():
+		return ""
+	if _chefs.size() == 1:
+		return texts[0]
+	if texts.has("CHOP!"):
+		return "CHOP!"
+	if texts.has("SUSHI CHEF   #chop"):
+		return "SUSHI CHEFS   #chop"
+	if texts.has("SHARPENING THE KNIFE"):
+		return "SHARPENING THE KNIVES"
+	return "THE CHEFS ARE FULL"
+
+
+func _on_chef_meter() -> void:
+	var text: String = meter_text()
+	if text != _meter:
+		_meter = text
+		meter_changed.emit(text)
 
 
 ## Direction of belt `index`: 1 runs to the right, -1 to the left.

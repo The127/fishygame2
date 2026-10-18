@@ -166,8 +166,9 @@ func _ready() -> void:
 	for node: Node in find_children("*", "SnakeBoard", true, false):
 		(node as SnakeBoard).meter_changed.connect(flipper_tally_changed.emit)
 		(node as SnakeBoard).burst_played.connect(burst_played.emit)
+	for node: Node in find_children("*", "SushiBelts", true, false):
+		(node as SushiBelts).meter_changed.connect(shake_meter_changed.emit)
 	for node: Node in find_children("*", "SushiChef", true, false):
-		(node as SushiChef).meter_changed.connect(shake_meter_changed.emit)
 		(node as SushiChef).fish_chopped.connect(fish_chopped.emit)
 		(node as SushiChef).burst_played.connect(burst_played.emit)
 	for node: Node in find_children("*", "ShipSinking", true, false):

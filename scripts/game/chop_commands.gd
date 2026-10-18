@@ -1,6 +1,6 @@
 class_name ChopCommands
 extends Node
-## The chat command that swings the sushi chef's knife: "#chop".
+## The chat command that swings the sushi chefs' knives: "#chop".
 ##
 ## Any viewer can press, joined or not. The node only forwards the press as
 ## [signal chop_requested]; the game passes it to the map, which owns the cooldown and the limits.

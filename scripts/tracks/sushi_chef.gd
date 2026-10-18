@@ -7,7 +7,7 @@ extends Node2D
 ##
 ## Chat cannot wipe out the field: after each swing the knife needs [constant COOLDOWN] seconds
 ## before the next, one swing takes at most [constant PER_SWING] fish, and a race takes at most
-## [constant FIELD_SHARE] of the field. With no chat the chef only taps his own board, so a race
+## [constant FIELD_SHARE] of the field, counted over every chef that shares the [ChopTally]. With no chat the chef only taps his own board, so a race
 ## never depends on chat. The node sits at the point of the belt the blade lands on; its parent
 ## [SushiBelts] tells it how that belt moves. Time advances only in physics frames, and the knife
 ## and the nigiri are part of the finish replay.
@@ -55,6 +55,8 @@ var _phase: Phase = Phase.READY
 var _phase_time: float = 0.0
 var _cooldown: float = 0.0
 var _chopped: int = 0
+## Fish chopped this race by every chef of the map. A lone chef keeps his own.
+var _tally: ChopTally = ChopTally.new()
 var _field: int = 0
 var _who: String = ""
 var _swings: int = 0
@@ -87,6 +89,11 @@ func set_belt(direction: float, speed: float, end_x: float) -> void:
 	_belt_end = end_x - global_position.x
 
 
+## Counts this chef's chops in `tally`, shared with the other chefs of the map.
+func share_tally(tally: ChopTally) -> void:
+	_tally = tally
+
+
 ## How many fish race, for the share of the field a race can lose.
 func set_field_size(count: int) -> void:
 	_field = count
@@ -108,6 +115,7 @@ func stop_gimmick() -> void:
 	_phase_time = 0.0
 	_cooldown = 0.0
 	_chopped = 0
+	_tally.chopped = 0
 	_swings = 0
 	_who = ""
 	_meter_in = 0.0
@@ -136,7 +144,7 @@ func get_phase() -> Phase:
 	return _phase
 
 
-## How many fish the knife has chopped this race.
+## How many fish this knife has chopped this race.
 func chopped_count() -> int:
 	return _chopped
 
@@ -156,7 +164,7 @@ static func chop_limit(field: int) -> int:
 
 ## Whether a "#chop" now would start a swing.
 func can_swing() -> bool:
-	return _armed and _phase == Phase.READY and _cooldown <= 0.0 and _chopped < _limit()
+	return _armed and _phase == Phase.READY and _cooldown <= 0.0 and _tally.chopped < _limit()
 
 
 ## A viewer typed "#chop". Returns whether it started a swing.
@@ -195,7 +203,7 @@ func tick(delta: float) -> void:
 
 ## Text of the on-screen meter.
 func meter_text() -> String:
-	if _chopped >= _limit():
+	if _tally.chopped >= _limit():
 		return "THE CHEF IS FULL"
 	match _phase:
 		Phase.WINDUP, Phase.STRIKE:
@@ -231,7 +239,7 @@ func _strike() -> void:
 		func(a: Marble, b: Marble) -> bool:
 			return absf(to_local(a.global_position).x) < absf(to_local(b.global_position).x)
 	)
-	var room: int = mini(PER_SWING, _limit() - _chopped)
+	var room: int = mini(PER_SWING, _limit() - _tally.chopped)
 	for i: int in mini(room, victims.size()):
 		_chop_fish(victims[i])
 	RaceFx.burst(self, global_position, BLADE, 8, 120.0, Vector2(0.0, 200.0))
@@ -243,6 +251,7 @@ func _chop_fish(marble: Marble) -> void:
 	var at: Vector2 = marble.global_position
 	marble.chop()
 	_chopped += 1
+	_tally.chopped += 1
 	var local: Vector2 = to_local(at)
 	var base: int = _next_nigiri * NIGIRI_FLOATS
 	_nigiri[base] = local.x

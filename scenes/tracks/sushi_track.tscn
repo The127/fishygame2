@@ -22,9 +22,19 @@ script = ExtResource("4_decor")
 [node name="Centerline" type="Path2D" parent="."]
 script = ExtResource("2_belts")
 
+[node name="ChefTop" type="Node2D" parent="Centerline"]
+z_index = -1
+position = Vector2(1300, 455)
+script = ExtResource("3_chef")
+
 [node name="Chef" type="Node2D" parent="Centerline"]
 z_index = -1
 position = Vector2(960, 660)
+script = ExtResource("3_chef")
+
+[node name="ChefBottom" type="Node2D" parent="Centerline"]
+z_index = -1
+position = Vector2(1200, 865)
 script = ExtResource("3_chef")
 
 [node name="Jam" type="Node2D" parent="."]
