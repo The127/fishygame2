@@ -68,6 +68,9 @@ var _rejoining: bool = false
 var _view_3d: Race3DView
 ## The impostor duck and the cardboard cutouts.
 var _extras: ExtraRacers = ExtraRacers.new()
+var _lurkers: Lurkers = Lurkers.new()
+## The current map's lurkers, a child of the track.
+var _den: LurkerDen
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
@@ -180,6 +183,7 @@ func _ready() -> void:
 	_betting.bet_rejected.connect(_on_bet_rejected)
 	_betting.balance_reported.connect(_on_balance_reported)
 	_race.race_finished.connect(_on_race_finished)
+	_set_up_lurkers()
 	_panel.open_lobby_pressed.connect(_flow.open_lobby)
 	_panel.start_pressed.connect(_on_start_pressed)
 	_panel.skip_replay_pressed.connect(_sequence.skip_replay)
@@ -703,6 +707,25 @@ func _on_map_selected(choice: String) -> void:
 		_load_map()
 
 
+func _set_up_lurkers() -> void:
+	_lurkers.points = _betting.points
+	_lurkers.store = _shop.store
+	add_child(_lurkers)
+	Chat.command_received.connect(_lurkers.handle_command)
+	_flow.player_joined.connect(_lurkers.add_contestant)
+	_flow.state_changed.connect(_lurkers.on_state_changed)
+	_flow.podium_ready.connect(_lurkers.on_podium_ready)
+	_lurkers.lurk_started.connect(
+		func(who: String) -> void: _overlay.show_notice(who + " is lurking")
+	)
+	_lurkers.lurkers_changed.connect(_on_lurkers_changed)
+
+
+func _on_lurkers_changed(watchers: Array[Dictionary]) -> void:
+	if is_instance_valid(_den):
+		_den.set_watchers(watchers)
+
+
 ## Swaps in the track for the coming race. Only called with no marbles on the field.
 func _load_map() -> void:
 	var id: String = TrackCatalog.resolve(_tournament.map_choice(_map_choice), _rng, _map_id)
@@ -721,6 +744,10 @@ func _load_map() -> void:
 	_track.quake_shaken.connect(_camera.punch)
 	add_child(_track)
 	move_child(_track, 0)
+	_den = LurkerDen.new(id)
+	_den.fish_positions = _race.get_position_map
+	_track.add_child(_den)
+	_den.set_watchers(_lurkers.watchers())
 	if _view_3d != null:
 		_track.visible = false
 		_view_3d.show_track(_track)

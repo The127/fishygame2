@@ -14,7 +14,9 @@ const KIND_COLOR: String = "color"
 const KIND_HAT: String = "hat"
 const KIND_TRAIL: String = "trail"
 const KIND_DANCE: String = "dance"
-const KINDS: Array[String] = [KIND_SPECIES, KIND_COLOR, KIND_HAT, KIND_TRAIL, KIND_DANCE]
+## The eyes a lurker watches the race with (see [LurkerEyes]). The first #lurk hands out one.
+const KIND_EYES: String = "eyes"
+const KINDS: Array[String] = [KIND_SPECIES, KIND_COLOR, KIND_HAT, KIND_TRAIL, KIND_DANCE, KIND_EYES]
 
 ## Empty means in-memory only.
 var save_path: String = ""
@@ -25,6 +27,8 @@ var _owned: Dictionary = {}
 var _equipped: Dictionary = {}
 ## Viewers who already got their free first-race hat, as a set of user ids.
 var _welcomed: Dictionary = {}
+## Viewers who typed "#lurk" and have not joined a race since, as a set of user ids.
+var _lurking: Dictionary = {}
 ## Save time (unix seconds) of the copy that was loaded last; 0 if it had none.
 var _loaded_at: float = 0.0
 ## Whether a saved copy was loaded from the files.
@@ -55,6 +59,24 @@ func was_welcomed(user_id: String) -> bool:
 
 func mark_welcomed(user_id: String) -> void:
 	_welcomed[user_id] = true
+
+
+func is_lurking(user_id: String) -> bool:
+	return _lurking.has(user_id)
+
+
+func set_lurking(user_id: String, lurking: bool) -> void:
+	if lurking:
+		_lurking[user_id] = true
+	else:
+		_lurking.erase(user_id)
+
+
+## Every lurking viewer's id, in the order they started lurking.
+func lurkers() -> Array[String]:
+	var ids: Array[String] = []
+	ids.assign(_lurking.keys())
+	return ids
 
 
 ## Equips an item the viewer owns. Returns false (and changes nothing) otherwise.
@@ -95,6 +117,7 @@ func load_from_disk() -> bool:
 	_owned.clear()
 	_equipped.clear()
 	_welcomed.clear()
+	_lurking.clear()
 	_loaded_at = 0.0
 	_loaded = false
 	if save_path.is_empty():
@@ -106,6 +129,7 @@ func load_from_disk() -> bool:
 		_owned.clear()
 		_equipped.clear()
 		_welcomed.clear()
+		_lurking.clear()
 		_apply(mirrored)
 		return true
 	return ok
@@ -140,6 +164,7 @@ func save_to_disk() -> bool:
 				"owned": _owned,
 				"equipped": _equipped,
 				"welcomed": _welcomed.keys(),
+				"lurking": _lurking.keys(),
 			}
 		)
 	)
@@ -227,6 +252,7 @@ func _load_file(path: String) -> bool:
 	_owned.clear()
 	_equipped.clear()
 	_welcomed.clear()
+	_lurking.clear()
 	_apply(data)
 	return true
 
@@ -288,6 +314,11 @@ func _apply(data: Dictionary) -> void:
 		for user_id: Variant in welcomed:
 			if user_id is String:
 				mark_welcomed(user_id)
+	var lurking: Variant = data.get("lurking", [])
+	if lurking is Array:
+		for user_id: Variant in lurking:
+			if user_id is String:
+				set_lurking(user_id, true)
 	var equipped_data: Dictionary = data.get("equipped", {})
 	for user_id: Variant in equipped_data:
 		if not (equipped_data[user_id] is Dictionary):

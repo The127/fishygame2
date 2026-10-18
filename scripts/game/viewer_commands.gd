@@ -19,6 +19,7 @@ const STATS_COOLDOWN_MSEC: int = 15000
 ## Commands that put a viewer on the leaderboard, so their name is remembered.
 const NAMED_COMMANDS: PackedStringArray = [
 	"join",
+	"lurk",
 	"bet",
 	"boost",
 	"curse",

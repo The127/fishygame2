@@ -519,6 +519,14 @@ func _nearest_route(global_pos: Vector2) -> int:
 	return best
 
 
+## How far a global position is from the nearest route line.
+func distance_to_route(global_pos: Vector2) -> float:
+	var best: float = _distance_to(_centerline, global_pos)
+	for i: int in _feeders.size() + 1 + _branches.size():
+		best = minf(best, _distance_to(_route_path(i), global_pos))
+	return best
+
+
 func _distance_to(path: Path2D, global_pos: Vector2) -> float:
 	var local: Vector2 = path.to_local(global_pos)
 	return local.distance_to(path.curve.get_closest_point(local))
