@@ -417,7 +417,7 @@ the top carries it out over the table, and the fish work down through ten bumper
 and three banks of flippers (`scripts/tracks/pinball_table.gd`, `pinball_flipper.gd`) to the drain,
 which is the finish. Any viewer, joined or not, types `#left` or `#right` to fire that side's
 flippers, which fling every fish lying on the blades up and toward the middle (`FlipperCommands`
-turns the chat line into a request, `Game` passes it to the map, which owns the cooldowns). A side
+turns the chat line into a request, `MapChat` passes it to the map, which owns the cooldowns). A side
 can fire once every 0.6 s, every press counts on a small tally in the top left, and when chat has
 been quiet for a few seconds the flippers fire by themselves on a schedule drawn from the race seed.
 With no chat input a seed replays the same race, so the seed sweeps and CI run on auto-fire only.
@@ -443,7 +443,7 @@ replay hook. Races take 30 to 60 seconds with auto-fire only.
 Claw Machine is an arcade cabinet. The fish land on a prize shelf in the glass box and a claw on a rail
 over them (`scripts/tracks/claw_machine.gd`) picks them off one at a time. Any viewer types `#left` or
 `#right` to move the claw a step and `#grab` to drop it (`FlipperCommands` turns the chat line into a
-request, `Game` passes it to the map, as on Pinball Reef). The claw goes down until it touches a fish
+request, `MapChat` passes it to the map, as on Pinball Reef). The claw goes down until it touches a fish
 or the shelf, shuts on a random fish within reach, lifts it and carries it to the prize chute on the
 left, where it lets go and the fish drops to the finish. About a third of the time it loses its grip on
 the way and the fish falls back on the pile. A claw nobody drops goes down by itself after 6 seconds,
@@ -455,11 +455,11 @@ with 20 fish whatever chat does (about 15 with one fish). A tilt (`tilt_hazard.g
 and then. The finish replay records the claw, its jaws and the shelf through the generic replay hook;
 the tally is not replayed. The claw posts nothing in chat, so the chat reply settings are untouched.
 
-Earthquake Fault is the other map chat plays. The fish zigzag down three rock shelves with four
+Earthquake Fault is another map chat plays. The fish zigzag down three rock shelves with four
 cracks in them (`scripts/tracks/fault_crack.gd`), each shut with a plug of rock until a quake splits
 it. Two are shortcuts, holes right through a shelf that drop the fish onto the shelf below. Two are
 pits, hollows full of rubble that slow the fish and push them on out the far side, so none is ever
-trapped. Viewers type `#shake` (`ShakeCommands` turns the chat line into a request, `Game` passes it
+trapped. Viewers type `#shake` (`ShakeCommands` turns the chat line into a request, `MapChat` passes it
 to the fault, `scripts/tracks/quake_fault.gd`). When enough of them have shaken inside 8 seconds,
 the ground rumbles for a moment and then a crack opens, the view jolts and every fish is thrown
 about. The presses needed are 40% of the joined viewers (at least 3, at most 12), one viewer counts
@@ -494,7 +494,7 @@ Board Game is a Snakes and Ladders board that chat plays (`scripts/tracks/snake_
 and builds the board in code). Ten rows of ten squares run back and forth up the screen: square 1 is bottom left, square
 100 (the finish) top left. The fish start in a pen left of square 1, a current carries them along every row (360 px/s, it
 never holds a faster fish back) and at the end of a row a bubble lift takes them up to the next one. Viewers spam `#roll`
-(`RollCommands` turns the chat line into a request, `Game` passes it to the die, `scripts/tracks/board_dice.gd`). When enough of
+(`RollCommands` turns the chat line into a request, the `MapChat` passes it to the die, `scripts/tracks/board_dice.gd`). When enough of
 them have pressed inside 6 seconds the die rolls; the presses needed are 40% of the joined viewers (at least 3, at most 12),
 one viewer counts for at most two, a meter in the top left shows how close it is, and a roll has a 2.5 second cooldown. If
 chat stays quiet the die still rolls every 3.5 to 5 seconds, so races finish without chat; the faces come from the race seed.
@@ -506,6 +506,24 @@ moves fish by taking them out of the physics (frozen, no collisions) and puts th
 that still gets knocked out of the board is put back on the last square it was on. Nothing posts in chat. The die uses the
 generic replay hook; the fish's hops replay like any other movement. Its hazard is the reverse card. `race_debug.tscn --roll` has
 made-up viewers spam `#roll`. Races take 20 to 30 seconds for the winner and 40 to 60 for the last fish.
+
+Sushi Bar is four conveyor belts stacked over a sushi counter, each running the other way to the one above
+(`scripts/tracks/sushi_belts.gd` is the map's `Centerline` and builds the belts, the walls, the route and the
+sesame pegs under the start that scatter the pack over the first belt). A fish resting on a belt is pushed to the
+belt's speed (270 px/s, each belt up to 10% off by seed) times its own seeded knack (up to 25% faster or slower), so
+the pack strings out, and every 1.2 to 3.4 seconds each fish flops: it hops up and mostly ahead, which is how a fish
+gets past the one in front of it on a belt. Wasabi humps on the belts make the pack jostle. At the far end of a belt
+the fish drop onto the next; the last one drops them into the finish. A chef stands behind the third belt with a big
+knife (`scripts/tracks/sushi_chef.gd`). Viewers type `#chop` (`ChopCommands`, any viewer, joined or not; the
+`MapChat` passes it to the chef): the knife goes up and lands 0.55 seconds later, and up to two fish under the blade are
+chopped. A chopped fish is out of the race for good: it counts as unfinished (like a dissolved fish it ranks behind the
+other unfinished fish), so results, payouts and stats treat it as a DNF, and it rides on down the belt as a piece of
+nigiri in its own color. Chat cannot wipe out the field: the knife needs 4 seconds after landing before the next
+swing, and a race loses at most 30% of the field to it (rounded down, at least one once two fish race, never the last
+fish), after which the meter in the top left says the chef is full. With no chat the chef only taps his board, so a
+race never depends on chat and the seed sweeps run without a single chop. The game only shows the chop on the overlay
+and posts nothing in chat. `race_debug.tscn --chop` has made-up viewers spam `#chop` for a manual check. The belts'
+slats, the knife and the nigiri use the generic replay hook. The map has no timed hazard. Races take about 30 seconds.
 
 ### Finish replay and moving map parts
 

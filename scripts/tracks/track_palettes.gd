@@ -437,6 +437,25 @@ const PALETTES: Dictionary = {
 		"sway_scale": 1.0,
 		"foreground_height": 0.2,
 	},
+	"sushi":
+	{
+		"sky_top": Color(0.17, 0.07, 0.06),
+		"sky_bottom": Color(0.03, 0.012, 0.012),
+		"far": Color(0.2, 0.08, 0.06),
+		"mid": Color(0.13, 0.05, 0.04),
+		"near": Color(0.03, 0.01, 0.01),
+		"plant": Color(0.32, 0.09, 0.07),
+		"stone_dark": Color(0.16, 0.09, 0.05),
+		"stone_light": Color(0.36, 0.22, 0.12),
+		"rim": Color(1.0, 0.68, 0.38),
+		"ray": Color(1.0, 0.72, 0.45),
+		"fog": Color(0.4, 0.16, 0.08),
+		"mote": Color(1.0, 0.85, 0.6),
+		"layer_kind": EnvLayer.Kind.RUINS,
+		"far_kind": EnvLayer.Kind.RUINS,
+		"sway_scale": 0.3,
+		"foreground_height": 0.35,
+	},
 }
 const DEFAULT_STYLE: String = "kelp"
 
@@ -466,4 +485,5 @@ const FOREGROUND: Dictionary = {
 	"fault": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SHARDS],
 	"riptide": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
 	"board": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
+	"sushi": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.RUINS],
 }

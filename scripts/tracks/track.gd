@@ -24,6 +24,8 @@ signal hazard_active(kind: String)
 signal fish_eaten(marble: Marble)
 ## Stomach acid just dissolved `marble`: it is out of the race.
 signal fish_dissolved(marble: Marble)
+## The sushi chef's knife just chopped `marble`: it is out of the race. `who` swung it.
+signal fish_chopped(marble: Marble, who: String)
 ## A cut fish's ghost broke loose on its own and wants to send out an eddy.
 signal ghost_restless(marble: Marble)
 ## A map part (anglerfish, portal) let off a particle burst. The finish replay plays it again.
@@ -31,7 +33,7 @@ signal burst_played(position: Vector2, color: Color, amount: int, speed: float, 
 ## The chat tally of a map with flippers, a claw, a gravity helm or a die changed. Empty text hides
 ## it.
 signal flipper_tally_changed(text: String)
-## The quake meter of a map with a fault changed. Empty text hides it.
+## The chat meter of a map with a fault or a sushi chef changed. Empty text hides it.
 signal shake_meter_changed(text: String)
 ## A quake wants the view to shake, `strength` pixels at first.
 signal quake_shaken(strength: float)
@@ -142,6 +144,12 @@ func _ready() -> void:
 			(hazard as EddyRing).restless.connect(ghost_restless.emit)
 		if hazard is SpinCycleHazard:
 			(hazard as SpinCycleHazard).burst_played.connect(burst_played.emit)
+		if hazard is BeltReverseHazard:
+			for child: Node in get_children():
+				if child is SushiBelts:
+					(hazard as BeltReverseHazard).belt_changed.connect(
+						(child as SushiBelts).set_belt_state
+					)
 		if hazard is AftershockHazard:
 			(hazard as AftershockHazard).shaken.connect(quake_shaken.emit)
 	for node: Node in find_children("*", "PortalPair", true, false):
@@ -158,6 +166,10 @@ func _ready() -> void:
 	for node: Node in find_children("*", "SnakeBoard", true, false):
 		(node as SnakeBoard).meter_changed.connect(flipper_tally_changed.emit)
 		(node as SnakeBoard).burst_played.connect(burst_played.emit)
+	for node: Node in find_children("*", "SushiChef", true, false):
+		(node as SushiChef).meter_changed.connect(shake_meter_changed.emit)
+		(node as SushiChef).fish_chopped.connect(fish_chopped.emit)
+		(node as SushiChef).burst_played.connect(burst_played.emit)
 	for node: Node in find_children("*", "ShipSinking", true, false):
 		(node as ShipSinking).burst_played.connect(burst_played.emit)
 	var style: TrackStyle = TrackStyle.new()
@@ -244,6 +256,8 @@ func stop_hazards() -> void:
 		(node as QuakeFault).freeze()
 	for node: Node in find_children("*", "SnakeBoard", true, false):
 		(node as SnakeBoard).freeze()
+	for node: Node in find_children("*", "SushiChef", true, false):
+		(node as SushiChef).freeze()
 
 
 ## Puts the map's geysers back to sleep, its gravity back to down, its tide full again and any
@@ -269,6 +283,9 @@ func stop_gimmicks() -> void:
 func set_field_size(count: int) -> void:
 	if _tide != null:
 		_tide.set_field_size(count)
+	for child: Node in get_children():
+		if child is SushiBelts:
+			(child as SushiBelts).set_field_size(count)
 
 
 ## Stops the tide where it is. The next [method stop_gimmicks] refills it.

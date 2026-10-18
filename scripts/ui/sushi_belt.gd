@@ -29,6 +29,7 @@ const MENU: Dictionary = {
 	"stranded": ["sun-dried", 180],
 	"cut": ["ghost roll", 120],
 	"eaten": ["pre-chewed", 30],
+	"chopped": ["chef's special", 250],
 	"": ["fresh catch", 300],
 }
 const TAG_PAPER: Color = Color(0.98, 0.95, 0.86)

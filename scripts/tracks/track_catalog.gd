@@ -199,6 +199,14 @@ const MAPS: Array[Dictionary] = [
 		"ambience": "res://assets/audio/ambience_board.wav",
 		"jingle": "res://assets/audio/jingle_board.wav",
 	},
+	{
+		"id": "sushi",
+		"name": "Sushi Bar",
+		"scene": preload("res://scenes/tracks/sushi_track.tscn"),
+		"music": "res://assets/audio/music_sushi.wav",
+		"ambience": "res://assets/audio/ambience_sushi.wav",
+		"jingle": "res://assets/audio/jingle_sushi.wav",
+	},
 ]
 
 

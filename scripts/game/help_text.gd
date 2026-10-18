@@ -9,6 +9,7 @@ const CHAT_REPLY: String = (
 	+ "#left / #right (Pinball Reef 1 and 2 flippers, Claw Machine, Gravity Flip) | "
 	+ "#grab (Claw Machine) | #up / #down (Gravity Flip) | "
 	+ "#shake (Earthquake Fault) | #roll (Board Game) | "
+	+ "#shake (Earthquake Fault) | #chop (Sushi Bar) | "
 	+ "#eddy (flushed-out fish)"
 )
 
@@ -30,5 +31,6 @@ const LINES: PackedStringArray = [
 	"#up / #down / #left / #right  steer gravity (Gravity Flip)",
 	"#shake  spam it to quake the seafloor (Earthquake Fault)",
 	"#roll  spam it to roll the dice (Board Game)",
+	"#chop  swing the chef's knife (Sushi Bar)",
 	"#help  this list",
 ]

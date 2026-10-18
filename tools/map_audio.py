@@ -215,6 +215,15 @@ JINGLES = {
         "bell": (1.0, 98, 1.5),
         "echo": (0.25, 2, 0.4),
     },
+    # Sushi Bar: a plucked D yo-scale run that lands on an open chord, with a bright bell.
+    "sushi": {
+        "partials": MALLET,
+        "notes": ((0.0, 74, 0.5, 0.15), (0.1, 76, 0.5, 0.15), (0.2, 79, 0.5, 0.15),
+                  (0.3, 81, 0.5, 0.15), (0.4, 83, 0.6, 0.18), (0.6, 86, 1.8, 0.7),
+                  (0.6, 81, 1.8, 0.7), (0.6, 74, 1.8, 0.7), (0.6, 50, 1.8, 0.7)),
+        "bell": (0.95, 93, 1.4),
+        "echo": (0.25, 2, 0.4),
+    },
     # Earthquake fault: two low rumbling hits, then a brass D phrygian rise that settles.
     "fault": {
         "partials": BRASS,
@@ -655,6 +664,15 @@ def _board(out, rng):
     bubbles(out, rng, 6, 300.0, 800.0, 0.09)
 
 
+def _sushi(out, rng):
+    # The hum of the belts, a busy kitchen murmur, knife taps on the board and the odd sizzle.
+    bed(out, rng, 0.0, 220.0, 0.7, swell=0.2, cycles=2)
+    bed(out, rng, 300.0, 1100.0, 0.25, swell=0.6, cycles=1, phase=1.0)
+    clanks(out, (0.6, 0.9, 1.2, 3.4, 3.7, 6.1, 6.4, 6.7), 700.0, 0.06)
+    steam(out, rng, (2.2, 5.0), 0.05)
+    tinkles(out, rng, (1.7, 4.6), 1800.0, 2600.0, 0.05)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -680,6 +698,7 @@ AMBIENCE = {
     "fault": (73, _fault),
     "riptide": (72, _riptide),
     "board": (81, _board),
+    "sushi": (74, _sushi),
 }
 
 
