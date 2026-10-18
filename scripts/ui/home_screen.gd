@@ -22,6 +22,8 @@ const TITLE_NUMBER_LENGTH: int = 2
 const SEQUEL_TAGLINE: String = "NOW IN 3D. CHAT JOINS AS FISH. FISH RACE DOWN THE TRACK."
 const SEQUEL_PLAY_TEXT: String = "PLAY"
 const REPLAY_SURPRISE_TEXT: String = "REPLAY 3D"
+const RTX_ON_TEXT: String = "RTX ON"
+const RTX_OFF_TEXT: String = "RTX OFF"
 const SEQUEL_REVEAL_SHADER: String = "res://assets/shaders/surprise/sequel_reveal.gdshader"
 ## Seconds the ring takes to uncover the fake sequel's flyover backdrop.
 const SEQUEL_REVEAL_SECONDS: float = 1.6
@@ -49,6 +51,8 @@ var _title_drop: TitleDrop
 var _flyover: TrackFlyover
 var _four_d: FourDView
 var _replay_surprise: Button
+var _rtx_button: Button
+var _rtx_filter: RtxFilter = RtxFilter.new()
 var _tagline_text: String
 var _open_lobby_text: String
 var _aquarium_blink: Tween
@@ -109,7 +113,10 @@ func _ready() -> void:
 		else:
 			# Turned off in the settings: back to the real game.
 			ReleaseSurprise.end()
-	_add_replay_button()
+	_add_corner_buttons()
+	_rtx_filter.set_badge_at_top(true)
+	add_child(_rtx_filter)
+	_apply_rtx()
 	# Fire and forget: waits a few frames, then makes the web page transparent again.
 	WebBoot.release_background()
 	# Only when this is the running scene, so tests that instantiate the screen stay put.
@@ -129,19 +136,36 @@ func _add_version_tag() -> void:
 	tag.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 12)
 
 
-## Small button in the bottom left corner that arms the release surprise again, shown once
-## it has played: the next Open Lobby press then starts it over.
-func _add_replay_button() -> void:
+## Small buttons stacked in the bottom left corner: one that arms the release surprise
+## again, shown once it has played (the next Open Lobby press then starts it over), and
+## below it the RTX switch, which saves to the settings. They sit on their own layer.
+func _add_corner_buttons() -> void:
+	# Above the RTX filter, so its vignette never darkens the switch that turns it off.
+	var layer: CanvasLayer = CanvasLayer.new()
+	layer.name = "CornerLayer"
+	layer.layer = RtxFilter.LAYER + 1
+	add_child(layer)
+	var corner: VBoxContainer = VBoxContainer.new()
+	corner.name = "Corner"
+	corner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(corner)
 	_replay_surprise = Button.new()
 	_replay_surprise.name = "ReplaySurprise"
 	_replay_surprise.text = REPLAY_SURPRISE_TEXT
 	_replay_surprise.focus_mode = Control.FOCUS_NONE
 	UiStyle.style_button(_replay_surprise, 16)
 	_replay_surprise.pressed.connect(_on_replay_surprise_pressed)
-	add_child(_replay_surprise)
-	_replay_surprise.set_anchors_and_offsets_preset(
+	corner.add_child(_replay_surprise)
+	_rtx_button = Button.new()
+	_rtx_button.name = "Rtx"
+	_rtx_button.focus_mode = Control.FOCUS_NONE
+	UiStyle.style_button(_rtx_button, 16)
+	_rtx_button.pressed.connect(_on_rtx_pressed)
+	corner.add_child(_rtx_button)
+	corner.set_anchors_and_offsets_preset(
 		Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12
 	)
+	corner.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_refresh_replay_button()
 
 
@@ -151,6 +175,22 @@ func _refresh_replay_button() -> void:
 		and ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF
 		and surprise_store.is_seen()
 	)
+
+
+func _on_rtx_pressed() -> void:
+	settings.rtx = not settings.rtx
+	settings.save()
+	_apply_rtx()
+
+
+func _apply_rtx() -> void:
+	_rtx_button.text = RTX_ON_TEXT if settings.rtx else RTX_OFF_TEXT
+	_rtx_filter.set_enabled(settings.rtx)
+	($Scene3D as HomeScene3D).set_rtx(settings.rtx)
+
+
+func is_rtx_on() -> bool:
+	return _rtx_filter.is_enabled()
 
 
 func _on_replay_surprise_pressed() -> void:

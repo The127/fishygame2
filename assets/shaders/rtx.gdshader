@@ -1,9 +1,10 @@
 shader_type canvas_item;
+render_mode blend_disabled;
 // "RTX ON": a deliberately overdone post effect over the whole race. One pass over the
 // screen copy: bloom and a blue anamorphic streak from its blurred mip levels, light shafts
 // from above, a shine sweeping across bright surfaces, chromatic aberration, more contrast
-// and saturation, and a vignette. Keeps the screen's alpha, so transparent parts of the
-// OBS source stay transparent.
+// and saturation, and a vignette. Overwrites the screen with its own alpha unchanged (no
+// blending), so transparent parts of the OBS source stay transparent.
 
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap, repeat_disable;
 uniform float bloom_strength = 1.6;

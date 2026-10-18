@@ -48,11 +48,8 @@ func _init() -> void:
 	_look.shadow_offset = Vector2.ZERO
 	_badge.label_settings = _look
 	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_badge.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	_badge.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_badge.offset_left = MARGIN
-	_badge.offset_bottom = -MARGIN
 	_frame.add_child(_badge)
+	set_badge_at_top(false)
 
 
 func set_enabled(on: bool) -> void:
@@ -62,6 +59,19 @@ func set_enabled(on: bool) -> void:
 
 func is_enabled() -> bool:
 	return visible
+
+
+## Puts the badge in the top left corner instead of the bottom left one.
+func set_badge_at_top(top: bool) -> void:
+	var preset: Control.LayoutPreset = (
+		Control.PRESET_TOP_LEFT if top else Control.PRESET_BOTTOM_LEFT
+	)
+	_badge.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE, int(MARGIN))
+	_badge.grow_vertical = Control.GROW_DIRECTION_END if top else Control.GROW_DIRECTION_BEGIN
+
+
+func badge_is_at_top() -> bool:
+	return _badge.anchor_top == 0.0
 
 
 ## Keeps the badge inside the part of the screen the game may use (see

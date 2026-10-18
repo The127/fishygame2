@@ -208,13 +208,16 @@ func test_play_after_the_round_drops_a_4_and_glitches_back_to_2() -> void:
 	assert_false(open_lobby.disabled)
 	assert_true((home.get_node("Scene3D") as Control).visible)
 	assert_false(ReleaseSurprise.should_start(true, home.surprise_store), "plays only once")
-	assert_true((home.get_node("ReplaySurprise") as Button).visible, "and can be re-armed")
+	assert_true(
+		(home.get_node("CornerLayer/Corner/ReplaySurprise") as Button).visible,
+		"and can be re-armed"
+	)
 
 
 func test_home_button_rearms_the_surprise_once_it_has_played() -> void:
 	var home: HomeScreen = _make_home()
 	await wait_process_frames(2)
-	var replay: Button = home.get_node("ReplaySurprise")
+	var replay: Button = home.get_node("CornerLayer/Corner/ReplaySurprise")
 	assert_false(replay.visible, "nothing to replay before it ran")
 	home.surprise_store.set_seen(true)
 	home._refresh_replay_button()
@@ -230,7 +233,13 @@ func test_home_replay_button_hides_while_the_joke_runs_or_is_off() -> void:
 	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE
 	var home: HomeScreen = _make_home()
 	await wait_process_frames(2)
-	assert_false((home.get_node("ReplaySurprise") as Button).visible, "not during the fake 3")
+	assert_false(
+		(home.get_node("CornerLayer/Corner/ReplaySurprise") as Button).visible,
+		"not during the fake 3"
+	)
 	var off: HomeScreen = _make_home(false)
 	await wait_process_frames(2)
-	assert_false((off.get_node("ReplaySurprise") as Button).visible, "not with the setting off")
+	assert_false(
+		(off.get_node("CornerLayer/Corner/ReplaySurprise") as Button).visible,
+		"not with the setting off"
+	)

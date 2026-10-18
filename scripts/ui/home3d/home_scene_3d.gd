@@ -20,6 +20,9 @@ const FOG_COLOR: Color = Color(0.02, 0.09, 0.16)
 ## Where the clock tower stands: back and to the right, so it sits in the bottom right corner.
 const CLOCK_TOWER_XZ: Vector2 = Vector2(11.0, -4.5)
 const CLOCK_TOWER_SCALE: float = 0.55
+const SNOW_AMOUNT: int = 140
+## Snow flakes with RTX on (see [method set_rtx]).
+const RTX_SNOW_AMOUNT: int = 420
 
 var school: HomeFishSchool
 var clock_tower: HomeClockTower
@@ -36,6 +39,9 @@ var ears: MeshInstance3D
 var _fish: MultiMeshInstance3D
 var _fish_material: ShaderMaterial
 var _world: Node3D
+var _env: Environment
+var _snow: CPUParticles3D
+var _rtx: bool = false
 var _time: float = 0.0
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
@@ -67,11 +73,28 @@ func _ready() -> void:
 	world.add_child(clock_tower)
 	for shaft: MeshInstance3D in _make_shafts():
 		world.add_child(shaft)
-	world.add_child(_make_snow())
+	_snow = _make_snow()
+	world.add_child(_snow)
 	school = HomeFishSchool.new(FISH_COUNT)
 	_fish = _make_fish()
 	world.add_child(_fish)
 	_update_fish()
+	set_rtx(_rtx)
+
+
+## The "RTX ON" look: 4x MSAA, glow on bright things and three times the drifting snow.
+## Safe to call before the scene is in the tree.
+func set_rtx(on: bool) -> void:
+	_rtx = on
+	if viewport == null:
+		return
+	viewport.msaa_3d = Viewport.MSAA_4X if on else Viewport.MSAA_DISABLED
+	_env.glow_enabled = on
+	_snow.amount = RTX_SNOW_AMOUNT if on else SNOW_AMOUNT
+
+
+func is_rtx() -> bool:
+	return _rtx
 
 
 func _process(delta: float) -> void:
@@ -178,6 +201,12 @@ func _make_environment() -> WorldEnvironment:
 	env.fog_light_color = FOG_COLOR
 	env.fog_density = 0.04
 	env.fog_sky_affect = 0.0
+	env.glow_intensity = 1.2
+	env.glow_strength = 1.1
+	env.glow_bloom = 0.15
+	env.glow_hdr_threshold = 0.7
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+	_env = env
 	var holder: WorldEnvironment = WorldEnvironment.new()
 	holder.environment = env
 	return holder
@@ -325,7 +354,7 @@ func _make_snow() -> CPUParticles3D:
 	flake.material = material
 	var snow: CPUParticles3D = CPUParticles3D.new()
 	snow.mesh = flake
-	snow.amount = 140
+	snow.amount = SNOW_AMOUNT
 	snow.lifetime = 16.0
 	snow.preprocess = 16.0
 	snow.position = Vector3(0.0, 3.0, -3.0)
