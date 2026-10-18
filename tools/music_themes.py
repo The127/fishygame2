@@ -820,4 +820,31 @@ THEMES = {
              "bell": True, "gaps": (0.5, 1.0, 1.5)},
         ),
     },
+    # Board Game: a cheerful C major parlour tune, a hopping marimba over an oom-pah bass, light
+    # hats and a few bright bells for the ladders.
+    "board": {
+        "seed": 81,
+        "chords": (
+            (36, 48, 52, 55, 60),
+            (41, 53, 57, 60, 65),
+            (43, 55, 59, 62, 67),
+            (36, 48, 52, 55, 64),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.05,
+        "trem_rate": 0.25,
+        "trem_depth": 0.2,
+        "rumble_cutoff": 200.0,
+        "rumble_gain": 0.2,
+        "layers": (
+            {"kind": "arp", "bpm": 112, "div": 2, "pattern": (72, 76, 79, 76, 84, 79, 76, 79,
+             77, 81, 84, 81, 79, 83, 86, 83), "decay": 0.12, "gain": 0.13, "accent": 4},
+            {"kind": "bass", "bpm": 112, "div": 1, "pattern": (36, 43, 41, 48, 43, 50, 36, 43),
+             "decay": 0.18, "gain": 0.3},
+            {"kind": "hiss", "bpm": 112, "every": 2, "offset": 1, "low": 4000.0, "high": 7000.0,
+             "decay": 0.04, "gain": 0.05},
+            {"kind": "plucks", "count": 6, "notes": (84, 88, 91, 96), "decay": 0.4, "gain": 0.04,
+             "bell": True, "gaps": (0.4, 0.8)},
+        ),
+    },
 }

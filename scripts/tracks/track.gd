@@ -28,7 +28,8 @@ signal fish_dissolved(marble: Marble)
 signal ghost_restless(marble: Marble)
 ## A map part (anglerfish, portal) let off a particle burst. The finish replay plays it again.
 signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
-## The chat tally of a map with flippers, a claw or a gravity helm changed. Empty text hides it.
+## The chat tally of a map with flippers, a claw, a gravity helm or a die changed. Empty text hides
+## it.
 signal flipper_tally_changed(text: String)
 ## The quake meter of a map with a fault changed. Empty text hides it.
 signal shake_meter_changed(text: String)
@@ -154,6 +155,9 @@ func _ready() -> void:
 		(node as QuakeFault).meter_changed.connect(shake_meter_changed.emit)
 		(node as QuakeFault).quake_shaken.connect(quake_shaken.emit)
 		(node as QuakeFault).burst_played.connect(burst_played.emit)
+	for node: Node in find_children("*", "SnakeBoard", true, false):
+		(node as SnakeBoard).meter_changed.connect(flipper_tally_changed.emit)
+		(node as SnakeBoard).burst_played.connect(burst_played.emit)
 	for node: Node in find_children("*", "ShipSinking", true, false):
 		(node as ShipSinking).burst_played.connect(burst_played.emit)
 	var style: TrackStyle = TrackStyle.new()
@@ -238,6 +242,8 @@ func stop_hazards() -> void:
 		hazard.disarm()
 	for node: Node in find_children("*", "QuakeFault", true, false):
 		(node as QuakeFault).freeze()
+	for node: Node in find_children("*", "SnakeBoard", true, false):
+		(node as SnakeBoard).freeze()
 
 
 ## Puts the map's geysers back to sleep, its gravity back to down, its tide full again and any

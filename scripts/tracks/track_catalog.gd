@@ -191,6 +191,14 @@ const MAPS: Array[Dictionary] = [
 		"ambience": "res://assets/audio/ambience_riptide.wav",
 		"jingle": "res://assets/audio/jingle_riptide.wav",
 	},
+	{
+		"id": "board",
+		"name": "Board Game",
+		"scene": preload("res://scenes/tracks/board_track.tscn"),
+		"music": "res://assets/audio/music_board.wav",
+		"ambience": "res://assets/audio/ambience_board.wav",
+		"jingle": "res://assets/audio/jingle_board.wav",
+	},
 ]
 
 

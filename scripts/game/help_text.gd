@@ -8,7 +8,7 @@ const CHAT_REPLY: String = (
 	+ "#points | #stats | #top | #rival <name> | #shop | #fish <species> | #color <name> | #hat <name> | #trail <name> | #dance <name> | "
 	+ "#left / #right (Pinball Reef 1 and 2 flippers, Claw Machine, Gravity Flip) | "
 	+ "#grab (Claw Machine) | #up / #down (Gravity Flip) | "
-	+ "#shake (Earthquake Fault) | "
+	+ "#shake (Earthquake Fault) | #roll (Board Game) | "
 	+ "#eddy (flushed-out fish)"
 )
 
@@ -29,5 +29,6 @@ const LINES: PackedStringArray = [
 	"#left / #right / #grab  work the claw (Claw Machine)",
 	"#up / #down / #left / #right  steer gravity (Gravity Flip)",
 	"#shake  spam it to quake the seafloor (Earthquake Fault)",
+	"#roll  spam it to roll the dice (Board Game)",
 	"#help  this list",
 ]

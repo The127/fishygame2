@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
+[ext_resource type="Script" path="res://scripts/tracks/snake_board.gd" id="2_board"]
+[ext_resource type="Script" path="res://scripts/tracks/reverse_hazard.gd" id="3_reverse"]
+
+[sub_resource type="RectangleShape2D" id="Rect_finish"]
+size = Vector2(110, 86)
+
+[node name="Track" type="Node2D"]
+script = ExtResource("1_track")
+view_bounds = Rect2(0, 0, 1920, 1080)
+spawn_columns = 5
+style_id = "board"
+follow_camera = false
+
+[node name="Centerline" type="Path2D" parent="."]
+script = ExtResource("2_board")
+
+[node name="Finish" type="Area2D" parent="."]
+position = Vector2(465, 123)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Finish"]
+shape = SubResource("Rect_finish")
+
+[node name="SpawnOrigin" type="Marker2D" parent="."]
+position = Vector2(80, 1013)
+
+[node name="Reverse" type="Node2D" parent="."]
+script = ExtResource("3_reverse")
+kind = "reverse"
+telegraph_seconds = 1.5
+active_seconds = 3.0

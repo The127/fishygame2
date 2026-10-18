@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko (a tall machine with three peg levels: a dense field, a sparse one with pulsing bumpers and one of spinners) and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback, overgrowth on Coral Garden and a tilt on Pinball Reef and Claw Machine (somebody bumps the cabinet and every fish is shoved back and forth sideways, `scripts/tracks/tilt_hazard.gd`) and an aftershock on Earthquake Fault (the floor shudders and hops every fish, `scripts/tracks/aftershock_hazard.gd`) and a restless ghost that stirs up an eddy on Riptide Rounds. The Jellyfish
+Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback, overgrowth on Coral Garden and a tilt on Pinball Reef and Claw Machine (somebody bumps the cabinet and every fish is shoved back and forth sideways, `scripts/tracks/tilt_hazard.gd`) and an aftershock on Earthquake Fault (the floor shudders and hops every fish, `scripts/tracks/aftershock_hazard.gd`) and a restless ghost that stirs up an eddy on Riptide Rounds and a reverse card on Board Game (two rows flash, then their current runs backwards for three seconds, `scripts/tracks/reverse_hazard.gd`). The Jellyfish
 
 Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
@@ -489,6 +489,23 @@ are taken out of the physics and wait in the lagoon too, instead of circling amo
 the cut is the lap line itself. The camera keeps the whole ring in view (`Track.follow_camera`). To make another map a round
 race give its `Track` a closed `Centerline` and `laps`. It has no timed hazard: the eddies are its hazard. The debug race
 (and so the seed sweeps) has a cut fish send an eddy every two seconds, standing in for chat; `--eddies=0` turns that off.
+
+Board Game is a Snakes and Ladders board that chat plays (`scripts/tracks/snake_board.gd` is its `Centerline`
+and builds the board in code). Ten rows of ten squares run back and forth up the screen: square 1 is bottom left, square
+100 (the finish) top left. The fish start in a pen left of square 1, a current carries them along every row (360 px/s, it
+never holds a faster fish back) and at the end of a row a bubble lift takes them up to the next one. Viewers spam `#roll`
+(`RollCommands` turns the chat line into a request, `Game` passes it to the die, `scripts/tracks/board_dice.gd`). When enough of
+them have pressed inside 6 seconds the die rolls; the presses needed are 40% of the joined viewers (at least 3, at most 12),
+one viewer counts for at most two, a meter in the top left shows how close it is, and a roll has a 2.5 second cooldown. If
+chat stays quiet the die still rolls every 3.5 to 5 seconds, so races finish without chat; the faces come from the race seed.
+When the die lands, every fish on the board hops that many squares, square by square. A fish that lands at the foot of a ladder
+climbs it, one that lands on a snake's head slides down to its tail; rolling past either does nothing, as on a real board.
+Fish in the pen are not on the board yet and do not hop. The snakes fall asleep 28 seconds into a race, so the last fish are
+not sent back forever. Finished fish are carried off square 100 into the winners' tray so they never block it. The board
+moves fish by taking them out of the physics (frozen, no collisions) and puts them down only on a free spot of the lane; a fish
+that still gets knocked out of the board is put back on the last square it was on. Nothing posts in chat. The die uses the
+generic replay hook; the fish's hops replay like any other movement. Its hazard is the reverse card. `race_debug.tscn --roll` has
+made-up viewers spam `#roll`. Races take 20 to 30 seconds for the winner and 40 to 60 for the last fish.
 
 ### Finish replay and moving map parts
 

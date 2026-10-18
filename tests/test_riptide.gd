@@ -80,8 +80,9 @@ func test_other_maps_are_one_lap_with_no_rounds() -> void:
 		add_child_autofree(track)
 		assert_eq(track.laps, 1, id)
 		assert_false(track.has_rounds(), id)
-		# The Claw Machine is seen whole too, so chat can see the claw and the whole pile.
-		assert_eq(track.follow_camera, id != "claw", id)
+		# The Claw Machine and Board Game are seen whole too, so chat can see the claw and the whole
+		# pile, and the whole board stays readable.
+		assert_eq(track.follow_camera, id != "claw" and id != "board", id)
 		assert_false(track.has_eddies(), id)
 
 
