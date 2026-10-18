@@ -168,6 +168,14 @@ const MAPS: Array[Dictionary] = [
 		"jingle": "res://assets/audio/jingle_pinball2.wav",
 	},
 	{
+		"id": "claw",
+		"name": "Claw Machine",
+		"scene": preload("res://scenes/tracks/claw_track.tscn"),
+		"music": "res://assets/audio/music_claw.wav",
+		"ambience": "res://assets/audio/ambience_claw.wav",
+		"jingle": "res://assets/audio/jingle_claw.wav",
+	},
+	{
 		"id": "fault",
 		"name": "Earthquake Fault",
 		"scene": preload("res://scenes/tracks/fault_track.tscn"),

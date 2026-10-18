@@ -6,7 +6,8 @@ extends RefCounted
 const CHAT_REPLY: String = (
 	"Commands: #join | #bet <fish> <amount> | #boost <fish> | #curse <fish> | "
 	+ "#points | #stats | #top | #rival <name> | #shop | #fish <species> | #color <name> | #hat <name> | #trail <name> | #dance <name> | "
-	+ "#left / #right (Pinball Reef 1 and 2 flippers, Gravity Flip) | #up / #down (Gravity Flip) | "
+	+ "#left / #right (Pinball Reef 1 and 2 flippers, Claw Machine, Gravity Flip) | "
+	+ "#grab (Claw Machine) | #up / #down (Gravity Flip) | "
 	+ "#shake (Earthquake Fault) | "
 	+ "#eddy (flushed-out fish)"
 )
@@ -25,6 +26,7 @@ const LINES: PackedStringArray = [
 	"#rival <name>  beat them for bonus points",
 	"#shop  fish, colors, hats, trails and dances",
 	"#left / #right  fire the flippers (both Pinball Reefs)",
+	"#left / #right / #grab  work the claw (Claw Machine)",
 	"#up / #down / #left / #right  steer gravity (Gravity Flip)",
 	"#shake  spam it to quake the seafloor (Earthquake Fault)",
 	"#help  this list",
