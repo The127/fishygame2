@@ -130,7 +130,7 @@ func test_settings_button_arms_the_surprise_again() -> void:
 	screen.settings = GameSettings.new()
 	screen.surprise_store = store
 	add_child_autofree(screen)
-	assert_not_null(screen.find_child("ReplaySurprise", true, false), "the button is in a tab")
+	assert_not_null(screen.find_child("ReplaySurprise", true, false), "the button is on a page")
 	screen.replay_surprise()
 	assert_false(store.is_seen())
 	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.OFF)

@@ -511,9 +511,7 @@ func _add_page(
 		heading.text = String(section["title"]).to_upper()
 		UiStyle.style_label(heading, 16, 800, UiStyle.CYAN, 3)
 		rows.add_child(heading)
-		var section_text: String = (
-			("%s %s %s" % [title, section["title"], section.get("hint", "")]).to_lower()
-		)
+		var section_text: String = ("%s %s" % [title, section["title"]]).to_lower()
 		if section.has("hint"):
 			var hint := _hint_label(String(section["hint"]))
 			rows.add_child(hint)
