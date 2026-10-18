@@ -179,11 +179,21 @@ polygon = PackedVector2Array(954, 420, 966, 420, 980, 434, 980, 846, 966, 860, 9
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="Part3_0"]
-polygon = PackedVector2Array(1414, 220, 1426, 220, 1440, 234, 1440, 846, 1426, 860, 1414, 860, 1400, 846, 1400, 234)
+polygon = PackedVector2Array(1414, 70, 1426, 70, 1440, 70, 1440, 456, 1426, 470, 1414, 470, 1400, 456, 1400, 70)
 
 [node name="Visual" type="Polygon2D" parent="Part3_0"]
 color = Color(0.14, 0.13, 0.26, 1)
-polygon = PackedVector2Array(1414, 220, 1426, 220, 1440, 234, 1440, 846, 1426, 860, 1414, 860, 1400, 846, 1400, 234)
+polygon = PackedVector2Array(1414, 70, 1426, 70, 1440, 70, 1440, 456, 1426, 470, 1414, 470, 1400, 456, 1400, 70)
+
+[node name="Part3_1" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Part3_1"]
+polygon = PackedVector2Array(1414, 620, 1426, 620, 1440, 634, 1440, 1010, 1426, 1010, 1414, 1010, 1400, 1010, 1400, 634)
+
+[node name="Visual" type="Polygon2D" parent="Part3_1"]
+color = Color(0.14, 0.13, 0.26, 1)
+polygon = PackedVector2Array(1414, 620, 1426, 620, 1440, 634, 1440, 1010, 1426, 1010, 1414, 1010, 1400, 1010, 1400, 634)
 
 [node name="Valve1_0" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
@@ -241,27 +251,14 @@ polygon = PackedVector2Array(957, 860, 963, 860, 963, 1010, 957, 1010)
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="Valve3_0"]
-position = Vector2(1420, 145)
+position = Vector2(1420, 545)
 rotation = 1.5708
 polygon = PackedVector2Array(-75, -3, 75, -3, 75, 3, -75, 3)
 one_way_collision = true
 
 [node name="Visual" type="Polygon2D" parent="Valve3_0"]
 color = Color(0.2, 0.17, 0.36, 1)
-polygon = PackedVector2Array(1417, 70, 1423, 70, 1423, 220, 1417, 220)
-
-[node name="Valve3_1" type="StaticBody2D" parent="."]
-physics_material_override = SubResource("PM_track")
-
-[node name="Collider" type="CollisionPolygon2D" parent="Valve3_1"]
-position = Vector2(1420, 935)
-rotation = 1.5708
-polygon = PackedVector2Array(-75, -3, 75, -3, 75, 3, -75, 3)
-one_way_collision = true
-
-[node name="Visual" type="Polygon2D" parent="Valve3_1"]
-color = Color(0.2, 0.17, 0.36, 1)
-polygon = PackedVector2Array(1417, 860, 1423, 860, 1423, 1010, 1417, 1010)
+polygon = PackedVector2Array(1417, 470, 1423, 470, 1423, 620, 1417, 620)
 
 [node name="NicheBack" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
@@ -511,30 +508,50 @@ color = Color(1, 0.55, 0.85, 1)
 polygon = PackedVector2Array(794, 540, 792.34, 550.51, 787.51, 559.98, 779.98, 567.51, 770.51, 572.34, 760, 574, 749.49, 572.34, 740.02, 567.51, 732.49, 559.98, 727.66, 550.51, 726, 540, 727.66, 529.49, 732.49, 520.02, 740.02, 512.49, 749.49, 507.66, 760, 506, 770.51, 507.66, 779.98, 512.49, 787.51, 520.02, 792.34, 529.49)
 
 [node name="MillHigh" type="AnimatableBody2D" parent="."]
-position = Vector2(1190, 200)
+position = Vector2(1110, 210)
 physics_material_override = SubResource("PM_peg")
 script = ExtResource("5_spinner")
 speed = 1.3
 
 [node name="Collider" type="CollisionPolygon2D" parent="MillHigh"]
-polygon = PackedVector2Array(-12, -120, 12, -120, 12, -12, 120, -12, 120, 12, 12, 12, 12, 120, -12, 120, -12, 12, -120, 12, -120, -12, -12, -12)
+polygon = PackedVector2Array(-12, -110, 12, -110, 12, -12, 110, -12, 110, 12, 12, 12, 12, 110, -12, 110, -12, 12, -110, 12, -110, -12, -12, -12)
 
 [node name="Visual" type="Polygon2D" parent="MillHigh"]
 color = Color(0.45, 0.85, 1, 1)
-polygon = PackedVector2Array(-12, -120, 12, -120, 12, -12, 120, -12, 120, 12, 12, 12, 12, 120, -12, 120, -12, 12, -120, 12, -120, -12, -12, -12)
+polygon = PackedVector2Array(-12, -110, 12, -110, 12, -12, 110, -12, 110, 12, 12, 12, 12, 110, -12, 110, -12, 12, -110, 12, -110, -12, -12, -12)
 
 [node name="MillLow" type="AnimatableBody2D" parent="."]
-position = Vector2(1190, 880)
+position = Vector2(1110, 870)
 physics_material_override = SubResource("PM_peg")
 script = ExtResource("5_spinner")
 speed = -1.3
 
 [node name="Collider" type="CollisionPolygon2D" parent="MillLow"]
-polygon = PackedVector2Array(-12, -120, 12, -120, 12, -12, 120, -12, 120, 12, 12, 12, 12, 120, -12, 120, -12, 12, -120, 12, -120, -12, -12, -12)
+polygon = PackedVector2Array(-12, -110, 12, -110, 12, -12, 110, -12, 110, 12, 12, 12, 12, 110, -12, 110, -12, 12, -110, 12, -110, -12, -12, -12)
 
 [node name="Visual" type="Polygon2D" parent="MillLow"]
 color = Color(0.45, 0.85, 1, 1)
-polygon = PackedVector2Array(-12, -120, 12, -120, 12, -12, 120, -12, 120, 12, 12, 12, 12, 120, -12, 120, -12, 12, -120, 12, -120, -12, -12, -12)
+polygon = PackedVector2Array(-12, -110, 12, -110, 12, -12, 110, -12, 110, 12, 12, 12, 12, 110, -12, 110, -12, 12, -110, 12, -110, -12, -12, -12)
+
+[node name="FunnelHigh" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="FunnelHigh"]
+polygon = PackedVector2Array(1200, 70, 1400, 70, 1400, 450)
+
+[node name="Visual" type="Polygon2D" parent="FunnelHigh"]
+color = Color(0.14, 0.13, 0.26, 1)
+polygon = PackedVector2Array(1200, 70, 1400, 70, 1400, 450)
+
+[node name="FunnelLow" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="FunnelLow"]
+polygon = PackedVector2Array(1200, 1010, 1400, 640, 1400, 1010)
+
+[node name="Visual" type="Polygon2D" parent="FunnelLow"]
+color = Color(0.14, 0.13, 0.26, 1)
+polygon = PackedVector2Array(1200, 1010, 1400, 640, 1400, 1010)
 
 [node name="Bumper1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_bump")
@@ -595,13 +612,7 @@ gap_height = 150
 
 [node name="Beacon3_0" type="Node2D" parent="."]
 z_index = -4
-position = Vector2(1420, 145)
-script = ExtResource("4_beacon")
-gap_height = 150
-
-[node name="Beacon3_1" type="Node2D" parent="."]
-z_index = -4
-position = Vector2(1420, 935)
+position = Vector2(1420, 545)
 script = ExtResource("4_beacon")
 gap_height = 150
 

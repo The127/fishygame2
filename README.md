@@ -266,14 +266,15 @@ the ceiling becomes the floor. Viewers type `#up`, `#down`, `#left` or `#right` 
 the most votes becomes the floor (a tie keeps the current floor), and chat can turn gravity at most once
 every 2.5 seconds so fish get to use a pull. The overlay tally shows the votes with the leader in
 brackets, and a band lights each wall that has votes. The course is four rooms behind three partitions with one-way valve
-doors (fish pass toward the finish, never back), and chevron beacons mark every door. Each partition has
-two doors, so there are always two pulls that get a fish through, and each room mixes the field
-differently: a peg garden at the start scatters fish that rise or fall through it, a pulsing bumper in
+doors (fish pass toward the finish, never back), and chevron beacons mark every door. The first two
+partitions have two doors each, so two pulls get a fish through. The last one has a single door in the
+middle of the wall, with a slope above and below it: only the pull toward the finish rolls fish up or
+down the slopes into the door. Each room mixes the field differently: a peg garden at the start scatters fish that rise or fall through it, a pulsing bumper in
 the ceiling and the floor lane of the second room squeezes the lane shut each time it swells (with a
-bumper in the middle of the room), two spinners sweep the ceiling and floor lanes of the third room, and
+bumper in the middle of the room), two spinners churn the ceiling and floor lanes of the third room, and
 three bumpers turn the last room into a pinball scramble for the finish. The back-door portal sits in a
 niche in the back wall of the third room: a fish falling past drifts away from it, but under the pull
-toward the start fish are pressed against that wall, slide into the niche and come out in the last room,
+toward the start fish are pressed against that wall, slide into the niche and come out in the last room, skipping the middle door,
 so a `#left` vote is a gamble that throws most fish back and a few far ahead. Nothing counts down: when chat picks a turn, gravity thins
 out to a weightless beat for 0.4 seconds, the debris hangs still and the wall that is about to become the
 floor charges with light. With no votes the room turns by itself at seeded intervals of 3 to 4 seconds
