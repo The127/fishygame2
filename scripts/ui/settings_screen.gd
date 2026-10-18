@@ -26,7 +26,10 @@ const PAGES: Array[Dictionary] = [
 		"title": "Race",
 		"sections":
 		[
-			{"title": "Players", "items": ["min_players", "max_players"]},
+			{
+				"title": "Players",
+				"items": ["min_players", "max_players", "cardboard_fish", "cardboard_fill"],
+			},
 			{
 				"title": "Timing",
 				"items": ["countdown_seconds", "race_time_limit", "finish_replay"],
@@ -156,6 +159,12 @@ const PAGES: Array[Dictionary] = [
 const ROWS: Dictionary[String, Dictionary] = {
 	"min_players": {"label": "Minimum players", "hint": "Fish needed before a race can start."},
 	"max_players": {"label": "Maximum players", "hint": "The lobby is full at this many fish."},
+	"cardboard_fish":
+	{
+		"label": "Cardboard fish",
+		"hint": "Under 3 viewers, cutouts fill the empty slots. They win no points."
+	},
+	"cardboard_fill": {"label": "Fill up to", "hint": "Fish on the track with the cutouts."},
 	"countdown_seconds": {"label": "Countdown", "hint": "Before the start.", "unit": "s"},
 	"race_time_limit":
 	{"label": "Time limit", "hint": "Fish still racing then are DNF. 0 means none.", "unit": "s"},
@@ -239,11 +248,13 @@ const TOGGLES: Array[String] = [
 	"release_surprise",
 	"rtx",
 	"impostor_duck",
+	"cardboard_fish",
 ]
 
 ## Number settings picked from named steps instead of typed: the names, from the field's min.
 const CHOICES: Dictionary[String, Array] = {
 	"finish_replay": ["Off", "Close finishes", "Every race"],
+	"cardboard_fill": ["5 fish", "10 fish"],
 	"hazard_frequency": ["Rare", "Occasional", "Normal", "Frequent", "Constant"],
 }
 
@@ -253,6 +264,7 @@ const DEPENDENTS: Dictionary[String, Array] = {
 	"hazards_enabled": ["hazard_frequency"],
 	"powers_enabled": ["power_cooldown", "powers_per_race"],
 	"auto_mode": ["auto_join_seconds"],
+	"cardboard_fish": ["cardboard_fill"],
 	"release_surprise": [REPLAY_SURPRISE_KEY],
 	"impostor_duck": ["impostor_chance"],
 }

@@ -82,3 +82,27 @@ func settle(standings: Array[Dictionary]) -> Array[Dictionary]:
 			)
 		)
 	return results
+
+
+## The [method settle] standings for race [param results] (ids are roster indexes into
+## [param contestants]): one {user_id, name, place, finished} per viewer's fish.
+static func standings(
+	results: Array[Dictionary], contestants: Array[Contestant]
+) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	for r: Dictionary in results:
+		var id: int = int(r["id"])
+		if id < 0 or id >= contestants.size():
+			continue
+		(
+			rows
+			. append(
+				{
+					"user_id": contestants[id].user_id,
+					"name": contestants[id].display_name,
+					"place": int(r["place"]),
+					"finished": bool(r["finished"]),
+				}
+			)
+		)
+	return rows

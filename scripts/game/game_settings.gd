@@ -27,6 +27,11 @@ const REPLAY_OFF: int = 0
 const REPLAY_CLOSE: int = 1
 const REPLAY_ALWAYS: int = 2
 
+## Values of [member cardboard_fill], and the field size each one fills up to.
+const CARDBOARD_FIVE: int = 0
+const CARDBOARD_TEN: int = 1
+const CARDBOARD_TARGETS: Array[int] = [5, 10]
+
 ## Numeric settings, in the order the settings screen shows them. "max" of max_players is
 ## what the maps are tested with. max_bet 0 means no limit.
 const FIELDS: Array[Dictionary] = [
@@ -52,6 +57,13 @@ const FIELDS: Array[Dictionary] = [
 		"label": "Finish replay (0 off, 1 close, 2 all)",
 		"min": 0,
 		"max": 2,
+		"step": 1
+	},
+	{
+		"key": "cardboard_fill",
+		"label": "Cardboard fish fill up to (0 five, 1 ten)",
+		"min": 0,
+		"max": 1,
 		"step": 1
 	},
 	{"key": "starting_balance", "label": "Starting points", "min": 0, "max": 1000000, "step": 100},
@@ -135,6 +147,8 @@ var race_time_limit: int = 60
 var auto_join_seconds: int = 60
 ## Replay of the finish before the podium: REPLAY_OFF, REPLAY_CLOSE or REPLAY_ALWAYS.
 var finish_replay: int = 1
+## How far cardboard cutouts fill a thin field: CARDBOARD_FIVE or CARDBOARD_TEN fish.
+var cardboard_fill: int = CARDBOARD_FIVE
 var starting_balance: int = 1000
 var min_bet: int = 1
 var max_bet: int = 0
@@ -205,6 +219,9 @@ var release_surprise: bool = true
 var rtx: bool = false
 ## Whether a rubber duck now and then races as a fish (see [ImpostorDuck]).
 var impostor_duck: bool = true
+## Whether cardboard cutout fish fill the empty slots when fewer than three viewers join (see
+## [CardboardCutouts]).
+var cardboard_fish: bool = true
 ## Empty means in-memory only.
 var save_path: String = ""
 
@@ -265,6 +282,7 @@ func reset_to_defaults() -> void:
 	release_surprise = fresh.release_surprise
 	rtx = fresh.rtx
 	impostor_duck = fresh.impostor_duck
+	cardboard_fish = fresh.cardboard_fish
 
 
 ## Loads the saved values; missing or malformed ones keep their current value.
@@ -320,6 +338,9 @@ func load_settings() -> void:
 	var duck: Variant = file.get_value(SECTION, "impostor_duck", impostor_duck)
 	if duck is bool:
 		impostor_duck = duck
+	var cardboard: Variant = file.get_value(SECTION, "cardboard_fish", cardboard_fish)
+	if cardboard is bool:
+		cardboard_fish = cardboard
 	sanitize()
 
 
@@ -346,12 +367,18 @@ func save() -> bool:
 	file.set_value(SECTION, "release_surprise", release_surprise)
 	file.set_value(SECTION, "rtx", rtx)
 	file.set_value(SECTION, "impostor_duck", impostor_duck)
+	file.set_value(SECTION, "cardboard_fish", cardboard_fish)
 	return file.save(save_path) == OK
 
 
 ## The frequency to hand to a race: 0 when hazards are off.
 func hazard_level() -> int:
 	return hazard_frequency if hazards_enabled else 0
+
+
+## The field size cardboard cutouts fill up to, or 0 when they are off.
+func cardboard_target() -> int:
+	return CARDBOARD_TARGETS[cardboard_fill] if cardboard_fish else 0
 
 
 ## The countdown length to run, in seconds. Random events stretch a short one so the wheel
