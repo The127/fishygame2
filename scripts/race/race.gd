@@ -4,6 +4,7 @@ extends Node2D
 ## Spawns marbles on a track, tracks the finish order and emits results.
 
 signal marble_finished(id: int, place: int)
+## RaceRanking.get_results; each unfinished entry also has "fate" (see Marble.fate).
 signal race_finished(results: Array[Dictionary])
 ## A Thanos snap just turned these fish to dust.
 signal fish_snapped(ids: Array[int])
@@ -539,4 +540,7 @@ func _finish_race() -> void:
 		marble.finish_strand()
 		marble.set_deferred("freeze", true)
 	var results: Array[Dictionary] = _ranking.get_results(get_progress_map())
+	for r: Dictionary in results:
+		if not bool(r["finished"]) and _marbles.has(int(r["id"])):
+			r["fate"] = (_marbles[int(r["id"])] as Marble).fate()
 	race_finished.emit(results)

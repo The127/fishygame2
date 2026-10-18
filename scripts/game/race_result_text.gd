@@ -10,6 +10,25 @@ const RESULT_RIVALS: int = 3
 const RESULT_DNF: int = 3
 
 
+## The whole result reply for `podium` (GameFlow.podium_ready) and the `dnf` fish (each with a
+## "name"): [method build] with the winner, "time is up, nobody finished." when nobody did, or
+## empty when nobody raced at all.
+static func reply(
+	podium: Array[Dictionary], payouts: Array[Dictionary], dnf: Array[Dictionary], treasure: String
+) -> String:
+	var names: PackedStringArray = []
+	for fish: Dictionary in dnf:
+		names.append(str(fish["name"]))
+	if not podium.is_empty():
+		return build(str(podium[0]["name"]), payouts, names, treasure)
+	if names.is_empty():
+		return ""
+	var over: String = "time is up, nobody finished."
+	if not treasure.is_empty():
+		over += " Treasure: " + treasure
+	return over
+
+
 ## "Bubbles won. Payouts: @a +300, @b +200. Rivals: @c beat @d +5. DNF: e, f", with at most
 ## three payouts, biggest first, three rivalries and three DNF names. Rival rewards are only
 ## listed under Rivals.

@@ -144,9 +144,15 @@ func test_overlay_lists_dnf_fish_under_the_podium() -> void:
 	_finish_marbles([0])
 	_time_up()
 	assert_true(_overlay._dnf_panel.visible)
-	assert_string_contains(_overlay._dnf_label.text, "DNF: ")
-	assert_string_contains(_overlay._dnf_label.text, "User1")
-	assert_string_contains(_overlay._dnf_label.text, "User2")
+	assert_eq(_overlay._sushi_belt.plate_count(), 2)
+	assert_eq(_overlay._dnf_label.text, "DID NOT FINISH")
+
+
+func test_nobody_on_the_belt_when_every_fish_finished() -> void:
+	_start_race(2)
+	_finish_marbles([0, 1])
+	_time_up()
+	assert_false(_overlay._dnf_panel.visible)
 
 
 func test_no_limit_keeps_the_race_running() -> void:
