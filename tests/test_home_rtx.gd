@@ -78,3 +78,15 @@ func test_settings_screen_shows_rtx_only_once_unlocked() -> void:
 		add_child_autofree(screen)
 		assert_eq(screen._row_of.has(SettingsScreen.RTX_KEY), played)
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
+
+
+func test_unlocking_while_the_home_screen_is_up_applies_a_saved_rtx_setting() -> void:
+	var home: HomeScreen = _make_home(false, true)
+	assert_false(home.is_rtx_on())
+	ReleaseSurprise.begin(home.surprise_store)
+	ReleaseSurprise.end()
+	home._refresh_replay_button()
+	var rtx: Button = home.get_node("CornerLayer/Corner/Rtx")
+	assert_true(rtx.visible)
+	assert_eq(rtx.text, HomeScreen.RTX_ON_TEXT, "shows the saved setting")
+	assert_true(home.is_rtx_on())

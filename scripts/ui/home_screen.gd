@@ -116,7 +116,6 @@ func _ready() -> void:
 	_add_corner_buttons()
 	_rtx_filter.set_badge_at_top(true)
 	add_child(_rtx_filter)
-	_apply_rtx()
 	# Fire and forget: waits a few frames, then makes the web page transparent again.
 	WebBoot.release_background()
 	# Only when this is the running scene, so tests that instantiate the screen stay put.
@@ -175,6 +174,8 @@ func _refresh_replay_button() -> void:
 	_rtx_button.visible = (
 		ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF and surprise_store.has_played()
 	)
+	# The unlock can happen while this screen is up (the surprise just ended).
+	_apply_rtx()
 	_replay_surprise.visible = (
 		settings.release_surprise
 		and ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF
