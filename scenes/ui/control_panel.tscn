@@ -136,7 +136,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 
+[node name="TournamentToggle" type="Button" parent="Panel/Box"]
+layout_mode = 2
+focus_mode = 0
+text = "Show tournament"
+
 [node name="TournamentRow" type="HBoxContainer" parent="Panel/Box"]
+visible = false
 layout_mode = 2
 
 [node name="TournamentLabel" type="Label" parent="Panel/Box/TournamentRow"]
@@ -149,9 +155,11 @@ size_flags_horizontal = 3
 focus_mode = 0
 
 [node name="TournamentMaps" type="VBoxContainer" parent="Panel/Box"]
+visible = false
 layout_mode = 2
 
 [node name="StartTournament" type="Button" parent="Panel/Box"]
+visible = false
 layout_mode = 2
 focus_mode = 0
 text = "Start tournament"

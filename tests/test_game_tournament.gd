@@ -111,3 +111,24 @@ func test_rival_rewards_count() -> void:
 	_say("0", "#rival User1")
 	_run_round([0, 1])
 	assert_eq(_game._tournament._tournament.points_of("0"), 105, "win plus rival reward")
+
+
+func test_twenty_seconds_between_rounds() -> void:
+	assert_true(_game.start_tournament(["zigzag", "zigzag", "zigzag"]))
+	_join(2)
+	_run_round([0, 1])
+	_flow.tick(_flow.podium_seconds)
+	assert_eq(_flow.state, GameFlow.State.LOBBY)
+	assert_eq(_flow.podium_seconds + _flow.timer, TournamentDirector.BREAK_SECONDS)
+	_flow.tick(_flow.timer)
+	assert_eq(_flow.state, GameFlow.State.COUNTDOWN, "next round starts on its own")
+
+
+func test_tournament_setup_is_collapsed_until_opened() -> void:
+	assert_false(_panel.is_tournament_shown())
+	assert_false((_panel.get_node("Panel/Box/StartTournament") as Button).visible)
+	(_panel.get_node("Panel/Box/TournamentToggle") as Button).pressed.emit()
+	assert_true(_panel.is_tournament_shown())
+	assert_true((_panel.get_node("Panel/Box/StartTournament") as Button).visible)
+	_panel.toggle_tournament()
+	assert_false(_panel.is_tournament_shown())
