@@ -3,8 +3,9 @@ render_mode blend_disabled;
 // "RTX ON": a deliberately overdone post effect over the whole race. One pass over the
 // screen copy: bloom and a blue anamorphic streak from its blurred mip levels, light shafts
 // from above, a shine sweeping across bright surfaces, chromatic aberration, more contrast
-// and saturation, and a vignette. Overwrites the screen with its own alpha unchanged (no
-// blending), so transparent parts of the OBS source stay transparent.
+// and saturation, and a vignette. Overwrites the screen (no blending) with its alpha
+// unchanged, and fades the effect out with that alpha, so transparent parts of the OBS source
+// stay exactly as they were.
 
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap, repeat_disable;
 uniform float bloom_strength = 1.6;
@@ -70,5 +71,5 @@ void fragment() {
 	col = (col - 0.5) * contrast + 0.5;
 	col *= 1.0 - vignette * smoothstep(0.35, 1.4, edge);
 
-	COLOR = vec4(clamp(col, 0.0, 1.0), base.a);
+	COLOR = vec4(mix(base.rgb, clamp(col, 0.0, 1.0), base.a), base.a);
 }

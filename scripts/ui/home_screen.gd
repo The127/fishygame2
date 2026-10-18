@@ -170,6 +170,8 @@ func _add_corner_buttons() -> void:
 
 
 func _refresh_replay_button() -> void:
+	# Kept out of the release surprise, which it would otherwise sit on top of.
+	_rtx_button.visible = ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF
 	_replay_surprise.visible = (
 		settings.release_surprise
 		and ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF

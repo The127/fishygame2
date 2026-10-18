@@ -237,6 +237,7 @@ func test_home_replay_button_hides_while_the_joke_runs_or_is_off() -> void:
 		(home.get_node("CornerLayer/Corner/ReplaySurprise") as Button).visible,
 		"not during the fake 3"
 	)
+	assert_false((home.get_node("CornerLayer/Corner/Rtx") as Button).visible, "nor the RTX switch")
 	var off: HomeScreen = _make_home(false)
 	await wait_process_frames(2)
 	assert_false(
