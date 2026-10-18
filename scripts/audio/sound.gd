@@ -2,8 +2,8 @@ extends Node
 ## Autoload "Sound": the one audio service. It creates the Music, Ambience and SFX buses under
 ## Master, loops the ambient music and plays one-shot effects from a small player pool.
 ## Each map has its own music theme (its files live in [TrackCatalog]); [method set_music_theme]
-## crossfades to it. Volumes and mute come from [AudioSettings] and are saved shortly after
-## each change.
+## crossfades to it, unless the settings ask for the home theme everywhere. Volumes, mute and
+## the music options come from [AudioSettings] and are saved shortly after each change.
 ##
 ## Web export: browsers keep audio suspended until the first click or key press. Godot
 ## resumes it on that input and the already playing music simply becomes audible; until then
@@ -59,8 +59,6 @@ const POOL_SIZE: int = 8
 const MIN_REPEAT_MSEC: int = 40
 const PITCH_JITTER: float = 0.04
 const MUSIC_FADE_IN: float = 3.0
-## Seconds the old theme fades out while the new one fades in.
-const MUSIC_CROSSFADE: float = 2.0
 const SILENT_DB: float = -80.0
 ## Seconds after the last change before settings are written.
 const SAVE_DELAY: float = 0.5
@@ -78,7 +76,11 @@ var _ambience: CrossfadeLoop
 var _music_streams: Dictionary = {}
 var _ambience_streams: Dictionary = {}
 var _jingle_streams: Dictionary = {}
+## Music theme that is playing; with [constant AudioSettings.MUSIC_HOME] it stays the home
+## theme while [member _place] follows the map.
 var _theme: String = HOME_THEME
+## Map (or [constant HOME_THEME]) the game is on; picks the ambience and the podium jingle.
+var _place: String = HOME_THEME
 var _dirty: bool = false
 var _save_timer: float = 0.0
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -101,6 +103,7 @@ func _ready() -> void:
 	add_child(_music)
 	add_child(_ambience)
 	add_child(SoundHint.new())
+	_theme = _wanted_theme()
 	if _audible:
 		_music.fade_to(_music_stream(_theme), MUSIC_FADE_IN)
 
@@ -136,16 +139,16 @@ func _notification(what: int) -> void:
 func set_music_theme(id: String) -> void:
 	if music_path(id) == "":
 		id = HOME_THEME
-	if id == _theme:
+	if id == _place:
 		return
-	_theme = id
+	_place = id
+	_fade_music()
 	if not _audible:
 		return
-	_music.fade_to(_music_stream(id), MUSIC_CROSSFADE)
 	if TrackCatalog.ambience_path(id) != "":
-		_ambience.fade_to(_ambience_stream(id), MUSIC_CROSSFADE)
+		_ambience.fade_to(_ambience_stream(id), settings.crossfade)
 	else:
-		_ambience.fade_out(MUSIC_CROSSFADE)
+		_ambience.fade_out(settings.crossfade)
 
 
 ## File of the music theme with this id ([constant HOME_THEME] or a map id), or "" if unknown.
@@ -165,15 +168,16 @@ func play(sfx: Sfx) -> void:
 	_play_stream(sfx, _sfx_streams.get(sfx), PITCH_JITTER)
 
 
-## Plays the podium sting of the current map, or the generic win sound when the theme has none.
+## Plays the podium sting of the current map, or the generic win sound when the map has none
+## or jingles are turned off.
 func play_win() -> void:
-	var jingle: String = TrackCatalog.jingle_path(_theme)
+	var jingle: String = TrackCatalog.jingle_path(_place) if settings.jingles else ""
 	if jingle == "":
 		play(Sfx.WIN)
 		return
-	if not _jingle_streams.has(_theme):
-		_jingle_streams[_theme] = load(jingle)
-	_play_stream(_theme, _jingle_streams[_theme], 0.0)
+	if not _jingle_streams.has(_place):
+		_jingle_streams[_place] = load(jingle)
+	_play_stream(_place, _jingle_streams[_place], 0.0)
 
 
 ## Sets a bus volume (linear 0..1) and schedules a save.
@@ -190,10 +194,43 @@ func set_muted(muted: bool) -> void:
 	_mark_dirty()
 
 
-## Writes the settings now instead of waiting for the delay.
-func save_now() -> void:
+## Turns the Music bus on or off without touching ambience and effects.
+func set_music_enabled(on: bool) -> void:
+	settings.music_enabled = on
+	_apply_all()
+	_mark_dirty()
+
+
+## Per-map themes or the home theme everywhere (see [constant AudioSettings.MUSIC_PER_MAP]).
+func set_music_mode(mode: int) -> void:
+	settings.set_music_mode(mode)
+	_fade_music()
+	_mark_dirty()
+
+
+func set_jingles(on: bool) -> void:
+	settings.jingles = on
+	_mark_dirty()
+
+
+## Seconds the music and ambience take to crossfade on the next theme change.
+func set_crossfade(seconds: float) -> void:
+	settings.set_crossfade(seconds)
+	_mark_dirty()
+
+
+## Puts every sound choice back to its default and applies it.
+func reset_settings() -> void:
+	settings.reset_to_defaults()
+	_apply_all()
+	_fade_music()
+	_mark_dirty()
+
+
+## Writes the settings now instead of waiting for the delay. False when the write failed.
+func save_now() -> bool:
 	_dirty = false
-	settings.save()
+	return settings.save()
 
 
 ## The dB value a bus gets for a linear volume; zero is fully silent.
@@ -216,6 +253,20 @@ func _play_stream(key: Variant, stream: AudioStream, jitter: float) -> void:
 			player.pitch_scale = 1.0 + _rng.randf_range(-jitter, jitter)
 			player.play()
 			return
+
+
+## The theme the music should play for [member _place] under the current music mode.
+func _wanted_theme() -> String:
+	return HOME_THEME if settings.music_mode == AudioSettings.MUSIC_HOME else _place
+
+
+func _fade_music() -> void:
+	var wanted: String = _wanted_theme()
+	if wanted == _theme:
+		return
+	_theme = wanted
+	if _audible:
+		_music.fade_to(_music_stream(wanted), settings.crossfade)
 
 
 func _music_stream(id: String) -> AudioStreamWAV:
@@ -249,6 +300,8 @@ func _apply_all() -> void:
 	for bus: String in AudioSettings.BUSES:
 		_apply_bus(bus)
 	AudioServer.set_bus_mute(AudioServer.get_bus_index(AudioSettings.BUS_MASTER), settings.muted)
+	var music: int = AudioServer.get_bus_index(AudioSettings.BUS_MUSIC)
+	AudioServer.set_bus_mute(music, not settings.music_enabled)
 
 
 func _apply_bus(bus: String) -> void:

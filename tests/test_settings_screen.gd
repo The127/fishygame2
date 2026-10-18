@@ -2,6 +2,11 @@ extends GutTest
 ## Settings screen: pages, named choices, dependent rows, search and confirmations.
 
 
+func before_each() -> void:
+	# Reset also resets the Sound page; keep it off the real audio.cfg.
+	Sound.settings = AudioSettings.new()
+
+
 func test_reset_to_defaults_asks_first() -> void:
 	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
 	screen.settings = GameSettings.new()
