@@ -10,6 +10,8 @@ signal race_finished(results: Array[Dictionary])
 signal fish_snapped(ids: Array[int])
 ## Stomach acid just dissolved this fish: it is out of the race.
 signal fish_dissolved(id: int)
+## The sushi chef just chopped this fish: it is out of the race. `who` swung the knife.
+signal fish_chopped(id: int, who: String)
 ## The tide just left this fish stranded above the waterline.
 signal fish_stranded(id: int)
 ## The winner just crossed with `chaser_id` about to follow. Visual cue only.
@@ -84,6 +86,7 @@ func start(
 	if not _track.burst_played.is_connected(_on_burst_played):
 		_track.burst_played.connect(_on_burst_played)
 	_track.fish_dissolved.connect(_on_fish_dissolved)
+	_track.fish_chopped.connect(_on_fish_chopped)
 	if not _track.ghost_restless.is_connected(_on_ghost_restless):
 		_track.ghost_restless.connect(_on_ghost_restless)
 	# Read before any draw and never advanced, so a snap cannot shift the race's layout.
@@ -142,6 +145,8 @@ func clear() -> void:
 		_track.burst_played.disconnect(_on_burst_played)
 	if _track != null and _track.fish_dissolved.is_connected(_on_fish_dissolved):
 		_track.fish_dissolved.disconnect(_on_fish_dissolved)
+	if _track != null and _track.fish_chopped.is_connected(_on_fish_chopped):
+		_track.fish_chopped.disconnect(_on_fish_chopped)
 	if _track != null and _track.ghost_restless.is_connected(_on_ghost_restless):
 		_track.ghost_restless.disconnect(_on_ghost_restless)
 	if _track != null and _track.marble_reached_finish.is_connected(_on_marble_reached_finish):
@@ -250,8 +255,8 @@ func get_progress_map() -> Dictionary:
 	var progress: Dictionary = {}
 	for id: int in _marbles:
 		var marble: Marble = _marbles[id]
-		# A snapped or dissolved fish ranks behind every other fish that did not finish.
-		if marble.snapped or marble.dissolved:
+		# A snapped, dissolved or chopped fish ranks behind every other fish that did not finish.
+		if marble.snapped or marble.dissolved or marble.chopped:
 			progress[id] = -1.0
 		elif _rounds != null:
 			# Laps and the part of this one. A cut fish keeps what it had when it was cut.
@@ -326,8 +331,8 @@ func _finish_marble(marble: Marble) -> void:
 		_finish_race()
 
 
-## Whether every fish that is still in the race has finished (snapped, stranded and dissolved
-## fish do not count).
+## Whether every fish that is still in the race has finished (snapped, stranded, dissolved and
+## chopped fish do not count).
 func _all_racers_finished() -> bool:
 	for id: int in _ranking.get_unfinished_ids():
 		if not (_marbles[id] as Marble).is_out():
@@ -439,6 +444,19 @@ func _on_fish_dissolved(marble: Marble) -> void:
 	fish_dissolved.emit(marble.id)
 	if _all_racers_finished():
 		_finish_race()
+
+
+func _on_fish_chopped(marble: Marble, who: String) -> void:
+	if not running or _marbles.get(marble.id) != marble:
+		return
+	fish_chopped.emit(marble.id, who)
+	if _all_racers_finished():
+		_finish_race()
+
+
+## Whether the sushi chef chopped the fish.
+func is_chopped(id: int) -> bool:
+	return _marbles.has(id) and (_marbles[id] as Marble).chopped
 
 
 ## Whether the fish was dissolved by stomach acid.

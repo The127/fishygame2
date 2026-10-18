@@ -37,6 +37,8 @@ const FLOP_TINT: Color = Color(0.85, 0.75, 0.5)
 ## Seconds a fish takes to dissolve in acid, and the color of the fizz.
 const DISSOLVE_SECONDS: float = 0.6
 const ACID_COLOR: Color = Color(0.75, 1.0, 0.3)
+## Seconds a chopped fish takes to fade, leaving its nigiri behind.
+const CHOP_SECONDS: float = 0.15
 
 ## Seconds the meow bubble stays up.
 const MEOW_SECONDS: float = 1.2
@@ -52,6 +54,8 @@ var snapped: bool = false
 var stranded: bool = false
 ## True once stomach acid dissolved the fish. It stays out of the race for good.
 var dissolved: bool = false
+## True once the sushi chef's knife chopped the fish. It stays out of the race for good.
+var chopped: bool = false
 ## True once a round race cut the fish. It stays out of the race for good, as a ghost.
 var eliminated: bool = false
 ## Seconds the fish has lain above the waterline without getting wet again.
@@ -299,25 +303,26 @@ func snap() -> void:
 	tween.tween_callback(func() -> void: visible = false)
 
 
-## Whether the fish is out of the race for good (snapped, stranded, dissolved or cut). It counts as
-## unfinished.
+## Whether the fish is out of the race for good (snapped, stranded, dissolved, chopped or cut). It
+## counts as unfinished.
 func is_out() -> bool:
-	return snapped or stranded or dissolved or eliminated
+	return snapped or stranded or dissolved or chopped or eliminated
 
 
-## Why an unfinished fish is out of the race: "dissolved", "snapped", "stranded", "cut", "eaten"
-## (still inside an anglerfish), or empty when it was simply still swimming.
+## Why an unfinished fish is out of the race: "dissolved", "snapped", "stranded", "chopped",
+## "cut", "eaten" (still inside an anglerfish), or empty when it was simply still swimming.
 func fate() -> String:
-	if dissolved:
-		return "dissolved"
-	if snapped:
-		return "snapped"
-	if stranded:
-		return "stranded"
-	if eliminated:
-		return "cut"
-	if eaten and not has_finished:
-		return "eaten"
+	var fates: Array[Array] = [
+		[dissolved, "dissolved"],
+		[snapped, "snapped"],
+		[stranded, "stranded"],
+		[chopped, "chopped"],
+		[eliminated, "cut"],
+		[eaten and not has_finished, "eaten"],
+	]
+	for entry: Array in fates:
+		if entry[0]:
+			return entry[1]
 	return ""
 
 
@@ -424,10 +429,30 @@ func dissolve() -> void:
 	_strand_tween.chain().tween_callback(func() -> void: visible = false)
 
 
-## Ends a stranded or dissolving fish's last moments at once, leaving it gone. The race calls it
-## when it ends, so a fish lost a moment before never reappears under the finish replay.
+## The sushi chef's knife comes down on the fish: it flashes and is gone at once, and is out of
+## the race for good (it counts as unfinished). The chef draws the nigiri it leaves behind. Also
+## sets [member eaten], so the race and the hazards leave it alone.
+func chop() -> void:
+	if eaten:
+		return
+	eaten = true
+	chopped = true
+	collision_layer = 0
+	collision_mask = 0
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	freeze = true
+	if _fish != null:
+		_fish.flash(Color.WHITE, CHOP_SECONDS)
+	_strand_tween = create_tween()
+	_strand_tween.tween_property(self, "modulate:a", 0.0, CHOP_SECONDS)
+	_strand_tween.tween_callback(func() -> void: visible = false)
+
+
+## Ends a stranded, dissolving or chopped fish's last moments at once, leaving it gone. The race
+## calls it when it ends, so a fish lost a moment before never reappears under the finish replay.
 func finish_strand() -> void:
-	if not stranded and not dissolved:
+	if not stranded and not dissolved and not chopped:
 		return
 	if _strand_tween != null:
 		_strand_tween.kill()

@@ -44,10 +44,7 @@ var _meow: Meow = Meow.new()
 var _haunt: Haunt = Haunt.new()
 var _rtx: RtxFilter = RtxFilter.new()
 var _viewer_commands: ViewerCommands = ViewerCommands.new()
-var _flipper_commands: FlipperCommands = FlipperCommands.new()
-var _shake_commands: ShakeCommands = ShakeCommands.new()
-var _roll_commands: RollCommands = RollCommands.new()
-var _gravity_commands: GravityCommands = GravityCommands.new()
+var _map_chat: MapChat = MapChat.new()
 var _rivals: Rivals = Rivals.new()
 var _trophy: ParticipationTrophy = ParticipationTrophy.new()
 var _payouts: Array[Dictionary] = []
@@ -104,19 +101,9 @@ func _ready() -> void:
 	Chat.command_received.connect(_chaos.handle_command)
 	Chat.command_received.connect(_viewer_commands.handle_command)
 	Chat.command_received.connect(_shop.handle_command)
-	add_child(_flipper_commands)
-	Chat.command_received.connect(_flipper_commands.handle_command)
-	_flipper_commands.flippers_requested.connect(_on_flippers_requested)
-	_flipper_commands.grab_requested.connect(_to_map.bind(ClawMachine.CHAT_GROUP, &"grab"))
-	add_child(_shake_commands)
-	Chat.command_received.connect(_shake_commands.handle_command)
-	_shake_commands.shake_requested.connect(_to_map.bind(QuakeFault.CHAT_GROUP, &"shake", true))
-	add_child(_roll_commands)
-	Chat.command_received.connect(_roll_commands.handle_command)
-	_roll_commands.roll_requested.connect(_to_map.bind(BoardDice.CHAT_GROUP, &"press", true))
-	add_child(_gravity_commands)
-	Chat.command_received.connect(_gravity_commands.handle_command)
-	_gravity_commands.gravity_requested.connect(_on_gravity_requested)
+	_map_chat.is_open = _map_takes_chat
+	_map_chat.field_size = func() -> int: return _flow.get_contestants().size()
+	add_child(_map_chat)
 	_rivals.points = _betting.points
 	add_child(_rivals)
 	Chat.command_received.connect(_rivals.handle_command)
@@ -231,6 +218,7 @@ func _ready() -> void:
 	_race.treasure_collected.connect(_on_treasure_collected)
 	_race.fish_stranded.connect(_on_fish_stranded)
 	_race.fish_dissolved.connect(_on_fish_dissolved)
+	_race.fish_chopped.connect(_on_fish_chopped)
 	_sequence.photo_ended.connect(_camera.release_hold)
 	# After Betting.on_podium_ready, which settles the payouts this handler reports.
 	_flow.podium_ready.connect(_on_podium_ready)
@@ -532,6 +520,13 @@ func _on_fish_dissolved(id: int) -> void:
 	_overlay.show_notice("%s was dissolved in stomach acid!" % who, 3.0)
 
 
+func _on_fish_chopped(id: int, chef: String) -> void:
+	Sound.play(Sound.Sfx.CURSE)
+	var who: String = "@" + _contestant_name(id) if _contestant_name(id) != "" else "A fish"
+	var by: String = " by %s" % chef if chef != "" else ""
+	_overlay.show_notice("%s was chopped into sushi%s!" % [who, by], 3.0)
+
+
 ## A round race cut these fish: a chill note, the names and how to get back in as an eddy.
 func _on_round_cut(round_number: int, ids: Array[int]) -> void:
 	Sound.play(Sound.Sfx.CURSE)
@@ -754,29 +749,10 @@ func _load_map() -> void:
 	_camera.show_overview(true)
 
 
-## A viewer pressed "#left" or "#right": fires the flippers or steers the claw of the map in play.
-func _on_flippers_requested(side: int, who: String) -> void:
-	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
-		return
-	get_tree().call_group(PinballTable.CHAT_GROUP, "fire", side, who)
-	get_tree().call_group(ClawMachine.CHAT_GROUP, "steer", side, who)
-
-
-## A "#grab", "#shake" or "#roll" for `group`; `counts` adds the joined viewers. Races only.
-func _to_map(who: String, group: StringName, method: StringName, counts: bool = false) -> void:
-	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
-		return
-	if counts:
-		get_tree().call_group(group, method, who, _flow.get_contestants().size())
-	else:
-		get_tree().call_group(group, method, who)
-
-
-## A viewer voted "#up", "#down", "#left" or "#right" for the gravity flipper of the map in play.
-func _on_gravity_requested(side: GravityFlipper.Pull, who: String) -> void:
-	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
-		return
-	get_tree().call_group(GravityFlipper.CHAT_GROUP, "vote", side, who)
+## Whether a chat press for a map part ([MapChat]) counts now: only during a race, and not while
+## its finish replay plays.
+func _map_takes_chat() -> bool:
+	return _flow.state == GameFlow.State.RACING and _track != null and not _sequence.is_replaying()
 
 
 func _on_join_rejected(msg: ChatMessage, reason: String) -> void:

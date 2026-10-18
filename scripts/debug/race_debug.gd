@@ -7,6 +7,7 @@ extends Node2D
 ## --event=<id> runs the race under a RaceEvent (low_gravity, double_hazards, lights_out, bouncy, thanos_snap).
 ## --shake has made-up viewers spam "#shake" the whole race, for the quakes of a map with a fault.
 ## --roll has made-up viewers spam "#roll" the whole race, for the die of Board Game.
+## --chop has made-up viewers spam "#chop" the whole race, for the knife of Sushi Bar.
 ## --steer has made-up viewers vote for random sides the whole race, for the gravity of Gravity Flip,
 ## and press "#left", "#right" and now and then "#grab" for the claw of the Claw Machine.
 
@@ -14,6 +15,9 @@ extends Node2D
 ## viewers taking turns.
 const SHAKE_EVERY: float = 0.4
 const SHAKE_VIEWERS: int = 12
+## Seconds between the "#chop" presses of --chop, and the viewers taking turns.
+const CHOP_EVERY: float = 0.3
+const CHOP_VIEWERS: int = 10
 ## Seconds between the votes of --steer, and the viewers taking turns.
 const STEER_EVERY: float = 0.5
 const STEER_VIEWERS: int = 8
@@ -32,6 +36,9 @@ var _shake_count: int = 0
 var _roll: bool = false
 var _roll_in: float = 0.0
 var _roll_count: int = 0
+var _chop: bool = false
+var _chop_in: float = 0.0
+var _chop_count: int = 0
 var _steer: bool = false
 var _steer_in: float = 0.0
 var _steer_rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -41,6 +48,7 @@ var _treasures_found: int = 0
 var _treasures_total: int = 0
 var _stranded: int = 0
 var _dissolved: int = 0
+var _chopped: int = 0
 var _cut: int = 0
 var _eddies: int = 0
 var _eddy_every: float = 2.0
@@ -55,6 +63,7 @@ func _ready() -> void:
 	_race.fish_snapped.connect(_on_fish_snapped)
 	_race.fish_stranded.connect(_on_fish_stranded)
 	_race.fish_dissolved.connect(_on_fish_dissolved)
+	_race.fish_chopped.connect(_on_fish_chopped)
 	_race.round_cut.connect(_on_round_cut)
 	_race.eddy_dropped.connect(_on_eddy_dropped)
 	_race.race_finished.connect(_on_race_finished)
@@ -66,6 +75,8 @@ func _ready() -> void:
 			_shake = true
 		elif arg == "--roll":
 			_roll = true
+		elif arg == "--chop":
+			_chop = true
 		elif arg == "--steer":
 			_steer = true
 		elif arg.begins_with("--seed="):
@@ -108,6 +119,7 @@ func _physics_process(delta: float) -> void:
 	_send_eddies(delta)
 	_spam_shake(delta)
 	_spam_roll(delta)
+	_spam_chop(delta)
 	_spam_steer(delta)
 
 
@@ -126,6 +138,18 @@ func _spam_steer(delta: float) -> void:
 			get_tree().call_group(
 				ClawMachine.CHAT_GROUP, "steer", -1 if _steer_rng.randf() < 0.5 else 1, who
 			)
+
+
+func _spam_chop(delta: float) -> void:
+	if not _chop:
+		return
+	_chop_in -= delta
+	if _chop_in <= 0.0:
+		_chop_in = CHOP_EVERY
+		_chop_count += 1
+		get_tree().call_group(
+			SushiChef.CHAT_GROUP, "chop", "viewer%d" % (_chop_count % CHOP_VIEWERS)
+		)
 
 
 func _spam_shake(delta: float) -> void:
@@ -175,6 +199,7 @@ func _start_race() -> void:
 	_hazard_events.clear()
 	_stranded = 0
 	_dissolved = 0
+	_chopped = 0
 	_cut = 0
 	_eddies = 0
 	_eddy_clock = 0.0
@@ -231,6 +256,14 @@ func _on_fish_dissolved(id: int) -> void:
 	print("  dissolved: marble %d at t=%.2fs (%.0f, %.0f)" % [id, _race.elapsed, at.x, at.y])
 
 
+func _on_fish_chopped(id: int, who: String) -> void:
+	_chopped += 1
+	var at: Vector2 = _race.get_marbles()[id].global_position
+	print(
+		"  chopped: marble %d by %s at t=%.2fs (%.0f, %.0f)" % [id, who, _race.elapsed, at.x, at.y]
+	)
+
+
 func _on_fish_eaten(marble: Marble) -> void:
 	print("  eaten: marble %d at t=%.2fs" % [marble.id, _race.elapsed])
 
@@ -268,6 +301,7 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 				and not _race.is_snapped(id)
 				and not _race.is_stranded(id)
 				and not _race.is_dissolved(id)
+				and not _race.is_chopped(id)
 				and not _race.is_eliminated(id)
 			):
 				unfinished += 1
@@ -279,7 +313,7 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 			starts = " starts=%s" % ",".join(by_marble)
 		print(
 			(
-				"RESULT map=%s seed=%d time=%.2f unfinished=%d stranded=%d dissolved=%d cut=%d eddies=%d hazards=%d treasures=%d/%d order=%s%s"
+				"RESULT map=%s seed=%d time=%.2f unfinished=%d stranded=%d dissolved=%d chopped=%d cut=%d eddies=%d hazards=%d treasures=%d/%d order=%s%s"
 				% [
 					map_id,
 					seed_value,
@@ -287,6 +321,7 @@ func _on_race_finished(results: Array[Dictionary]) -> void:
 					unfinished,
 					_stranded,
 					_dissolved,
+					_chopped,
 					_cut,
 					_eddies,
 					_hazard_events.size(),

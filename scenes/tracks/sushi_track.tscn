@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/tracks/track.gd" id="1_track"]
+[ext_resource type="Script" path="res://scripts/tracks/sushi_belts.gd" id="2_belts"]
+[ext_resource type="Script" path="res://scripts/tracks/sushi_chef.gd" id="3_chef"]
+[ext_resource type="Script" path="res://scripts/tracks/sushi_decor.gd" id="4_decor"]
+[ext_resource type="Script" path="res://scripts/tracks/belt_reverse_hazard.gd" id="5_jam"]
+
+[sub_resource type="RectangleShape2D" id="Rect_finish"]
+size = Vector2(104, 140)
+
+[node name="Track" type="Node2D"]
+script = ExtResource("1_track")
+view_bounds = Rect2(0, 0, 1920, 1080)
+style_id = "sushi"
+follow_camera = false
+
+[node name="Decor" type="Node2D" parent="."]
+z_index = -2
+script = ExtResource("4_decor")
+
+[node name="Centerline" type="Path2D" parent="."]
+script = ExtResource("2_belts")
+
+[node name="Chef" type="Node2D" parent="Centerline"]
+z_index = -1
+position = Vector2(960, 660)
+script = ExtResource("3_chef")
+
+[node name="Jam" type="Node2D" parent="."]
+script = ExtResource("5_jam")
+kind = "jam"
+telegraph_seconds = 1.2
+active_seconds = 3.0
+base_gap = 16.0
+max_events = 3
+
+[node name="Finish" type="Area2D" parent="."]
+position = Vector2(112, 975)
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Finish"]
+shape = SubResource("Rect_finish")
+
+[node name="SpawnOrigin" type="Marker2D" parent="."]
+position = Vector2(892, 110)
