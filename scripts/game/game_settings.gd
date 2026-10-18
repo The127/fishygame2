@@ -187,6 +187,9 @@ var treasures_enabled: bool = true
 ## Whether a wheel is spun before every race, landing on a modifier now and then (see
 ## [RaceEvent]).
 var random_events: bool = false
+## Whether the fake "Fishy Marble Run 3" release joke may play (once per browser source, on
+## the first Open Lobby press). See [ReleaseSurprise].
+var release_surprise: bool = true
 ## Empty means in-memory only.
 var save_path: String = ""
 
@@ -244,6 +247,7 @@ func reset_to_defaults() -> void:
 	powers_enabled = fresh.powers_enabled
 	treasures_enabled = fresh.treasures_enabled
 	random_events = fresh.random_events
+	release_surprise = fresh.release_surprise
 
 
 ## Loads the saved values; missing or malformed ones keep their current value.
@@ -290,6 +294,9 @@ func load_settings() -> void:
 	var events: Variant = file.get_value(SECTION, "random_events", random_events)
 	if events is bool:
 		random_events = events
+	var surprise: Variant = file.get_value(SECTION, "release_surprise", release_surprise)
+	if surprise is bool:
+		release_surprise = surprise
 	sanitize()
 
 
@@ -313,6 +320,7 @@ func save() -> bool:
 	file.set_value(SECTION, "powers_enabled", powers_enabled)
 	file.set_value(SECTION, "treasures_enabled", treasures_enabled)
 	file.set_value(SECTION, "random_events", random_events)
+	file.set_value(SECTION, "release_surprise", release_surprise)
 	return file.save(save_path) == OK
 
 

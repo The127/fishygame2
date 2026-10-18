@@ -8,6 +8,8 @@ const RANDOM_LABEL: String = "Random"
 const PANEL_WIDTH: float = 640.0
 const PREVIEW_KEY: String = "preview"
 const DANGER_TITLE: String = "Danger area"
+## Control key of the button that arms the release surprise again.
+const REPLAY_SURPRISE_KEY: String = "replay_surprise"
 ## Tab layout: each item is a setting key (or [constant PREVIEW_KEY]).
 const TABS: Array[Dictionary] = [
 	{
@@ -80,6 +82,7 @@ const TABS: Array[Dictionary] = [
 		],
 	},
 	{"title": "Accessibility", "items": ["colorblind"]},
+	{"title": "Extras", "items": ["release_surprise", REPLAY_SURPRISE_KEY]},
 	{
 		"title": "Stream layout",
 		"items": ["pad_left", "pad_right", "pad_top", "pad_bottom", "preview"],
@@ -98,6 +101,7 @@ const TOGGLES: Array[Dictionary] = [
 	{"key": "chat_replies", "label": "Reply in chat"},
 	{"key": "colorblind", "label": "Colorblind mode (alternate colors and fish markings)"},
 	{"key": "welcome_hat", "label": "Free hat for a viewer's first race"},
+	{"key": "release_surprise", "label": "New release surprise (plays once, on Open Lobby)"},
 ]
 
 ## Number settings that are greyed out while the boolean setting they depend on is off.
@@ -107,6 +111,7 @@ const DEPENDENTS: Dictionary[String, Array] = {
 }
 
 var settings: GameSettings = null
+var surprise_store: ReleaseSurpriseStore = ReleaseSurpriseStore.new()
 
 var _spinners: Dictionary[String, SpinBox] = {}
 var _captions: Dictionary[String, String] = {}
@@ -285,6 +290,15 @@ func _build_controls() -> Dictionary[String, Control]:
 	_map_picker.clip_text = true
 	_captions["default_map"] = "Default map"
 	controls["default_map"] = _map_picker
+	var replay := Button.new()
+	replay.name = "ReplaySurprise"
+	replay.text = "PLAY AGAIN"
+	replay.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	replay.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	replay.pressed.connect(replay_surprise)
+	UiStyle.style_button(replay, 20)
+	_captions[REPLAY_SURPRISE_KEY] = "Release surprise on the next Open Lobby"
+	controls[REPLAY_SURPRISE_KEY] = replay
 	var toggles: Array[Dictionary] = TOGGLES.duplicate()
 	toggles.append_array(GameSettings.CHAT_TOGGLES)
 	for toggle: Dictionary in toggles:
@@ -390,6 +404,17 @@ func _on_toggle_toggled(pressed: bool, key: String) -> void:
 func reset_pressed() -> void:
 	settings.reset_to_defaults()
 	_commit("Defaults restored")
+
+
+## Arms the release surprise again, so it plays on the next Open Lobby press.
+func replay_surprise() -> void:
+	var saved: bool = ReleaseSurprise.rearm(surprise_store)
+	if not settings.release_surprise:
+		_status.text = "Turn the release surprise on to see it"
+	else:
+		_status.text = (
+			"Surprise plays on the next Open Lobby" if saved else "Could not save in this browser"
+		)
 
 
 func _on_wipe_pressed() -> void:
