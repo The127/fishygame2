@@ -21,6 +21,12 @@ func _rival(user_id: String, text: String) -> void:
 	_rivals.handle_command(msg, "rival", args)
 
 
+## Settles one race, scored against the rivalries as they are now.
+func _settle(standings: Array[Dictionary]) -> Array[Dictionary]:
+	_rivals.on_state_changed(GameFlow.State.RACING, GameFlow.State.COUNTDOWN)
+	return _rivals.settle(standings)
+
+
 func _standing(user_id: String, place: int, finished: bool = true) -> Dictionary:
 	return {
 		"user_id": user_id, "name": _points.get_name(user_id), "place": place, "finished": finished
@@ -65,7 +71,7 @@ func test_bare_command_reports_the_rival() -> void:
 
 func test_finishing_ahead_of_the_rival_pays_the_reward() -> void:
 	_rival("a", "#rival Bob")
-	var results: Array[Dictionary] = _rivals.settle([_standing("a", 1), _standing("b", 2)])
+	var results: Array[Dictionary] = _settle([_standing("a", 1), _standing("b", 2)])
 	assert_eq(_points.get_balance("a"), 1005)
 	assert_eq(_points.get_balance("b"), 1000)
 	assert_eq(results.size(), 1)
@@ -78,41 +84,41 @@ func test_finishing_ahead_of_the_rival_pays_the_reward() -> void:
 
 func test_finishing_behind_the_rival_pays_nothing() -> void:
 	_rival("a", "#rival Bob")
-	assert_true(_rivals.settle([_standing("b", 1), _standing("a", 2)]).is_empty())
+	assert_true(_settle([_standing("b", 1), _standing("a", 2)]).is_empty())
 	assert_eq(_points.get_balance("a"), 1000)
 
 
 func test_beating_a_rival_who_did_not_finish_pays() -> void:
 	_rival("a", "#rival Bob")
-	_rivals.settle([_standing("a", 1), _standing("b", 2, false)])
+	_settle([_standing("a", 1), _standing("b", 2, false)])
 	assert_eq(_points.get_balance("a"), 1005)
 
 
 func test_neither_finishing_pays_nothing() -> void:
 	_rival("a", "#rival Bob")
-	_rivals.settle([_standing("b", 1, false), _standing("a", 2, false)])
+	_settle([_standing("b", 1, false), _standing("a", 2, false)])
 	assert_eq(_points.get_balance("a"), 1000)
 
 
 func test_rival_must_be_in_the_race() -> void:
 	_rival("a", "#rival Bob")
-	assert_true(_rivals.settle([_standing("a", 1), _standing("c", 2)]).is_empty())
+	assert_true(_settle([_standing("a", 1), _standing("c", 2)]).is_empty())
 
 
 func test_rivalry_lasts_across_races() -> void:
 	_rival("a", "#rival Bob")
-	_rivals.settle([_standing("a", 1), _standing("b", 2)])
-	_rivals.settle([_standing("a", 2), _standing("b", 3)])
+	_settle([_standing("a", 1), _standing("b", 2)])
+	_settle([_standing("a", 2), _standing("b", 3)])
 	assert_eq(_points.get_balance("a"), 1010)
 
 
 func test_reward_follows_the_setting() -> void:
 	_rival("a", "#rival Bob")
 	_rivals.reward = 20
-	_rivals.settle([_standing("a", 1), _standing("b", 2)])
+	_settle([_standing("a", 1), _standing("b", 2)])
 	assert_eq(_points.get_balance("a"), 1020)
 	_rivals.reward = 0
-	assert_true(_rivals.settle([_standing("a", 1), _standing("b", 2)]).is_empty())
+	assert_true(_settle([_standing("a", 1), _standing("b", 2)]).is_empty())
 
 
 func test_rivalry_is_saved_with_the_points() -> void:
@@ -127,6 +133,31 @@ func test_rivalry_is_saved_with_the_points() -> void:
 	assert_eq(reloaded.rivals.get_rival("a"), "b")
 	for suffix: String in ["", ".bak", ".tmp"]:
 		DirAccess.remove_absolute(path + suffix)
+
+
+func test_rival_picked_mid_race_counts_from_the_next_race() -> void:
+	_rival("a", "#rival Bob")
+	_rivals.on_state_changed(GameFlow.State.RACING, GameFlow.State.COUNTDOWN)
+	_rival("a", "#rival Cy")
+	var standings: Array[Dictionary] = [_standing("c", 1), _standing("a", 2), _standing("b", 3)]
+	var results: Array[Dictionary] = _rivals.settle(standings)
+	assert_eq(results.size(), 1)
+	assert_eq(results[0]["target"], "Bob", "scored against the rival at the start")
+	assert_true(_settle(standings).is_empty(), "Cy finished ahead in the next race")
+
+
+func test_mutual_rivals_pay_only_the_one_ahead() -> void:
+	_rival("a", "#rival Bob")
+	_rival("b", "#rival Alice")
+	var results: Array[Dictionary] = _settle([_standing("b", 1), _standing("a", 2)])
+	assert_eq(results.size(), 1)
+	assert_eq(results[0]["user_id"], "b")
+
+
+func test_save_without_rivals_loads_with_none() -> void:
+	var store := PointsStore.new("", 1000)
+	store._apply({"balances": {"a": 5}})
+	assert_eq(store.rivals.get_rival("a"), "")
 
 
 func test_saved_table_drops_bad_entries() -> void:

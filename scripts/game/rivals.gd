@@ -4,7 +4,8 @@ extends Node
 ##
 ## Every race in which both race and you finish ahead of your rival (or they do not finish)
 ## pays you [member reward] points. The rivalry is saved with the points and stays until you
-## pick another rival. The node emits signals for the replies; it never talks to the chat.
+## pick another rival. Races are scored against the rivalries as they were at the start, so a
+## rival picked during a race counts from the next one. The node emits signals for the replies; it never talks to the chat.
 
 signal rival_set(msg: ChatMessage, rival_name: String)
 ## rival_name is "" when the viewer has no rival.
@@ -16,6 +17,9 @@ signal rival_rejected(msg: ChatMessage, reason: String)
 
 ## The scores, names and rivalries. Set by the owner before chat arrives.
 var points: PointsStore = null
+
+## user_id -> rival user_id, as the rivalries stood when the current race started.
+var _locked: Dictionary = {}
 
 
 ## Feed it Chat.command_received.
@@ -38,6 +42,12 @@ func handle_command(msg: ChatMessage, command: String, args: PackedStringArray) 
 	rival_set.emit(msg, points.get_name(rival_id))
 
 
+## Feed it GameFlow.state_changed.
+func on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> void:
+	if new_state == GameFlow.State.RACING:
+		_locked = points.rivals.to_dict()
+
+
 ## Pays everyone who finished ahead of their rival. [param standings] has one entry per fish
 ## in the race: {user_id, name, place, finished}. Returns one payout entry per reward, shaped
 ## like [signal Betting.payouts_settled] entries with kind "rival" and the rival's name as
@@ -51,7 +61,7 @@ func settle(standings: Array[Dictionary]) -> Array[Dictionary]:
 		by_user[str(entry["user_id"])] = entry
 	for entry: Dictionary in standings:
 		var user_id: String = str(entry["user_id"])
-		var rival_id: String = points.rivals.get_rival(user_id)
+		var rival_id: String = str(_locked.get(user_id, ""))
 		if rival_id.is_empty() or not by_user.has(rival_id) or not bool(entry["finished"]):
 			continue
 		var rival: Dictionary = by_user[rival_id]

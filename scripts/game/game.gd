@@ -105,6 +105,7 @@ func _ready() -> void:
 	_rivals.rival_set.connect(_replies.rival_set)
 	_rivals.rival_reported.connect(_replies.rival_reported)
 	_rivals.rival_rejected.connect(_replies.rival_rejected)
+	_flow.state_changed.connect(_rivals.on_state_changed)
 	_chaos.points = _betting.points
 	_shop.points = _betting.points
 	_shop.equipped.connect(_on_shop_equipped)
@@ -828,7 +829,7 @@ func _result_text(
 		if int(r["payout"]) <= 0:
 			continue
 		if r.get("kind", "") == "rival":
-			rivals.append("@%s beat @%s +%d" % [r["name"], r["target"], r["payout"]])
+			rivals.append("@%s beat @%s +%d" % [r["name"], r.get("target", "?"), r["payout"]])
 			continue
 		var uid: String = str(r.get("user_id", r["name"]))
 		if totals.has(uid):
