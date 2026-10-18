@@ -266,8 +266,10 @@ the ceiling becomes the floor. Viewers type `#up`, `#down`, `#left` or `#right` 
 the most votes becomes the floor (a tie keeps the current floor), and chat can turn gravity at most once
 every 2.5 seconds so fish get to use a pull. The overlay tally shows the votes with the leader in
 brackets, and a band lights each wall that has votes. The course is four rooms behind three partitions with one-way valve
-doors (fish pass toward the finish, never back), and chevron beacons mark every door. Each partition has
-two doors, so there are always two pulls that get a fish through, and each room mixes the field
+doors (fish pass toward the finish, never back), and chevron beacons mark every door. The first two
+partitions have two doors each, so two pulls get a fish through. The last one has a single door in the
+middle of the wall: no pull carries a fish there on its own, and slow fish may run out of time in front of
+it. Each room mixes the field
 differently: a peg garden at the start scatters fish that rise or fall through it, a pulsing bumper in
 the ceiling and the floor lane of the second room squeezes the lane shut each time it swells (with a
 bumper in the middle of the room), two spinners sweep the ceiling and floor lanes of the third room, and

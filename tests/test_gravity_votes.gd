@@ -181,5 +181,5 @@ func test_every_door_has_a_beacon() -> void:
 	for child: Node in track.get_children():
 		if child.name.begins_with("Valve"):
 			doors += 1
-	assert_eq(doors, 6, "two doors in each of the three partitions")
+	assert_eq(doors, 5, "two doors in the first two partitions, one in the last")
 	assert_eq(track.find_children("*", "DoorBeacon", true, false).size(), doors)
