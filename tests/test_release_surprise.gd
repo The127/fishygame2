@@ -1,0 +1,135 @@
+extends GutTest
+## The fake "Fishy Marble Run 3" release surprise: its flag, its setting and the title drop.
+
+const PATH: String = "user://test_release_surprise.cfg"
+const SETTINGS_PATH: String = "user://test_release_surprise_settings.cfg"
+
+
+func before_each() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.OFF
+	OnboardingStore.dismissed_this_session = true
+	DirAccess.remove_absolute(PATH)
+	DirAccess.remove_absolute(SETTINGS_PATH)
+
+
+func after_each() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.OFF
+	OnboardingStore.dismissed_this_session = false
+	DirAccess.remove_absolute(PATH)
+	DirAccess.remove_absolute(SETTINGS_PATH)
+
+
+func _make_home(enabled: bool = true) -> HomeScreen:
+	var home: HomeScreen = (load("res://scenes/ui/home_screen.tscn") as PackedScene).instantiate()
+	home.settings = GameSettings.new()
+	home.settings.release_surprise = enabled
+	home.surprise_store = ReleaseSurpriseStore.new(PATH)
+	add_child_autofree(home)
+	home.set_deferred("size", Vector2(1280.0, 720.0))
+	return home
+
+
+func test_store_remembers_that_the_surprise_played() -> void:
+	assert_false(ReleaseSurpriseStore.new(PATH).is_seen())
+	assert_true(ReleaseSurpriseStore.new(PATH).set_seen(true))
+	assert_true(ReleaseSurpriseStore.new(PATH).is_seen(), "a new store reads the saved flag")
+	assert_true(ReleaseSurprise.rearm(ReleaseSurpriseStore.new(PATH)))
+	assert_false(ReleaseSurpriseStore.new(PATH).is_seen())
+
+
+func test_starts_only_when_enabled_unseen_and_not_running() -> void:
+	var store := ReleaseSurpriseStore.new(PATH)
+	assert_true(ReleaseSurprise.should_start(true, store))
+	assert_false(ReleaseSurprise.should_start(false, store), "the setting turns it off")
+	ReleaseSurprise.begin(store)
+	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.THREE)
+	assert_false(ReleaseSurprise.should_start(true, store), "not while the fake 3 is running")
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.OFF
+	assert_false(ReleaseSurprise.should_start(true, store), "plays once per browser source")
+
+
+func test_setting_is_on_by_default_saved_and_reset() -> void:
+	var settings := GameSettings.new(SETTINGS_PATH)
+	assert_true(settings.release_surprise)
+	settings.release_surprise = false
+	assert_true(settings.save())
+	var loaded := GameSettings.new(SETTINGS_PATH)
+	loaded.load_settings()
+	assert_false(loaded.release_surprise)
+	loaded.reset_to_defaults()
+	assert_true(loaded.release_surprise)
+
+
+func test_open_lobby_drops_a_3_and_a_d_on_the_title() -> void:
+	var home: HomeScreen = _make_home()
+	await wait_process_frames(3)
+	home._on_open_lobby_pressed()
+	await wait_process_frames(2)
+	var drop: TitleDrop = home.get_node_or_null("TitleDrop")
+	assert_not_null(drop, "the surprise plays instead of opening the lobby")
+	assert_true(home.surprise_store.is_seen(), "marked as played right away")
+	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.THREE)
+	var open_lobby: Button = home.get_node("Center/Box/OpenLobby")
+	assert_true(open_lobby.disabled, "no double press while the letters fall")
+	var title: Label = home.get_node("Center/Box/Title")
+	assert_eq(title.visible_characters, title.text.length() - HomeScreen.TITLE_NUMBER_LENGTH)
+	await wait_for_signal(drop.finished, 10.0)
+	assert_true(drop.two.flattened, "the 3 squished the II")
+	assert_not_null(drop.d, "a D landed too")
+	assert_gt(drop.d.position.x, drop.three.position.x, "the D sits right of the 3")
+	assert_almost_eq(drop.three.linear_velocity.y, 0.0, 0.5, "the 3 came to rest")
+	assert_lt(drop.three.bottom_y(), drop.two.top_y() + 0.1, "the 3 sits on the pancake")
+	assert_false(open_lobby.disabled)
+	assert_eq(open_lobby.text, HomeScreen.SEQUEL_PLAY_TEXT)
+
+
+func test_the_fake_3_title_stays_when_coming_back_home() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE
+	var home: HomeScreen = _make_home()
+	await wait_process_frames(3)
+	var drop: TitleDrop = home.get_node_or_null("TitleDrop")
+	assert_not_null(drop)
+	assert_true(drop.two.flattened)
+	assert_not_null(drop.d)
+	var open_lobby: Button = home.get_node("Center/Box/OpenLobby")
+	assert_eq(open_lobby.text, HomeScreen.SEQUEL_PLAY_TEXT)
+
+
+func test_letters_line_up_with_the_title() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE
+	var home: HomeScreen = _make_home()
+	await wait_process_frames(6)
+	var drop: TitleDrop = home.get_node("TitleDrop")
+	var rect: Rect2 = home.title_number_rect()
+	# The world origin is the top-left of the "II": it must project onto that screen point.
+	var screen: Vector2 = drop.camera.unproject_position(Vector3.ZERO)
+	assert_almost_eq(screen.x, rect.position.x - drop.get_global_rect().position.x, 1.0)
+	assert_almost_eq(screen.y, rect.position.y - drop.get_global_rect().position.y, 1.0)
+
+
+func test_turning_the_setting_off_ends_the_fake_3() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE
+	var home: HomeScreen = _make_home(false)
+	await wait_process_frames(3)
+	assert_null(home.get_node_or_null("TitleDrop"))
+	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.OFF)
+
+
+func test_disabled_setting_opens_the_lobby_as_usual() -> void:
+	var home: HomeScreen = _make_home()
+	home.settings.release_surprise = false
+	assert_false(ReleaseSurprise.should_start(home.settings.release_surprise, home.surprise_store))
+
+
+func test_settings_button_arms_the_surprise_again() -> void:
+	var store := ReleaseSurpriseStore.new(PATH)
+	ReleaseSurprise.begin(store)
+	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
+	screen.settings = GameSettings.new()
+	screen.surprise_store = store
+	add_child_autofree(screen)
+	assert_not_null(screen.find_child("ReplaySurprise", true, false), "the button is in a tab")
+	screen.replay_surprise()
+	assert_false(store.is_seen())
+	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.OFF)
+	assert_true(ReleaseSurprise.should_start(true, store))

@@ -14,11 +14,23 @@ const TITLE_FONT_SIZE: int = 96
 const TITLE_MIN_FONT_SIZE: int = 36
 ## Window width at which the title uses its full size on a single line.
 const TITLE_FULL_WIDTH: float = 1100.0
+## Characters at the end of the title that the release surprise squishes (the "II").
+const TITLE_NUMBER_LENGTH: int = 2
+const SEQUEL_TAGLINE: String = "NOW IN 3D. CHAT JOINS AS FISH. FISH RACE DOWN THE TRACK."
+const SEQUEL_PLAY_TEXT: String = "PLAY"
+## Ends of the title gradient, as in title_gradient.gdshader.
+const TITLE_LEFT_COLOR: Color = Color(0.0, 0.91, 0.533)
+const TITLE_RIGHT_COLOR: Color = Color(0.541, 0.91, 1.0)
+
+var settings: GameSettings = null
+var surprise_store: ReleaseSurpriseStore = ReleaseSurpriseStore.new()
 
 var _board: LeaderboardPanel
+var _title_drop: TitleDrop
 
 @onready var _box: VBoxContainer = $Center/Box
 @onready var _title: Label = $Center/Box/Title
+@onready var _tagline: Label = $Center/Box/Tagline
 @onready var _open_lobby: Button = $Center/Box/OpenLobby
 @onready var _aquarium: Button = $Center/Box/Aquarium
 @onready var _settings: Button = $Center/Box/Settings
@@ -29,6 +41,9 @@ var _board: LeaderboardPanel
 
 
 func _ready() -> void:
+	if settings == null:
+		settings = GameSettings.new(GameSettings.DEFAULT_PATH)
+		settings.load_settings()
 	Sound.set_music_theme(Sound.HOME_THEME)
 	_board = LeaderboardPanel.new()
 	_board.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -59,6 +74,12 @@ func _ready() -> void:
 	_fit_to_window()
 	_open_lobby.grab_focus()
 	_refresh_login()
+	if ReleaseSurprise.stage == ReleaseSurprise.Stage.THREE:
+		if settings.release_surprise:
+			_show_sequel.call_deferred(false)
+		else:
+			# Turned off in the settings: back to the real game.
+			ReleaseSurprise.stage = ReleaseSurprise.Stage.OFF
 	# Fire and forget: waits a few frames, then makes the web page transparent again.
 	WebBoot.release_background()
 	# Only when this is the running scene, so tests that instantiate the screen stay put.
@@ -100,10 +121,71 @@ func _fit_to_window() -> void:
 	var fit: float = clampf(width / TITLE_FULL_WIDTH, 0.0, 1.0)
 	var font_size: int = maxi(roundi(TITLE_FONT_SIZE * fit), TITLE_MIN_FONT_SIZE)
 	_title.add_theme_font_size_override("font_size", font_size)
+	if _title_drop != null:
+		_reframe_title_drop.call_deferred()
 
 
 func _on_open_lobby_pressed() -> void:
+	if ReleaseSurprise.should_start(settings.release_surprise, surprise_store):
+		start_release_surprise()
+		return
 	get_tree().change_scene_to_file(RACE_SCENE)
+
+
+## Plays the fake "Fishy Marble Run 3" reveal on the title instead of opening the lobby.
+func start_release_surprise() -> void:
+	ReleaseSurprise.begin(surprise_store)
+	_open_lobby.disabled = true
+	await _show_sequel(true)
+	_open_lobby.disabled = false
+	_open_lobby.grab_focus()
+
+
+## Turns the title into "FISHY MARBLE RUN 3D" with 3D letters, falling in with
+## [param animate], and relabels the menu for the fake sequel.
+func _show_sequel(animate: bool) -> void:
+	# The menu box may not be laid out yet on the first frame; the letters need the title's place.
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	# The label keeps its layout (so nothing shifts) but stops drawing the "II".
+	_title.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING
+	_title.visible_characters = _title.text.length() - TITLE_NUMBER_LENGTH
+	_title_drop = TitleDrop.new()
+	_title_drop.name = "TitleDrop"
+	add_child(_title_drop)
+	var rect: Rect2 = title_number_rect()
+	_title_drop.setup(
+		rect,
+		_title.get_theme_font("font"),
+		_title.get_theme_font_size("font_size"),
+		_title_color_at(rect.get_center().x),
+		animate
+	)
+	if animate:
+		await _title_drop.finished
+	_tagline.text = SEQUEL_TAGLINE
+	_open_lobby.text = SEQUEL_PLAY_TEXT
+
+
+## Screen rectangle of the "II" at the end of the title (its line box).
+func title_number_rect() -> Rect2:
+	var first: int = _title.text.length() - TITLE_NUMBER_LENGTH
+	var rect: Rect2 = _title.get_character_bounds(first)
+	for i: int in range(first + 1, _title.text.length()):
+		rect = rect.merge(_title.get_character_bounds(i))
+	rect.position += _title.get_global_rect().position
+	return rect
+
+
+## The title's gradient color at screen x [param x] (mirrors title_gradient.gdshader).
+func _title_color_at(x: float) -> Color:
+	var t: float = smoothstep(0.28, 0.72, x / maxf(size.x, 1.0))
+	return TITLE_LEFT_COLOR.lerp(TITLE_RIGHT_COLOR, t)
+
+
+func _reframe_title_drop() -> void:
+	_title_drop.frame(title_number_rect())
 
 
 func _on_aquarium_pressed() -> void:
