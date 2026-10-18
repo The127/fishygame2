@@ -43,7 +43,7 @@ func test_settings_screen_edits_and_resets_the_settings() -> void:
 	assert_eq(spinner.value, 20.0)
 
 
-func test_settings_screen_fits_a_720p_window_and_groups_settings_in_tabs() -> void:
+func test_settings_screen_fits_a_720p_window_and_groups_settings_in_pages() -> void:
 	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
 	screen.settings = GameSettings.new()
 	var host := Control.new()
@@ -51,15 +51,17 @@ func test_settings_screen_fits_a_720p_window_and_groups_settings_in_tabs() -> vo
 	add_child_autofree(host)
 	host.add_child(screen)
 	await wait_process_frames(2)
-	var tabs: TabContainer = screen.find_children("*", "TabContainer", true, false)[0]
-	assert_gte(tabs.get_tab_count(), 5)
+	assert_gte(screen.page_titles().size(), 6)
+	assert_false(screen.page_titles().has(SettingsScreen.MORE_TITLE), "every setting has a page")
 	var bounds := Rect2(Vector2.ZERO, Vector2(1280.0, 720.0))
-	assert_true(bounds.encloses(tabs.get_global_rect()), "tabs stay inside the window")
-	assert_lte(tabs.get_minimum_size().x, SettingsScreen.PANEL_WIDTH, "tab bar fits the panel")
-	for key: String in screen._spinners:
-		assert_not_null(screen._spinners[key].get_parent(), "%s is in a tab" % key)
-	var reset: Button = screen.find_child("Reset", true, false)
-	assert_true(bounds.encloses(reset.get_global_rect()), "buttons stay on screen")
+	var pages: ScrollContainer = screen.find_child("Pages", true, false)
+	assert_true(bounds.encloses(pages.get_global_rect()), "pages stay inside the window")
+	for button: Button in screen._nav:
+		assert_true(bounds.encloses(button.get_global_rect()), "%s is on screen" % button.text)
+	for field: Dictionary in GameSettings.FIELDS:
+		var key := String(field["key"])
+		assert_true(screen._spinners.has(key) or screen._choices.has(key), key)
+		assert_true(screen._row_of.has(key), "%s is on a page" % key)
 
 
 func test_home_board_hidden_until_someone_is_ranked() -> void:
@@ -164,20 +166,12 @@ func test_settings_screen_toggles_colorblind_mode() -> void:
 	screen.settings = GameSettings.new()
 	add_child_autofree(screen)
 	assert_false(screen._toggles["colorblind"].button_pressed)
-	assert_true(_tab_titles(screen).has("Accessibility"))
+	assert_true(screen.page_titles().has("Display"))
 	screen._toggles["colorblind"].button_pressed = true
 	assert_true(screen.settings.colorblind)
 	screen.reset_pressed()
 	assert_false(screen.settings.colorblind)
 	assert_false(screen._toggles["colorblind"].button_pressed)
-
-
-func _tab_titles(screen: SettingsScreen) -> Array[String]:
-	var tabs: TabContainer = screen.find_children("*", "TabContainer", true, false)[0]
-	var titles: Array[String] = []
-	for i: int in tabs.get_tab_count():
-		titles.append(tabs.get_tab_title(i))
-	return titles
 
 
 func test_settings_screen_has_a_home_button_and_escape_returns_home() -> void:
@@ -266,14 +260,13 @@ func test_settings_screen_saves_every_toggle() -> void:
 	screen.settings = GameSettings.new(path)
 	add_child_autofree(screen)
 	var keys: Array[String] = []
-	for row: Dictionary in SettingsScreen.TOGGLES:
-		keys.append(String(row["key"]))
+	keys.append_array(SettingsScreen.TOGGLES)
 	for row: Dictionary in GameSettings.CHAT_TOGGLES:
 		keys.append(String(row["key"]))
-	assert_eq(screen._toggles.size(), keys.size(), "one checkbox per row")
+	assert_eq(screen._toggles.size(), keys.size(), "one switch per row")
 	for key: String in keys:
 		var was: bool = bool(screen.settings.get(key))
-		var check: CheckBox = screen._toggles[key]
+		var check: SwitchButton = screen._toggles[key]
 		assert_eq(check.button_pressed, was, "%s shows its setting" % key)
 		check.button_pressed = not was
 		assert_eq(bool(screen.settings.get(key)), not was, "%s flips the setting" % key)
@@ -307,5 +300,4 @@ func test_danger_area_wipes_saved_viewer_data_after_confirming() -> void:
 	for path: String in [points_path, shop_path]:
 		for suffix: String in [""] + extras:
 			assert_false(FileAccess.file_exists(path + suffix), path + suffix)
-	var tabs: TabContainer = screen.find_children("*", "TabContainer", true, false)[0]
-	assert_true(tabs.find_child(SettingsScreen.DANGER_TITLE, true, false) != null)
+	assert_true(screen.find_child(SettingsScreen.DANGER_TITLE, true, false) != null)
