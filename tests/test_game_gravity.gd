@@ -65,4 +65,4 @@ func test_votes_on_other_maps_are_ignored() -> void:
 func test_the_help_lists_the_gravity_commands() -> void:
 	assert_string_contains(HelpText.CHAT_REPLY, "#up")
 	assert_lt(HelpText.CHAT_REPLY.length(), 500)
-	assert_string_contains("\n".join(HelpText.LINES), "#up")
+	assert_string_contains(HelpText.sheet_text("gravity"), "#up")

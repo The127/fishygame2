@@ -23,7 +23,7 @@ func test_control_panel_and_home_show_the_tag() -> void:
 		(load("res://scenes/ui/control_panel.tscn") as PackedScene).instantiate() as ControlPanel
 	)
 	add_child_autofree(panel)
-	assert_eq((panel.get_node("Panel/Box/Version") as Label).text, BuildInfo.label())
+	assert_eq((panel.get_node("%Version") as Label).text, BuildInfo.label())
 	var home: HomeScreen = (
 		(load("res://scenes/ui/home_screen.tscn") as PackedScene).instantiate() as HomeScreen
 	)

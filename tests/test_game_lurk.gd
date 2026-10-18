@@ -31,4 +31,4 @@ func test_join_ends_lurking() -> void:
 
 func test_lurk_is_in_the_help() -> void:
 	assert_string_contains(HelpText.CHAT_REPLY, "#lurk")
-	assert_string_contains("\n".join(HelpText.LINES), "#lurk")
+	assert_string_contains(HelpText.sheet_text(""), "#lurk")

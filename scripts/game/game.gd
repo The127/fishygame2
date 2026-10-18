@@ -735,6 +735,7 @@ func _load_map() -> void:
 		remove_child(_track)
 		_track.queue_free()
 	_map_id = id
+	_overlay.set_help_map(id)
 	_track = TrackCatalog.instantiate(id)
 	_track.fish_eaten.connect(_on_fish_eaten)
 	_track.hazard_started.connect(_on_hazard_started)
@@ -849,9 +850,9 @@ func _power_status_text() -> String:
 			% StreamerPowers.name_of(_armed_power as StreamerPowers.Kind)
 		)
 	if not settings.powers_enabled:
-		return "Streamer powers are off in the settings"
+		return "Off in the settings"
 	if _flow.state != GameFlow.State.RACING:
-		return "Streamer powers: available during a race"
+		return "Available during a race"
 	if _powers.cooldown_left() > 0.0:
 		return "Recharging %.0fs, %d left" % [ceilf(_powers.cooldown_left()), _powers.uses_left()]
 	return "Ready, %d left this race" % _powers.uses_left()

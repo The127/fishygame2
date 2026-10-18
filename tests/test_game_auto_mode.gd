@@ -64,7 +64,7 @@ func test_manual_start_still_works_in_auto_mode() -> void:
 
 
 func test_panel_shows_the_setting() -> void:
-	assert_true((_panel.get_node("Panel/Box/Auto") as CheckBox).button_pressed)
+	assert_true((_panel.get_node("%Auto") as SwitchButton).button_pressed)
 
 
 func test_toggle_on_restarts_a_partly_elapsed_window() -> void:

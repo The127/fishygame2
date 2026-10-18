@@ -49,4 +49,4 @@ func test_grab_on_other_maps_is_ignored() -> void:
 
 func test_the_help_lists_the_claw_commands() -> void:
 	assert_string_contains(HelpText.CHAT_REPLY, "#grab")
-	assert_string_contains("\n".join(HelpText.LINES), "#grab")
+	assert_string_contains(HelpText.sheet_text("claw"), "#grab")

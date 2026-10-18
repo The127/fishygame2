@@ -99,7 +99,7 @@ func test_stop_cancels_without_a_bonus() -> void:
 func test_control_panel_starts_the_picked_tournament() -> void:
 	_panel.set_tournament(["pachinko", "zigzag", "zigzag"])
 	assert_eq(_panel.tournament_maps(), PackedStringArray(["pachinko", "zigzag", "zigzag"]))
-	(_panel.get_node("Panel/Box/StartTournament") as Button).pressed.emit()
+	(_panel.get_node("%StartTournament") as Button).pressed.emit()
 	assert_true(_game._tournament.is_running())
 	assert_eq(_game._map_id, "pachinko")
 
@@ -126,9 +126,9 @@ func test_twenty_seconds_between_rounds() -> void:
 
 func test_tournament_setup_is_collapsed_until_opened() -> void:
 	assert_false(_panel.is_tournament_shown())
-	assert_false((_panel.get_node("Panel/Box/StartTournament") as Button).visible)
-	(_panel.get_node("Panel/Box/TournamentToggle") as Button).pressed.emit()
+	assert_false((_panel.get_node("%StartTournament") as Button).visible)
+	(_panel.get_node("%TournamentToggle") as Button).pressed.emit()
 	assert_true(_panel.is_tournament_shown())
-	assert_true((_panel.get_node("Panel/Box/StartTournament") as Button).visible)
+	assert_true((_panel.get_node("%StartTournament") as Button).visible)
 	_panel.toggle_tournament()
 	assert_false(_panel.is_tournament_shown())

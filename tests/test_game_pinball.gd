@@ -54,5 +54,5 @@ func test_presses_on_other_maps_are_ignored() -> void:
 func test_the_help_lists_the_flipper_commands() -> void:
 	assert_string_contains(HelpText.CHAT_REPLY, "#left")
 	assert_string_contains(HelpText.CHAT_REPLY, "#right")
-	var lines: String = "\n".join(HelpText.LINES)
+	var lines: String = HelpText.sheet_text("pinball")
 	assert_string_contains(lines, "#left")

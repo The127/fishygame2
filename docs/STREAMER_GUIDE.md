@@ -45,7 +45,7 @@ Good to know:
 2. Press **Start** (or the space bar) when enough fish have joined. Viewers can `#bet` before the start.
 3. Watch the race. The podium shows the winners and pays out points. The game returns to the lobby for the next round.
 
-The control panel is a small faint "Controls" tab at the top of the screen. F1 or the tab opens it. It has Open lobby, Start, Stop, Map, Auto mode, the sound sliders and the streamer powers. It is part of the page, so viewers see it too when it is open. Close it with F1 when you are not using it.
+The control panel is a small faint "Controls" tab at the top of the screen. F1 or the tab opens it. At the top are Start, Lobby (opens a new lobby) and Stop, then cards for the race (map, auto mode), the streamer powers, a tournament and the sound (mute and the sliders). It is part of the page, so viewers see it too when it is open. Close it with F1 when you are not using it.
 
 **Auto mode** runs rounds on its own: lobby, race, podium, lobby. Good for a stream where you do not want to click anything. Turn it on in the control panel.
 
@@ -84,7 +84,7 @@ Press 1, 2 or 3 (or the panel button), then left-click the spot on the track. Ri
 
 ## 6. Chat commands for viewers
 
-Post this list in a panel or pinned message. `#help` in chat shows a short version.
+Post this list in a panel or pinned message. `#help` in chat shows a short version. The lobby shows the general commands, plus the commands of the loaded map under its name.
 
 | Command | What it does |
 | --- | --- |
@@ -132,7 +132,7 @@ Use it in a private test source, **never on the source you stream with**: fake p
 1. On the source, tick **Control audio via OBS** (right-click the source > Properties).
 2. In the OBS **Audio Mixer** the source should appear and not be muted. Move its slider up.
 3. Browsers only start sound after a click or key press. While they block it, the game shows a small "Click anywhere to enable sound" note at the bottom. Right-click the source, choose **Interact** and click anywhere once (for example on **Open lobby**). The note disappears.
-4. In the game's control panel, check that **Mute all sound** is off and the Master, Music and Effects sliders are up.
+4. In the game's control panel, check that the **Mute** switch is off and the Master, Music and Effects sliders are up.
 5. Still nothing: right-click the source and choose **Refresh cache of current page**, then click once more.
 
 ### Old version after an update

@@ -98,7 +98,7 @@ func test_leave_question_reveals_a_closed_drawer_and_stay_closes_it_again() -> v
 	_panel.set_open(false)
 	_panel.ask_leave()
 	assert_true(_panel.is_open())
-	assert_true((_panel.get_node("Panel/Box/LeaveConfirm") as Control).visible)
+	assert_true((_panel.get_node("%LeaveConfirm") as Control).visible)
 	_panel.cancel_leave()
 	assert_false(_panel.is_open())
 
@@ -110,7 +110,7 @@ func test_stay_leaves_an_open_drawer_open() -> void:
 
 
 func _power(index: int) -> PowerButton:
-	return _panel.get_node("Panel/Box/PowerButtons").get_child(index) as PowerButton
+	return _panel.get_node("%PowerButtons").get_child(index) as PowerButton
 
 
 func test_power_buttons_gray_out_and_fill_while_cooling() -> void:

@@ -67,4 +67,4 @@ func test_presses_on_other_maps_are_ignored() -> void:
 func test_the_help_lists_the_shake_command() -> void:
 	assert_string_contains(HelpText.CHAT_REPLY, "#shake")
 	assert_lt(HelpText.CHAT_REPLY.length(), 500)
-	assert_string_contains("\n".join(HelpText.LINES), "#shake")
+	assert_string_contains(HelpText.sheet_text("fault"), "#shake")

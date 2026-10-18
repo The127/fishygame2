@@ -26,5 +26,5 @@ func test_meow_in_the_lobby_does_nothing() -> void:
 
 func test_meow_is_not_listed_in_help() -> void:
 	assert_false(HelpText.CHAT_REPLY.contains("meow"))
-	for line: String in HelpText.LINES:
-		assert_false(line.contains("meow"))
+	for id: String in TrackCatalog.ids():
+		assert_false(HelpText.sheet_text(id).contains("meow"), id)

@@ -40,3 +40,22 @@ func test_cheat_sheet_shows_in_lobby_only() -> void:
 	_join(2)
 	_flow.start_race()
 	assert_false(overlay._help_panel.visible)
+
+
+func _cheat_sheet_text() -> String:
+	var overlay: Overlay = _game.get_node("Overlay") as Overlay
+	var texts: PackedStringArray = []
+	for label: Label in overlay._help_panel.find_children("*", "Label", true, false):
+		texts.append(label.text)
+	return " ".join(texts)
+
+
+func test_cheat_sheet_lists_the_commands_of_the_loaded_map_only() -> void:
+	_panel.map_selected.emit("sushi")
+	assert_string_contains(_cheat_sheet_text(), "#chop")
+	assert_string_contains(_cheat_sheet_text(), "SUSHI BAR")
+	assert_false(_cheat_sheet_text().contains("#roll"))
+	_panel.map_selected.emit("zigzag")
+	await wait_process_frames(1)
+	assert_false(_cheat_sheet_text().contains("#chop"), "the old map's rows are gone")
+	assert_string_contains(_cheat_sheet_text(), "#join")

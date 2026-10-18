@@ -68,22 +68,21 @@ var _fade_tween: Tween
 @onready var _panel: PanelContainer = $Panel
 @onready var _tab: Button = $Handle
 @onready var _tab_bar: ColorRect = $HandleCooldown
-@onready var _status: Label = $Panel/Box/Status
-@onready var _map_picker: OptionButton = $Panel/Box/MapRow/MapPicker
-@onready var _rounds_picker: OptionButton = $Panel/Box/TournamentRow/RoundsPicker
-@onready var _round_maps: VBoxContainer = $Panel/Box/TournamentMaps
-@onready var _power_status: Label = $Panel/Box/PowerStatus
-@onready var _power_buttons: Array[PowerButton] = [
-	$Panel/Box/PowerButtons/Rod, $Panel/Box/PowerButtons/Net, $Panel/Box/PowerButtons/Blast
-]
-@onready var _confirm: Control = $Panel/Box/LeaveConfirm
-@onready var _auto: CheckBox = $Panel/Box/Auto
-@onready var _mute: CheckBox = $Panel/Box/Mute
-@onready var _volume_sliders: Dictionary = {
-	AudioSettings.BUS_MASTER: $Panel/Box/MasterRow/Slider,
-	AudioSettings.BUS_MUSIC: $Panel/Box/MusicRow/Slider,
-	AudioSettings.BUS_AMBIENCE: $Panel/Box/AmbienceRow/Slider,
-	AudioSettings.BUS_SFX: $Panel/Box/SfxRow/Slider,
+@onready var _status: Label = %Status
+@onready var _map_picker: OptionButton = %MapPicker
+@onready var _rounds_picker: OptionButton = %RoundsPicker
+@onready var _round_maps: VBoxContainer = %TournamentMaps
+@onready var _power_status: Label = %PowerStatus
+@onready
+var _power_buttons: Array[PowerButton] = [%PowerButtons/Rod, %PowerButtons/Net, %PowerButtons/Blast]
+@onready var _confirm: Control = %LeaveConfirm
+@onready var _auto: SwitchButton = %Auto
+@onready var _mute: SwitchButton = %Mute
+@onready var _volume_rows: Dictionary = {
+	AudioSettings.BUS_MASTER: %MasterRow,
+	AudioSettings.BUS_MUSIC: %MusicRow,
+	AudioSettings.BUS_AMBIENCE: %AmbienceRow,
+	AudioSettings.BUS_SFX: %SfxRow,
 }
 
 
@@ -97,24 +96,20 @@ func _ready() -> void:
 	_tab.pressed.connect(_on_tab_pressed)
 	_tab.mouse_entered.connect(_set_tab_hovered.bind(true))
 	_tab.mouse_exited.connect(_set_tab_hovered.bind(false))
-	($Panel/Box/Buttons/Open as Button).pressed.connect(open_lobby_pressed.emit)
-	($Panel/Box/Buttons/Start as Button).pressed.connect(start_pressed.emit)
-	($Panel/Box/Buttons/Stop as Button).pressed.connect(stop_pressed.emit)
-	($Panel/Box/Home as Button).pressed.connect(home_pressed.emit)
+	(%Open as Button).pressed.connect(open_lobby_pressed.emit)
+	(%Start as Button).pressed.connect(start_pressed.emit)
+	(%Stop as Button).pressed.connect(stop_pressed.emit)
+	(%Home as Button).pressed.connect(home_pressed.emit)
 	for i: int in _power_buttons.size():
 		_power_buttons[i].pressed.connect(power_pressed.emit.bind(i))
-	($Panel/Box/SkipReplay as Button).pressed.connect(skip_replay_pressed.emit)
-	($Panel/Box/LeaveConfirm/Answers/Leave as Button).pressed.connect(_on_leave_pressed)
-	($Panel/Box/LeaveConfirm/Answers/Stay as Button).pressed.connect(cancel_leave)
-	($Panel/Box/DebugButtons as Control).visible = DebugMode.is_enabled()
-	($Panel/Box/DebugButtons/AddOne as Button).pressed.connect(
-		add_debug_players_pressed.emit.bind(1)
-	)
-	($Panel/Box/DebugButtons/AddFive as Button).pressed.connect(
-		add_debug_players_pressed.emit.bind(5)
-	)
-	($Panel/Box/DebugButtons/Duck as Button).pressed.connect(debug_duck_pressed.emit)
-	($Panel/Box/DebugButtons/Meow as Button).pressed.connect(debug_meow_pressed.emit)
+	(%SkipReplay as Button).pressed.connect(skip_replay_pressed.emit)
+	(%Leave as Button).pressed.connect(_on_leave_pressed)
+	(%Stay as Button).pressed.connect(cancel_leave)
+	(%DebugButtons as Control).visible = DebugMode.is_enabled()
+	(%DebugButtons/AddOne as Button).pressed.connect(add_debug_players_pressed.emit.bind(1))
+	(%DebugButtons/AddFive as Button).pressed.connect(add_debug_players_pressed.emit.bind(5))
+	(%DebugButtons/Duck as Button).pressed.connect(debug_duck_pressed.emit)
+	(%DebugButtons/Meow as Button).pressed.connect(debug_meow_pressed.emit)
 	_fill_map_options(_map_picker)
 	_map_picker.item_selected.connect(_on_map_picked)
 	for count: int in Tournament.ROUND_CHOICES:
@@ -122,12 +117,13 @@ func _ready() -> void:
 		_rounds_picker.set_item_metadata(_rounds_picker.item_count - 1, count)
 	_rounds_picker.item_selected.connect(_on_rounds_picked)
 	_on_rounds_picked(0)
-	($Panel/Box/StartTournament as Button).pressed.connect(_on_start_tournament_pressed)
-	($Panel/Box/TournamentToggle as Button).pressed.connect(toggle_tournament)
+	(%StartTournament as Button).pressed.connect(_on_start_tournament_pressed)
+	(%TournamentToggle as Button).pressed.connect(toggle_tournament)
 	_auto.toggled.connect(auto_mode_toggled.emit)
-	_mute.toggled.connect(mute_toggled.emit)
-	for bus: String in _volume_sliders:
-		(_volume_sliders[bus] as HSlider).value_changed.connect(_on_volume_slider_changed.bind(bus))
+	_mute.toggled.connect(_on_mute_toggled)
+	for bus: String in _volume_rows:
+		_slider(bus).value_changed.connect(_on_volume_slider_changed.bind(bus))
+		_show_volume(bus)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -213,7 +209,7 @@ func cancel_leave() -> void:
 
 ## Shows or hides the skip button. Space skips too, even with the panel hidden.
 func show_skip_replay(shown: bool) -> void:
-	($Panel/Box/SkipReplay as Control).visible = shown
+	(%SkipReplay as Control).visible = shown
 
 
 func set_status(text: String) -> void:
@@ -258,70 +254,156 @@ func set_power_status(text: String) -> void:
 
 ## Shows the auto mode choice without emitting [signal auto_mode_toggled].
 func set_auto_mode(enabled: bool) -> void:
-	_auto.set_pressed_no_signal(enabled)
+	_auto.show_state(enabled)
 
 
 ## Shows the current audio choices without emitting any signal. Volumes are linear 0..1 per bus.
 func set_audio_state(volumes: Dictionary, muted: bool) -> void:
-	_mute.set_pressed_no_signal(muted)
-	for bus: String in _volume_sliders:
-		(_volume_sliders[bus] as HSlider).set_value_no_signal(float(volumes.get(bus, 1.0)))
+	_mute.show_state(muted)
+	for bus: String in _volume_rows:
+		_slider(bus).set_value_no_signal(float(volumes.get(bus, 1.0)))
+		_show_volume(bus)
+	_dim_volumes(muted)
 
 
 func _apply_style() -> void:
-	_panel.add_theme_stylebox_override("panel", UiStyle.panel_box())
+	_panel.add_theme_stylebox_override("panel", _drawer_box())
 	UiStyle.style_button(_tab, 16)
-	UiStyle.style_label(_status, 22, 700, UiStyle.CYAN)
+	UiStyle.style_label(_status, 20, 700, UiStyle.CYAN)
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiStyle.style_label($Panel/Box/MapRow/MapLabel as Label, 22, 600, UiStyle.MUTED)
-	UiStyle.style_label($Panel/Box/TournamentRow/TournamentLabel as Label, 22, 600, UiStyle.MUTED)
-	UiStyle.style_label($Panel/Box/Hint as Label, 18, 600, UiStyle.MUTED)
-	var version: Label = $Panel/Box/Version
-	UiStyle.style_label(version, 14, 600, UiStyle.MUTED)
+	for card: PanelContainer in [%RaceCard, %PowersCard, %TournamentCard, %SoundCard]:
+		card.add_theme_stylebox_override("panel", _card_box())
+		var heading: Label = card.find_child("Heading", true, false) as Label
+		UiStyle.style_label(heading, 15, 800, UiStyle.CYAN, 3)
+		heading.add_theme_constant_override("outline_size", 0)
+	for label: Label in [
+		%MapLabel,
+		%AutoLabel,
+		%TournamentLabel,
+		%MuteLabel,
+		%MasterRow/Label,
+		%MusicRow/Label,
+		%AmbienceRow/Label,
+		%SfxRow/Label,
+	]:
+		_style_text(label, 19, 600, UiStyle.TEXT)
+	for label: Label in [%AutoHint, %Keys, %Hint]:
+		_style_text(label, 15, 500, UiStyle.MUTED)
+	_style_text(_power_status, 16, 500, UiStyle.MUTED)
+	_power_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	for row: Control in _volume_rows.values():
+		_style_text(row.get_node("Value") as Label, 16, 600, UiStyle.MUTED)
+	var version: Label = %Version
+	_style_text(version, 13, 600, UiStyle.MUTED)
 	version.modulate.a = 0.6
 	version.text = BuildInfo.label()
-	UiStyle.style_label(_power_status, 18, 600, UiStyle.MUTED)
-	_power_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiStyle.style_label($Panel/Box/LeaveConfirm/Question as Label, 20, 600, UiStyle.TEXT)
-	($Panel/Box/LeaveConfirm/Question as Label).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	for box: CheckBox in [_auto, _mute]:
-		box.add_theme_font_override("font", UiStyle.font(600))
-		box.add_theme_font_size_override("font_size", 22)
-		box.add_theme_color_override("font_color", UiStyle.TEXT)
-	for row: String in ["MasterRow", "MusicRow", "AmbienceRow", "SfxRow"]:
-		UiStyle.style_label(get_node("Panel/Box/%s/Label" % row) as Label, 22, 600, UiStyle.MUTED)
+	var question: Label = %Question
+	_style_text(question, 18, 600, UiStyle.TEXT)
+	question.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	for button: Button in [
-		$Panel/Box/Buttons/Open,
-		$Panel/Box/Buttons/Start,
-		$Panel/Box/Buttons/Stop,
-		$Panel/Box/PowerButtons/Rod,
-		$Panel/Box/PowerButtons/Net,
-		$Panel/Box/PowerButtons/Blast,
-		$Panel/Box/Home,
-		$Panel/Box/SkipReplay,
-		$Panel/Box/LeaveConfirm/Answers/Leave,
-		$Panel/Box/LeaveConfirm/Answers/Stay,
-		$Panel/Box/DebugButtons/AddOne,
-		$Panel/Box/DebugButtons/AddFive,
-		$Panel/Box/DebugButtons/Duck,
-		$Panel/Box/DebugButtons/Meow,
-		_map_picker,
-		_rounds_picker,
-		$Panel/Box/StartTournament,
-		$Panel/Box/TournamentToggle,
+		%Open,
+		%Stop,
+		%Home,
+		%SkipReplay,
+		%Leave,
+		%Stay,
+		%DebugButtons/AddOne,
+		%DebugButtons/AddFive,
+		%DebugButtons/Duck,
+		%DebugButtons/Meow,
+		%StartTournament,
 	]:
-		UiStyle.style_button(button, 20)
+		UiStyle.style_button(button, 17)
+		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	UiStyle.style_button(%TournamentToggle as Button, 14)
+	_style_primary(%Start as Button)
+	for picker: OptionButton in [_map_picker, _rounds_picker]:
+		_style_picker(picker)
 	for power: PowerButton in _power_buttons:
 		power.apply_style()
-	_style_picker_popup(_map_picker)
-	_style_picker_popup(_rounds_picker)
+		power.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+
+## Solid, so a lobby list or a track behind the open drawer never shows through its text.
+static func _drawer_box() -> StyleBoxFlat:
+	var box: StyleBoxFlat = UiStyle.panel_box()
+	box.bg_color = Color(UiStyle.PANEL_BG, 0.97)
+	box.content_margin_left = 18.0
+	box.content_margin_right = 18.0
+	box.content_margin_top = 16.0
+	box.content_margin_bottom = 14.0
+	return box
+
+
+## Section card, as on the settings screen.
+static func _card_box() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(UiStyle.CYAN, 0.05)
+	box.set_corner_radius_all(10)
+	box.content_margin_left = 16.0
+	box.content_margin_right = 16.0
+	box.content_margin_top = 12.0
+	box.content_margin_bottom = 12.0
+	return box
+
+
+## Plain text on the drawer's own background needs no outline.
+static func _style_text(label: Label, size: int, weight: int, color: Color) -> void:
+	UiStyle.style_label(label, size, weight, color)
+	label.add_theme_constant_override("outline_size", 0)
+
+
+## Filled cyan: the one button the streamer presses most.
+static func _style_primary(button: Button) -> void:
+	UiStyle.style_button(button, 22)
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var ink := Color(0.01, 0.05, 0.1)
+	for state: String in [
+		"font_color", "font_hover_color", "font_pressed_color", "font_focus_color"
+	]:
+		button.add_theme_color_override(state, ink)
+	for state: String in ["normal", "hover", "pressed", "focus"]:
+		var box: StyleBoxFlat = UiStyle.button_box(state != "normal")
+		box.bg_color = UiStyle.CYAN_LIGHT if state == "hover" else UiStyle.CYAN
+		box.border_color = box.bg_color
+		box.content_margin_top = 10.0
+		box.content_margin_bottom = 10.0
+		button.add_theme_stylebox_override(state, box)
+
+
+## Input-box look of the settings screen, with a dark popup menu in the drawer's font.
+func _style_picker(picker: OptionButton) -> void:
+	# Sized by the picked name, so a long map name cannot widen the drawer.
+	picker.fit_to_longest_item = false
+	picker.clip_text = true
+	picker.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	picker.add_theme_font_override("font", UiStyle.font(600))
+	picker.add_theme_font_size_override("font_size", 19)
+	picker.add_theme_color_override("font_color", UiStyle.TEXT)
+	for state: String in ["font_hover_color", "font_pressed_color", "font_focus_color"]:
+		picker.add_theme_color_override(state, Color.WHITE)
+	var looks: Dictionary[String, float] = {
+		"normal": 0.3, "hover": 0.9, "pressed": 0.9, "focus": 0.3
+	}
+	for state: String in looks:
+		var box := StyleBoxFlat.new()
+		box.bg_color = Color(UiStyle.CYAN, 0.08 * (looks[state] + 0.1))
+		box.set_border_width_all(1)
+		box.border_color = Color(UiStyle.CYAN, looks[state])
+		box.set_corner_radius_all(6)
+		box.content_margin_left = 12.0
+		box.content_margin_right = 12.0
+		box.content_margin_top = 6.0
+		box.content_margin_bottom = 6.0
+		picker.add_theme_stylebox_override(state, box)
+	_style_picker_popup(picker)
 
 
 ## Dark panel and the drawer's font for the popup menu of a picker.
 func _style_picker_popup(picker: OptionButton) -> void:
 	var popup: PopupMenu = picker.get_popup()
 	popup.add_theme_font_override("font", UiStyle.font(600))
-	popup.add_theme_font_size_override("font_size", 22)
+	popup.add_theme_font_size_override("font_size", 19)
 	popup.add_theme_stylebox_override("panel", UiStyle.panel_box())
 	popup.add_theme_color_override("font_color", UiStyle.TEXT)
 	popup.add_theme_color_override("font_hover_color", Color.WHITE)
@@ -339,7 +421,29 @@ func select_map(choice: String) -> void:
 ## A bound argument comes after the signal's own (value, bus), so it cannot go straight to
 ## [signal volume_changed], which wants the bus first.
 func _on_volume_slider_changed(value: float, bus: String) -> void:
+	_show_volume(bus)
 	volume_changed.emit(bus, value)
+
+
+func _slider(bus: String) -> HSlider:
+	return (_volume_rows[bus] as Control).get_node("Slider") as HSlider
+
+
+## Writes a slider's level next to it, in percent.
+func _show_volume(bus: String) -> void:
+	var value: Label = (_volume_rows[bus] as Control).get_node("Value") as Label
+	value.text = "%d%%" % roundi(_slider(bus).value * 100.0)
+
+
+## Muted sound keeps its levels; the rows fade to show they are not heard.
+func _dim_volumes(muted: bool) -> void:
+	for row: Control in _volume_rows.values():
+		row.modulate.a = 0.4 if muted else 1.0
+
+
+func _on_mute_toggled(muted: bool) -> void:
+	_dim_volumes(muted)
+	mute_toggled.emit(muted)
 
 
 func _on_map_picked(index: int) -> void:
@@ -364,16 +468,17 @@ func _on_rounds_picked(index: int) -> void:
 		pickers[i].queue_free()
 	for i: int in range(pickers.size(), count):
 		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
 		var label := Label.new()
 		label.text = "Round %d" % (i + 1)
-		UiStyle.style_label(label, 22, 600, UiStyle.MUTED)
+		label.custom_minimum_size.x = 90.0
+		_style_text(label, 17, 600, UiStyle.MUTED)
 		row.add_child(label)
 		var picker := OptionButton.new()
 		picker.focus_mode = Control.FOCUS_NONE
 		picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_fill_map_options(picker)
-		UiStyle.style_button(picker, 20)
-		_style_picker_popup(picker)
+		_style_picker(picker)
 		row.add_child(picker)
 		_round_maps.add_child(row)
 
@@ -404,11 +509,9 @@ func set_tournament(maps: PackedStringArray) -> void:
 ## Shows or hides the tournament setup. It starts hidden to keep the drawer short.
 func toggle_tournament() -> void:
 	var shown: bool = not _round_maps.visible
-	for node: Control in [$Panel/Box/TournamentRow, _round_maps, $Panel/Box/StartTournament]:
+	for node: Control in [%TournamentRow, _round_maps, %StartTournament]:
 		node.visible = shown
-	($Panel/Box/TournamentToggle as Button).text = (
-		"Hide tournament" if shown else "Show tournament"
-	)
+	(%TournamentToggle as Button).text = "Hide" if shown else "Set up"
 
 
 func is_tournament_shown() -> bool:
