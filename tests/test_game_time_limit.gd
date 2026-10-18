@@ -148,6 +148,16 @@ func test_overlay_lists_dnf_fish_under_the_podium() -> void:
 	assert_eq(_overlay._dnf_label.text, "DID NOT FINISH")
 
 
+func test_the_belt_closes_with_the_podium() -> void:
+	_start_race(3)
+	_finish_marbles([0])
+	_time_up()
+	assert_true(_overlay._dnf_panel.visible)
+	_flow.tick(_flow.timer + 0.1)
+	assert_eq(_flow.state, GameFlow.State.LOBBY)
+	assert_false(_overlay._dnf_panel.visible)
+
+
 func test_nobody_on_the_belt_when_every_fish_finished() -> void:
 	_start_race(2)
 	_finish_marbles([0, 1])

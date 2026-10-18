@@ -122,6 +122,7 @@ func set_leaderboard(points_rows: Array[Dictionary], wins_rows: Array[Dictionary
 func show_lobby(players: Array[Dictionary], max_players: int, seconds_left: float) -> void:
 	_big.text = ""
 	_podium_panel.visible = false
+	_dnf_panel.visible = false
 	_payouts_panel.visible = false
 	var header: String = "TYPE #JOIN TO RACE"
 	var status: String = "%d/%d PLAYERS" % [players.size(), max_players]
