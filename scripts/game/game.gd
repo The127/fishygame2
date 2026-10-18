@@ -682,7 +682,8 @@ func _on_map_selected(choice: String) -> void:
 		return
 	_map_choice = choice
 	# Applies to the next lobby, or right away while one is open (the roster is unaffected).
-	if _flow.state == GameFlow.State.LOBBY:
+	# A tournament plays its own maps.
+	if _flow.state == GameFlow.State.LOBBY and not _tournament.is_running():
 		_load_map()
 
 
