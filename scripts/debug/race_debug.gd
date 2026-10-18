@@ -6,7 +6,8 @@ extends Node2D
 ## --eddies=<seconds> makes the cut fish of a round race send out an eddy that often (default 2, 0 for none), standing in for chat.
 ## --event=<id> runs the race under a RaceEvent (low_gravity, double_hazards, lights_out, bouncy, thanos_snap).
 ## --shake has made-up viewers spam "#shake" the whole race, for the quakes of a map with a fault.
-## --steer has made-up viewers vote for random sides the whole race, for the gravity of Gravity Flip.
+## --steer has made-up viewers vote for random sides the whole race, for the gravity of Gravity Flip,
+## and press "#left", "#right" and now and then "#grab" for the claw of the Claw Machine.
 
 ## Seconds between the "#shake" presses of --shake, and the viewers taking turns.
 const SHAKE_EVERY: float = 0.4
@@ -108,12 +109,15 @@ func _spam_steer(delta: float) -> void:
 	_steer_in -= delta
 	if _steer_in <= 0.0:
 		_steer_in = STEER_EVERY
-		get_tree().call_group(
-			GravityFlipper.CHAT_GROUP,
-			"vote",
-			_steer_rng.randi_range(0, 3),
-			"viewer%d" % _steer_rng.randi_range(0, STEER_VIEWERS - 1)
-		)
+		var side: int = _steer_rng.randi_range(0, 3)
+		var who: String = "viewer%d" % _steer_rng.randi_range(0, STEER_VIEWERS - 1)
+		get_tree().call_group(GravityFlipper.CHAT_GROUP, "vote", side, who)
+		if _steer_rng.randf() < 0.25:
+			get_tree().call_group(ClawMachine.CHAT_GROUP, "grab", who)
+		else:
+			get_tree().call_group(
+				ClawMachine.CHAT_GROUP, "steer", -1 if _steer_rng.randf() < 0.5 else 1, who
+			)
 
 
 func _spam_shake(delta: float) -> void:

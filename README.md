@@ -204,7 +204,7 @@ bouncy, Thanos snap: half the fish turn to dust mid-race and are DNF). Modifiers
 
 Every map has a hazard (`scripts/tracks/hazard.gd`): a current on Zigzag, an eel on Pachinko (a tall machine with three peg levels: a dense field, a sparse one with pulsing bumpers and one of spinners) and
 collapsing planks on Shipwreck, a cross current on Volcanic Vents and Gravity Flip, a surge that spins up the vortex on
-Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback, overgrowth on Coral Garden and a tilt on Pinball Reef (somebody bumps the cabinet and every fish is shoved back and forth sideways, `scripts/tracks/tilt_hazard.gd`) and an aftershock on Earthquake Fault (the floor shudders and hops every fish, `scripts/tracks/aftershock_hazard.gd`) and a restless ghost that stirs up an eddy on Riptide Rounds. The Jellyfish
+Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide, ruined towers that come down when the fish arrive on Sunken City and a flush on Toilet Flush, a backwash that tips a ramp on Switchback, overgrowth on Coral Garden and a tilt on Pinball Reef and Claw Machine (somebody bumps the cabinet and every fish is shoved back and forth sideways, `scripts/tracks/tilt_hazard.gd`) and an aftershock on Earthquake Fault (the floor shudders and hops every fish, `scripts/tracks/aftershock_hazard.gd`) and a restless ghost that stirs up an eddy on Riptide Rounds. The Jellyfish
 
 Whirlpool, a tremor that shakes the flip gates on Crystal Cave, tentacle swats on Kraken's Lair, a rip current on Ebb Tide and a spin cycle on Washing Machine and a burp jet on Inside the Whale. The Jellyfish
 Field map also has a permanent gimmick: glowing jellyfish drift on paths drawn from the race seed
@@ -439,6 +439,21 @@ and the first fish to fall through it skips the middle flippers, which shuts the
 targets back up. The saucer, gate and targets are armed by `Track.seed_gimmicks`, and the finish
 replay records the hatch, the gate plate, the targets and the slingshot glow through the generic
 replay hook. Races take 30 to 60 seconds with auto-fire only.
+
+Claw Machine is an arcade cabinet. The fish land on a prize shelf in the glass box and a claw on a rail
+over them (`scripts/tracks/claw_machine.gd`) picks them off one at a time. Any viewer types `#left` or
+`#right` to move the claw a step and `#grab` to drop it (`FlipperCommands` turns the chat line into a
+request, `Game` passes it to the map, as on Pinball Reef). The claw goes down until it touches a fish
+or the shelf, shuts on a random fish within reach, lifts it and carries it to the prize chute on the
+left, where it lets go and the fish drops to the finish. About a third of the time it loses its grip on
+the way and the fish falls back on the pile. A claw nobody drops goes down by itself after 6 seconds,
+and when chat has been quiet for 4 seconds it picks a fish from the race seed and goes for it, so a
+seed with no chat replays the same race. The claw only decides who gets out early: the shelf is a
+scissor lift, tilted down toward the chute, that rises steadily from 4 seconds in until its low end is
+above the chute wall, and everything still on it rolls over into the chute. Races take 40 to 55 seconds
+with 20 fish whatever chat does (about 15 with one fish). A tilt (`tilt_hazard.gd`) bumps the cabinet now
+and then. The finish replay records the claw, its jaws and the shelf through the generic replay hook;
+the tally is not replayed. The claw posts nothing in chat, so the chat reply settings are untouched.
 
 Earthquake Fault is the other map chat plays. The fish zigzag down three rock shelves with four
 cracks in them (`scripts/tracks/fault_crack.gd`), each shut with a plug of rock until a quake splits

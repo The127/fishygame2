@@ -104,6 +104,7 @@ func _ready() -> void:
 	add_child(_flipper_commands)
 	Chat.command_received.connect(_flipper_commands.handle_command)
 	_flipper_commands.flippers_requested.connect(_on_flippers_requested)
+	_flipper_commands.grab_requested.connect(_on_grab_requested)
 	add_child(_shake_commands)
 	Chat.command_received.connect(_shake_commands.handle_command)
 	_shake_commands.shake_requested.connect(_on_shake_requested)
@@ -747,12 +748,21 @@ func _load_map() -> void:
 	_camera.show_overview(true)
 
 
-## A viewer pressed "#left" or "#right". Only a race on a map with flippers reacts (its table is
-## in the chat group), and not while its finish replay plays.
+## A viewer pressed "#left" or "#right". Only a race on a map with flippers or a claw reacts (its
+## table or claw is in the chat group), and not while its finish replay plays.
 func _on_flippers_requested(side: int, who: String) -> void:
 	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
 		return
 	get_tree().call_group(PinballTable.CHAT_GROUP, "fire", side, who)
+	get_tree().call_group(ClawMachine.CHAT_GROUP, "steer", side, who)
+
+
+## A viewer pressed "#grab". Only a race on a map with a claw reacts, and not while its finish
+## replay plays.
+func _on_grab_requested(who: String) -> void:
+	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
+		return
+	get_tree().call_group(ClawMachine.CHAT_GROUP, "grab", who)
 
 
 ## A viewer typed "#shake". Only a race on a map with a fault reacts (its fault is in the chat

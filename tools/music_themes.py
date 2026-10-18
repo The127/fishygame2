@@ -729,6 +729,32 @@ THEMES = {
              "glide": False, "gaps": (0.4, 0.9)},
         ),
     },
+    # Claw machine: a bouncy F major arcade loop, a toy-piano arp over an oom-pah bass, with
+    # glassy plucks for the prize lights. No wave or ocean layers.
+    "claw": {
+        "seed": 46,
+        "chords": (
+            (41, 53, 57, 60, 65),
+            (38, 50, 53, 57, 62),
+            (34, 46, 50, 53, 58),
+            (36, 48, 52, 55, 60),
+        ),
+        "pad_partials": WARM,
+        "pad_gain": 0.05,
+        "trem_rate": 0.5,
+        "trem_depth": 0.15,
+        "rumble_cutoff": 180.0,
+        "rumble_gain": 0.2,
+        "layers": (
+            {"kind": "arp", "bpm": 128, "div": 2, "pattern": (65, 69, 72, 77, 72, 69, 74, 77,
+             70, 74, 77, 82, 72, 76, 79, 84), "decay": 0.1, "gain": 0.14, "accent": 4},
+            {"kind": "bass", "bpm": 128, "div": 1, "pattern": (41, 48, 38, 45, 34, 41, 36, 43),
+             "decay": 0.18, "gain": 0.3},
+            {"kind": "pulse", "bpm": 128, "freq": 62.0, "decay": 0.1, "gain": 0.22},
+            {"kind": "plucks", "count": 10, "notes": (77, 81, 84, 89), "decay": 0.25, "gain": 0.05,
+             "glide": False, "gaps": (0.3, 0.8)},
+        ),
+    },
     # Earthquake fault: D phrygian, a slow heavy pulse, a growling bass walk and falling grit.
     "fault": {
         "seed": 36,

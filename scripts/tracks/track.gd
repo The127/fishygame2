@@ -28,7 +28,7 @@ signal fish_dissolved(marble: Marble)
 signal ghost_restless(marble: Marble)
 ## A map part (anglerfish, portal) let off a particle burst. The finish replay plays it again.
 signal burst_played(position: Vector2, color: Color, amount: int, speed: float, gravity: Vector2)
-## The chat tally of a map with flippers or a gravity helm changed. Empty text hides it.
+## The chat tally of a map with flippers, a claw or a gravity helm changed. Empty text hides it.
 signal flipper_tally_changed(text: String)
 ## The quake meter of a map with a fault changed. Empty text hides it.
 signal shake_meter_changed(text: String)
@@ -79,6 +79,7 @@ var _slot_of: Array[int] = []
 var _tide: WaterLevel
 var _tide_triggers: Array[TideTrigger] = []
 var _pinball: PinballTable
+var _claw: ClawMachine
 var _eddies: EddyRing
 
 @onready var _finish: Area2D = $Finish
@@ -115,6 +116,9 @@ func _ready() -> void:
 		if child is PinballTable:
 			_pinball = child as PinballTable
 			_pinball.tally_changed.connect(flipper_tally_changed.emit)
+		if child is ClawMachine:
+			_claw = child as ClawMachine
+			_claw.tally_changed.connect(flipper_tally_changed.emit)
 	for child: Node in get_children():
 		if child is TideTrigger and _tide != null:
 			_tide_triggers.append(child as TideTrigger)
@@ -392,6 +396,10 @@ func get_finish_position() -> Vector2:
 ## Progress along the route in [0, 1] for a global position. On a multi-start map the feeders
 ## fill the first `merge_progress` of the scale and the centerline the rest.
 func get_progress(global_pos: Vector2) -> float:
+	if _claw != null:
+		var in_cabinet: float = _claw.progress_at(global_pos)
+		if in_cabinet >= 0.0:
+			return in_cabinet
 	for hazard: Hazard in get_hazards():
 		var known: float = hazard.progress_at(global_pos, _finish.global_position)
 		if known >= 0.0:

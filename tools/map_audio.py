@@ -197,6 +197,14 @@ JINGLES = {
                   (0.7, 81, 0.5, 0.18), (0.8, 86, 0.6, 0.2), (1.0, 86, 1.8, 0.7),
                   (1.0, 74, 1.8, 0.7), (1.0, 65, 1.8, 0.7), (1.0, 50, 1.8, 0.7)),
     },
+    # Claw machine: a coin-drop blip, then the prize fanfare up an F major arpeggio.
+    "claw": {
+        "partials": BELL,
+        "notes": ((0.0, 89, 0.2, 0.05), (0.1, 96, 0.3, 0.08), (0.45, 65, 0.4, 0.15),
+                  (0.57, 69, 0.4, 0.15), (0.69, 72, 0.4, 0.15), (0.81, 77, 0.5, 0.2),
+                  (1.0, 81, 1.8, 0.7), (1.0, 77, 1.8, 0.7), (1.0, 72, 1.8, 0.7),
+                  (1.0, 53, 1.8, 0.7)),
+    },
     # Riptide Rounds: a rising G minor run that breaks into a bright major chord, with a cold bell.
     "riptide": {
         "partials": GLASS,
@@ -611,6 +619,16 @@ def _pinball2(out, rng):
     pings(out, (3.6,), 1700.0, 0.06)
 
 
+def _claw(out, rng):
+    # The cabinet's motor hum, the carriage rattling on its rail, the odd coin clank and a
+    # prize-light tinkle.
+    bed(out, rng, 0.0, 240.0, 0.8, swell=0.3, cycles=2)
+    bed(out, rng, 900.0, 2000.0, 0.06, swell=0.8, cycles=3, phase=1.0)
+    pops(out, rng, 4, 0.1)
+    clanks(out, (1.7, 5.2), 260.0, 0.1)
+    tinkles(out, rng, (3.1, 6.6), 1600.0, 2600.0, 0.05)
+
+
 def _riptide(out, rng):
     bed(out, rng, 300.0, 1400.0, 0.5, swell=0.5, cycles=2)
     bed(out, rng, 0.0, 260.0, 0.6, swell=0.3, cycles=1, phase=math.pi / 2.0)
@@ -640,6 +658,7 @@ AMBIENCE = {
     "switchback": (72, _switchback),
     "pinball": (44, _pinball),
     "pinball2": (45, _pinball2),
+    "claw": (46, _claw),
     "fault": (73, _fault),
     "riptide": (72, _riptide),
 }
