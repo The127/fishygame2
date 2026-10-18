@@ -23,6 +23,7 @@ export-web:
     mkdir -p build/web
     {{godot}} --headless --import
     {{godot}} --headless --export-release Web build/web/index.html
+    GODOT={{godot}} tools/render_shop_page.sh build/web
 
 # Play a round in headless Chromium against build/web (run `just export-web` first).
 # Needs Node and, once, `cd tests/browser && npm ci && npx playwright install chromium`.

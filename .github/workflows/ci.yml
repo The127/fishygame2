@@ -157,8 +157,14 @@ jobs:
         run: |
           mkdir -p build/web
           godot --headless --export-release Web build/web/index.html
+      - name: Render the shop page
+        run: |
+          command -v xvfb-run || { sudo apt-get update && sudo apt-get install -y --no-install-recommends xvfb; }
+          tools/render_shop_page.sh build/web
       - name: Check export output
-        run: test -s build/web/index.html && test -s build/web/index.wasm && test -s build/web/index.pck
+        run: |
+          test -s build/web/index.html && test -s build/web/index.wasm && test -s build/web/index.pck
+          test -s build/web/shop.html && test -n "$(ls build/web/shop/*.webp)"
       - uses: actions/upload-artifact@v4
         with:
           name: web-build
