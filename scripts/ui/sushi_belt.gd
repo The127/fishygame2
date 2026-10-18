@@ -73,6 +73,7 @@ func serve(fish: Array[Dictionary], seconds: float) -> void:
 	var distance: float = VIEW_SIZE.x + SPACING * maxf(_plates.size() - 1, 0)
 	_speed = distance / maxf(seconds * PASS_SHARE, 0.1)
 	_travel = 0.0
+	set_process(true)
 	_place_fish()
 	queue_redraw()
 
@@ -86,7 +87,7 @@ func hidden_count() -> int:
 	return _hidden
 
 
-## Center x of plate `index` on the belt right now; it starts left of the belt and moves right.
+## Center x of plate `index` right now; plates queue up left of the first one and move right.
 func plate_x(index: int) -> float:
 	return TAG_SIZE.x * 0.5 - index * SPACING + _travel
 
@@ -103,6 +104,8 @@ func _process(delta: float) -> void:
 	if _plates.is_empty():
 		return
 	_travel += _speed * delta
+	if plate_x(_plates.size() - 1) - TAG_SIZE.x * 0.5 > VIEW_SIZE.x:
+		set_process(false)
 	_place_fish()
 	queue_redraw()
 
