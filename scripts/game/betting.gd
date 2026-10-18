@@ -16,7 +16,8 @@ signal balance_reported(msg: ChatMessage, balance: int)
 ## Total bets or bettor count changed (also fires with empty state on a reset).
 signal bets_changed(summary: String)
 ## One entry per bet or placement: {user_id, name, target, amount, payout, kind}. kind is
-## "bet" or "place". payout is 0 for a lost bet; amount is 0 for a placement.
+## "bet" or "place", or another kind handed in with [method report_payouts] ("rival").
+## payout is 0 for a lost bet; amount is 0 for a placement.
 signal payouts_settled(results: Array[Dictionary])
 
 @export var points_path: String = PointsStore.DEFAULT_PATH
@@ -34,6 +35,8 @@ var _open: bool = false
 var _roster: Array[Contestant] = []
 ## user_id -> {"name": String, "target": Contestant, "amount": int}
 var _bets: Dictionary = {}
+## Payouts made elsewhere this round, reported with the next settlement.
+var _reported: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -113,12 +116,19 @@ func summary() -> String:
 	return ", ".join(parts)
 
 
+## Adds payouts already paid by someone else this round (same entry shape as
+## [signal payouts_settled]) to the next settlement's report. Dropped if the round has no winner.
+func report_payouts(entries: Array[Dictionary]) -> void:
+	_reported.append_array(entries)
+
+
 ## Feed it GameFlow.state_changed.
 func on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> void:
 	match new_state:
 		GameFlow.State.LOBBY:
 			_refund_all()
 			_roster.clear()
+			_reported.clear()
 			_open = true
 			bets_changed.emit(summary())
 		GameFlow.State.RACING, GameFlow.State.PODIUM:
@@ -127,6 +137,7 @@ func on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> 
 			_open = false
 			_refund_all()
 			_roster.clear()
+			_reported.clear()
 			bets_changed.emit(summary())
 
 
@@ -138,6 +149,7 @@ func on_podium_ready(podium: Array[Dictionary]) -> void:
 	if not podium.is_empty() and bool(podium[0]["finished"]):
 		winner_id = str(podium[0]["user_id"])
 	if winner_id.is_empty():
+		_reported.clear()
 		_refund_all()
 		return
 	points.add_win(winner_id)
@@ -184,6 +196,8 @@ func on_podium_ready(podium: Array[Dictionary]) -> void:
 		results.append(_result("bet", user_id, bet, amount, payout))
 	_clear_bets()
 	points.save_to_disk()
+	results.append_array(_reported)
+	_reported.clear()
 	payouts_settled.emit(results)
 
 

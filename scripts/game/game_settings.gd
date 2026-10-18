@@ -16,6 +16,7 @@ const CHAT_TOGGLES: Array[Dictionary] = [
 	{"key": "reply_bets", "label": "Confirm #bet"},
 	{"key": "reply_chaos", "label": "Confirm #boost and #curse"},
 	{"key": "reply_shop", "label": "Confirm #fish, #color, #hat and #trail"},
+	{"key": "reply_rivals", "label": "Confirm #rival"},
 	{"key": "reply_catalog", "label": "Post the shop list for #shop"},
 	{"key": "reply_results", "label": "Announce race results"},
 	{"key": "reply_powers", "label": "Announce streamer powers"},
@@ -59,6 +60,7 @@ const FIELDS: Array[Dictionary] = [
 	{"key": "win_reward", "label": "1st place reward", "min": 0, "max": 1000000, "step": 10},
 	{"key": "second_reward", "label": "2nd place reward", "min": 0, "max": 1000000, "step": 10},
 	{"key": "third_reward", "label": "3rd place reward", "min": 0, "max": 1000000, "step": 10},
+	{"key": "rival_reward", "label": "Beat your rival reward", "min": 0, "max": 1000000, "step": 1},
 	{"key": "boost_cost", "label": "Boost cost", "min": 0, "max": 1000000, "step": 10},
 	{"key": "curse_cost", "label": "Curse cost", "min": 0, "max": 1000000, "step": 10},
 	{"key": "species_price", "label": "Fish species price", "min": 0, "max": 1000000, "step": 50},
@@ -131,6 +133,8 @@ var max_bet: int = 0
 var win_reward: int = 100
 var second_reward: int = 50
 var third_reward: int = 25
+## Points for finishing ahead of your rival (see [Rivals]).
+var rival_reward: int = 5
 var boost_cost: int = 100
 var curse_cost: int = 150
 var species_price: int = 500
@@ -167,6 +171,7 @@ var reply_chaos: bool = true
 ## The overlay shows every purchase either way.
 var reply_shop: bool = false
 var reply_catalog: bool = false
+var reply_rivals: bool = true
 var reply_results: bool = true
 var reply_powers: bool = true
 ## Whether fish wear the colorblind palette and a marking each (see [FishPalette]).

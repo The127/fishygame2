@@ -58,6 +58,11 @@ const HAUNT_REJECTIONS: Dictionary = {
 	"cooldown": "your ghost needs a moment",
 }
 
+const RIVAL_REJECTIONS: Dictionary = {
+	"unknown_viewer": "no viewer by that name yet",
+	"self": "you can't be your own rival",
+}
+
 const POWER_REJECTIONS: Dictionary = {
 	"off": "streamer powers are off in the settings",
 	"closed": "powers only work during a race",
@@ -182,6 +187,26 @@ func shop_equipped(msg: ChatMessage, kind: String, item: String, price: int) -> 
 
 func shop_rejected(msg: ChatMessage, reason: String) -> void:
 	var text: String = SHOP_REJECTIONS.get(reason, "not accepted")
+	notice.emit("%s: %s" % [viewer_name(msg), text])
+
+
+func rival_set(msg: ChatMessage, rival_name: String) -> void:
+	var who: String = viewer_name(msg)
+	confirm("reply_rivals", "rivals", "Rivals:", "@%s vs @%s" % [who, rival_name])
+	notice.emit("%s picked %s as their rival!" % [who, rival_name])
+
+
+## "#rival" alone: who the viewer's rival is, or how to pick one.
+func rival_reported(msg: ChatMessage, rival_name: String) -> void:
+	var who: String = viewer_name(msg)
+	if rival_name.is_empty():
+		confirm("reply_rivals", "rivals", "Rivals:", "@%s has none (#rival <name>)" % who)
+	else:
+		confirm("reply_rivals", "rivals", "Rivals:", "@%s vs @%s" % [who, rival_name])
+
+
+func rival_rejected(msg: ChatMessage, reason: String) -> void:
+	var text: String = RIVAL_REJECTIONS.get(reason, "not accepted")
 	notice.emit("%s: %s" % [viewer_name(msg), text])
 
 

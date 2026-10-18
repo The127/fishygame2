@@ -12,6 +12,8 @@ const BLAST_PUNCH: float = 14.0
 
 ## Milliseconds a "power not available" line stays in the control panel.
 const POWER_NOTE_MSEC: int = 3000
+## Most rivalries named in the race result line.
+const RESULT_RIVALS: int = 3
 ## Most DNF names in the race result line.
 const RESULT_DNF: int = 3
 
@@ -45,6 +47,7 @@ var _viewer_commands: ViewerCommands = ViewerCommands.new()
 var _flipper_commands: FlipperCommands = FlipperCommands.new()
 var _shake_commands: ShakeCommands = ShakeCommands.new()
 var _gravity_commands: GravityCommands = GravityCommands.new()
+var _rivals: Rivals = Rivals.new()
 var _payouts: Array[Dictionary] = []
 ## The streamer power waiting for a click on the track (a StreamerPowers.Kind), or -1.
 var _armed_power: int = -1
@@ -96,6 +99,12 @@ func _ready() -> void:
 	add_child(_gravity_commands)
 	Chat.command_received.connect(_gravity_commands.handle_command)
 	_gravity_commands.gravity_requested.connect(_on_gravity_requested)
+	_rivals.points = _betting.points
+	add_child(_rivals)
+	Chat.command_received.connect(_rivals.handle_command)
+	_rivals.rival_set.connect(_replies.rival_set)
+	_rivals.rival_reported.connect(_replies.rival_reported)
+	_rivals.rival_rejected.connect(_replies.rival_rejected)
 	_chaos.points = _betting.points
 	_shop.points = _betting.points
 	_shop.equipped.connect(_on_shop_equipped)
@@ -216,6 +225,7 @@ func _apply_settings() -> void:
 	_betting.min_bet = settings.min_bet
 	_betting.max_bet = settings.max_bet
 	_betting.place_rewards = [settings.win_reward, settings.second_reward, settings.third_reward]
+	_rivals.reward = settings.rival_reward
 	_shop.species_price = settings.species_price
 	_shop.color_price = settings.color_price
 	_shop.premium_color_price = settings.premium_color_price
@@ -484,10 +494,33 @@ func _on_replay_started() -> void:
 ## Counts the race for the viewers' stats and hands the results to the flow. Only runs when the
 ## race really ends, so a round stopped during the replay leaves no stats behind.
 func _report_results(results: Array[Dictionary]) -> void:
-	# Before the stats, whose save covers the treasure points too.
+	# Before the stats, whose save covers the treasure and rival points too.
 	_haul_text = _haul.settle(_betting.points)
+	_betting.report_payouts(_rivals.settle(_standings(results)))
 	_record_race_stats(results)
 	_flow.report_race_finished(results)
+
+
+## One {user_id, name, place, finished} per fish in the race results (ids are roster indexes).
+func _standings(results: Array[Dictionary]) -> Array[Dictionary]:
+	var contestants: Array[Contestant] = _flow.get_contestants()
+	var standings: Array[Dictionary] = []
+	for r: Dictionary in results:
+		var id: int = int(r["id"])
+		if id < 0 or id >= contestants.size():
+			continue
+		(
+			standings
+			. append(
+				{
+					"user_id": contestants[id].user_id,
+					"name": contestants[id].display_name,
+					"place": int(r["place"]),
+					"finished": bool(r["finished"]),
+				}
+			)
+		)
+	return standings
 
 
 func _on_replay_ended(results: Array[Dictionary]) -> void:
@@ -782,15 +815,20 @@ func _on_payouts_settled(results: Array[Dictionary]) -> void:
 	_payouts = results
 
 
-## "Bubbles won. Payouts: @a +300, @b +200. DNF: c, d", with at most three payouts, biggest
-## first, and at most three DNF names.
+## "Bubbles won. Payouts: @a +300, @b +200. Rivals: @c beat @d +5. DNF: e, f", with at most
+## three payouts, biggest first, three rivalries and three DNF names. Rival rewards are only
+## listed under Rivals.
 func _result_text(
 	winner: String, payouts: Array[Dictionary], dnf: PackedStringArray = [], treasure: String = ""
 ) -> String:
 	# One entry per viewer: a winner who also bet shows a single total.
 	var totals: Dictionary = {}
+	var rivals: PackedStringArray = []
 	for r: Dictionary in payouts:
 		if int(r["payout"]) <= 0:
+			continue
+		if r.get("kind", "") == "rival":
+			rivals.append("@%s beat @%s +%d" % [r["name"], r["target"], r["payout"]])
 			continue
 		var uid: String = str(r.get("user_id", r["name"]))
 		if totals.has(uid):
@@ -807,6 +845,11 @@ func _result_text(
 	var sections: PackedStringArray = []
 	if not parts.is_empty():
 		sections.append("Payouts: " + ", ".join(parts))
+	if not rivals.is_empty():
+		var beaten: String = "Rivals: " + ", ".join(rivals.slice(0, RESULT_RIVALS))
+		if rivals.size() > RESULT_RIVALS:
+			beaten += " +%d more" % (rivals.size() - RESULT_RIVALS)
+		sections.append(beaten)
 	if not treasure.is_empty():
 		sections.append("Treasure: " + treasure)
 	if not dnf.is_empty():
