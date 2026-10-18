@@ -69,7 +69,8 @@ var _tournament_board: TournamentBoard = TournamentBoard.new()
 var _rejoining: bool = false
 ## The 3D view of the fake sequel round, or null.
 var _view_3d: Race3DView
-var _duck: ImpostorDuck = ImpostorDuck.new()
+## The impostor duck and the cardboard cutouts.
+var _extras: ExtraRacers = ExtraRacers.new()
 
 @onready var _flow: GameFlow = $GameFlow
 @onready var _betting: Betting = $Betting
@@ -257,6 +258,7 @@ func _set_up_fake_sequel() -> void:
 	settings.powers_enabled = false
 	settings.finish_replay = GameSettings.REPLAY_OFF
 	settings.auto_mode = false
+	settings.cardboard_fish = false
 	_flow.state_changed.connect(_on_fake_sequel_state)
 	_view_3d = Race3DView.new()
 	_view_3d.name = "View3D"
@@ -590,8 +592,8 @@ func _on_replay_started() -> void:
 ## Counts the race for the viewers' stats and hands the results to the flow. Only runs when the
 ## race really ends, so a round stopped during the replay leaves no stats behind.
 func _report_results(results: Array[Dictionary]) -> void:
-	# The impostor duck is nobody: everything is settled as if it had not raced.
-	var scored: Array[Dictionary] = _duck.settle(results)
+	# The impostor duck and the cardboard cutouts are nobody: everything is settled without them.
+	var scored: Array[Dictionary] = _extras.settle(results)
 	_tournament.add_treasure(_haul.totals())
 	# Before the stats, whose save covers the treasure and rival points too.
 	_haul_text = _haul.settle(_betting.points)
@@ -650,9 +652,9 @@ func _follow_replay() -> void:
 	_camera.follow({0: at}, {0: _track.get_progress(at)})
 
 
-## The podium as the viewers see it: the impostor duck stands where it really finished.
+## The podium as the viewers see it: the impostor duck and the cutouts stand where they finished.
 func _show_podium(podium: Array[Dictionary]) -> void:
-	_overlay.show_podium(_duck.podium_with_duck(podium, _flow.podium_size))
+	_overlay.show_podium(_extras.shown_podium(podium, _flow.podium_size))
 
 
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
@@ -671,7 +673,7 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 		_flow.set_auto_mode(true, maxf(join, 1.0))
 	_tournament.refresh(_flow.state)
 	_overlay.show_dnf(dnf_fish, _flow.timer)
-	podium = _duck.podium_with_duck(podium, _flow.podium_size)  # A winning duck is announced too.
+	podium = _extras.shown_podium(podium, _flow.podium_size)  # A winning duck or cutout too.
 	if not podium.is_empty():
 		Sound.play_win()
 	var reply: String = RaceResultText.reply(podium, payouts, dnf_fish, haul)
@@ -849,10 +851,10 @@ func _fish_count(count: int) -> String:
 	return "%d fish" % count if count > 0 else "no fish"
 
 
-## The name of the fish with this marble id (a roster index, or the impostor duck's), or "".
+## The name of the fish with this marble id (a roster index, the duck's or a cutout's), or "".
 func _contestant_name(id: int) -> String:
-	if id >= 0 and id == _duck.id:
-		return ImpostorDuck.NAME
+	if not _extras.name_of(id).is_empty():
+		return _extras.name_of(id)
 	var contestants: Array[Contestant] = _flow.get_contestants()
 	return contestants[id].display_name if id >= 0 and id < contestants.size() else ""
 
@@ -949,14 +951,14 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 	_haul_text = ""
 	_tournament.on_race_started(contestants)
 	# The fake 3D round has no duck to draw.
-	var field: int = _duck.line_up(
+	var field: int = _extras.line_up(
 		contestants.size(), settings, false if fake_sequel else forced_duck
 	)
 	_race.start(_track, field, rng, settings.hazard_level(), _event)
 	_overlay.show_event_badge(_event_badge_text())
 	# Marble ids are roster ids, so match on id rather than on list order.
 	for marble: Marble in _race.get_marbles():
-		if _duck.dress(marble):
+		if _extras.dress(marble):
 			continue
 		if marble.id < 0 or marble.id >= contestants.size():
 			push_warning("Marble id %d has no contestant" % marble.id)
@@ -968,6 +970,8 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 		marble.skin = contestants[marble.id].skin
 		marble.trail = contestants[marble.id].trail
 		marble.label_text = contestants[marble.id].display_name
+	if not _extras.cutout_notice().is_empty():
+		_overlay.show_notice(_extras.cutout_notice(), 3.0)
 
 
 func _refresh_lobby() -> void:

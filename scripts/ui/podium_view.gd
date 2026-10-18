@@ -54,6 +54,16 @@ func step_rect(place: int) -> Rect2:
 
 func _add_winner(entry: Dictionary, place: int) -> void:
 	var rect: Rect2 = step_rect(place)
+	var fish_pos := Vector2(rect.get_center().x, rect.position.y - FISH_LIFT)
+	if bool(entry.get("cardboard", false)):
+		# A cutout does not dance; it keeps flipping over on its step, unbothered by the honor.
+		var cutout := CardboardFish.new()
+		cutout.cut_seed = int(entry["id"])
+		cutout.unit_scale = FISH_SCALE
+		cutout.position = fish_pos
+		add_child(cutout)
+		_add_labels(entry, rect)
+		return
 	var fish := FishVisual.new()
 	fish.color = entry["color"]
 	fish.species = int(entry.get("species", entry["id"]))
@@ -62,7 +72,6 @@ func _add_winner(entry: Dictionary, place: int) -> void:
 	fish.skin = int(entry.get("skin", 0))
 	fish.impostor = bool(entry.get("impostor", false))
 	fish.celebrating = place == 1
-	var fish_pos := Vector2(rect.get_center().x, rect.position.y - FISH_LIFT)
 	if place == 1:
 		_add_dancer(fish, int(entry.get("dance", FishDance.Kind.RANDOM)), fish_pos)
 	else:
@@ -71,6 +80,11 @@ func _add_winner(entry: Dictionary, place: int) -> void:
 		fish.top_level = false
 		fish.scale = Vector2.ONE * FISH_SCALE
 		fish.position = fish_pos
+	_add_labels(entry, rect)
+
+
+## The name above the fish and the time on the step.
+func _add_labels(entry: Dictionary, rect: Rect2) -> void:
 	var name_label: Label = _make_label(str(entry["name"]), 32, 800, UiStyle.TEXT)
 	name_label.position = Vector2(rect.get_center().x - NAME_WIDTH * 0.5, rect.position.y - 180.0)
 	name_label.size = Vector2(NAME_WIDTH, 40.0)

@@ -41,6 +41,16 @@ const ACID_COLOR: Color = Color(0.75, 1.0, 0.3)
 ## Seconds the meow bubble stays up.
 const MEOW_SECONDS: float = 1.2
 
+## A cardboard cutout flops every so often: a hop of up to this many pixels per second up and to
+## either side, with this much bounce and drag. Cardboard lands with a thud and catches the water.
+const CARDBOARD_HOP_MIN: float = 0.5
+const CARDBOARD_HOP_MAX: float = 1.4
+const CARDBOARD_HOP_UP: float = 140.0
+const CARDBOARD_HOP_SIDE: float = 90.0
+const CARDBOARD_BOUNCE: float = 0.05
+const CARDBOARD_DAMP: float = 0.6
+const CARDBOARD_LABEL: Color = Color("f2d3a2")
+
 var id: int = 0
 ## Set by the race once the fish has crossed the finish.
 var has_finished: bool = false
@@ -115,6 +125,16 @@ var glow_boost: float = 1.0:
 		if _fish != null:
 			_fish.glow_boost = value
 
+## True for a flat cardboard cutout (see [CardboardCutouts]): drawn as a [CardboardFish] that
+## tumbles and flops instead of swimming.
+var cardboard: bool = false:
+	set(value):
+		if value == cardboard:
+			return
+		cardboard = value
+		if is_node_ready():
+			_make_cardboard()
+
 var label_text: String = "":
 	set(value):
 		label_text = value
@@ -146,6 +166,9 @@ var _base_damp: float = 0.0
 var _label: Label
 var _fish: FishVisual
 var _trail: CPUParticles2D
+var _cutout: CardboardFish
+var _flop_left: float = 0.0
+var _flop_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -171,6 +194,27 @@ func _ready() -> void:
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_label)
 	_build_trail()
+	if cardboard:
+		_make_cardboard()
+
+
+## Swaps the fish for a cardboard cutout: hidden fish, flat drawing, a dull bounce and some drag.
+func _make_cardboard() -> void:
+	if not cardboard or _cutout != null:
+		return
+	_fish.visible = false
+	_cutout = CardboardFish.new()
+	_cutout.top_level = true
+	_cutout.cut_seed = id
+	add_child(_cutout)
+	_flop_rng.seed = hash(id) + 7
+	_flop_left = _flop_rng.randf_range(CARDBOARD_HOP_MIN, CARDBOARD_HOP_MAX)
+	# The material is shared by every marble scene instance, so change a copy.
+	var material: PhysicsMaterial = physics_material_override.duplicate()
+	material.bounce = CARDBOARD_BOUNCE
+	physics_material_override = material
+	linear_damp = CARDBOARD_DAMP
+	_label.add_theme_color_override("font_color", CARDBOARD_LABEL)
 
 
 ## Swaps in the emitter for the current [member trail].
@@ -253,6 +297,8 @@ func is_cursed() -> bool:
 
 
 func _physics_process(delta: float) -> void:
+	if _cutout != null:
+		_cardboard_flop(delta)
 	if _curse_left <= 0.0:
 		return
 	_curse_left -= delta
@@ -444,6 +490,22 @@ func _flop(base: Vector2, heading_before: float, t: float) -> void:
 		_fish.heading = heading_before + sin(t * TAU * 3.0) * 0.7 * tiring
 
 
+## A cardboard cutout's flop: now and then a graceless hop to one side, and the drawing flips.
+func _cardboard_flop(delta: float) -> void:
+	if freeze or replaying or eaten:
+		return
+	_flop_left -= delta
+	if _flop_left > 0.0:
+		return
+	_flop_left = _flop_rng.randf_range(CARDBOARD_HOP_MIN, CARDBOARD_HOP_MAX)
+	var hop := Vector2(
+		_flop_rng.randf_range(-CARDBOARD_HOP_SIDE, CARDBOARD_HOP_SIDE),
+		-_flop_rng.randf_range(0.3, 1.0) * CARDBOARD_HOP_UP
+	)
+	apply_central_impulse(hop * mass)
+	_cutout.flop()
+
+
 ## Brings a swallowed fish back at `at`, moving with `velocity`.
 func release(at: Vector2, velocity: Vector2) -> void:
 	if not eaten or is_out():
@@ -473,6 +535,8 @@ func celebrate() -> void:
 
 func _process(delta: float) -> void:
 	_fish.face(replay_velocity if replaying else linear_velocity, delta)
+	if _cutout != null:
+		_cutout.tumble(global_position, replay_velocity if replaying else linear_velocity, delta)
 	_trail.global_position = global_position
 	var heading: Vector2 = replay_velocity if replaying else linear_velocity
 	_trail.emitting = heading.length() > 60.0 and (replaying or not freeze)

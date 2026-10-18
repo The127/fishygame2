@@ -32,6 +32,8 @@ func before_each() -> void:
 	_game.settings = GameSettings.new()
 	_game.settings.max_players = 4
 	_game.settings.welcome_hat = false
+	# Cutouts have their own tests; the rest count the fish on the track.
+	_game.settings.cardboard_fish = false
 	# Placement rewards have their own tests; the rest assert exact balances.
 	_game.settings.win_reward = 0
 	_game.settings.second_reward = 0

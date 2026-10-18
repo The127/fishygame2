@@ -78,9 +78,15 @@ static func scored(results: Array[Dictionary], duck_id: int) -> Array[Dictionary
 
 ## The podium as shown: [param podium] (built from the scored results) with the duck put back
 ## in its real place when it finished in the top [param size], the fish behind it moved down
-## one and any pushed past the last step dropped.
+## one and any pushed past the last step dropped. [param make_entry] builds the entry put back
+## from (id, place, time); the duck's [method entry] when it is not set, so other racers that are nobody
+## (the [CardboardCutouts]) can be put back the same way.
 static func display_podium(
-	podium: Array[Dictionary], results: Array[Dictionary], duck_id: int, size: int
+	podium: Array[Dictionary],
+	results: Array[Dictionary],
+	duck_id: int,
+	size: int,
+	make_entry: Callable = Callable()
 ) -> Array[Dictionary]:
 	if duck_id < 0:
 		return podium
@@ -100,7 +106,12 @@ static func display_podium(
 			moved["place"] = int(moved["place"]) + 1
 		if int(moved["place"]) <= size:
 			shown.append(moved)
-	shown.insert(mini(place - 1, shown.size()), entry(duck_id, place, time))
+	var put_back: Dictionary = (
+		make_entry.call(duck_id, place, time)
+		if make_entry.is_valid()
+		else entry(duck_id, place, time)
+	)
+	shown.insert(mini(place - 1, shown.size()), put_back)
 	return shown
 
 
