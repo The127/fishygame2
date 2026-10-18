@@ -131,6 +131,7 @@ const PAGES: Array[Dictionary] = [
 				"items": ["pad_left", "pad_right", "pad_top", "pad_bottom", PREVIEW_KEY],
 			},
 			{"title": "Accessibility", "items": ["colorblind"]},
+			{"title": "Graphics", "items": ["rtx"]},
 		],
 	},
 	{
@@ -205,6 +206,7 @@ const ROWS: Dictionary[String, Dictionary] = {
 	PREVIEW_KEY: {"label": "Preview", "hint": "Black is blocked, the outline is the game."},
 	"colorblind":
 	{"label": "Colorblind mode", "hint": "Alternate fish colors and a marking on each fish."},
+	"rtx": {"label": "RTX", "hint": "Ray tracing, allegedly. Bloom, lens flares, light shafts."},
 	"release_surprise":
 	{"label": "Release surprise", "hint": "A fake sequel announcement, once, on Open Lobby."},
 	REPLAY_SURPRISE_KEY: {"label": "Play it again", "hint": "On the next Open Lobby press."},
@@ -222,6 +224,7 @@ const TOGGLES: Array[String] = [
 	"colorblind",
 	"welcome_hat",
 	"release_surprise",
+	"rtx",
 ]
 
 ## Number settings picked from named steps instead of typed: the names, from the field's min.

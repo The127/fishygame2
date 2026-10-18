@@ -102,3 +102,10 @@ func test_hazards_stay_off_when_disabled() -> void:
 	_game.settings.hazards_enabled = false
 	_start_race(2)
 	assert_false(_current_track().get_hazards()[0].is_armed())
+
+
+func test_rtx_filter_follows_the_setting() -> void:
+	assert_false(_game._rtx.is_enabled())
+	_game.settings.rtx = true
+	_game._apply_settings()
+	assert_true(_game._rtx.is_enabled())
