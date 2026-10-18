@@ -251,6 +251,15 @@ func show_payouts(results: Array[Dictionary], max_lines: int = 8) -> void:
 					UiStyle.GOOD
 				)
 			)
+		elif entry.get("kind", "") == "trophy":
+			_payouts_box.add_child(
+				_make_label(
+					"%s won %d points for taking part" % [entry["name"], entry["payout"]],
+					28,
+					700,
+					Trophy.GOLD
+				)
+			)
 		elif int(entry["payout"]) > 0:
 			_payouts_box.add_child(
 				_make_label(

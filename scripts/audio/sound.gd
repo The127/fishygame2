@@ -27,7 +27,8 @@ enum Sfx {
 	NET_CAST,
 	NET_CATCH,
 	BLAST_CAST,
-	BLAST_HIT
+	BLAST_HIT,
+	SLOW_CLAP
 }
 
 ## Theme played on the home screen and whenever a theme id is unknown.
@@ -51,6 +52,7 @@ const SFX_PATHS: Dictionary = {
 	Sfx.NET_CATCH: "res://assets/audio/sfx_net_catch.wav",
 	Sfx.BLAST_CAST: "res://assets/audio/sfx_blast_cast.wav",
 	Sfx.BLAST_HIT: "res://assets/audio/sfx_blast_hit.wav",
+	Sfx.SLOW_CLAP: "res://assets/audio/sfx_slow_clap.wav",
 }
 const POOL_SIZE: int = 8
 ## The same effect is not restarted within this many milliseconds (20 fish can finish together).

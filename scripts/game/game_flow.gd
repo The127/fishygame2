@@ -10,6 +10,9 @@ signal join_rejected(msg: ChatMessage, reason: String)
 signal countdown_tick(seconds_left: int)
 signal race_started(contestants: Array[Contestant])
 signal podium_ready(podium: Array[Dictionary])
+## Right before [signal podium_ready] on a lucky race: the last finisher (not on the podium) gets a
+## participation trophy. `entry` has the same keys as a podium entry.
+signal participation_trophy(entry: Dictionary)
 
 enum State { IDLE, LOBBY, COUNTDOWN, RACING, PODIUM }
 
@@ -23,6 +26,8 @@ enum State { IDLE, LOBBY, COUNTDOWN, RACING, PODIUM }
 @export var countdown_seconds: int = 3
 @export var podium_seconds: float = 8.0
 @export var podium_size: int = 3
+## Chance per race that the last finisher gets a participation trophy.
+@export_range(0.0, 1.0) var participation_chance: float = 0.1
 
 ## Auto mode: the lobby closes after [member auto_lobby_seconds] and the round cycles on its
 ## own. Change it with [method set_auto_mode]. Off means manual start only.
@@ -37,6 +42,7 @@ var _contestants: Array[Contestant] = []
 var _ids: Dictionary = {}
 var _last_tick: int = 0
 var _debug_count: int = 0
+var _rng := RandomNumberGenerator.new()
 
 
 func _process(delta: float) -> void:
@@ -121,31 +127,38 @@ func report_race_finished(results: Array[Dictionary]) -> void:
 	if state != State.RACING:
 		return
 	var podium: Array[Dictionary] = []
+	var last: Dictionary = {}
 	for r: Dictionary in results:
-		if podium.size() >= podium_size or not bool(r["finished"]):
+		if not bool(r["finished"]):
 			break
-		var contestant: Contestant = _contestants[int(r["id"])]
-		(
-			podium
-			. append(
-				{
-					"id": int(r["id"]),
-					"place": int(r["place"]),
-					"user_id": contestant.user_id,
-					"name": contestant.display_name,
-					"color": contestant.color,
-					"species": contestant.species,
-					"pattern": contestant.pattern,
-					"accessory": contestant.accessory,
-					"skin": contestant.skin,
-					"time": float(r["time"]),
-					"finished": bool(r["finished"]),
-				}
-			)
-		)
+		if podium.size() < podium_size:
+			podium.append(_result_entry(r))
+		else:
+			last = r
 	timer = podium_seconds
 	_set_state(State.PODIUM)
+	# Before the podium, so its prize is paid out with the podium's settlement.
+	if not last.is_empty() and _rng.randf() < participation_chance:
+		participation_trophy.emit(_result_entry(last))
 	podium_ready.emit(podium)
+
+
+## A podium entry for one race result (ids are roster indexes).
+func _result_entry(r: Dictionary) -> Dictionary:
+	var contestant: Contestant = _contestants[int(r["id"])]
+	return {
+		"id": int(r["id"]),
+		"place": int(r["place"]),
+		"user_id": contestant.user_id,
+		"name": contestant.display_name,
+		"color": contestant.color,
+		"species": contestant.species,
+		"pattern": contestant.pattern,
+		"accessory": contestant.accessory,
+		"skin": contestant.skin,
+		"time": float(r["time"]),
+		"finished": bool(r["finished"]),
+	}
 
 
 ## Adds fake viewers to the open lobby through the normal join path. Returns how many joined.
