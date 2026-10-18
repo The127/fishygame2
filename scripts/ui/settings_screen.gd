@@ -139,6 +139,11 @@ const PAGES: Array[Dictionary] = [
 		"sections":
 		[
 			{"title": "Release surprise", "items": ["release_surprise", REPLAY_SURPRISE_KEY]},
+			{
+				"title": "Impostor duck",
+				"hint": "It earns no points and counts for no bets, rivals or tournaments.",
+				"items": ["impostor_duck", "impostor_chance"],
+			},
 		],
 	},
 ]
@@ -210,6 +215,9 @@ const ROWS: Dictionary[String, Dictionary] = {
 	"release_surprise":
 	{"label": "Release surprise", "hint": "A fake sequel announcement, once, on Open Lobby."},
 	REPLAY_SURPRISE_KEY: {"label": "Play it again", "hint": "On the next Open Lobby press."},
+	"impostor_duck":
+	{"label": "Impostor duck", "hint": "Now and then a rubber duck races. It is a fish."},
+	"impostor_chance": {"label": "Chance", "hint": "Share of races it lines up in.", "unit": "%"},
 }
 
 ## Yes/no settings outside [constant GameSettings.CHAT_TOGGLES]. A new boolean setting needs a
@@ -225,6 +233,7 @@ const TOGGLES: Array[String] = [
 	"welcome_hat",
 	"release_surprise",
 	"rtx",
+	"impostor_duck",
 ]
 
 ## Number settings picked from named steps instead of typed: the names, from the field's min.
@@ -240,6 +249,7 @@ const DEPENDENTS: Dictionary[String, Array] = {
 	"powers_enabled": ["power_cooldown", "powers_per_race"],
 	"auto_mode": ["auto_join_seconds"],
 	"release_surprise": [REPLAY_SURPRISE_KEY],
+	"impostor_duck": ["impostor_chance"],
 }
 
 ## Page shown when the screen opens again during this session.
