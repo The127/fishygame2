@@ -145,8 +145,11 @@ func _slam(label: Label, from_scale: float, shake: float = 24.0) -> void:
 	tween.tween_method(_shake, shake, 0.0, 0.45)
 
 
+## Shakes the captions only, so the filter keeps covering the whole screen.
 func _shake(strength: float) -> void:
-	offset = Vector2(_rng.randf_range(-strength, strength), _rng.randf_range(-strength, strength))
+	_root.position = Vector2(
+		_rng.randf_range(-strength, strength), _rng.randf_range(-strength, strength)
+	)
 
 
 func _flash(amount: float, seconds: float) -> void:

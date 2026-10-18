@@ -206,7 +206,7 @@ func _on_rtx_pressed() -> void:
 func _apply_rtx() -> void:
 	var on: bool = settings.rtx and surprise_store.has_played()
 	_rtx_button.text = RTX_ON_TEXT if on else RTX_OFF_TEXT
-	_rtx_filter.set_enabled(on)
+	_rtx_filter.set_enabled(on and not _rtx_intro_running)
 	($Scene3D as HomeScene3D).set_rtx(on)
 
 
@@ -331,9 +331,12 @@ func start_fourth_dimension() -> void:
 ## The one-time "RTX OFF / RTX ON" show that introduces the switch the sequel just unlocked,
 ## then leaves RTX switched on.
 func play_rtx_intro() -> void:
-	surprise_store.set_rtx_intro_seen()
+	if _rtx_intro_running:
+		return
 	_rtx_intro_running = true
 	_refresh_replay_button()
+	# The show brings its own filter; this one under it would apply the look twice.
+	_rtx_filter.set_enabled(false)
 	var intro := RtxIntro.new()
 	intro.name = "RtxIntro"
 	# The switch is hidden now, so aim at where it will appear: the corner's bottom left.
@@ -344,6 +347,8 @@ func play_rtx_intro() -> void:
 	await intro.play()
 	if not is_inside_tree():
 		return
+	# Marked only now, so a reload in the middle of the show plays it again.
+	surprise_store.set_rtx_intro_seen()
 	_rtx_intro_running = false
 	# The show ends on the full RTX look, so it stays on. The switch turns it off again.
 	settings.rtx = true
