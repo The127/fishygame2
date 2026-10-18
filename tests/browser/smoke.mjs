@@ -154,7 +154,9 @@ async function main() {
     // Her own fish earns the default placement reward if it makes the podium.
     const placementRewards = [100, 50, 25];
     const placement = placementRewards[podium.podium.indexOf("alice")] ?? 0;
-    const expected = (podium.podium[0] === "bob" ? kept + 2 * stake : kept) + placement;
+    // Now and then the last finisher gets a participation trophy worth 300.
+    const trophy = podium.trophies.includes("alice") ? 300 : 0;
+    const expected = (podium.podium[0] === "bob" ? kept + 2 * stake : kept) + placement + trophy;
     // Her fish may also have picked up treasures: at most 4 chests of 50 points each.
     const maxTreasure = 4 * 50;
     if (settled < expected || settled > expected + maxTreasure) {
