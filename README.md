@@ -523,7 +523,7 @@ swing, and a race loses at most 30% of the field to it (rounded down, at least o
 fish), after which the meter in the top left says the chef is full. With no chat the chef only taps his board, so a
 race never depends on chat and the seed sweeps run without a single chop. The game only shows the chop on the overlay
 and posts nothing in chat. `race_debug.tscn --chop` has made-up viewers spam `#chop` for a manual check. The belts'
-slats, the knife and the nigiri use the generic replay hook. The map has no timed hazard. Races take about 30 seconds.
+slats, the knife and the nigiri use the generic replay hook. Its hazard is the jam: one belt slows, runs backwards for 3 seconds and turns back. Races take about 30 seconds.
 
 ### Finish replay and moving map parts
 
