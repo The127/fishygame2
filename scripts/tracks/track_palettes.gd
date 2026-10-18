@@ -418,6 +418,25 @@ const PALETTES: Dictionary = {
 		"sway_scale": 1.3,
 		"foreground_height": 0.65,
 	},
+	"board":
+	{
+		"sky_top": Color(0.04, 0.2, 0.26),
+		"sky_bottom": Color(0.01, 0.05, 0.08),
+		"far": Color(0.05, 0.18, 0.22),
+		"mid": Color(0.04, 0.14, 0.18),
+		"near": Color(0.008, 0.03, 0.045),
+		"plant": Color(0.05, 0.22, 0.2),
+		"stone_dark": Color(0.08, 0.06, 0.05),
+		"stone_light": Color(0.3, 0.22, 0.15),
+		"rim": Color(1.0, 0.8, 0.4),
+		"ray": Color(0.6, 0.95, 1.0),
+		"fog": Color(0.08, 0.3, 0.38),
+		"mote": Color(0.85, 1.0, 0.95),
+		"layer_kind": EnvLayer.Kind.KELP,
+		"far_kind": EnvLayer.Kind.SPIRES,
+		"sway_scale": 1.0,
+		"foreground_height": 0.2,
+	},
 }
 const DEFAULT_STYLE: String = "kelp"
 
@@ -446,4 +465,5 @@ const FOREGROUND: Dictionary = {
 	"claw": [EnvLayer.Kind.CRYSTALS, EnvLayer.Kind.BLOOMS],
 	"fault": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.SHARDS],
 	"riptide": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
+	"board": [EnvLayer.Kind.SPIRES, EnvLayer.Kind.KELP],
 }

@@ -46,6 +46,7 @@ var _rtx: RtxFilter = RtxFilter.new()
 var _viewer_commands: ViewerCommands = ViewerCommands.new()
 var _flipper_commands: FlipperCommands = FlipperCommands.new()
 var _shake_commands: ShakeCommands = ShakeCommands.new()
+var _roll_commands: RollCommands = RollCommands.new()
 var _gravity_commands: GravityCommands = GravityCommands.new()
 var _rivals: Rivals = Rivals.new()
 var _trophy: ParticipationTrophy = ParticipationTrophy.new()
@@ -106,10 +107,13 @@ func _ready() -> void:
 	add_child(_flipper_commands)
 	Chat.command_received.connect(_flipper_commands.handle_command)
 	_flipper_commands.flippers_requested.connect(_on_flippers_requested)
-	_flipper_commands.grab_requested.connect(_on_grab_requested)
+	_flipper_commands.grab_requested.connect(_to_map.bind(ClawMachine.CHAT_GROUP, &"grab"))
 	add_child(_shake_commands)
 	Chat.command_received.connect(_shake_commands.handle_command)
-	_shake_commands.shake_requested.connect(_on_shake_requested)
+	_shake_commands.shake_requested.connect(_to_map.bind(QuakeFault.CHAT_GROUP, &"shake", true))
+	add_child(_roll_commands)
+	Chat.command_received.connect(_roll_commands.handle_command)
+	_roll_commands.roll_requested.connect(_to_map.bind(BoardDice.CHAT_GROUP, &"press", true))
 	add_child(_gravity_commands)
 	Chat.command_received.connect(_gravity_commands.handle_command)
 	_gravity_commands.gravity_requested.connect(_on_gravity_requested)
@@ -750,8 +754,7 @@ func _load_map() -> void:
 	_camera.show_overview(true)
 
 
-## A viewer pressed "#left" or "#right". Only a race on a map with flippers or a claw reacts (its
-## table or claw is in the chat group), and not while its finish replay plays.
+## A viewer pressed "#left" or "#right": fires the flippers or steers the claw of the map in play.
 func _on_flippers_requested(side: int, who: String) -> void:
 	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
 		return
@@ -759,24 +762,17 @@ func _on_flippers_requested(side: int, who: String) -> void:
 	get_tree().call_group(ClawMachine.CHAT_GROUP, "steer", side, who)
 
 
-## A viewer pressed "#grab". Only a race on a map with a claw reacts, and not while its finish
-## replay plays.
-func _on_grab_requested(who: String) -> void:
+## A "#grab", "#shake" or "#roll" for `group`; `counts` adds the joined viewers. Races only.
+func _to_map(who: String, group: StringName, method: StringName, counts: bool = false) -> void:
 	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
 		return
-	get_tree().call_group(ClawMachine.CHAT_GROUP, "grab", who)
+	if counts:
+		get_tree().call_group(group, method, who, _flow.get_contestants().size())
+	else:
+		get_tree().call_group(group, method, who)
 
 
-## A viewer typed "#shake". Only a race on a map with a fault reacts (its fault is in the chat
-## group), and not while its finish replay plays.
-func _on_shake_requested(who: String) -> void:
-	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
-		return
-	get_tree().call_group(QuakeFault.CHAT_GROUP, "shake", who, _flow.get_contestants().size())
-
-
-## A viewer voted "#up", "#down", "#left" or "#right". Only a race on a map with a gravity flipper
-## reacts (it is in the chat group), and not while its finish replay plays.
+## A viewer voted "#up", "#down", "#left" or "#right" for the gravity flipper of the map in play.
 func _on_gravity_requested(side: GravityFlipper.Pull, who: String) -> void:
 	if _flow.state != GameFlow.State.RACING or _track == null or _sequence.is_replaying():
 		return

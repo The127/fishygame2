@@ -6,10 +6,12 @@ extends Node2D
 ## --eddies=<seconds> makes the cut fish of a round race send out an eddy that often (default 2, 0 for none), standing in for chat.
 ## --event=<id> runs the race under a RaceEvent (low_gravity, double_hazards, lights_out, bouncy, thanos_snap).
 ## --shake has made-up viewers spam "#shake" the whole race, for the quakes of a map with a fault.
+## --roll has made-up viewers spam "#roll" the whole race, for the die of Board Game.
 ## --steer has made-up viewers vote for random sides the whole race, for the gravity of Gravity Flip,
 ## and press "#left", "#right" and now and then "#grab" for the claw of the Claw Machine.
 
-## Seconds between the "#shake" presses of --shake, and the viewers taking turns.
+## Seconds between the "#shake" presses of --shake (and the "#roll" presses of --roll), and the
+## viewers taking turns.
 const SHAKE_EVERY: float = 0.4
 const SHAKE_VIEWERS: int = 12
 ## Seconds between the votes of --steer, and the viewers taking turns.
@@ -27,6 +29,9 @@ var _autorun: bool = false
 var _shake: bool = false
 var _shake_in: float = 0.0
 var _shake_count: int = 0
+var _roll: bool = false
+var _roll_in: float = 0.0
+var _roll_count: int = 0
 var _steer: bool = false
 var _steer_in: float = 0.0
 var _steer_rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -59,6 +64,8 @@ func _ready() -> void:
 			_autorun = true
 		elif arg == "--shake":
 			_shake = true
+		elif arg == "--roll":
+			_roll = true
 		elif arg == "--steer":
 			_steer = true
 		elif arg.begins_with("--seed="):
@@ -100,6 +107,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_send_eddies(delta)
 	_spam_shake(delta)
+	_spam_roll(delta)
 	_spam_steer(delta)
 
 
@@ -132,6 +140,18 @@ func _spam_shake(delta: float) -> void:
 			"shake",
 			"viewer%d" % (_shake_count % SHAKE_VIEWERS),
 			SHAKE_VIEWERS
+		)
+
+
+func _spam_roll(delta: float) -> void:
+	if not _roll:
+		return
+	_roll_in -= delta
+	if _roll_in <= 0.0:
+		_roll_in = SHAKE_EVERY
+		_roll_count += 1
+		get_tree().call_group(
+			BoardDice.CHAT_GROUP, "press", "viewer%d" % (_roll_count % SHAKE_VIEWERS), SHAKE_VIEWERS
 		)
 
 

@@ -225,6 +225,15 @@ JINGLES = {
         "hiss": 0.3,
         "echo": (0.25, 2, 0.4),
     },
+    # Board Game: a dice rattle, then a C major hop up the scale that lands on a bright chord.
+    "board": {
+        "partials": MALLET,
+        "notes": ((0.0, 91, 0.08, 0.03), (0.05, 89, 0.08, 0.03), (0.1, 93, 0.08, 0.03),
+                  (0.35, 72, 0.4, 0.15), (0.47, 76, 0.4, 0.15), (0.59, 79, 0.4, 0.15),
+                  (0.71, 84, 0.5, 0.2), (0.9, 84, 1.8, 0.7), (0.9, 88, 1.8, 0.7),
+                  (0.9, 91, 1.8, 0.7), (0.9, 60, 1.8, 0.7)),
+        "echo": (0.25, 2, 0.4),
+    },
 }
 
 
@@ -637,6 +646,15 @@ def _riptide(out, rng):
     bubbles(out, rng, 7, 400.0, 1100.0, 0.09)
 
 
+def _board(out, rng):
+    # A calm lagoon under the board, with dice clicks, wooden taps and the odd bubble.
+    bed(out, rng, 0.0, 300.0, 0.8, swell=0.4, cycles=1)
+    bed(out, rng, 400.0, 1500.0, 0.2, swell=0.7, cycles=2, phase=math.pi / 5.0)
+    pops(out, rng, 8, 0.12)
+    clanks(out, (1.4, 4.9), 320.0, 0.08)
+    bubbles(out, rng, 6, 300.0, 800.0, 0.09)
+
+
 AMBIENCE = {
     "zigzag": (31, _zigzag),
     "pachinko": (32, _pachinko),
@@ -661,6 +679,7 @@ AMBIENCE = {
     "claw": (46, _claw),
     "fault": (73, _fault),
     "riptide": (72, _riptide),
+    "board": (81, _board),
 }
 
 
