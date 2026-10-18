@@ -19,7 +19,8 @@ func test_a_fish_falls_up_after_the_flip() -> void:
 	var flipper: GravityFlipper = _flipper(track)
 	var marble: Marble = (load(MARBLE_SCENE) as PackedScene).instantiate() as Marble
 	add_child_autofree(marble)
-	marble.global_position = Vector2(300.0, 400.0)
+	# A clear column of the last room, away from the bumpers.
+	marble.global_position = Vector2(1500.0, 540.0)
 	await wait_physics_frames(20)
 	assert_gt(marble.linear_velocity.y, 0.0, "falls down at first")
 	flipper.turn_to(GravityFlipper.Pull.UP)
@@ -48,3 +49,14 @@ func test_a_sleeping_fish_wakes_when_gravity_turns() -> void:
 	marble.sleeping = true
 	flipper.turn_to(GravityFlipper.Pull.UP)
 	assert_false(marble.sleeping)
+
+
+func test_the_pull_toward_the_start_sends_a_fish_through_the_back_door() -> void:
+	var track: Track = _track()
+	var flipper: GravityFlipper = _flipper(track)
+	var marble: Marble = (load(MARBLE_SCENE) as PackedScene).instantiate() as Marble
+	add_child_autofree(marble)
+	marble.global_position = Vector2(1080.0, 300.0)
+	flipper.turn_to(GravityFlipper.Pull.LEFT, 1.0)
+	await wait_physics_frames(120)
+	assert_gt(marble.global_position.x, 1460.0, "came out in the last room")

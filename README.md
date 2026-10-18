@@ -265,12 +265,15 @@ the ceiling becomes the floor. Viewers type `#up`, `#down`, `#left` or `#right` 
 `scripts/game/gravity_commands.gd`). Each viewer has one live vote that lasts 7 seconds, the side with
 the most votes becomes the floor (a tie keeps the current floor), and chat can turn gravity at most once
 every 2.5 seconds so fish get to use a pull. The overlay tally shows the votes with the leader in
-brackets, and a band lights each wall that has votes. The course is three partitions with one-way valve
-doors (fish pass toward the finish, never back), each room split into an upper and a lower lane by a
-tilted shelf, and chevron beacons mark the door of each partition. A door is in the top, the bottom or the
-middle of its partition, so a fish has to change lane in most rooms, and only some pulls carry it there: a
-shelf that funnels fish to the gap under one pull is a hill under the other, so viewers
-who bet on different fish fight over the helm. Nothing counts down: when chat picks a turn, gravity thins
+brackets, and a band lights each wall that has votes. The course is four rooms behind three partitions with one-way valve
+doors (fish pass toward the finish, never back), and chevron beacons mark every door. Each partition has
+two doors, so there are always two pulls that get a fish through, and each room mixes the field
+differently: a peg garden at the start scatters fish that rise or fall through it, a pulsing bumper in
+each lane of the second room leaves a gap a fish fits through only while it rests, two spinners sweep the
+ceiling and floor lanes of the third room, and three bumpers turn the last room into a pinball scramble
+for the finish. A portal on the back wall of the third room only works under the pull toward the start:
+fish pressed against that wall can slide into it and come out in the last room, so a `#left` vote is a
+gamble that throws most fish back and a few far ahead. Nothing counts down: when chat picks a turn, gravity thins
 out to a weightless beat for 0.4 seconds, the debris hangs still and the wall that is about to become the
 floor charges with light. With no votes the room turns by itself at seeded intervals of 3 to 4 seconds
 (with a 1.2 second build-up, and the wall behind the start rarely and weaker), so a quiet chat still gets
