@@ -21,6 +21,7 @@ const TITLE_FULL_WIDTH: float = 1100.0
 const TITLE_NUMBER_LENGTH: int = 2
 const SEQUEL_TAGLINE: String = "NOW IN 3D. CHAT JOINS AS FISH. FISH RACE DOWN THE TRACK."
 const SEQUEL_PLAY_TEXT: String = "PLAY"
+const REPLAY_SURPRISE_TEXT: String = "REPLAY 3D"
 const SEQUEL_REVEAL_SHADER: String = "res://assets/shaders/surprise/sequel_reveal.gdshader"
 ## Seconds the ring takes to uncover the fake sequel's flyover backdrop.
 const SEQUEL_REVEAL_SECONDS: float = 1.6
@@ -47,6 +48,7 @@ var _board: LeaderboardPanel
 var _title_drop: TitleDrop
 var _flyover: TrackFlyover
 var _four_d: FourDView
+var _replay_surprise: Button
 var _tagline_text: String
 var _open_lobby_text: String
 var _aquarium_blink: Tween
@@ -107,6 +109,7 @@ func _ready() -> void:
 		else:
 			# Turned off in the settings: back to the real game.
 			ReleaseSurprise.end()
+	_add_replay_button()
 	# Fire and forget: waits a few frames, then makes the web page transparent again.
 	WebBoot.release_background()
 	# Only when this is the running scene, so tests that instantiate the screen stay put.
@@ -124,6 +127,35 @@ func _add_version_tag() -> void:
 	tag.modulate.a = 0.6
 	add_child(tag)
 	tag.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 12)
+
+
+## Small button in the bottom left corner that arms the release surprise again, shown once
+## it has played: the next Open Lobby press then starts it over.
+func _add_replay_button() -> void:
+	_replay_surprise = Button.new()
+	_replay_surprise.name = "ReplaySurprise"
+	_replay_surprise.text = REPLAY_SURPRISE_TEXT
+	_replay_surprise.focus_mode = Control.FOCUS_NONE
+	UiStyle.style_button(_replay_surprise, 16)
+	_replay_surprise.pressed.connect(_on_replay_surprise_pressed)
+	add_child(_replay_surprise)
+	_replay_surprise.set_anchors_and_offsets_preset(
+		Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12
+	)
+	_refresh_replay_button()
+
+
+func _refresh_replay_button() -> void:
+	_replay_surprise.visible = (
+		settings.release_surprise
+		and ReleaseSurprise.stage == ReleaseSurprise.Stage.OFF
+		and surprise_store.is_seen()
+	)
+
+
+func _on_replay_surprise_pressed() -> void:
+	ReleaseSurprise.rearm(surprise_store)
+	_refresh_replay_button()
 
 
 ## Fills the all-time board from [param store]; hidden while nobody is ranked.
@@ -165,6 +197,7 @@ func _on_open_lobby_pressed() -> void:
 ## Plays the fake "Fishy Marble Run 3" reveal on the title instead of opening the lobby.
 func start_release_surprise() -> void:
 	ReleaseSurprise.begin(surprise_store)
+	_refresh_replay_button()
 	_open_lobby.disabled = true
 	await _show_sequel(true)
 	_open_lobby.disabled = false
@@ -233,6 +266,7 @@ func _end_sequel() -> void:
 	_title.visible_characters = -1
 	_tagline.text = _tagline_text
 	_open_lobby.text = _open_lobby_text
+	_refresh_replay_button()
 	var backdrop: Control = $Scene3D
 	backdrop.visible = true
 	backdrop.process_mode = Node.PROCESS_MODE_INHERIT
