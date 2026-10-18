@@ -25,7 +25,7 @@ func _init() -> void:
 
 ## Decides whether the duck races with [param roster] fish and returns the field size. It lines
 ## up last, after every roster id. [param forced] true or false overrides the settings' chance.
-## Never in a field already as big as the maps are tested with.
+## Never when the roster already fills the largest field the maps are tested with.
 func line_up(roster: int, settings: GameSettings, forced: Variant = null) -> int:
 	var racing: bool = settings.impostor_duck and joins(_rng, settings.impostor_chance)
 	if forced != null:
@@ -41,6 +41,7 @@ func dress(marble: Marble) -> bool:
 	if marble.id != id:
 		return false
 	marble.impostor = true
+	marble.color = COLOR
 	marble.label_text = NAME
 	return true
 
