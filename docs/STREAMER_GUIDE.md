@@ -97,7 +97,7 @@ Post this list in a panel or pinned message. `#help` in chat shows a short versi
 | `#stats` | Shows your record. `#stats @name` shows someone else's. |
 | `#top` | The points leaderboard. |
 | `#shop` | What the shop sells. The list only goes to chat if you turn on **Post the shop list for #shop** in Settings > Chat. |
-| `#fish <species>` | Buy and switch your fish species (trout, puffer, pike, angelfish). |
+| `#fish <species>` | Buy and switch your fish species (trout, puffer, pike, angelfish, swordfish, hammerhead, lionfish, betta). |
 | `#color <name>` | Buy and switch your fish color. |
 | `#hat <name>` | Buy and switch an accessory. `#hat none` takes it off. |
 | `#trail <name>` | Buy and switch a trail (rainbow, stars, bubbles, dust, embers, hearts). `#trail none` goes back to the plain bubbles. |

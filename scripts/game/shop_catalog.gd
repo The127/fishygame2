@@ -5,7 +5,9 @@ extends RefCounted
 ## with stays easy to tell apart. [method assign_loadouts] settles who gets which color.
 
 ## Chat names of the species, in the order of [constant FishVisual.SPECIES].
-const SPECIES_NAMES: Array[String] = ["trout", "puffer", "pike", "angelfish"]
+const SPECIES_NAMES: Array[String] = [
+	"trout", "puffer", "pike", "angelfish", "swordfish", "hammerhead", "lionfish", "betta"
+]
 ## Chat names of the accessories, in the order of [enum FishAccessory.Kind] after NONE.
 const HAT_NAMES: Array[String] = [
 	"tophat",
