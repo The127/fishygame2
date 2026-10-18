@@ -75,7 +75,11 @@ func _ready() -> void:
 	_open_lobby.grab_focus()
 	_refresh_login()
 	if ReleaseSurprise.stage == ReleaseSurprise.Stage.THREE:
-		_show_sequel.call_deferred(false)
+		if settings.release_surprise:
+			_show_sequel.call_deferred(false)
+		else:
+			# Turned off in the settings: back to the real game.
+			ReleaseSurprise.stage = ReleaseSurprise.Stage.OFF
 	# Fire and forget: waits a few frames, then makes the web page transparent again.
 	WebBoot.release_background()
 	# Only when this is the running scene, so tests that instantiate the screen stay put.
@@ -140,6 +144,10 @@ func start_release_surprise() -> void:
 ## Turns the title into "FISHY MARBLE RUN 3D" with 3D letters, falling in with
 ## [param animate], and relabels the menu for the fake sequel.
 func _show_sequel(animate: bool) -> void:
+	# The menu box may not be laid out yet on the first frame; the letters need the title's place.
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	# The label keeps its layout (so nothing shifts) but stops drawing the "II".
 	_title.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING
 	_title.visible_characters = _title.text.length() - TITLE_NUMBER_LENGTH

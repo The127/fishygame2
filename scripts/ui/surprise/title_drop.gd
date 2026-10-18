@@ -15,6 +15,8 @@ const RED: Color = Color(0.93, 0.12, 0.16)
 const DROP_HEIGHT: float = 0.8
 ## Seconds between the 3 landing and the D dropping.
 const D_DELAY: float = 0.7
+## Longest wait for the 3 to land before the D drops anyway, in seconds.
+const LANDING_TIMEOUT: float = 4.0
 ## Seconds after the D drops before [signal finished] fires.
 const SETTLE_SECONDS: float = 1.6
 ## Gap between the 3 and the D, as a fraction of the font size.
@@ -119,7 +121,8 @@ func baseline_y() -> float:
 func _play() -> void:
 	three = _make_letter("3", Vector2(0.0, _drop_y()))
 	_waiting_for_three = true
-	while not _three_landed:
+	var deadline: int = Time.get_ticks_msec() + roundi(LANDING_TIMEOUT * 1000.0)
+	while not _three_landed and Time.get_ticks_msec() < deadline:
 		await get_tree().physics_frame
 		if not is_inside_tree():
 			return

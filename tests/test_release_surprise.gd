@@ -19,9 +19,10 @@ func after_each() -> void:
 	DirAccess.remove_absolute(SETTINGS_PATH)
 
 
-func _make_home() -> HomeScreen:
+func _make_home(enabled: bool = true) -> HomeScreen:
 	var home: HomeScreen = (load("res://scenes/ui/home_screen.tscn") as PackedScene).instantiate()
 	home.settings = GameSettings.new()
+	home.settings.release_surprise = enabled
 	home.surprise_store = ReleaseSurpriseStore.new(PATH)
 	add_child_autofree(home)
 	home.set_deferred("size", Vector2(1280.0, 720.0))
@@ -63,6 +64,7 @@ func test_open_lobby_drops_a_3_and_a_d_on_the_title() -> void:
 	var home: HomeScreen = _make_home()
 	await wait_process_frames(3)
 	home._on_open_lobby_pressed()
+	await wait_process_frames(2)
 	var drop: TitleDrop = home.get_node_or_null("TitleDrop")
 	assert_not_null(drop, "the surprise plays instead of opening the lobby")
 	assert_true(home.surprise_store.is_seen(), "marked as played right away")
@@ -103,6 +105,14 @@ func test_letters_line_up_with_the_title() -> void:
 	var screen: Vector2 = drop.camera.unproject_position(Vector3.ZERO)
 	assert_almost_eq(screen.x, rect.position.x - drop.get_global_rect().position.x, 1.0)
 	assert_almost_eq(screen.y, rect.position.y - drop.get_global_rect().position.y, 1.0)
+
+
+func test_turning_the_setting_off_ends_the_fake_3() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE
+	var home: HomeScreen = _make_home(false)
+	await wait_process_frames(3)
+	assert_null(home.get_node_or_null("TitleDrop"))
+	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.OFF)
 
 
 func test_disabled_setting_opens_the_lobby_as_usual() -> void:
