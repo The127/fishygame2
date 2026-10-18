@@ -8,6 +8,8 @@ extends Node2D
 ## --shake has made-up viewers spam "#shake" the whole race, for the quakes of a map with a fault.
 ## --roll has made-up viewers spam "#roll" the whole race, for the die of Board Game.
 ## --chop has made-up viewers spam "#chop" the whole race, for the knife of Sushi Bar.
+## --chop-limit=<fish> caps the fish the chefs may chop in a race; "unlimited" spares only the last
+## fish (default: 30% of the field).
 ## --steer has made-up viewers vote for random sides the whole race, for the gravity of Gravity Flip,
 ## and press "#left", "#right" and now and then "#grab" for the claw of the Claw Machine.
 
@@ -28,6 +30,7 @@ const STEER_VIEWERS: int = 8
 @export var hazard_frequency: int = 3
 @export var time_limit: float = 0.0
 @export var event_id: String = RaceEvent.NOTHING
+@export var chop_limit: int = SushiChef.SHARE_LIMIT
 
 var _autorun: bool = false
 var _shake: bool = false
@@ -89,6 +92,10 @@ func _ready() -> void:
 			time_limit = maxf(0.0, float(arg.substr(8)))
 		elif arg.begins_with("--event="):
 			event_id = arg.substr(8)
+		elif arg == "--chop-limit=unlimited":
+			chop_limit = SushiChef.UNLIMITED
+		elif arg.begins_with("--chop-limit="):
+			chop_limit = maxi(1, int(arg.substr(13)))
 		elif arg.begins_with("--eddies="):
 			_eddy_every = maxf(0.0, float(arg.substr(9)))
 		elif arg.begins_with("--hazards="):
@@ -205,6 +212,7 @@ func _start_race() -> void:
 	_eddy_clock = 0.0
 	_eddy_rng.seed = seed_value
 	_race.time_limit = time_limit
+	_race.chop_limit = chop_limit
 	_treasures_found = 0
 	_race.start(_track, marble_count, rng, hazard_frequency, event_id)
 	_treasures_total = _race.treasures_left()

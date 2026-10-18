@@ -289,6 +289,14 @@ func set_field_size(count: int) -> void:
 			(child as SushiBelts).set_field_size(count)
 
 
+## Tells the map's sushi chefs the most fish a race can lose to them (see
+## [method SushiChef.set_chop_limit]).
+func set_chop_limit(count: int) -> void:
+	for child: Node in get_children():
+		if child is SushiBelts:
+			(child as SushiBelts).set_chop_limit(count)
+
+
 ## Stops the tide where it is. The next [method stop_gimmicks] refills it.
 func hold_tide() -> void:
 	if _tide != null:

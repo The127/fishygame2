@@ -32,6 +32,10 @@ const CARDBOARD_FIVE: int = 0
 const CARDBOARD_TEN: int = 1
 const CARDBOARD_TARGETS: Array[int] = [5, 10]
 
+## Values of [member chop_limit] other than a number of fish.
+const CHOP_SHARE: int = 0
+const CHOP_UNLIMITED: int = 20
+
 ## Numeric settings, in the order the settings screen shows them. "max" of max_players is
 ## what the maps are tested with. max_bet 0 means no limit.
 const FIELDS: Array[Dictionary] = [
@@ -131,6 +135,13 @@ const FIELDS: Array[Dictionary] = [
 		"step": 1
 	},
 	{
+		"key": "chop_limit",
+		"label": "Sushi chef chop limit (0 = 30% of the field, 20 = unlimited)",
+		"min": CHOP_SHARE,
+		"max": CHOP_UNLIMITED,
+		"step": 1
+	},
+	{
 		"key": "impostor_chance",
 		"label": "Impostor duck chance (%)",
 		"min": 1,
@@ -180,6 +191,9 @@ var cheer_strength: int = 100
 var cheer_viewer_cooldown: int = 10
 var cheer_fish_cooldown: int = 2
 var cheer_max_emotes: int = 5
+## Most fish the Sushi Bar chefs may chop in a race: CHOP_SHARE (30% of the field), a number
+## of fish, or CHOP_UNLIMITED. The last fish is always spared.
+var chop_limit: int = CHOP_SHARE
 ## Percent of races the impostor duck lines up in, while [member impostor_duck] is on.
 var impostor_chance: int = 5
 ## A TrackCatalog id, or RANDOM_MAP.
@@ -382,6 +396,16 @@ func save() -> bool:
 ## The frequency to hand to a race: 0 when hazards are off.
 func hazard_level() -> int:
 	return hazard_frequency if hazards_enabled else 0
+
+
+## The chop limit to hand to a race (see [method SushiChef.set_chop_limit]).
+func chop_cap() -> int:
+	match chop_limit:
+		CHOP_SHARE:
+			return SushiChef.SHARE_LIMIT
+		CHOP_UNLIMITED:
+			return SushiChef.UNLIMITED
+	return chop_limit
 
 
 ## The field size cardboard cutouts fill up to, or 0 when they are off.

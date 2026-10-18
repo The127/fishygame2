@@ -87,6 +87,7 @@ const PAGES: Array[Dictionary] = [
 				"title": "Streamer powers",
 				"items": ["powers_enabled", "power_cooldown", "powers_per_race"],
 			},
+			{"title": "Sushi chef", "items": ["chop_limit"]},
 		],
 	},
 	{
@@ -212,6 +213,8 @@ const ROWS: Dictionary[String, Dictionary] = {
 	{"label": "Streamer powers", "hint": "Your rod, net and bubble blast during a race."},
 	"power_cooldown": {"label": "Cooldown", "hint": "Wait between two powers.", "unit": "s"},
 	"powers_per_race": {"label": "Uses per race"},
+	"chop_limit":
+	{"label": "Chop limit", "hint": "Fish #chop may take per race on Sushi Bar. Never the last."},
 	"species_price": {"label": "Fish species", "unit": "pts"},
 	"color_price": {"label": "Fish color", "unit": "pts"},
 	"premium_color_price": {"label": "Premium color", "unit": "pts"},
@@ -266,6 +269,30 @@ const CHOICES: Dictionary[String, Array] = {
 	"finish_replay": ["Off", "Close finishes", "Every race"],
 	"cardboard_fill": ["5 fish", "10 fish"],
 	"hazard_frequency": ["Rare", "Occasional", "Normal", "Frequent", "Constant"],
+	"chop_limit":
+	[
+		"30% of the field",
+		"1 fish",
+		"2 fish",
+		"3 fish",
+		"4 fish",
+		"5 fish",
+		"6 fish",
+		"7 fish",
+		"8 fish",
+		"9 fish",
+		"10 fish",
+		"11 fish",
+		"12 fish",
+		"13 fish",
+		"14 fish",
+		"15 fish",
+		"16 fish",
+		"17 fish",
+		"18 fish",
+		"19 fish",
+		"Unlimited",
+	],
 }
 
 ## Rows that are greyed out while the yes/no setting they depend on is off. The chat

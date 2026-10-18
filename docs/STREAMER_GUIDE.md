@@ -66,6 +66,7 @@ Open **Settings** on the home screen (through Interact). Changes save by themsel
 | Finish replay | close | Replays a close finish in slow motion. |
 | Starting points | 1000 | What a new viewer begins with (for bets). |
 | Streamer powers | on | See below. |
+| Chop limit | 30% of the field | How many fish `#chop` can take per race on Sushi Bar: 30% of the field, a number of fish, or Unlimited. The last fish is always spared. In Chaos & powers > Sushi chef. |
 | Random events | off | A wheel before each race can change the rules (low gravity and so on). Fun, but chaotic. |
 | Stream layout: Blocked left/right/top/bottom | 0 | Screen edges the game stays out of, for your webcam or chat box. The preview shows the playable area. |
 | Colorblind mode | off | Fish get markings as well as colors. |
@@ -93,7 +94,7 @@ Post this list in a panel or pinned message. `#help` in chat shows a short versi
 | `#boost <name>` | Only during a race. Costs points. Gives that fish a push during the race. Not on your own fish. |
 | `#curse <name>` | Only during a race. Costs points. Hinders that fish. Not on your own fish. |
 | `#eddy` | Only on Riptide Rounds, only after your fish was flushed out. Free. Your ghost flies out of the lagoon and spins as an eddy on the course ahead of the leader for a few seconds, shoving the fish that swim through it. Every viewer has a short cooldown and only a few eddies can spin at once. |
-| `#chop` | Only on Sushi Bar, only during a race. Free. Every sushi chef whose knife is ready swings it; a fish under a blade when it lands is chopped and does not finish. Each knife needs a few seconds between swings, and together they can only take a few fish per race. |
+| `#chop` | Only on Sushi Bar, only during a race. Free. Every sushi chef whose knife is ready swings it; a fish under a blade when it lands is chopped and does not finish. Each knife needs a few seconds between swings, and together they can only take a few fish per race (the chop limit setting). |
 | `#points` | Shows your points. |
 | `#stats` | Shows your record. `#stats @name` shows someone else's. |
 | `#top` | The points leaderboard. |
@@ -109,7 +110,7 @@ Also:
 - **Cheering is free.** During a race, a chat message that names a fish (or `@name`) and contains an emote gives that fish a small push forward. Each viewer has a cooldown, so it cannot decide a race alone.
 - **Points** come from winning: 100 / 50 / 25 for 1st, 2nd and 3rd, plus any treasure (coin, pearl, chest) the fish picks up on the way. New viewers start with 1000 points. Points are saved in the browser source.
 - **Riptide Rounds** is a looping map: three laps of a current, and after each of the first two the slowest third of the fish are flushed out. Those fish are not done: their ghosts wait in the lagoon in the middle, and their viewers can send them back onto the course with `#eddy`. The game announces each cut in chat and on screen. Flushed-out fish count as not finished, so the placement rewards (100 / 50 / 25) go to the fish that finish the third lap first.
-- **Sushi Bar** sends the fish down four conveyor belts past three sushi chefs. Chat times `#chop` to bring their knives down on the fish riding under them. A chopped fish is out (DNF) and rides on as a piece of sushi. Each knife needs 4 seconds between swings, the chefs together take at most 30% of the field per race, and with a quiet chat nobody gets chopped.
+- **Sushi Bar** sends the fish down four conveyor belts past three sushi chefs. Chat times `#chop` to bring their knives down on the fish riding under them. A chopped fish is out (DNF) and rides on as a piece of sushi. Each knife needs 4 seconds between swings, the chefs together take at most 30% of the field per race (Settings > Chaos & powers > Sushi chef changes this, up to every fish but the last), and with a quiet chat nobody gets chopped.
 - **`#meow`** is a hidden extra. During a race, your own fish meows. It is not in `#help`, so viewers have to find it.
 
 ## 7. Debug mode (testing without viewers)

@@ -266,6 +266,7 @@ func _apply_settings() -> void:
 	_flow.countdown_seconds = settings.effective_countdown()
 	_race.time_limit = float(settings.race_time_limit)
 	_race.treasures_enabled = settings.treasures_enabled
+	_race.chop_limit = settings.chop_cap()
 	_flow.set_auto_mode(settings.auto_mode, float(settings.auto_join_seconds))
 	_betting.starting_balance = settings.starting_balance
 	_betting.points.starting_balance = settings.starting_balance
