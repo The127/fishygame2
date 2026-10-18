@@ -1,0 +1,41 @@
+name: Deploy build
+
+# Publishes the web-build artifact of an earlier CI run to GitHub Pages,
+# for when a release can't wait for a full CI run.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: CI run id whose web-build artifact to publish
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: build/web
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+      - id: deployment
+        uses: actions/deploy-pages@v4
