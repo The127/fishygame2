@@ -316,6 +316,9 @@ func _title_color_at(x: float) -> Color:
 
 
 func _reframe_title_drop() -> void:
+	# Queued by a resize; the letters may be gone by now.
+	if _title_drop == null:
+		return
 	_title_drop.frame(title_number_rect())
 
 

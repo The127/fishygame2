@@ -148,6 +148,7 @@ func drop_four() -> void:
 	four.position = Vector3(three.position.x, _drop_y(), 0.0)
 	four.set_yaw(YAW)
 	# Falls through everything until it reaches the 3; it collides once the 3 is squished.
+	four.collision_layer = 0
 	four.collision_mask = 0
 	_world.add_child(four)
 	var deadline: int = Time.get_ticks_msec() + roundi(LANDING_TIMEOUT * 1000.0)
@@ -156,6 +157,7 @@ func drop_four() -> void:
 		if not is_inside_tree():
 			return
 	three.flatten()
+	four.collision_layer = 1
 	four.collision_mask = 1
 	Sound.play(Sound.Sfx.BLAST_HIT)
 	await get_tree().create_timer(SETTLE_SECONDS).timeout
