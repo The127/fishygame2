@@ -44,13 +44,12 @@ const CHOP_SECONDS: float = 0.15
 const MEOW_SECONDS: float = 1.2
 
 ## A cardboard cutout flops every so often: a hop of up to this many pixels per second up and to
-## either side, with this much bounce and drag. Cardboard lands with a thud and catches the water.
+## either side, with this much bounce. Cardboard lands with a thud.
 const CARDBOARD_HOP_MIN: float = 0.5
 const CARDBOARD_HOP_MAX: float = 1.4
 const CARDBOARD_HOP_UP: float = 140.0
 const CARDBOARD_HOP_SIDE: float = 90.0
 const CARDBOARD_BOUNCE: float = 0.05
-const CARDBOARD_DAMP: float = 0.6
 const CARDBOARD_LABEL: Color = Color("f2d3a2")
 
 var id: int = 0
@@ -202,7 +201,8 @@ func _ready() -> void:
 		_make_cardboard()
 
 
-## Swaps the fish for a cardboard cutout: hidden fish, flat drawing, a dull bounce and some drag.
+## Swaps the fish for a cardboard cutout: hidden fish, flat drawing and a dull bounce. Real fish
+## pass straight through it, so a slow cutout never blocks them.
 func _make_cardboard() -> void:
 	if not cardboard or _cutout != null:
 		return
@@ -217,7 +217,14 @@ func _make_cardboard() -> void:
 	var material: PhysicsMaterial = physics_material_override.duplicate()
 	material.bounce = CARDBOARD_BOUNCE
 	physics_material_override = material
-	linear_damp = CARDBOARD_DAMP
+	# Cutouts dressed earlier took this marble for a real fish; they bump into each other again.
+	for other: Node in get_tree().get_nodes_in_group(GROUP):
+		if other == self or not other is Marble:
+			continue
+		if (other as Marble).cardboard:
+			(other as Marble).remove_collision_exception_with(self)
+		else:
+			add_collision_exception_with(other)
 	_label.add_theme_color_override("font_color", CARDBOARD_LABEL)
 
 

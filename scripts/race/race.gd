@@ -332,10 +332,11 @@ func _finish_marble(marble: Marble) -> void:
 
 
 ## Whether every fish that is still in the race has finished (snapped, stranded, dissolved and
-## chopped fish do not count).
+## chopped fish do not count, and neither do cardboard cutouts: the race never waits for them).
 func _all_racers_finished() -> bool:
 	for id: int in _ranking.get_unfinished_ids():
-		if not (_marbles[id] as Marble).is_out():
+		var marble: Marble = _marbles[id]
+		if not marble.is_out() and not marble.cardboard:
 			return false
 	return true
 
