@@ -63,6 +63,8 @@ func test_music_switch_greys_out_its_options_and_keeps_effects() -> void:
 	assert_true(screen._sound.music_mode.disabled)
 	assert_false(screen._sound.crossfade.editable)
 	assert_true(screen._row_of["crossfade"].modulate.a < 1.0)
+	assert_true(screen._row_of["volume_music"].modulate.a < 1.0, "its level is not heard")
+	assert_eq(screen._row_of["volume_sfx"].modulate.a, 1.0)
 
 
 func test_music_options_reach_the_sound_settings() -> void:

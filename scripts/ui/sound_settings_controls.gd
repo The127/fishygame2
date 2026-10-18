@@ -119,7 +119,10 @@ func refresh(row_of: Dictionary[String, Control]) -> void:
 		volume_sliders[key].set_value_no_signal(audio.get_volume(VOLUME_KEYS[key]))
 		_show_volume(key)
 		# Muted sound keeps its levels; the rows fade to show they are not heard.
-		_dim(key, not audio.muted)
+		var heard: bool = not audio.muted
+		if key == "volume_music":
+			heard = heard and audio.music_enabled
+		_dim(key, heard)
 	for key: String in toggles:
 		toggles[key].show_state(bool(audio.get(key)))
 	music_mode.select(audio.music_mode)

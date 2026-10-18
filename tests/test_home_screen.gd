@@ -28,6 +28,8 @@ func test_settings_button_opens_the_settings_screen() -> void:
 
 
 func test_settings_screen_edits_and_resets_the_settings() -> void:
+	# Reset also resets the Sound page; keep it off the real audio.cfg.
+	Sound.settings = AudioSettings.new()
 	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
 	screen.settings = GameSettings.new()
 	add_child_autofree(screen)
@@ -162,6 +164,8 @@ func test_menu_controls_sit_above_the_backdrop() -> void:
 
 
 func test_settings_screen_toggles_colorblind_mode() -> void:
+	# Reset also resets the Sound page; keep it off the real audio.cfg.
+	Sound.settings = AudioSettings.new()
 	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
 	screen.settings = GameSettings.new()
 	add_child_autofree(screen)
@@ -255,6 +259,8 @@ func test_only_clicks_that_hit_a_fish_are_counted() -> void:
 
 
 func test_settings_screen_saves_every_toggle() -> void:
+	# Reset also resets the Sound page; keep it off the real audio.cfg.
+	Sound.settings = AudioSettings.new()
 	var path: String = "user://test_settings_toggles.cfg"
 	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
 	screen.settings = GameSettings.new(path)

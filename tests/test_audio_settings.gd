@@ -5,6 +5,11 @@ extends GutTest
 const TMP_PATH: String = "user://test_audio_music.cfg"
 
 
+func before_each() -> void:
+	# The Sound autoload's own settings point at the real audio.cfg.
+	Sound.settings = AudioSettings.new()
+
+
 func after_each() -> void:
 	DirAccess.remove_absolute(TMP_PATH)
 	Sound.settings = AudioSettings.new()
