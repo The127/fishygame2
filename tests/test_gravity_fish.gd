@@ -58,5 +58,16 @@ func test_the_pull_toward_the_start_sends_a_fish_through_the_back_door() -> void
 	add_child_autofree(marble)
 	marble.global_position = Vector2(1080.0, 300.0)
 	flipper.turn_to(GravityFlipper.Pull.LEFT, 1.0)
-	await wait_physics_frames(120)
-	assert_gt(marble.global_position.x, 1460.0, "came out in the last room")
+	# The pull toward the start is weak, so the fish takes a while to reach the niche.
+	await wait_physics_frames(180)
+	assert_gt(marble.global_position.x, 1440.0, "came out in the last room")
+
+
+func test_a_fish_falling_past_the_back_door_stays_in_its_room() -> void:
+	var track: Track = _track()
+	var marble: Marble = (load(MARBLE_SCENE) as PackedScene).instantiate() as Marble
+	add_child_autofree(marble)
+	# Just through the top door of the second partition, falling down its face.
+	marble.global_position = Vector2(1000.0, 150.0)
+	await wait_physics_frames(60)
+	assert_lt(marble.global_position.x, 1420.0, "still before the third partition")

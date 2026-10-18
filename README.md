@@ -269,11 +269,12 @@ brackets, and a band lights each wall that has votes. The course is four rooms b
 doors (fish pass toward the finish, never back), and chevron beacons mark every door. Each partition has
 two doors, so there are always two pulls that get a fish through, and each room mixes the field
 differently: a peg garden at the start scatters fish that rise or fall through it, a pulsing bumper in
-each lane of the second room leaves a gap a fish fits through only while it rests, two spinners sweep the
-ceiling and floor lanes of the third room, and three bumpers turn the last room into a pinball scramble
-for the finish. A portal on the back wall of the third room only works under the pull toward the start:
-fish pressed against that wall can slide into it and come out in the last room, so a `#left` vote is a
-gamble that throws most fish back and a few far ahead. Nothing counts down: when chat picks a turn, gravity thins
+the ceiling and the floor lane of the second room squeezes the lane shut each time it swells (with a
+bumper in the middle of the room), two spinners sweep the ceiling and floor lanes of the third room, and
+three bumpers turn the last room into a pinball scramble for the finish. The back-door portal sits in a
+niche in the back wall of the third room: a fish falling past drifts away from it, but under the pull
+toward the start fish are pressed against that wall, slide into the niche and come out in the last room,
+so a `#left` vote is a gamble that throws most fish back and a few far ahead. Nothing counts down: when chat picks a turn, gravity thins
 out to a weightless beat for 0.4 seconds, the debris hangs still and the wall that is about to become the
 floor charges with light. With no votes the room turns by itself at seeded intervals of 3 to 4 seconds
 (with a 1.2 second build-up, and the wall behind the start rarely and weaker), so a quiet chat still gets

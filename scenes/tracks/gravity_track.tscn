@@ -159,11 +159,21 @@ polygon = PackedVector2Array(494, 630, 506, 630, 520, 644, 520, 1010, 506, 1010,
 physics_material_override = SubResource("PM_track")
 
 [node name="Collider" type="CollisionPolygon2D" parent="Part2_0"]
-polygon = PackedVector2Array(954, 220, 966, 220, 980, 234, 980, 846, 966, 860, 954, 860, 940, 846, 940, 234)
+polygon = PackedVector2Array(954, 220, 966, 220, 980, 234, 980, 326, 966, 340, 954, 340, 940, 326, 940, 234)
 
 [node name="Visual" type="Polygon2D" parent="Part2_0"]
 color = Color(0.14, 0.13, 0.26, 1)
-polygon = PackedVector2Array(954, 220, 966, 220, 980, 234, 980, 846, 966, 860, 954, 860, 940, 846, 940, 234)
+polygon = PackedVector2Array(954, 220, 966, 220, 980, 234, 980, 326, 966, 340, 954, 340, 940, 326, 940, 234)
+
+[node name="Part2_1" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="Part2_1"]
+polygon = PackedVector2Array(954, 420, 966, 420, 980, 434, 980, 846, 966, 860, 954, 860, 940, 846, 940, 434)
+
+[node name="Visual" type="Polygon2D" parent="Part2_1"]
+color = Color(0.14, 0.13, 0.26, 1)
+polygon = PackedVector2Array(954, 420, 966, 420, 980, 434, 980, 846, 966, 860, 954, 860, 940, 846, 940, 434)
 
 [node name="Part3_0" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_track")
@@ -252,6 +262,16 @@ one_way_collision = true
 [node name="Visual" type="Polygon2D" parent="Valve3_1"]
 color = Color(0.2, 0.17, 0.36, 1)
 polygon = PackedVector2Array(1417, 860, 1423, 860, 1423, 1010, 1417, 1010)
+
+[node name="NicheBack" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="NicheBack"]
+polygon = PackedVector2Array(940, 326, 950, 326, 950, 434, 940, 434)
+
+[node name="Visual" type="Polygon2D" parent="NicheBack"]
+color = Color(0.14, 0.13, 0.26, 1)
+polygon = PackedVector2Array(940, 326, 950, 326, 950, 434, 940, 434)
 
 [node name="Peg1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_peg")
@@ -587,10 +607,10 @@ gap_height = 150
 
 [node name="Backdoor" type="Node2D" parent="."]
 script = ExtResource("7_portal")
-entry_point = Vector2(1010, 380)
+entry_point = Vector2(956, 380)
 exit_point = Vector2(1560, 540)
 divert_point = Vector2(1560, 540)
-radius = 40.0
+radius = 20.0
 tint = Color(1, 0.86, 0.5, 1)
 
 [node name="Currents" type="Node2D" parent="."]
