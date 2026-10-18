@@ -39,13 +39,13 @@ func test_fish_race_in_3d_and_finish_with_payouts() -> void:
 	assert_eq(_flow.state, GameFlow.State.PODIUM, "a normal podium")
 
 
-func test_round_returns_home_only_from_the_podium() -> void:
-	_game._end_fake_sequel()
-	assert_eq(_flow.state, GameFlow.State.LOBBY, "no early exit from the lobby")
+func test_round_returns_home_when_the_podium_ends() -> void:
 	_start_race(2)
 	_finish_marbles([0, 1])
-	_game._end_fake_sequel()
-	assert_eq(_flow.state, GameFlow.State.IDLE, "the round is over and the game leaves")
+	assert_eq(_flow.state, GameFlow.State.PODIUM)
+	_flow.tick(_flow.podium_seconds + 0.1)
+	await wait_process_frames(2)
+	assert_eq(_flow.state, GameFlow.State.IDLE, "the game leaves instead of opening a new lobby")
 
 
 func test_map_picker_cannot_change_the_map() -> void:

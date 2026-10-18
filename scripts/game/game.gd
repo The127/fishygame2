@@ -13,9 +13,6 @@ const POWER_NOTE_MSEC: int = 3000
 const TIMER_SECONDS: int = 10
 
 const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
-## Seconds the podium of the fake 3D round shows before the game returns to the home screen.
-const FAKE_SEQUEL_PODIUM_SECONDS: float = 9.0
-
 ## Scene opened by the Home button. Tests set it to "" to stay in place.
 var home_scene: String = HOME_SCENE
 
@@ -242,6 +239,7 @@ func _set_up_fake_sequel() -> void:
 	settings.powers_enabled = false
 	settings.finish_replay = GameSettings.REPLAY_OFF
 	settings.auto_mode = false
+	_flow.state_changed.connect(_on_fake_sequel_state)
 	_view_3d = Race3DView.new()
 	_view_3d.name = "View3D"
 	add_child(_view_3d)
@@ -654,8 +652,6 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 		_flow.timer = maxf(_flow.timer, TournamentDirector.FINAL_SECONDS)
 	_tournament.refresh(_flow.state)
 	_overlay.show_dnf(dnf)
-	if fake_sequel:
-		get_tree().create_timer(FAKE_SEQUEL_PODIUM_SECONDS).timeout.connect(_end_fake_sequel)
 	if podium.is_empty():
 		if not dnf.is_empty():
 			var over: String = "time is up, nobody finished."
@@ -697,10 +693,11 @@ func _leave_to_home() -> void:
 		get_tree().change_scene_to_file(home_scene)
 
 
-## The fake 3D round is over: back to the "Fishy Marble Run 3" home screen.
-func _end_fake_sequel() -> void:
-	if is_inside_tree() and _flow.state == GameFlow.State.PODIUM:
-		_leave_to_home()
+## The fake 3D round is over when its podium ends: back to the "Fishy Marble Run 3" home
+## screen instead of a fresh lobby.
+func _on_fake_sequel_state(new_state: GameFlow.State, old_state: GameFlow.State) -> void:
+	if old_state == GameFlow.State.PODIUM and new_state == GameFlow.State.LOBBY:
+		_leave_to_home.call_deferred()
 
 
 func _on_auto_mode_toggled(enabled: bool) -> void:
@@ -923,9 +920,6 @@ func _on_payouts_settled(results: Array[Dictionary]) -> void:
 	_payouts = results
 
 
-## "Bubbles won. Payouts: @a +300, @b +200. Rivals: @c beat @d +5. DNF: e, f", with at most
-## three payouts, biggest first, three rivalries and three DNF names. Rival rewards are only
-## listed under Rivals.
 func _on_race_started(contestants: Array[Contestant]) -> void:
 	Sound.play(Sound.Sfx.GO)
 	var rng := RandomNumberGenerator.new()

@@ -10,7 +10,9 @@ const RESULT_RIVALS: int = 3
 const RESULT_DNF: int = 3
 
 
-## One line for chat, e.g. "Bubbles won. Payouts: @c +300, @d +200".
+## "Bubbles won. Payouts: @a +300, @b +200. Rivals: @c beat @d +5. DNF: e, f", with at most
+## three payouts, biggest first, three rivalries and three DNF names. Rival rewards are only
+## listed under Rivals.
 static func build(
 	winner: String, payouts: Array[Dictionary], dnf: PackedStringArray = [], treasure: String = ""
 ) -> String:

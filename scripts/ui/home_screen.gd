@@ -178,6 +178,8 @@ func _show_sequel(animate: bool) -> void:
 ## Swaps the underwater backdrop for the 3D course flyover of the fake sequel; with
 ## [param reveal] a ring ripples out from [param from] (screen point) to uncover it.
 func _show_flyover(reveal: bool, from: Vector2) -> void:
+	if _flyover != null:
+		return
 	var backdrop: Control = $Scene3D
 	_flyover = TrackFlyover.new()
 	_flyover.name = "Flyover"

@@ -141,8 +141,8 @@ func _tag(marble: Marble, at: Vector3) -> void:
 	tag.text = marble.label_text
 	tag.visible = not camera.is_position_behind(at) and marble.label_text != ""
 	if tag.visible:
-		var scale: Vector2 = _container.size / Vector2(viewport.size).max(Vector2.ONE)
-		var screen: Vector2 = camera.unproject_position(at) * scale
+		var to_screen: Vector2 = _container.size / Vector2(viewport.size).max(Vector2.ONE)
+		var screen: Vector2 = camera.unproject_position(at) * to_screen
 		tag.size = tag.get_minimum_size()
 		tag.position = screen - Vector2(tag.size.x * 0.5, tag.size.y)
 
