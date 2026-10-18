@@ -39,6 +39,7 @@ var _batcher: ChatBatcher = _replies.batcher
 var _meow: Meow = Meow.new()
 var _haunt: Haunt = Haunt.new()
 var _rtx: RtxFilter = RtxFilter.new()
+var _sponsor: SponsorBreak = SponsorBreak.new()
 var _viewer_commands: ViewerCommands = ViewerCommands.new()
 var _flipper_commands: FlipperCommands = FlipperCommands.new()
 var _shake_commands: ShakeCommands = ShakeCommands.new()
@@ -122,6 +123,8 @@ func _ready() -> void:
 	_replies.chat_line.connect(Chat.send_message)
 	add_child(_meow)
 	add_child(_rtx)
+	add_child(_sponsor)
+	_race.marble_finished.connect(_sponsor.cut_short)
 	_haunt.blocker = _race.eddy_blocker
 	add_child(_haunt)
 	Chat.command_received.connect(_haunt.handle_command)
@@ -286,6 +289,7 @@ func _apply_settings() -> void:
 	_overlay.set_play_fraction(settings.play_fraction())
 	_rtx.set_play_fraction(settings.play_fraction())
 	_rtx.set_enabled(settings.rtx)
+	_sponsor.set_play_fraction(settings.play_fraction())
 
 
 func _process(delta: float) -> void:
@@ -309,6 +313,7 @@ func _process(delta: float) -> void:
 	_panel.set_power_cooldown(
 		_powers.cooldown_left() if racing else 0.0, _powers.cooldown, not racing
 	)
+	_sponsor.update(delta, _race.leader_fraction() if racing and _race.running else -1.0)
 
 
 ## Left click fires the armed streamer power at the mouse; right click puts it away.
@@ -944,6 +949,7 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 	_tournament.on_race_started(contestants)
 	_race.start(_track, contestants.size(), rng, settings.hazard_level(), _event)
 	_overlay.show_event_badge(_event_badge_text())
+	_sponsor.arm(settings.sponsor_break and not fake_sequel)
 	# Marble ids are roster ids, so match on id rather than on list order.
 	for marble: Marble in _race.get_marbles():
 		if marble.id < 0 or marble.id >= contestants.size():

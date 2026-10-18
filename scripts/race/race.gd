@@ -260,6 +260,17 @@ func get_progress_map() -> Dictionary:
 	return progress
 
 
+## How far along the leading fish is, from 0 at the start to 1 at the finish, laps counted in.
+func leader_fraction() -> float:
+	if not running or _track == null:
+		return 0.0
+	var laps: int = 1 if _rounds == null else maxi(_rounds.laps, 1)
+	var best: float = 0.0
+	for value: float in get_progress_map().values():
+		best = maxf(best, value)
+	return best / float(laps)
+
+
 ## The marble with this id if it is still racing (not yet finished), else null.
 func _live_marble(id: int) -> Marble:
 	if not running or _ranking == null or not _marbles.has(id):

@@ -192,6 +192,9 @@ var random_events: bool = false
 var release_surprise: bool = true
 ## Whether the race wears the over-the-top "RTX ON" look (see [RtxFilter]). Off by default.
 var rtx: bool = false
+## Whether a fake ad covers half the screen for a moment in the middle of each race (see
+## [SponsorBreak]).
+var sponsor_break: bool = true
 ## Empty means in-memory only.
 var save_path: String = ""
 
@@ -251,6 +254,7 @@ func reset_to_defaults() -> void:
 	random_events = fresh.random_events
 	release_surprise = fresh.release_surprise
 	rtx = fresh.rtx
+	sponsor_break = fresh.sponsor_break
 
 
 ## Loads the saved values; missing or malformed ones keep their current value.
@@ -303,6 +307,9 @@ func load_settings() -> void:
 	var ray_traced: Variant = file.get_value(SECTION, "rtx", rtx)
 	if ray_traced is bool:
 		rtx = ray_traced
+	var sponsored: Variant = file.get_value(SECTION, "sponsor_break", sponsor_break)
+	if sponsored is bool:
+		sponsor_break = sponsored
 	sanitize()
 
 
@@ -328,6 +335,7 @@ func save() -> bool:
 	file.set_value(SECTION, "random_events", random_events)
 	file.set_value(SECTION, "release_surprise", release_surprise)
 	file.set_value(SECTION, "rtx", rtx)
+	file.set_value(SECTION, "sponsor_break", sponsor_break)
 	return file.save(save_path) == OK
 
 

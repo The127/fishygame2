@@ -139,6 +139,7 @@ const PAGES: Array[Dictionary] = [
 		"sections":
 		[
 			{"title": "Release surprise", "items": ["release_surprise", REPLAY_SURPRISE_KEY]},
+			{"title": "Sponsor break", "items": ["sponsor_break"]},
 		],
 	},
 ]
@@ -210,6 +211,8 @@ const ROWS: Dictionary[String, Dictionary] = {
 	"release_surprise":
 	{"label": "Release surprise", "hint": "A fake sequel announcement, once, on Open Lobby."},
 	REPLAY_SURPRISE_KEY: {"label": "Play it again", "hint": "On the next Open Lobby press."},
+	"sponsor_break":
+	{"label": "Sponsor break", "hint": "A fake ad covers half the screen mid-race."},
 }
 
 ## Yes/no settings outside [constant GameSettings.CHAT_TOGGLES]. A new boolean setting needs a
@@ -225,6 +228,7 @@ const TOGGLES: Array[String] = [
 	"welcome_hat",
 	"release_surprise",
 	"rtx",
+	"sponsor_break",
 ]
 
 ## Number settings picked from named steps instead of typed: the names, from the field's min.
