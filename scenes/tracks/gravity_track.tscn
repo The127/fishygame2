@@ -508,30 +508,50 @@ color = Color(1, 0.55, 0.85, 1)
 polygon = PackedVector2Array(794, 540, 792.34, 550.51, 787.51, 559.98, 779.98, 567.51, 770.51, 572.34, 760, 574, 749.49, 572.34, 740.02, 567.51, 732.49, 559.98, 727.66, 550.51, 726, 540, 727.66, 529.49, 732.49, 520.02, 740.02, 512.49, 749.49, 507.66, 760, 506, 770.51, 507.66, 779.98, 512.49, 787.51, 520.02, 792.34, 529.49)
 
 [node name="MillHigh" type="AnimatableBody2D" parent="."]
-position = Vector2(1190, 200)
+position = Vector2(1110, 210)
 physics_material_override = SubResource("PM_peg")
 script = ExtResource("5_spinner")
 speed = 1.3
 
 [node name="Collider" type="CollisionPolygon2D" parent="MillHigh"]
-polygon = PackedVector2Array(-12, -120, 12, -120, 12, -12, 120, -12, 120, 12, 12, 12, 12, 120, -12, 120, -12, 12, -120, 12, -120, -12, -12, -12)
+polygon = PackedVector2Array(-12, -110, 12, -110, 12, -12, 110, -12, 110, 12, 12, 12, 12, 110, -12, 110, -12, 12, -110, 12, -110, -12, -12, -12)
 
 [node name="Visual" type="Polygon2D" parent="MillHigh"]
 color = Color(0.45, 0.85, 1, 1)
-polygon = PackedVector2Array(-12, -120, 12, -120, 12, -12, 120, -12, 120, 12, 12, 12, 12, 120, -12, 120, -12, 12, -120, 12, -120, -12, -12, -12)
+polygon = PackedVector2Array(-12, -110, 12, -110, 12, -12, 110, -12, 110, 12, 12, 12, 12, 110, -12, 110, -12, 12, -110, 12, -110, -12, -12, -12)
 
 [node name="MillLow" type="AnimatableBody2D" parent="."]
-position = Vector2(1190, 880)
+position = Vector2(1110, 870)
 physics_material_override = SubResource("PM_peg")
 script = ExtResource("5_spinner")
 speed = -1.3
 
 [node name="Collider" type="CollisionPolygon2D" parent="MillLow"]
-polygon = PackedVector2Array(-12, -120, 12, -120, 12, -12, 120, -12, 120, 12, 12, 12, 12, 120, -12, 120, -12, 12, -120, 12, -120, -12, -12, -12)
+polygon = PackedVector2Array(-12, -110, 12, -110, 12, -12, 110, -12, 110, 12, 12, 12, 12, 110, -12, 110, -12, 12, -110, 12, -110, -12, -12, -12)
 
 [node name="Visual" type="Polygon2D" parent="MillLow"]
 color = Color(0.45, 0.85, 1, 1)
-polygon = PackedVector2Array(-12, -120, 12, -120, 12, -12, 120, -12, 120, 12, 12, 12, 12, 120, -12, 120, -12, 12, -120, 12, -120, -12, -12, -12)
+polygon = PackedVector2Array(-12, -110, 12, -110, 12, -12, 110, -12, 110, 12, 12, 12, 12, 110, -12, 110, -12, 12, -110, 12, -110, -12, -12, -12)
+
+[node name="FunnelHigh" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="FunnelHigh"]
+polygon = PackedVector2Array(1200, 70, 1400, 70, 1400, 450)
+
+[node name="Visual" type="Polygon2D" parent="FunnelHigh"]
+color = Color(0.14, 0.13, 0.26, 1)
+polygon = PackedVector2Array(1200, 70, 1400, 70, 1400, 450)
+
+[node name="FunnelLow" type="StaticBody2D" parent="."]
+physics_material_override = SubResource("PM_track")
+
+[node name="Collider" type="CollisionPolygon2D" parent="FunnelLow"]
+polygon = PackedVector2Array(1200, 1010, 1400, 640, 1400, 1010)
+
+[node name="Visual" type="Polygon2D" parent="FunnelLow"]
+color = Color(0.14, 0.13, 0.26, 1)
+polygon = PackedVector2Array(1200, 1010, 1400, 640, 1400, 1010)
 
 [node name="Bumper1" type="StaticBody2D" parent="."]
 physics_material_override = SubResource("PM_bump")
