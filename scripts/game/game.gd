@@ -642,7 +642,7 @@ func _follow_replay() -> void:
 
 ## The podium as the viewers see it: the impostor duck stands where it really finished.
 func _show_podium(podium: Array[Dictionary]) -> void:
-	_overlay.show_podium(_duck.show_podium(podium, _flow.podium_size))
+	_overlay.show_podium(_duck.podium_with_duck(podium, _flow.podium_size))
 
 
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
@@ -661,7 +661,7 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 		_flow.set_auto_mode(true, maxf(join, 1.0))
 	_tournament.refresh(_flow.state)
 	_overlay.show_dnf(dnf)
-	podium = _duck.shown_podium  # With the duck, so a winning duck is announced like any winner.
+	podium = _duck.podium_with_duck(podium, _flow.podium_size)  # A winning duck is announced too.
 	if podium.is_empty():
 		if not dnf.is_empty():
 			var over: String = "time is up, nobody finished."

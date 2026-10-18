@@ -14,8 +14,6 @@ const COLOR: Color = Color(0.95, 0.78, 0.16)
 
 ## Marble id of the duck in the current race, -1 when it is not racing.
 var id: int = -1
-## The podium as last shown, the duck included.
-var shown_podium: Array[Dictionary] = []
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _results: Array[Dictionary] = []
@@ -55,9 +53,8 @@ func settle(results: Array[Dictionary]) -> Array[Dictionary]:
 
 
 ## [param podium] (from the settled results) with the duck put back where it finished.
-func show_podium(podium: Array[Dictionary], size: int) -> Array[Dictionary]:
-	shown_podium = display_podium(podium, _results, id, size)
-	return shown_podium
+func podium_with_duck(podium: Array[Dictionary], size: int) -> Array[Dictionary]:
+	return display_podium(podium, _results, id, size)
 
 
 ## Whether the duck races this time, at [param chance_percent] (0 never, 100 always).
