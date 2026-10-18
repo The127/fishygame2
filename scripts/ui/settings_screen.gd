@@ -1,6 +1,7 @@
 class_name SettingsScreen
 extends Control
-## Streamer settings: edits a [GameSettings], saving after every change.
+## Streamer settings: edits a [GameSettings], saving after every change. The Sound page is
+## a [SoundSettingsControls] and edits the Sound autoload's [AudioSettings] instead.
 ##
 ## A sidebar picks one page at a time; each page groups its settings in titled sections, and
 ## every row carries a one-line explanation. The search box shows matching rows from all pages.
@@ -142,6 +143,7 @@ const PAGES: Array[Dictionary] = [
 			{"title": "Graphics", "items": ["rtx", RTX_INTRO_KEY]},
 		],
 	},
+	SoundSettingsControls.PAGE,
 	{
 		"title": "Extras",
 		"sections":
@@ -287,6 +289,7 @@ var _spinners: Dictionary[String, SpinBox] = {}
 var _choices: Dictionary[String, OptionButton] = {}
 var _toggles: Dictionary[String, SwitchButton] = {}
 var _map_picker: OptionButton
+var _sound: SoundSettingsControls = SoundSettingsControls.new()
 var _replay: Button
 var _preview: PaddingPreview
 var _status: Label
@@ -314,6 +317,7 @@ func _ready() -> void:
 	for toggle: Dictionary in GameSettings.CHAT_TOGGLES:
 		chat_keys.append(String(toggle["key"]))
 	_dependents["chat_replies"] = chat_keys
+	_sound.saved.connect(_show_saved)
 	_build()
 	_refresh()
 	show_page(clampi(last_page, 0, _pages.size() - 1))
@@ -594,6 +598,7 @@ func _row(key: String, control: Control) -> Control:
 	var dependent: bool = false
 	for parent: String in _dependents:
 		dependent = dependent or _dependents[parent].has(key)
+	dependent = dependent or SoundSettingsControls.is_dependent(key)
 	indent.add_theme_constant_override("margin_left", 28 if dependent else 0)
 	var row := HBoxContainer.new()
 	row.custom_minimum_size.y = 56.0
@@ -632,6 +637,8 @@ func _hint_label(text: String) -> Label:
 func _caption(key: String) -> String:
 	if ROWS.has(key) and ROWS[key].has("label"):
 		return String(ROWS[key]["label"])
+	if SoundSettingsControls.ROWS.has(key):
+		return String(SoundSettingsControls.ROWS[key]["label"])
 	for toggle: Dictionary in GameSettings.CHAT_TOGGLES:
 		if toggle["key"] == key:
 			return String(toggle["label"])
@@ -640,7 +647,8 @@ func _caption(key: String) -> String:
 
 
 func _hint(key: String) -> String:
-	return String(ROWS.get(key, {}).get("hint", ""))
+	var row: Dictionary = ROWS.get(key, SoundSettingsControls.ROWS.get(key, {}))
+	return String(row.get("hint", ""))
 
 
 func _danger_card(
@@ -748,6 +756,7 @@ func _build_controls() -> Dictionary[String, Control]:
 		switch.toggled.connect(_on_toggle_toggled.bind(key))
 		_toggles[key] = switch
 		controls[key] = switch
+	_sound.build(controls, _style_picker, _style_field, CONTROL_WIDTH)
 	return controls
 
 
@@ -821,6 +830,7 @@ func _refresh() -> void:
 		for dependent: String in _dependents[key]:
 			_set_enabled(dependent, on)
 	_preview.set_play_fraction(settings.play_fraction())
+	_sound.refresh(_row_of)
 
 
 func _set_enabled(key: String, on: bool) -> void:
@@ -876,7 +886,10 @@ func _is_section(card: Node) -> bool:
 func _commit(saved_text: String = "Saved") -> void:
 	settings.sanitize()
 	_refresh()
-	var saved: bool = settings.save()
+	_show_saved(settings.save(), saved_text)
+
+
+func _show_saved(saved: bool, saved_text: String = "Saved") -> void:
 	_status.text = saved_text if saved else "Could not save in this browser"
 	_status.add_theme_color_override("font_color", UiStyle.GOOD if saved else UiStyle.BAD)
 
@@ -911,7 +924,10 @@ func _on_reset_asked() -> void:
 
 func reset_pressed() -> void:
 	settings.reset_to_defaults()
+	var sound_saved: bool = _sound.reset()
 	_commit("Defaults restored")
+	if not sound_saved:
+		_show_saved(false)
 
 
 ## Arms the release surprise again, so it plays on the next Open Lobby press.
