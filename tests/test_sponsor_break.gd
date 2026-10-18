@@ -110,3 +110,40 @@ func test_arming_off_shows_nothing() -> void:
 	_ad.arm(false)
 	_ad.update(0.1, 0.5)
 	assert_false(_ad.is_showing())
+
+
+func test_a_finish_that_stays_on_screen_keeps_its_half_clear() -> void:
+	var middle: float = _ad.get_node("Frame").get_global_rect().get_center().x
+	for i: int in 10:
+		_ad.arm(true, middle + 100.0)
+		_ad.update(0.1, 0.5)
+		assert_true(_ad.is_on_left(), "finish on the right, ad on the left")
+		_ad.stop()
+		_ad.arm(true, middle - 100.0)
+		_ad.update(0.1, 0.5)
+		assert_false(_ad.is_on_left(), "finish on the left, ad on the right")
+		_ad.stop()
+
+
+func test_brand_shrinks_to_fit_a_narrow_half() -> void:
+	_ad.set_play_fraction(Rect2(0.3, 0.0, 0.4, 1.0))
+	await get_tree().process_frame
+	var frame: Control = _ad.get_node("Frame")
+	assert_lt(frame.size.x, 1000.0, "the frame shrank to the play area")
+	_ad._bag = [
+		SponsorBreak.ADS.find_custom(
+			func(ad: Dictionary) -> bool: return ad["brand"] == "BARNACLES"
+		)
+	]
+	_ad.arm()
+	_ad.update(0.1, 0.5)
+	assert_eq(_ad.get_brand(), "BARNACLES")
+	var brand: Label = _ad._brand
+	var width: float = (
+		brand
+		. label_settings
+		. font
+		. get_string_size(brand.text, HORIZONTAL_ALIGNMENT_LEFT, -1, brand.label_settings.font_size)
+		. x
+	)
+	assert_lt(width, frame.size.x * 0.5 - 128.0)

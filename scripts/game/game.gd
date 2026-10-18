@@ -949,7 +949,10 @@ func _on_race_started(contestants: Array[Contestant]) -> void:
 	_tournament.on_race_started(contestants)
 	_race.start(_track, contestants.size(), rng, settings.hazard_level(), _event)
 	_overlay.show_event_badge(_event_badge_text())
-	_sponsor.arm(settings.sponsor_break and not fake_sequel)
+	var finish_x: float = -1.0
+	if _track != null and not _track.follow_camera:
+		finish_x = (get_viewport().get_canvas_transform() * _track.get_finish_position()).x
+	_sponsor.arm(settings.sponsor_break and not fake_sequel, finish_x)
 	# Marble ids are roster ids, so match on id rather than on list order.
 	for marble: Marble in _race.get_marbles():
 		if marble.id < 0 or marble.id >= contestants.size():

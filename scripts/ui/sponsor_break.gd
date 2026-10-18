@@ -4,7 +4,8 @@ extends CanvasLayer
 ## course, a fake ad slides over the left or right half of the play area for a couple of
 ## seconds and slides away again. It never waits for the finish: a race whose leader is
 ## already past [constant LATEST] gets no ad, and a running ad leaves the moment a fish
-## finishes. Sits above the overlay and below the RTX filter, which then shines on it too.
+## finishes. On a map whose camera stays put, the finish is always on screen, so the ad takes
+## the other half. Sits above the overlay and below the RTX filter, which then shines on it too.
 
 const LAYER: int = 4
 ## The ad shows once the leader is this far along, a random point between the two.
@@ -15,6 +16,8 @@ const LATEST: float = 0.75
 ## Seconds fully on screen, and seconds to slide in or out.
 const HOLD_SECONDS: float = 2.0
 const SLIDE_SECONDS: float = 0.2
+## Width of one brand letter as a fraction of the font size, a little generous.
+const BRAND_GLYPH_WIDTH: float = 0.68
 const HEADER: String = "This race is brought to you by"
 
 ## brand, tagline, and the ad's background color.
@@ -69,6 +72,7 @@ var _trigger_at: float = -1.0
 ## Seconds since the ad started sliding in, or -1 while none is up.
 var _age: float = -1.0
 var _on_left: bool = true
+var _finish_x: float = -1.0
 var _frame: Control
 var _half: Control
 var _panel: PanelContainer
@@ -155,8 +159,11 @@ func set_seed(value: int) -> void:
 
 ## A new race started: picks where along the course its ad shows, or with [param on] false
 ## (the setting is off, or the fake sequel round, which is its own show) shows none.
-func arm(on: bool = true) -> void:
+## [param finish_x] is the finish's x on screen when it stays in view all race (the camera
+## does not follow the fish); the ad then covers the other half. Negative means either half.
+func arm(on: bool = true, finish_x: float = -1.0) -> void:
 	_trigger_at = _rng.randf_range(TRIGGER_MIN, TRIGGER_MAX) if on else -1.0
+	_finish_x = finish_x
 
 
 ## Takes the ad down at once and forgets any ad still due this race.
@@ -217,12 +224,17 @@ func _show() -> void:
 			_bag[j] = swap
 	var ad: Dictionary = ADS[_bag.pop_back()]
 	_brand.text = ad["brand"]
-	# Long names get a smaller size so they fit on one line.
-	_brand.label_settings.font_size = clampi(int(900.0 / float(_brand.text.length())), 80, 160)
+	# Long names and narrow halves (blocked edges) get a smaller size, so the name fits on one
+	# line.
+	var room: float = _frame.size.x * 0.5 - _box.content_margin_left - _box.content_margin_right
+	var fit: int = int(room / (BRAND_GLYPH_WIDTH * float(_brand.text.length())))
+	_brand.label_settings.font_size = clampi(fit, 40, 160)
 	_tagline.text = ad["tagline"]
 	_box.bg_color = ad["color"]
 	_fine_print.text = FINE_PRINT[_rng.randi_range(0, FINE_PRINT.size() - 1)]
 	_on_left = _rng.randf() < 0.5
+	if _finish_x >= 0.0:
+		_on_left = _finish_x > _frame.get_global_rect().get_center().x
 	_half.anchor_left = 0.0 if _on_left else 0.5
 	_half.anchor_right = 0.5 if _on_left else 1.0
 	_half.anchor_top = 0.0
