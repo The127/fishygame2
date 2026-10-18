@@ -69,6 +69,7 @@ var _view_3d: Race3DView
 ## The impostor duck and the cardboard cutouts.
 var _extras: ExtraRacers = ExtraRacers.new()
 var _lurkers: Lurkers = Lurkers.new()
+var _auto_join: AutoJoin = AutoJoin.new()
 ## The current map's lurkers, a child of the track.
 var _den: LurkerDen
 
@@ -184,6 +185,12 @@ func _ready() -> void:
 	_betting.balance_reported.connect(_on_balance_reported)
 	_race.race_finished.connect(_on_race_finished)
 	_set_up_lurkers()
+	_auto_join.store = _shop.store
+	_auto_join.parser = Chat.parser
+	_auto_join.own_user_id = Chat.own_user_id
+	add_child(_auto_join)
+	Chat.message_received.connect(_auto_join.handle_message)
+	_auto_join.join_wanted.connect(func(msg: ChatMessage) -> void: _flow.join(msg, true))
 	_panel.open_lobby_pressed.connect(_flow.open_lobby)
 	_panel.start_pressed.connect(_on_start_pressed)
 	_panel.skip_replay_pressed.connect(_sequence.skip_replay)
@@ -230,6 +237,8 @@ func _ready() -> void:
 	# Last of the state_changed connections: every roster has reset for the fresh lobby before
 	# the tournament racers join it again.
 	_flow.state_changed.connect(_on_state_settled)
+	# After the tournament racers, so the recent chatters get only the places left.
+	_flow.state_changed.connect(_auto_join.on_state_changed)
 	_rng.randomize()
 	_event_rng.randomize()
 	if OS.has_feature("web") and DebugMode.is_enabled():
@@ -267,6 +276,7 @@ func _apply_settings() -> void:
 	_race.time_limit = float(settings.race_time_limit)
 	_race.treasures_enabled = settings.treasures_enabled
 	_flow.set_auto_mode(settings.auto_mode, float(settings.auto_join_seconds))
+	_auto_join.apply(settings)
 	_betting.starting_balance = settings.starting_balance
 	_betting.points.starting_balance = settings.starting_balance
 	_betting.min_bet = settings.min_bet

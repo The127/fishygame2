@@ -62,6 +62,7 @@ Open **Settings** on the home screen (through Interact). Changes save by themsel
 | Map | Random | Pick one map, or let the game choose. Random never repeats the last map. |
 | Auto mode | off | Rounds run without you. |
 | Auto mode join window (s) | 60 | How long the lobby stays open in auto mode. |
+| Auto-join chatters | off | Anyone who writes in chat joins the open lobby, no `#join` needed. People who chatted in the last 300 s join the next lobby as it opens, most recent first, up to Max players. Lurkers (`#lurk`), the game's own account and the accounts in "Never auto-join" (common chat bots by default) are left out. |
 | Reply in chat | on | The game writes confirmations and results in your chat. Turn it off if it is too chatty. Settings > Chat turns each kind on or off. Shop purchases and the shop list stay out of chat unless you turn them on. |
 | Finish replay | close | Replays a close finish in slow motion. |
 | Starting points | 1000 | What a new viewer begins with (for bets). |

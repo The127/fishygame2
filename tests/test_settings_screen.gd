@@ -49,6 +49,22 @@ func test_turning_a_switch_off_greys_out_what_depends_on_it() -> void:
 	assert_false(screen._spinners["auto_join_seconds"].editable, "auto mode is off by default")
 	screen._toggles["auto_mode"].button_pressed = true
 	assert_true(screen._spinners["auto_join_seconds"].editable)
+	assert_false(screen._texts["auto_join_ignore"].editable, "auto-join is off by default")
+	screen._toggles["auto_join_chatters"].button_pressed = true
+	assert_true(screen._texts["auto_join_ignore"].editable)
+
+
+func test_typing_the_ignore_list_saves_it() -> void:
+	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
+	screen.settings = GameSettings.new()
+	add_child_autofree(screen)
+	var field: LineEdit = screen._texts["auto_join_ignore"]
+	assert_eq(field.text, screen.settings.auto_join_ignore)
+	field.text = "mybot, otherbot"
+	field.text_changed.emit(field.text)
+	assert_eq(screen.settings.auto_join_ignore, "mybot, otherbot")
+	screen.reset_pressed()
+	assert_eq(field.text, GameSettings.DEFAULT_AUTO_JOIN_IGNORE)
 
 
 func test_search_shows_matching_rows_from_every_page() -> void:

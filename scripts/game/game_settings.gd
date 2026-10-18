@@ -22,6 +22,11 @@ const CHAT_TOGGLES: Array[Dictionary] = [
 	{"key": "reply_powers", "label": "Announce streamer powers"},
 ]
 
+## Chat bots that are never auto-joined, until the streamer edits [member auto_join_ignore].
+const DEFAULT_AUTO_JOIN_IGNORE: String = "nightbot, streamelements, streamlabs, moobot, fossabot"
+## Longest [member auto_join_ignore] that is kept.
+const AUTO_JOIN_IGNORE_MAX: int = 1000
+
 ## Values of [member finish_replay].
 const REPLAY_OFF: int = 0
 const REPLAY_CLOSE: int = 1
@@ -51,6 +56,13 @@ const FIELDS: Array[Dictionary] = [
 		"min": 5,
 		"max": 600,
 		"step": 5
+	},
+	{
+		"key": "auto_join_recent",
+		"label": "Auto-join recent chatters (s)",
+		"min": 0,
+		"max": 1800,
+		"step": 30
 	},
 	{
 		"key": "finish_replay",
@@ -145,6 +157,9 @@ var countdown_seconds: int = 3
 ## Seconds a race may last before unfinished fish are DNF. 0 means no limit.
 var race_time_limit: int = 60
 var auto_join_seconds: int = 60
+## How far back a chat message still auto-joins its viewer when a lobby opens, in seconds,
+## while [member auto_join_chatters] is on. 0 means only chatting in the open lobby counts.
+var auto_join_recent: int = 300
 ## Replay of the finish before the podium: REPLAY_OFF, REPLAY_CLOSE or REPLAY_ALWAYS.
 var finish_replay: int = 1
 ## How far cardboard cutouts fill a thin field: CARDBOARD_FIVE or CARDBOARD_TEN fish.
@@ -186,6 +201,11 @@ var impostor_chance: int = 5
 var default_map: String = RANDOM_MAP
 ## Whether the game cycles lobby, race and podium on its own. Off by default.
 var auto_mode: bool = false
+## Whether every viewer who chats joins the open lobby without "#join" (see [AutoJoin]).
+var auto_join_chatters: bool = false
+## Logins never auto-joined, separated by commas or spaces. Free text, read by
+## [method AutoJoin.parse_logins].
+var auto_join_ignore: String = DEFAULT_AUTO_JOIN_IGNORE
 ## Whether the game answers in chat at all (rejections, #help, #top, and the confirmations
 ## below).
 var chat_replies: bool = true
@@ -276,6 +296,8 @@ func reset_to_defaults() -> void:
 		var key: String = toggle["key"]
 		set(key, fresh.get(key))
 	auto_mode = fresh.auto_mode
+	auto_join_chatters = fresh.auto_join_chatters
+	auto_join_ignore = fresh.auto_join_ignore
 	colorblind = fresh.colorblind
 	welcome_hat = fresh.welcome_hat
 	hazards_enabled = fresh.hazards_enabled
@@ -315,6 +337,12 @@ func load_settings() -> void:
 	var auto: Variant = file.get_value(SECTION, "auto_mode", auto_mode)
 	if auto is bool:
 		auto_mode = auto
+	var chatters: Variant = file.get_value(SECTION, "auto_join_chatters", auto_join_chatters)
+	if chatters is bool:
+		auto_join_chatters = chatters
+	var ignore: Variant = file.get_value(SECTION, "auto_join_ignore", auto_join_ignore)
+	if ignore is String:
+		auto_join_ignore = (ignore as String).left(AUTO_JOIN_IGNORE_MAX)
 	var blind: Variant = file.get_value(SECTION, "colorblind", colorblind)
 	if blind is bool:
 		colorblind = blind
@@ -365,6 +393,8 @@ func save() -> bool:
 		var key: String = toggle["key"]
 		file.set_value(SECTION, key, get(key))
 	file.set_value(SECTION, "auto_mode", auto_mode)
+	file.set_value(SECTION, "auto_join_chatters", auto_join_chatters)
+	file.set_value(SECTION, "auto_join_ignore", auto_join_ignore)
 	file.set_value(SECTION, "colorblind", colorblind)
 	file.set_value(SECTION, "welcome_hat", welcome_hat)
 	file.set_value(SECTION, "hazards_enabled", hazards_enabled)
