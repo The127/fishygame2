@@ -597,31 +597,9 @@ func _report_results(results: Array[Dictionary]) -> void:
 	_tournament.add_treasure(_haul.totals())
 	# Before the stats, whose save covers the treasure and rival points too.
 	_haul_text = _haul.settle(_betting.points)
-	_betting.report_payouts(_rivals.settle(_standings(scored)))
+	_betting.report_payouts(_rivals.settle(Rivals.standings(scored, _flow.get_contestants())))
 	_record_race_stats(scored)
 	_flow.report_race_finished(scored)
-
-
-## One {user_id, name, place, finished} per fish in the race results (ids are roster indexes).
-func _standings(results: Array[Dictionary]) -> Array[Dictionary]:
-	var contestants: Array[Contestant] = _flow.get_contestants()
-	var standings: Array[Dictionary] = []
-	for r: Dictionary in results:
-		var id: int = int(r["id"])
-		if id < 0 or id >= contestants.size():
-			continue
-		(
-			standings
-			. append(
-				{
-					"user_id": contestants[id].user_id,
-					"name": contestants[id].display_name,
-					"place": int(r["place"]),
-					"finished": bool(r["finished"]),
-				}
-			)
-		)
-	return standings
 
 
 func _on_replay_ended(results: Array[Dictionary]) -> void:
