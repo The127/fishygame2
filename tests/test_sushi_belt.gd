@@ -42,10 +42,10 @@ func test_serving_again_replaces_the_plates() -> void:
 	var belt: SushiBelt = _make(4)
 	belt._process(1.0)
 	belt.serve(_fish(1), 8.0)
+	assert_eq(belt.plate_x(0), SushiBelt.TAG_SIZE.x * 0.5, "the new plate starts at the start")
 	await wait_frames(2)
 	assert_eq(belt.plate_count(), 1)
 	assert_eq(belt.find_children("*", "FishVisual", false, false).size(), 1)
-	assert_eq(belt.plate_x(0), SushiBelt.TAG_SIZE.x * 0.5)
 
 
 func test_price_tags_follow_the_fate() -> void:
