@@ -14,6 +14,9 @@ signal standings_changed(title: String, rows: Array[Dictionary])
 
 ## Seconds the final standings stay up before the next lobby.
 const FINAL_SECONDS: float = 15.0
+## Seconds from the end of one round's race to the start of the next round's countdown: the
+## podium plus the join window of the lobby.
+const BREAK_SECONDS: float = 20.0
 
 ## The scores the podium bonus is paid into. Set by the owner before a tournament starts.
 var points: PointsStore = null

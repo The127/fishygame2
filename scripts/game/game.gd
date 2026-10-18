@@ -650,6 +650,9 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	if _tournament.score_round(payouts, rewards):
 		_restore_auto_mode()
 		_flow.timer = maxf(_flow.timer, TournamentDirector.FINAL_SECONDS)
+	elif _tournament.is_running():
+		var join: float = TournamentDirector.BREAK_SECONDS - _flow.podium_seconds
+		_flow.set_auto_mode(true, maxf(join, 1.0))
 	_tournament.refresh(_flow.state)
 	_overlay.show_dnf(dnf)
 	if podium.is_empty():

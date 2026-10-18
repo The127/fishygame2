@@ -123,6 +123,7 @@ func _ready() -> void:
 	_rounds_picker.item_selected.connect(_on_rounds_picked)
 	_on_rounds_picked(0)
 	($Panel/Box/StartTournament as Button).pressed.connect(_on_start_tournament_pressed)
+	($Panel/Box/TournamentToggle as Button).pressed.connect(toggle_tournament)
 	_auto.toggled.connect(auto_mode_toggled.emit)
 	_mute.toggled.connect(mute_toggled.emit)
 	for bus: String in _volume_sliders:
@@ -307,6 +308,7 @@ func _apply_style() -> void:
 		_map_picker,
 		_rounds_picker,
 		$Panel/Box/StartTournament,
+		$Panel/Box/TournamentToggle,
 	]:
 		UiStyle.style_button(button, 20)
 	for power: PowerButton in _power_buttons:
@@ -397,6 +399,20 @@ func set_tournament(maps: PackedStringArray) -> void:
 		for item: int in picker.item_count:
 			if String(picker.get_item_metadata(item)) == maps[i]:
 				picker.select(item)
+
+
+## Shows or hides the tournament setup. It starts hidden to keep the drawer short.
+func toggle_tournament() -> void:
+	var shown: bool = not _round_maps.visible
+	for node: Control in [$Panel/Box/TournamentRow, _round_maps, $Panel/Box/StartTournament]:
+		node.visible = shown
+	($Panel/Box/TournamentToggle as Button).text = (
+		"Hide tournament" if shown else "Show tournament"
+	)
+
+
+func is_tournament_shown() -> bool:
+	return _round_maps.visible
 
 
 func _on_start_tournament_pressed() -> void:
