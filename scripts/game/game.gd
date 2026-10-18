@@ -273,12 +273,7 @@ func _apply_settings() -> void:
 	_betting.place_rewards = [settings.win_reward, settings.second_reward, settings.third_reward]
 	_betting.trophy_reward = settings.win_reward * ParticipationTrophy.PRIZE_FACTOR
 	_rivals.reward = settings.rival_reward
-	_shop.species_price = settings.species_price
-	_shop.color_price = settings.color_price
-	_shop.premium_color_price = settings.premium_color_price
-	_shop.hat_price = settings.hat_price
-	_shop.trail_price = settings.trail_price
-	_shop.colorblind = settings.colorblind
+	_shop.apply_settings(settings)
 	_chaos.boost_cost = settings.boost_cost
 	_chaos.curse_cost = settings.curse_cost
 	_chaos.viewer_cooldown = float(settings.viewer_cooldown)
@@ -917,12 +912,10 @@ func _on_shop_rejected(msg: ChatMessage, reason: String) -> void:
 
 
 func _on_shop_catalog_requested(_msg: ChatMessage) -> void:
-	_overlay.show_notice("Shop: #fish <species>, #color <name>, #hat <name> or #trail <name>")
+	_overlay.show_notice(Shop.CATALOG_NOTICE)
 	if settings.replies_enabled("reply_catalog"):
-		Chat.send_message(_shop.catalog_text())
-		Chat.send_message(_shop.premium_catalog_text())
-		Chat.send_message(_shop.hat_catalog_text())
-		Chat.send_message(_shop.trail_catalog_text())
+		for line: String in _shop.catalog_lines():
+			Chat.send_message(line)
 
 
 func _on_balance_reported(msg: ChatMessage, balance: int) -> void:

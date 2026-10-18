@@ -34,6 +34,14 @@ func test_equipped_species_and_color_are_applied() -> void:
 	assert_eq(roster[0].color, Contestant.PALETTE[0])
 
 
+func test_equipped_dance_is_applied_and_none_means_random() -> void:
+	var store := _store_with({"1": {"dance": "worm"}})
+	var roster: Array[Contestant] = _roster(2)
+	ShopCatalog.assign_loadouts(roster, store)
+	assert_eq(roster[1].dance, FishDance.Kind.WORM)
+	assert_eq(roster[0].dance, FishDance.Kind.RANDOM)
+
+
 func test_bought_color_beats_a_default_of_someone_else() -> void:
 	# Viewer 0 buys viewer 2's default color (yellow); viewer 2 moves to a free one.
 	var store := _store_with({"0": {"color": "yellow"}})

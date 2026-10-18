@@ -75,6 +75,6 @@ func test_the_podium_draws_a_duck_for_the_impostor() -> void:
 	var view := PodiumView.new()
 	add_child_autofree(view)
 	view.set_podium([ImpostorDuck.entry(5, 1, 12.0)] as Array[Dictionary])
-	var fish: Array[Node] = view.find_children("*", "FishVisual", false, false)
+	var fish: Array[Node] = view.find_children("*", "FishVisual", true, false)
 	assert_eq(fish.size(), 1)
 	assert_true((fish[0] as FishVisual).impostor)

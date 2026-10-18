@@ -5,7 +5,7 @@ extends RefCounted
 ## Chat reply to "#help". Kept well under Twitch's 500 character limit.
 const CHAT_REPLY: String = (
 	"Commands: #join | #bet <fish> <amount> | #boost <fish> | #curse <fish> | "
-	+ "#points | #stats | #top | #rival <name> | #shop | #fish <species> | #color <name> | #hat <name> | #trail <name> | "
+	+ "#points | #stats | #top | #rival <name> | #shop | #fish <species> | #color <name> | #hat <name> | #trail <name> | #dance <name> | "
 	+ "#left / #right (Pinball Reef 1 and 2 flippers, Gravity Flip) | #up / #down (Gravity Flip) | "
 	+ "#shake (Earthquake Fault) | "
 	+ "#eddy (flushed-out fish)"
@@ -23,7 +23,7 @@ const LINES: PackedStringArray = [
 	"#stats  your record",
 	"#top  leaderboard",
 	"#rival <name>  beat them for bonus points",
-	"#shop  fish, colors, hats and trails",
+	"#shop  fish, colors, hats, trails and dances",
 	"#left / #right  fire the flippers (both Pinball Reefs)",
 	"#up / #down / #left / #right  steer gravity (Gravity Flip)",
 	"#shake  spam it to quake the seafloor (Earthquake Fault)",

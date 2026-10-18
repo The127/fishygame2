@@ -144,6 +144,7 @@ func test_shop_list_goes_to_chat_when_turned_on() -> void:
 				_shop.premium_catalog_text(),
 				_shop.hat_catalog_text(),
 				_shop.trail_catalog_text(),
+				_shop.dance_catalog_text(),
 			]
 			as Array[String]
 		)

@@ -21,11 +21,13 @@ const PLACE_COLORS: Dictionary = {
 }
 
 var _entries: Dictionary = {}
+var _rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
 	custom_minimum_size = VIEW_SIZE
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_rng.randomize()
 
 
 ## `podium` entries need place, id, name, color, time and finished; only places 1 to 3 are shown.
@@ -60,11 +62,15 @@ func _add_winner(entry: Dictionary, place: int) -> void:
 	fish.skin = int(entry.get("skin", 0))
 	fish.impostor = bool(entry.get("impostor", false))
 	fish.celebrating = place == 1
-	add_child(fish)
-	# FishVisual detaches itself in _ready to follow a marble; here it stays with the view.
-	fish.top_level = false
-	fish.scale = Vector2.ONE * FISH_SCALE
-	fish.position = Vector2(rect.get_center().x, rect.position.y - FISH_LIFT)
+	var fish_pos := Vector2(rect.get_center().x, rect.position.y - FISH_LIFT)
+	if place == 1:
+		_add_dancer(fish, int(entry.get("dance", FishDance.Kind.RANDOM)), fish_pos)
+	else:
+		add_child(fish)
+		# FishVisual detaches itself in _ready to follow a marble; here it stays with the view.
+		fish.top_level = false
+		fish.scale = Vector2.ONE * FISH_SCALE
+		fish.position = fish_pos
 	var name_label: Label = _make_label(str(entry["name"]), 32, 800, UiStyle.TEXT)
 	name_label.position = Vector2(rect.get_center().x - NAME_WIDTH * 0.5, rect.position.y - 180.0)
 	name_label.size = Vector2(NAME_WIDTH, 40.0)
@@ -74,6 +80,16 @@ func _add_winner(entry: Dictionary, place: int) -> void:
 	time_label.position = Vector2(rect.position.x, rect.position.y + 78.0)
 	time_label.size = Vector2(rect.size.x, 30.0)
 	add_child(time_label)
+
+
+## The winner does a victory dance: the one they bought, or a random one.
+func _add_dancer(fish: FishVisual, wanted: int, at: Vector2) -> void:
+	var dancer := FishDance.new()
+	dancer.kind = FishDance.pick(wanted, _rng)
+	dancer.fish = fish
+	dancer.scale = Vector2.ONE * FISH_SCALE
+	dancer.position = at
+	add_child(dancer)
 
 
 func _make_label(text: String, font_size: int, weight: int, color: Color) -> Label:

@@ -24,11 +24,13 @@ const BET_REJECTIONS: Dictionary = {
 }
 
 const SHOP_REJECTIONS: Dictionary = {
-	"usage": "use #fish <species>, #color <name>, #hat <name> or #trail <name>, see #shop",
+	"usage":
+	"use #fish <species>, #color <name>, #hat <name>, #trail <name> or #dance <name>, see #shop",
 	"unknown_species": "no such species, see #shop",
 	"unknown_color": "no such color, see #shop",
 	"unknown_hat": "no such accessory, see #shop",
 	"unknown_trail": "no such trail, see #shop",
+	"unknown_dance": "no such dance, see #shop",
 	"insufficient": "not enough points",
 }
 

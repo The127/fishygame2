@@ -94,6 +94,7 @@ const PAGES: Array[Dictionary] = [
 					"premium_color_price",
 					"hat_price",
 					"trail_price",
+					"dance_price",
 				],
 			},
 			{"title": "Gifts", "items": ["welcome_hat"]},
@@ -201,6 +202,8 @@ const ROWS: Dictionary[String, Dictionary] = {
 	"premium_color_price": {"label": "Premium color", "unit": "pts"},
 	"hat_price": {"label": "Accessory", "hint": "Hats and other accessories.", "unit": "pts"},
 	"trail_price": {"label": "Trail", "unit": "pts"},
+	"dance_price":
+	{"label": "Victory dance", "hint": "Done on the podium after a win.", "unit": "pts"},
 	"welcome_hat": {"label": "Welcome hat", "hint": "A free random hat for a first race."},
 	"chat_replies":
 	{"label": "Reply in chat", "hint": "Off silences everything: errors, #help, #top and below."},

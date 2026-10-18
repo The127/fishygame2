@@ -1,6 +1,7 @@
 class_name Shop
 extends Node
-## Viewers spend points on how their fish looks: "#fish <species>", "#color <name>", "#hat <name>" and "#trail <name>".
+## Viewers spend points on how their fish looks: "#fish <species>", "#color <name>", "#hat <name>"
+## and "#trail <name>", and on the victory dance it does on the podium: "#dance <name>".
 ## An item is bought once, the first time it is asked for, and afterwards equipping it
 ## is free. The equipped items are applied when a race starts (see [ShopCatalog]).
 ## "#shop" asks the game to list the options.
@@ -10,8 +11,14 @@ signal rejected(msg: ChatMessage, reason: String)
 signal catalog_requested(msg: ChatMessage)
 
 const DEFAULT_PATH: String = "user://shop.json"
-## Words for "#hat" and "#trail" that take the item off.
+## Overlay notice for "#shop"; the full listing goes to chat (see [method catalog_lines]).
+const CATALOG_NOTICE: String = "Shop: #fish <species>, #color <name>, #hat <name>, #trail <name> or #dance <name>"
+## Kinds a viewer can take off again; the rest always have something equipped.
+const REMOVABLE: Array[String] = [ShopStore.KIND_HAT, ShopStore.KIND_TRAIL, ShopStore.KIND_DANCE]
+## Words for "#hat", "#trail" and "#dance" that take the item off.
 const TAKE_OFF: PackedStringArray = ["none", "off"]
+## "#dance random" also takes the dance off: without one the winner gets a random dance.
+const RANDOM_DANCE: String = "random"
 
 @export var shop_path: String = DEFAULT_PATH
 @export var species_price: int = 500
@@ -20,6 +27,7 @@ const TAKE_OFF: PackedStringArray = ["none", "off"]
 @export var premium_color_price: int = 1000
 @export var hat_price: int = 200
 @export var trail_price: int = 300
+@export var dance_price: int = 300
 
 ## Set by the game so the shop spends from the same balances as betting.
 var points: PointsStore = null
@@ -34,6 +42,17 @@ func _ready() -> void:
 		store.load_from_disk()
 
 
+## Takes the prices and the colorblind look from [param settings].
+func apply_settings(settings: GameSettings) -> void:
+	species_price = settings.species_price
+	color_price = settings.color_price
+	premium_color_price = settings.premium_color_price
+	hat_price = settings.hat_price
+	trail_price = settings.trail_price
+	dance_price = settings.dance_price
+	colorblind = settings.colorblind
+
+
 func handle_command(msg: ChatMessage, command: String, args: PackedStringArray) -> void:
 	match command:
 		"fish":
@@ -44,6 +63,8 @@ func handle_command(msg: ChatMessage, command: String, args: PackedStringArray) 
 			choose(msg, args, ShopStore.KIND_HAT)
 		"trail":
 			choose(msg, args, ShopStore.KIND_TRAIL)
+		"dance":
+			choose(msg, args, ShopStore.KIND_DANCE)
 		"shop":
 			catalog_requested.emit(msg)
 
@@ -58,6 +79,8 @@ func price_of(kind: String, item: String = "") -> int:
 			return hat_price
 		ShopStore.KIND_TRAIL:
 			return trail_price
+		ShopStore.KIND_DANCE:
+			return dance_price
 	return color_price
 
 
@@ -66,10 +89,13 @@ func price_of(kind: String, item: String = "") -> int:
 func choose(msg: ChatMessage, args: PackedStringArray, kind: String) -> bool:
 	var item: String = ShopCatalog.canonical(kind, " ".join(args))
 	var reason: String = ""
-	if (kind == ShopStore.KIND_HAT or kind == ShopStore.KIND_TRAIL) and item in TAKE_OFF:
+	if (
+		kind in REMOVABLE
+		and (item in TAKE_OFF or (kind == ShopStore.KIND_DANCE and item == RANDOM_DANCE))
+	):
 		store.unequip(msg.user_id, kind)
 		store.save_to_disk()
-		equipped.emit(msg, kind, "none", 0)
+		equipped.emit(msg, kind, "random" if kind == ShopStore.KIND_DANCE else "none", 0)
 		return true
 	if args.is_empty():
 		reason = "usage"
@@ -119,6 +145,17 @@ func welcome_new_racers(
 	return welcomed
 
 
+## The chat lines "#shop" answers with, one per kind of item.
+func catalog_lines() -> Array[String]:
+	return [
+		catalog_text(),
+		premium_catalog_text(),
+		hat_catalog_text(),
+		trail_catalog_text(),
+		dance_catalog_text(),
+	]
+
+
 ## One chat line with everything on sale.
 func catalog_text() -> String:
 	return (
@@ -153,4 +190,12 @@ func trail_catalog_text() -> String:
 	return (
 		"Trails: #trail <%s> (%d points), #trail none takes it off. Cosmetic only."
 		% ["|".join(ShopCatalog.TRAIL_NAMES), trail_price]
+	)
+
+
+## One chat line with the victory dances on sale.
+func dance_catalog_text() -> String:
+	return (
+		"Victory dances: #dance <%s> (%d points), done on the podium when you win. #dance random goes back to a surprise."
+		% ["|".join(ShopCatalog.DANCE_NAMES), dance_price]
 	)
