@@ -23,6 +23,8 @@ const HAT_NAMES: Array[String] = [
 ]
 ## Chat names of the trails, in the order of [enum FishTrail.Kind] after NONE.
 const TRAIL_NAMES: Array[String] = ["rainbow", "stars", "bubbles", "dust", "embers", "hearts"]
+## Chat names of the podium victory dances, in the order of [enum FishDance.Kind] after RANDOM.
+const DANCE_NAMES: Array[String] = FishDance.NAMES
 ## Chat names of the colors, in the order of [constant Contestant.PALETTE].
 const COLOR_NAMES: Array[String] = [
 	"red",
@@ -105,6 +107,8 @@ static func index_of(kind: String, item: String) -> int:
 		return HAT_NAMES.find(wanted)
 	if kind == ShopStore.KIND_TRAIL:
 		return TRAIL_NAMES.find(wanted)
+	if kind == ShopStore.KIND_DANCE:
+		return DANCE_NAMES.find(wanted)
 	return -1
 
 
@@ -137,6 +141,10 @@ static func assign_loadouts(
 		)
 		contestant.trail = (
 			index_of(ShopStore.KIND_TRAIL, store.equipped(contestant.user_id, ShopStore.KIND_TRAIL))
+			+ 1
+		)
+		contestant.dance = (
+			index_of(ShopStore.KIND_DANCE, store.equipped(contestant.user_id, ShopStore.KIND_DANCE))
 			+ 1
 		)
 		if skin > 0:

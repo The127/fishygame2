@@ -156,6 +156,7 @@ func _result_entry(r: Dictionary) -> Dictionary:
 		"pattern": contestant.pattern,
 		"accessory": contestant.accessory,
 		"skin": contestant.skin,
+		"dance": contestant.dance,
 		"time": float(r["time"]),
 		"finished": bool(r["finished"]),
 	}

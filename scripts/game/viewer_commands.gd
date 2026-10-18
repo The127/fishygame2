@@ -27,6 +27,7 @@ const NAMED_COMMANDS: PackedStringArray = [
 	"color",
 	"hat",
 	"trail",
+	"dance",
 	"shop",
 	"stats",
 	"rival"

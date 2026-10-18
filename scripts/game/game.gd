@@ -277,6 +277,7 @@ func _apply_settings() -> void:
 	_shop.premium_color_price = settings.premium_color_price
 	_shop.hat_price = settings.hat_price
 	_shop.trail_price = settings.trail_price
+	_shop.dance_price = settings.dance_price
 	_shop.colorblind = settings.colorblind
 	_chaos.boost_cost = settings.boost_cost
 	_chaos.curse_cost = settings.curse_cost
@@ -925,12 +926,15 @@ func _on_shop_rejected(msg: ChatMessage, reason: String) -> void:
 
 
 func _on_shop_catalog_requested(_msg: ChatMessage) -> void:
-	_overlay.show_notice("Shop: #fish <species>, #color <name>, #hat <name> or #trail <name>")
+	_overlay.show_notice(
+		"Shop: #fish <species>, #color <name>, #hat <name>, #trail <name> or #dance <name>"
+	)
 	if settings.replies_enabled("reply_catalog"):
 		Chat.send_message(_shop.catalog_text())
 		Chat.send_message(_shop.premium_catalog_text())
 		Chat.send_message(_shop.hat_catalog_text())
 		Chat.send_message(_shop.trail_catalog_text())
+		Chat.send_message(_shop.dance_catalog_text())
 
 
 func _on_balance_reported(msg: ChatMessage, balance: int) -> void:

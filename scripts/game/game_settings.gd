@@ -15,7 +15,7 @@ const CHAT_TOGGLES: Array[Dictionary] = [
 	{"key": "reply_joins", "label": "Confirm #join"},
 	{"key": "reply_bets", "label": "Confirm #bet"},
 	{"key": "reply_chaos", "label": "Confirm #boost and #curse"},
-	{"key": "reply_shop", "label": "Confirm #fish, #color, #hat and #trail"},
+	{"key": "reply_shop", "label": "Confirm #fish, #color, #hat, #trail and #dance"},
 	{"key": "reply_rivals", "label": "Confirm #rival"},
 	{"key": "reply_catalog", "label": "Post the shop list for #shop"},
 	{"key": "reply_results", "label": "Announce race results"},
@@ -74,6 +74,7 @@ const FIELDS: Array[Dictionary] = [
 	},
 	{"key": "hat_price", "label": "Fish accessory price", "min": 0, "max": 1000000, "step": 50},
 	{"key": "trail_price", "label": "Fish trail price", "min": 0, "max": 1000000, "step": 50},
+	{"key": "dance_price", "label": "Victory dance price", "min": 0, "max": 1000000, "step": 50},
 	{"key": "viewer_cooldown", "label": "Viewer cooldown (s)", "min": 0, "max": 600, "step": 1},
 	{"key": "fish_lockout", "label": "Fish lockout (s)", "min": 0, "max": 60, "step": 1},
 	{"key": "hazard_frequency", "label": "Hazard frequency (1-5)", "min": 1, "max": 5, "step": 1},
@@ -149,6 +150,7 @@ var color_price: int = 250
 var premium_color_price: int = 1000
 var hat_price: int = 200
 var trail_price: int = 300
+var dance_price: int = 300
 var viewer_cooldown: int = 20
 var fish_lockout: int = 5
 ## How often a map's hazard events strike, 1 (rare) to 5 (constant).
