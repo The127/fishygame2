@@ -258,6 +258,10 @@ func test_settings_screen_saves_every_toggle() -> void:
 	var path: String = "user://test_settings_toggles.cfg"
 	var screen: SettingsScreen = (load(HomeScreen.SETTINGS_SCENE) as PackedScene).instantiate()
 	screen.settings = GameSettings.new(path)
+	# Unlocked, so the RTX switch is there too.
+	var surprise_path: String = "user://test_settings_toggles_surprise.cfg"
+	screen.surprise_store = ReleaseSurpriseStore.new(surprise_path)
+	screen.surprise_store.set_played()
 	add_child_autofree(screen)
 	var keys: Array[String] = []
 	keys.append_array(SettingsScreen.TOGGLES)
@@ -277,6 +281,7 @@ func test_settings_screen_saves_every_toggle() -> void:
 	for key: String in keys:
 		assert_eq(screen._toggles[key].button_pressed, bool(GameSettings.new().get(key)), key)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(surprise_path))
 
 
 func test_danger_area_wipes_saved_viewer_data_after_confirming() -> void:

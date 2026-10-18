@@ -17,6 +17,8 @@ const DANGER_TITLE: String = "Danger area"
 const MORE_TITLE: String = "More"
 ## Control key of the button that arms the release surprise again.
 const REPLAY_SURPRISE_KEY: String = "replay_surprise"
+## Hidden until the fake 3D sequel has played once (see [method ReleaseSurpriseStore.has_played]).
+const RTX_KEY: String = "rtx"
 ## Page layout: each page has titled sections; each item is a setting key, or
 ## [constant PREVIEW_KEY] / [constant REPLAY_SURPRISE_KEY]. A section "hint" explains it.
 const PAGES: Array[Dictionary] = [
@@ -459,6 +461,10 @@ func _nav_box(color: Color) -> StyleBoxFlat:
 ## "More" page, so a new field is never unreachable.
 func _build_pages(content: VBoxContainer) -> void:
 	var controls: Dictionary[String, Control] = _build_controls()
+	if not surprise_store.has_played():
+		controls[RTX_KEY].free()
+		controls.erase(RTX_KEY)
+		_toggles.erase(RTX_KEY)
 	var placed: Dictionary[String, bool] = {}
 	for page: Dictionary in PAGES:
 		_add_page(content, String(page["title"]), page["sections"], controls, placed)
@@ -518,6 +524,11 @@ func _add_page(
 	content.add_child(page)
 	_pages.append(page)
 	for section: Dictionary in sections:
+		# A section whose settings are all hidden (RTX before it is unlocked) is left out.
+		if not (section["items"] as Array).any(
+			func(item: Variant) -> bool: return controls.has(item)
+		):
+			continue
 		var card := _card()
 		page.add_child(card)
 		var rows := VBoxContainer.new()
