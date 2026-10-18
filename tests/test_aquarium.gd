@@ -1,6 +1,9 @@
 extends GutTest
 ## The aquarium: who is in it and how the fake 3D behaves.
 
+const VISIT_PATH: String = "user://test_aquarium_visit.cfg"
+const HOME_SCENE: String = "res://scenes/ui/home_screen.tscn"
+
 
 func _points() -> PointsStore:
 	var points := PointsStore.new()
@@ -106,7 +109,7 @@ func test_the_crowd_rotates_when_fish_are_waiting() -> void:
 
 
 func test_home_has_an_aquarium_button_that_opens_the_screen() -> void:
-	var home: HomeScreen = (load("res://scenes/ui/home_screen.tscn") as PackedScene).instantiate()
+	var home: HomeScreen = (load(HOME_SCENE) as PackedScene).instantiate()
 	add_child_autofree(home)
 	var button: Button = home.get_node("Center/Box/Aquarium")
 	assert_eq(button.text, "AQUARIUM")
@@ -161,3 +164,36 @@ func test_far_fish_do_not_emit_a_trail() -> void:
 	for i: int in 3:
 		tank._process(1.0 / 30.0)
 	assert_true(fish._trail.emitting, "it emits again once the fish is near")
+
+
+func _home_with_visit_store(visited: bool) -> HomeScreen:
+	DirAccess.remove_absolute(VISIT_PATH)
+	var store := AquariumVisitStore.new(VISIT_PATH)
+	store.set_visited(visited)
+	var home: HomeScreen = (load(HOME_SCENE) as PackedScene).instantiate()
+	home.aquarium_store = store
+	add_child_autofree(home)
+	return home
+
+
+func test_visit_flag_persists() -> void:
+	DirAccess.remove_absolute(VISIT_PATH)
+	assert_false(AquariumVisitStore.new(VISIT_PATH).is_visited())
+	assert_true(AquariumVisitStore.new(VISIT_PATH).set_visited(true))
+	assert_true(AquariumVisitStore.new(VISIT_PATH).is_visited(), "a new store reads the flag")
+	DirAccess.remove_absolute(VISIT_PATH)
+
+
+func test_aquarium_button_blinks_until_first_visit() -> void:
+	var home: HomeScreen = _home_with_visit_store(false)
+	assert_true(home.is_aquarium_blinking())
+	home._stop_aquarium_blink()
+	assert_false(home.is_aquarium_blinking())
+	assert_eq((home.get_node("Center/Box/Aquarium") as Button).modulate.a, 1.0)
+	DirAccess.remove_absolute(VISIT_PATH)
+
+
+func test_aquarium_button_is_steady_after_a_visit() -> void:
+	var home: HomeScreen = _home_with_visit_store(true)
+	assert_false(home.is_aquarium_blinking())
+	DirAccess.remove_absolute(VISIT_PATH)

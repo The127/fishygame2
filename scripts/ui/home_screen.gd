@@ -35,9 +35,13 @@ const GLITCH_OUT_SECONDS: float = 0.6
 ## Ends of the title gradient, as in title_gradient.gdshader.
 const TITLE_LEFT_COLOR: Color = Color(0.0, 0.91, 0.533)
 const TITLE_RIGHT_COLOR: Color = Color(0.541, 0.91, 1.0)
+## The aquarium button fades to this alpha and back until it has been pressed once.
+const AQUARIUM_BLINK_ALPHA: float = 0.35
+const AQUARIUM_BLINK_SECONDS: float = 0.6
 
 var settings: GameSettings = null
 var surprise_store: ReleaseSurpriseStore = ReleaseSurpriseStore.new()
+var aquarium_store: AquariumVisitStore = AquariumVisitStore.new()
 
 var _board: LeaderboardPanel
 var _title_drop: TitleDrop
@@ -45,6 +49,7 @@ var _flyover: TrackFlyover
 var _four_d: FourDView
 var _tagline_text: String
 var _open_lobby_text: String
+var _aquarium_blink: Tween
 
 @onready var _box: VBoxContainer = $Center/Box
 @onready var _title: Label = $Center/Box/Title
@@ -76,6 +81,8 @@ func _ready() -> void:
 	_settings.pressed.connect(_on_settings_pressed)
 	UiStyle.style_button(_aquarium, 28)
 	UiStyle.style_button(_settings, 28)
+	if not aquarium_store.is_visited():
+		_start_aquarium_blink()
 	if DebugMode.is_enabled():
 		var ears_button: Button = Button.new()
 		ears_button.name = "DebugEars"
@@ -322,7 +329,30 @@ func _reframe_title_drop() -> void:
 	_title_drop.frame(title_number_rect())
 
 
+## Pulses the aquarium button so new streamers notice it.
+func _start_aquarium_blink() -> void:
+	_aquarium_blink = create_tween().set_loops()
+	_aquarium_blink.set_trans(Tween.TRANS_SINE)
+	_aquarium_blink.tween_property(
+		_aquarium, "modulate:a", AQUARIUM_BLINK_ALPHA, AQUARIUM_BLINK_SECONDS
+	)
+	_aquarium_blink.tween_property(_aquarium, "modulate:a", 1.0, AQUARIUM_BLINK_SECONDS)
+
+
+func is_aquarium_blinking() -> bool:
+	return _aquarium_blink != null and _aquarium_blink.is_valid()
+
+
+func _stop_aquarium_blink() -> void:
+	if _aquarium_blink != null:
+		_aquarium_blink.kill()
+		_aquarium_blink = null
+	_aquarium.modulate.a = 1.0
+
+
 func _on_aquarium_pressed() -> void:
+	_stop_aquarium_blink()
+	aquarium_store.set_visited(true)
 	get_tree().change_scene_to_file(AQUARIUM_SCENE)
 
 
