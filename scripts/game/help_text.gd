@@ -4,7 +4,7 @@ extends RefCounted
 
 ## Chat reply to "#help". Kept well under Twitch's 500 character limit.
 const CHAT_REPLY: String = (
-	"Commands: #join | #bet <fish> <amount> | #boost <fish> | #curse <fish> | "
+	"Commands: #join | #lurk | #bet <fish> <amount> | #boost <fish> | #curse <fish> | "
 	+ "#points | #stats | #top | #rival <name> | #shop | #fish <species> | #color <name> | #hat <name> | #trail <name> | #dance <name> | "
 	+ "#left / #right (Pinball Reef 1 and 2 flippers, Claw Machine, Gravity Flip) | "
 	+ "#grab (Claw Machine) | #up / #down (Gravity Flip) | "
@@ -18,6 +18,7 @@ const TITLE: String = "CHAT COMMANDS"
 ## One line per command on the lobby cheat sheet.
 const LINES: PackedStringArray = [
 	"#join  enter the race",
+	"#lurk  watch from the shadows until you #join again",
 	"#bet <fish> <amount>  bet points, winners share the pool",
 	"#boost / #curse <fish>  help or hinder",
 	"#eddy  flushed out of Riptide Rounds? haunt the race",
