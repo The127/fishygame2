@@ -270,7 +270,7 @@ func test_settings_screen_saves_every_toggle() -> void:
 	screen.surprise_store.set_played()
 	add_child_autofree(screen)
 	var keys: Array[String] = []
-	keys.append_array(SettingsScreen.TOGGLES)
+	keys.append_array(SettingsLayout.TOGGLES)
 	for row: Dictionary in GameSettings.CHAT_TOGGLES:
 		keys.append(String(row["key"]))
 	assert_eq(screen._toggles.size(), keys.size(), "one switch per row")

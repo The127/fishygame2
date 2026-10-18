@@ -27,6 +27,6 @@ func test_a_number_of_fish_is_handed_on_as_is() -> void:
 
 
 func test_the_settings_screen_names_every_value() -> void:
-	var names: Array = SettingsScreen.CHOICES["chop_limit"]
+	var names: Array = SettingsLayout.CHOICES["chop_limit"]
 	assert_eq(names.size(), GameSettings.CHOP_UNLIMITED - GameSettings.CHOP_SHARE + 1)
 	assert_eq(names[GameSettings.CHOP_UNLIMITED], "Unlimited")

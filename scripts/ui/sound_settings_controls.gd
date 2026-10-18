@@ -21,7 +21,7 @@ const VOLUME_KEYS: Dictionary[String, String] = {
 ## Names of [member AudioSettings.music_mode], from [constant AudioSettings.MUSIC_PER_MAP].
 const MUSIC_MODES: Array[String] = ["Each map's theme", "Home theme"]
 const SLIDER_WIDTH: float = 170.0
-## The page, in the layout of [constant SettingsScreen.PAGES].
+## The page, in the layout of [constant SettingsLayout.PAGES].
 const PAGE: Dictionary = {
 	"title": "Sound",
 	"sections":
@@ -37,7 +37,7 @@ const PAGE: Dictionary = {
 		},
 	],
 }
-## Caption, explanation and unit of each row, as in [constant SettingsScreen.ROWS].
+## Caption, explanation and unit of each row, as in [constant SettingsLayout.ROWS].
 const ROWS: Dictionary[String, Dictionary] = {
 	"volume_master": {"label": "Master", "hint": "Everything the game plays."},
 	"volume_music": {"label": "Music", "hint": "The theme of the map or the home screen."},
