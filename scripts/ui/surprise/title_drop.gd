@@ -4,13 +4,17 @@ extends SubViewportContainer
 ## the title turns into a 3D letter, a red 3 falls on it and squishes it flat, then a D
 ## lands next to the 3, making "3D". The letters are physics bodies in their own world,
 ## seen by an orthographic camera matched to the title label so they line up with it.
+## Later a violet 4 can fall on the 3 the same way, making "4D".
 
 signal finished
+## The 4 squished the 3 and came to rest.
+signal four_finished
 
 ## World units per screen pixel of title text at the size the drop started with.
 const PIXEL_SIZE: float = 0.01
 const DEPTH: float = 0.32
 const RED: Color = Color(0.93, 0.12, 0.16)
+const VIOLET: Color = Color(0.62, 0.22, 1.0)
 ## Height above the top of the screen the letters fall from, in world units.
 const DROP_HEIGHT: float = 0.8
 ## Seconds between the 3 landing and the D dropping.
@@ -30,6 +34,7 @@ var camera: Camera3D
 var two: SquishyLetter
 var three: SquishyLetter
 var d: SquishyLetter
+var four: SquishyLetter
 
 var _world: Node3D
 var _font: Font
@@ -130,6 +135,34 @@ func _play() -> void:
 	d = _make_letter("D", Vector2(_d_x(), _drop_y()))
 	await get_tree().create_timer(SETTLE_SECONDS).timeout
 	finished.emit()
+
+
+## Drops a violet 4 on the 3 and squishes it flat, like the 3 did to the "II". Emits
+## [signal four_finished] once the 4 has settled.
+func drop_four() -> void:
+	var material := _letter_material.duplicate() as StandardMaterial3D
+	material.albedo_color = VIOLET
+	material.emission = VIOLET * 0.3
+	four = SquishyLetter.new("4", _font, _font_size, PIXEL_SIZE, DEPTH, material)
+	four.name = "4"
+	four.position = Vector3(three.position.x, _drop_y(), 0.0)
+	four.set_yaw(YAW)
+	# Falls through everything until it reaches the 3; it collides once the 3 is squished.
+	four.collision_layer = 0
+	four.collision_mask = 0
+	_world.add_child(four)
+	var deadline: int = Time.get_ticks_msec() + roundi(LANDING_TIMEOUT * 1000.0)
+	while four.bottom_y() > three.top_y() and Time.get_ticks_msec() < deadline:
+		await get_tree().physics_frame
+		if not is_inside_tree():
+			return
+	three.flatten()
+	four.collision_layer = 1
+	four.collision_mask = 1
+	Sound.play(Sound.Sfx.BLAST_HIT)
+	await get_tree().create_timer(SETTLE_SECONDS).timeout
+	if is_inside_tree():
+		four_finished.emit()
 
 
 func _settle_at_once() -> void:

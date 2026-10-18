@@ -3,6 +3,9 @@ extends Control
 ## Landing screen. Buttons in the menu box open one part of the game each.
 ## Also lets the streamer log in with Twitch (web only) so chat works without hand-made URLs.
 
+## Emitted when the 4D joke glitched back to the normal home screen.
+signal surprise_ended
+
 const SETTINGS_SCENE: String = "res://scenes/ui/settings_screen.tscn"
 const ONBOARDING_SCENE: String = "res://scenes/ui/onboarding_screen.tscn"
 const AQUARIUM_SCENE: String = "res://scenes/aquarium/aquarium_screen.tscn"
@@ -21,6 +24,14 @@ const SEQUEL_PLAY_TEXT: String = "PLAY"
 const SEQUEL_REVEAL_SHADER: String = "res://assets/shaders/surprise/sequel_reveal.gdshader"
 ## Seconds the ring takes to uncover the fake sequel's flyover backdrop.
 const SEQUEL_REVEAL_SECONDS: float = 1.6
+const FOUR_D_TAGLINE: String = "NOW IN 4D. YOUR FISH SWIM IN EVERY DIRECTION AT ONCE."
+const GLITCH_SHADER: String = "res://assets/shaders/surprise/glitch.gdshader"
+const FOUR_D_RIM: Color = Color(0.7, 0.3, 1.0)
+## Seconds of 4D before it starts to break, and of the glitch before and after the switch
+## back to the real game.
+const FOUR_D_SECONDS: float = 5.0
+const GLITCH_IN_SECONDS: float = 1.4
+const GLITCH_OUT_SECONDS: float = 0.6
 ## Ends of the title gradient, as in title_gradient.gdshader.
 const TITLE_LEFT_COLOR: Color = Color(0.0, 0.91, 0.533)
 const TITLE_RIGHT_COLOR: Color = Color(0.541, 0.91, 1.0)
@@ -31,6 +42,9 @@ var surprise_store: ReleaseSurpriseStore = ReleaseSurpriseStore.new()
 var _board: LeaderboardPanel
 var _title_drop: TitleDrop
 var _flyover: TrackFlyover
+var _four_d: FourDView
+var _tagline_text: String
+var _open_lobby_text: String
 
 @onready var _box: VBoxContainer = $Center/Box
 @onready var _title: Label = $Center/Box/Title
@@ -55,6 +69,8 @@ func _ready() -> void:
 	_box.move_child(_board, _settings.get_index() + 1)
 	show_leaderboard(_load_store())
 	_add_version_tag()
+	_tagline_text = _tagline.text
+	_open_lobby_text = _open_lobby.text
 	_open_lobby.pressed.connect(_on_open_lobby_pressed)
 	_aquarium.pressed.connect(_on_aquarium_pressed)
 	_settings.pressed.connect(_on_settings_pressed)
@@ -78,12 +94,12 @@ func _ready() -> void:
 	_fit_to_window()
 	_open_lobby.grab_focus()
 	_refresh_login()
-	if ReleaseSurprise.stage == ReleaseSurprise.Stage.THREE:
+	if ReleaseSurprise.is_sequel():
 		if settings.release_surprise:
 			_show_sequel.call_deferred(false)
 		else:
 			# Turned off in the settings: back to the real game.
-			ReleaseSurprise.stage = ReleaseSurprise.Stage.OFF
+			ReleaseSurprise.end()
 	# Fire and forget: waits a few frames, then makes the web page transparent again.
 	WebBoot.release_background()
 	# Only when this is the running scene, so tests that instantiate the screen stay put.
@@ -133,6 +149,9 @@ func _on_open_lobby_pressed() -> void:
 	if ReleaseSurprise.should_start(settings.release_surprise, surprise_store):
 		start_release_surprise()
 		return
+	if ReleaseSurprise.stage == ReleaseSurprise.Stage.THREE_PLAYED and _flyover != null:
+		start_fourth_dimension()
+		return
 	get_tree().change_scene_to_file(RACE_SCENE)
 
 
@@ -143,6 +162,86 @@ func start_release_surprise() -> void:
 	await _show_sequel(true)
 	_open_lobby.disabled = false
 	_open_lobby.grab_focus()
+
+
+## The fake 3D round was played: a 4 squishes the 3, a glimpse of a 4D track, and the whole
+## thing glitches back to the real home screen.
+func start_fourth_dimension() -> void:
+	_open_lobby.disabled = true
+	_title_drop.drop_four()
+	await _title_drop.four_finished
+	if not is_inside_tree():
+		return
+	_tagline.text = FOUR_D_TAGLINE
+	_four_d = FourDView.new()
+	_four_d.name = "FourD"
+	add_child(_four_d)
+	move_child(_four_d, _flyover.get_index() + 1)
+	var screen: Vector2 = size.max(Vector2.ONE)
+	var reveal := ShaderMaterial.new()
+	reveal.shader = load(SEQUEL_REVEAL_SHADER)
+	reveal.set_shader_parameter("origin", title_number_rect().get_center() / screen)
+	reveal.set_shader_parameter("aspect", screen.x / screen.y)
+	reveal.set_shader_parameter("rim_color", FOUR_D_RIM)
+	_four_d.material = reveal
+	await _tween_shader(reveal, "progress", 0.0, 1.0, SEQUEL_REVEAL_SECONDS)
+	if not is_inside_tree():
+		return
+	_four_d.material = null
+	_flyover.visible = false
+	_flyover.process_mode = Node.PROCESS_MODE_DISABLED
+	await get_tree().create_timer(FOUR_D_SECONDS).timeout
+	if not is_inside_tree():
+		return
+	var glitch := ColorRect.new()
+	glitch.name = "Glitch"
+	glitch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	glitch.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var glitch_material := ShaderMaterial.new()
+	glitch_material.shader = load(GLITCH_SHADER)
+	glitch.material = glitch_material
+	add_child(glitch)
+	await _tween_shader(glitch_material, "amount", 0.0, 1.0, GLITCH_IN_SECONDS)
+	if not is_inside_tree():
+		return
+	_end_sequel()
+	await _tween_shader(glitch_material, "amount", 1.0, 0.0, GLITCH_OUT_SECONDS)
+	if not is_inside_tree():
+		return
+	glitch.queue_free()
+	_open_lobby.disabled = false
+	_open_lobby.grab_focus()
+	surprise_ended.emit()
+
+
+## Back to the real "Fishy Marble Run II" home screen, as if nothing happened.
+func _end_sequel() -> void:
+	ReleaseSurprise.end()
+	for node: Control in [_title_drop, _flyover, _four_d]:
+		if node != null:
+			node.queue_free()
+	_title_drop = null
+	_flyover = null
+	_four_d = null
+	_title.visible_characters = -1
+	_tagline.text = _tagline_text
+	_open_lobby.text = _open_lobby_text
+	var backdrop: Control = $Scene3D
+	backdrop.visible = true
+	backdrop.process_mode = Node.PROCESS_MODE_INHERIT
+
+
+func _tween_shader(
+	material: ShaderMaterial, parameter: String, from: float, to: float, seconds: float
+) -> void:
+	var tween: Tween = create_tween()
+	tween.tween_method(
+		func(value: float) -> void: material.set_shader_parameter(parameter, value),
+		from,
+		to,
+		seconds
+	)
+	await tween.finished
 
 
 ## Turns the title into "FISHY MARBLE RUN 3D" with 3D letters, falling in with
@@ -192,14 +291,7 @@ func _show_flyover(reveal: bool, from: Vector2) -> void:
 		material.set_shader_parameter("origin", from / screen)
 		material.set_shader_parameter("aspect", screen.x / screen.y)
 		_flyover.material = material
-		var tween: Tween = create_tween()
-		tween.tween_method(
-			func(value: float) -> void: material.set_shader_parameter("progress", value),
-			0.0,
-			1.0,
-			SEQUEL_REVEAL_SECONDS
-		)
-		await tween.finished
+		await _tween_shader(material, "progress", 0.0, 1.0, SEQUEL_REVEAL_SECONDS)
 		if not is_inside_tree():
 			return
 		_flyover.material = null
@@ -224,6 +316,9 @@ func _title_color_at(x: float) -> Color:
 
 
 func _reframe_title_drop() -> void:
+	# Queued by a resize; the letters may be gone by now.
+	if _title_drop == null:
+		return
 	_title_drop.frame(title_number_rect())
 
 

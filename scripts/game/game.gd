@@ -79,7 +79,7 @@ func _ready() -> void:
 		settings = GameSettings.new(GameSettings.DEFAULT_PATH)
 		settings.load_settings()
 	if fake_sequel == null:
-		fake_sequel = ReleaseSurprise.stage == ReleaseSurprise.Stage.THREE
+		fake_sequel = ReleaseSurprise.is_sequel()
 	if fake_sequel:
 		_set_up_fake_sequel()
 	_apply_settings()
@@ -697,6 +697,7 @@ func _leave_to_home() -> void:
 ## screen instead of a fresh lobby.
 func _on_fake_sequel_state(new_state: GameFlow.State, old_state: GameFlow.State) -> void:
 	if old_state == GameFlow.State.PODIUM and new_state == GameFlow.State.LOBBY:
+		ReleaseSurprise.finish_round()
 		_leave_to_home.call_deferred()
 
 
