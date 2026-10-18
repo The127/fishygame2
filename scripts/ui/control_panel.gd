@@ -27,6 +27,8 @@ signal home_pressed
 signal back_pressed
 ## Streamer confirmed leaving after [method ask_leave].
 signal leave_confirmed
+## Streamer started a tournament: one map id (or TrackCatalog.RANDOM_ID) per round, in order.
+signal tournament_requested(maps: PackedStringArray)
 
 const VOLUME_ROWS: Dictionary = {
 	AudioSettings.BUS_MASTER: "Master",
@@ -68,6 +70,8 @@ var _fade_tween: Tween
 @onready var _tab_bar: ColorRect = $HandleCooldown
 @onready var _status: Label = $Panel/Box/Status
 @onready var _map_picker: OptionButton = $Panel/Box/MapRow/MapPicker
+@onready var _rounds_picker: OptionButton = $Panel/Box/TournamentRow/RoundsPicker
+@onready var _round_maps: VBoxContainer = $Panel/Box/TournamentMaps
 @onready var _power_status: Label = $Panel/Box/PowerStatus
 @onready var _power_buttons: Array[PowerButton] = [
 	$Panel/Box/PowerButtons/Rod, $Panel/Box/PowerButtons/Net, $Panel/Box/PowerButtons/Blast
@@ -111,12 +115,14 @@ func _ready() -> void:
 	)
 	($Panel/Box/DebugButtons/Duck as Button).pressed.connect(debug_duck_pressed.emit)
 	($Panel/Box/DebugButtons/Meow as Button).pressed.connect(debug_meow_pressed.emit)
-	_map_picker.add_item("Random")
-	_map_picker.set_item_metadata(0, TrackCatalog.RANDOM_ID)
-	for id: String in TrackCatalog.ids():
-		_map_picker.add_item(TrackCatalog.get_name_of(id))
-		_map_picker.set_item_metadata(_map_picker.item_count - 1, id)
+	_fill_map_options(_map_picker)
 	_map_picker.item_selected.connect(_on_map_picked)
+	for count: int in Tournament.ROUND_CHOICES:
+		_rounds_picker.add_item("%d" % count)
+		_rounds_picker.set_item_metadata(_rounds_picker.item_count - 1, count)
+	_rounds_picker.item_selected.connect(_on_rounds_picked)
+	_on_rounds_picked(0)
+	($Panel/Box/StartTournament as Button).pressed.connect(_on_start_tournament_pressed)
 	_auto.toggled.connect(auto_mode_toggled.emit)
 	_mute.toggled.connect(mute_toggled.emit)
 	for bus: String in _volume_sliders:
@@ -267,6 +273,7 @@ func _apply_style() -> void:
 	UiStyle.style_label(_status, 22, 700, UiStyle.CYAN)
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiStyle.style_label($Panel/Box/MapRow/MapLabel as Label, 22, 600, UiStyle.MUTED)
+	UiStyle.style_label($Panel/Box/TournamentRow/TournamentLabel as Label, 22, 600, UiStyle.MUTED)
 	UiStyle.style_label($Panel/Box/Hint as Label, 18, 600, UiStyle.MUTED)
 	var version: Label = $Panel/Box/Version
 	UiStyle.style_label(version, 14, 600, UiStyle.MUTED)
@@ -298,12 +305,19 @@ func _apply_style() -> void:
 		$Panel/Box/DebugButtons/Duck,
 		$Panel/Box/DebugButtons/Meow,
 		_map_picker,
+		_rounds_picker,
+		$Panel/Box/StartTournament,
 	]:
 		UiStyle.style_button(button, 20)
 	for power: PowerButton in _power_buttons:
 		power.apply_style()
-	# Popup menu of the map picker: dark panel and the same font.
-	var popup: PopupMenu = _map_picker.get_popup()
+	_style_picker_popup(_map_picker)
+	_style_picker_popup(_rounds_picker)
+
+
+## Dark panel and the drawer's font for the popup menu of a picker.
+func _style_picker_popup(picker: OptionButton) -> void:
+	var popup: PopupMenu = picker.get_popup()
 	popup.add_theme_font_override("font", UiStyle.font(600))
 	popup.add_theme_font_size_override("font_size", 22)
 	popup.add_theme_stylebox_override("panel", UiStyle.panel_box())
@@ -328,6 +342,65 @@ func _on_volume_slider_changed(value: float, bus: String) -> void:
 
 func _on_map_picked(index: int) -> void:
 	map_selected.emit(String(_map_picker.get_item_metadata(index)))
+
+
+## "Random" first, then every map, each with its id (or TrackCatalog.RANDOM_ID) as metadata.
+func _fill_map_options(picker: OptionButton) -> void:
+	picker.add_item("Random")
+	picker.set_item_metadata(0, TrackCatalog.RANDOM_ID)
+	for id: String in TrackCatalog.ids():
+		picker.add_item(TrackCatalog.get_name_of(id))
+		picker.set_item_metadata(picker.item_count - 1, id)
+
+
+## One map picker per round. Pickers that stay keep their choice.
+func _on_rounds_picked(index: int) -> void:
+	var count: int = int(_rounds_picker.get_item_metadata(index))
+	var pickers: Array[Node] = _round_maps.get_children()
+	for i: int in range(count, pickers.size()):
+		_round_maps.remove_child(pickers[i])
+		pickers[i].queue_free()
+	for i: int in range(pickers.size(), count):
+		var row := HBoxContainer.new()
+		var label := Label.new()
+		label.text = "Round %d" % (i + 1)
+		UiStyle.style_label(label, 22, 600, UiStyle.MUTED)
+		row.add_child(label)
+		var picker := OptionButton.new()
+		picker.focus_mode = Control.FOCUS_NONE
+		picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_fill_map_options(picker)
+		UiStyle.style_button(picker, 20)
+		_style_picker_popup(picker)
+		row.add_child(picker)
+		_round_maps.add_child(row)
+
+
+## The picked map of every round, in order.
+func tournament_maps() -> PackedStringArray:
+	var maps: PackedStringArray = []
+	for row: Node in _round_maps.get_children():
+		var picker: OptionButton = row.get_child(1) as OptionButton
+		maps.append(String(picker.get_item_metadata(picker.selected)))
+	return maps
+
+
+## Picks the round count and the map of each round, as the streamer would.
+func set_tournament(maps: PackedStringArray) -> void:
+	var index: int = Tournament.ROUND_CHOICES.find(maps.size())
+	if index < 0:
+		return
+	_rounds_picker.select(index)
+	_on_rounds_picked(index)
+	for i: int in maps.size():
+		var picker: OptionButton = _round_maps.get_child(i).get_child(1) as OptionButton
+		for item: int in picker.item_count:
+			if String(picker.get_item_metadata(item)) == maps[i]:
+				picker.select(item)
+
+
+func _on_start_tournament_pressed() -> void:
+	tournament_requested.emit(tournament_maps())
 
 
 func _on_tab_pressed() -> void:
