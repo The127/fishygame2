@@ -44,7 +44,7 @@ static func hideout_of(map_id: String) -> Hideout:
 
 
 ## Up to [constant MAX_SPOTS] global spots on [param track], spread out and in a fixed order
-## for the map, so a lurker keeps their spot from race to race. Needs the track's colliders in
+## for the map, so the same lurkers sit in the same spots from race to race. Needs the track's colliders in
 ## the physics space (call from a physics frame).
 static func find(track: Track, map_id: String) -> Array[Vector2]:
 	var space: PhysicsDirectSpaceState2D = track.get_world_2d().direct_space_state

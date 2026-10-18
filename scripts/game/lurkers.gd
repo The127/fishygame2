@@ -67,8 +67,9 @@ func on_state_changed(new_state: GameFlow.State, _old_state: GameFlow.State) -> 
 		lurkers_changed.emit(watchers())
 
 
-## Feed it Race.race_finished: pays every lurker who sat this race out, without a word in chat.
-func on_race_finished(_results: Array[Dictionary]) -> void:
+## Feed it GameFlow.podium_ready: pays every lurker who sat this race out, without a word in
+## chat. A race stopped before its podium pays nothing.
+func on_podium_ready(_podium: Array[Dictionary]) -> void:
 	var paid: bool = false
 	for user_id: String in store.lurkers():
 		if not _racing.has(user_id):

@@ -714,7 +714,7 @@ func _set_up_lurkers() -> void:
 	Chat.command_received.connect(_lurkers.handle_command)
 	_flow.player_joined.connect(_lurkers.add_contestant)
 	_flow.state_changed.connect(_lurkers.on_state_changed)
-	_race.race_finished.connect(_lurkers.on_race_finished)
+	_flow.podium_ready.connect(_lurkers.on_podium_ready)
 	_lurkers.lurk_started.connect(
 		func(who: String) -> void: _overlay.show_notice(who + " is lurking")
 	)

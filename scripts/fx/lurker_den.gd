@@ -109,7 +109,8 @@ func _rebuild() -> void:
 
 
 func _process(delta: float) -> void:
-	if _shown.is_empty():
+	# The fake 3D round hides the track, and the den with it.
+	if _shown.is_empty() or not is_visible_in_tree():
 		return
 	_time += delta
 	var positions: Dictionary = fish_positions.call()
