@@ -48,6 +48,16 @@ func test_round_returns_home_when_the_podium_ends() -> void:
 	assert_eq(_flow.state, GameFlow.State.IDLE, "the game leaves instead of opening a new lobby")
 
 
+func test_finishing_the_round_readies_the_4d_joke() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE
+	_start_race(2)
+	_finish_marbles([0, 1])
+	_flow.tick(_flow.podium_seconds + 0.1)
+	var stage: ReleaseSurprise.Stage = ReleaseSurprise.stage
+	ReleaseSurprise.end()
+	assert_eq(stage, ReleaseSurprise.Stage.THREE_PLAYED)
+
+
 func test_map_picker_cannot_change_the_map() -> void:
 	var before: Track = _current_track()
 	_game._on_map_selected("pachinko")

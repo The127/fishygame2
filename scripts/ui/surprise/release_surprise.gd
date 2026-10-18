@@ -1,10 +1,14 @@
 class_name ReleaseSurprise
 extends RefCounted
 ## The fake "Fishy Marble Run 3" release joke: the first Open Lobby press after an update
-## drops a red 3 onto the title, and the game pretends to be a 3D sequel for a while.
+## drops a red 3 onto the title, and the game pretends to be a 3D sequel for one round.
+## After that round, the next PLAY drops a 4 on the 3, shows a glimpse of "4D", and the
+## game glitches back to itself.
 ## The stage lives in a static variable so it survives scene changes until the page reloads.
 
-enum Stage { OFF, THREE }
+## THREE: the fake 3D sequel, its round not played yet. THREE_PLAYED: its round is over and
+## the next PLAY starts the 4D joke.
+enum Stage { OFF, THREE, THREE_PLAYED }
 
 ## Map of the fake 3D round and of the flyover behind the fake home screen.
 const MAP_ID: String = "zigzag"
@@ -27,3 +31,19 @@ static func begin(store: ReleaseSurpriseStore) -> void:
 static func rearm(store: ReleaseSurpriseStore) -> bool:
 	stage = Stage.OFF
 	return store.set_seen(false)
+
+
+## Whether the game is pretending to be the 3D sequel.
+static func is_sequel() -> bool:
+	return stage == Stage.THREE or stage == Stage.THREE_PLAYED
+
+
+## The fake 3D round is over: the next PLAY goes to the fourth dimension.
+static func finish_round() -> void:
+	if stage == Stage.THREE:
+		stage = Stage.THREE_PLAYED
+
+
+## The joke is over: back to the real game.
+static func end() -> void:
+	stage = Stage.OFF

@@ -148,3 +148,63 @@ func test_the_fake_3_home_flies_over_the_3d_course() -> void:
 	var before: Vector3 = flyover.camera.global_position
 	await wait_process_frames(10)
 	assert_ne(flyover.camera.global_position, before, "the camera keeps flying")
+
+
+func test_the_round_moves_the_joke_on_to_4d() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE
+	assert_true(ReleaseSurprise.is_sequel())
+	ReleaseSurprise.finish_round()
+	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.THREE_PLAYED)
+	assert_true(ReleaseSurprise.is_sequel(), "still the fake 3 until the 4 drops")
+	ReleaseSurprise.end()
+	ReleaseSurprise.finish_round()
+	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.OFF, "no 4D without the 3 first")
+
+
+func test_tesseract_has_16_corners_and_32_unit_edges() -> void:
+	var corners: Array[Vector4] = Tesseract.vertices()
+	var edges: Array[Vector2i] = Tesseract.edges()
+	assert_eq(corners.size(), 16)
+	assert_eq(edges.size(), 32)
+	for edge: Vector2i in edges:
+		assert_almost_eq(corners[edge.x].distance_to(corners[edge.y]), 2.0, 0.0001)
+	var turned: Vector4 = Tesseract.spin(corners[5], 3.7)
+	assert_almost_eq(turned.length(), corners[5].length(), 0.0001, "spinning keeps its size")
+	assert_gt(
+		Tesseract.project(Vector4(1, 0, 0, 1)).x,
+		Tesseract.project(Vector4(1, 0, 0, -1)).x,
+		"the near end in w comes out bigger"
+	)
+
+
+func test_play_after_the_round_drops_a_4_and_glitches_back_to_2() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE_PLAYED
+	var home: HomeScreen = _make_home()
+	home.surprise_store.set_seen(true)
+	await wait_process_frames(4)
+	var drop: TitleDrop = home.get_node("TitleDrop")
+	var title: Label = home.get_node("Center/Box/Title")
+	var tagline: Label = home.get_node("Center/Box/Tagline")
+	var open_lobby: Button = home.get_node("Center/Box/OpenLobby")
+	home._on_open_lobby_pressed()
+	assert_true(open_lobby.disabled)
+	await wait_for_signal(drop.four_finished, 10.0)
+	assert_not_null(drop.four, "a 4 fell")
+	assert_true(drop.three.flattened, "the 4 squished the 3")
+	assert_lt(drop.four.bottom_y(), drop.three.top_y() + 0.1, "the 4 sits on the flat 3")
+	await wait_seconds(HomeScreen.SEQUEL_REVEAL_SECONDS + 0.3)
+	var four_d: FourDView = home.get_node_or_null("FourD")
+	assert_not_null(four_d, "the 4D track shows")
+	assert_eq(tagline.text, HomeScreen.FOUR_D_TAGLINE)
+	assert_eq(four_d.ghost_count(), FourDView.FISH_COUNT * FourDView.GHOSTS)
+	await wait_for_signal(home.surprise_ended, 15.0)
+	assert_eq(ReleaseSurprise.stage, ReleaseSurprise.Stage.OFF, "back to the real game")
+	await wait_process_frames(1)
+	for node_name: String in ["TitleDrop", "Flyover", "FourD", "Glitch"]:
+		assert_null(home.get_node_or_null(node_name), "%s is gone" % node_name)
+	assert_eq(title.visible_characters, -1, "the II is back")
+	assert_ne(tagline.text, HomeScreen.FOUR_D_TAGLINE)
+	assert_ne(open_lobby.text, HomeScreen.SEQUEL_PLAY_TEXT)
+	assert_false(open_lobby.disabled)
+	assert_true((home.get_node("Scene3D") as Control).visible)
+	assert_false(ReleaseSurprise.should_start(true, home.surprise_store), "plays only once")
