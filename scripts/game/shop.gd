@@ -11,6 +11,8 @@ signal rejected(msg: ChatMessage, reason: String)
 signal catalog_requested(msg: ChatMessage)
 
 const DEFAULT_PATH: String = "user://shop.json"
+## Overlay notice for "#shop"; the full listing goes to chat (see [method catalog_lines]).
+const CATALOG_NOTICE: String = "Shop: #fish <species>, #color <name>, #hat <name>, #trail <name> or #dance <name>"
 ## Kinds a viewer can take off again; the rest always have something equipped.
 const REMOVABLE: Array[String] = [ShopStore.KIND_HAT, ShopStore.KIND_TRAIL, ShopStore.KIND_DANCE]
 ## Words for "#hat", "#trail" and "#dance" that take the item off.
@@ -38,6 +40,17 @@ func _ready() -> void:
 	if store == null:
 		store = ShopStore.new(shop_path)
 		store.load_from_disk()
+
+
+## Takes the prices and the colorblind look from [param settings].
+func apply_settings(settings: GameSettings) -> void:
+	species_price = settings.species_price
+	color_price = settings.color_price
+	premium_color_price = settings.premium_color_price
+	hat_price = settings.hat_price
+	trail_price = settings.trail_price
+	dance_price = settings.dance_price
+	colorblind = settings.colorblind
 
 
 func handle_command(msg: ChatMessage, command: String, args: PackedStringArray) -> void:
@@ -130,6 +143,17 @@ func welcome_new_racers(
 	if not welcomed.is_empty():
 		store.save_to_disk()
 	return welcomed
+
+
+## The chat lines "#shop" answers with, one per kind of item.
+func catalog_lines() -> Array[String]:
+	return [
+		catalog_text(),
+		premium_catalog_text(),
+		hat_catalog_text(),
+		trail_catalog_text(),
+		dance_catalog_text(),
+	]
 
 
 ## One chat line with everything on sale.

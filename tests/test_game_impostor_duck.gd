@@ -33,12 +33,14 @@ func test_a_winning_duck_is_crowned_but_the_best_fish_is_paid() -> void:
 	assert_eq(_balance("100"), 900 + 200, "a bet on the best fish wins")
 	assert_eq(_betting.points.get_balance(""), 1000, "nobody was paid for the duck")
 	var podium_view: PodiumView = _game.find_children("*", "PodiumView", true, false)[0]
-	var fish: Array[Node] = podium_view.find_children("*", "FishVisual", false, false)
+	var fish: Array[Node] = podium_view.find_children("*", "FishVisual", true, false)
 	var impostors: int = 0
 	for f: FishVisual in fish:
 		if f.impostor:
 			impostors += 1
-			assert_eq(f.position.x, podium_view.step_rect(1).get_center().x, "on the top step")
+			# The winner dances, so its spot on the podium is the dancer's.
+			var dancer: FishDance = f.get_parent().get_parent()
+			assert_eq(dancer.position.x, podium_view.step_rect(1).get_center().x, "on the top step")
 	assert_eq(impostors, 1)
 
 
