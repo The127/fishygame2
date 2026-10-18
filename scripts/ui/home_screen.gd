@@ -22,6 +22,7 @@ const TITLE_NUMBER_LENGTH: int = 2
 const SEQUEL_TAGLINE: String = "NOW IN 3D. CHAT JOINS AS FISH. FISH RACE DOWN THE TRACK."
 const SEQUEL_PLAY_TEXT: String = "PLAY"
 const REPLAY_SURPRISE_TEXT: String = "REPLAY 3D"
+const REPLAY_RTX_TEXT: String = "REPLAY RTX"
 const RTX_ON_TEXT: String = "RTX ON"
 const RTX_OFF_TEXT: String = "RTX OFF"
 const SEQUEL_REVEAL_SHADER: String = "res://assets/shaders/surprise/sequel_reveal.gdshader"
@@ -52,6 +53,7 @@ var _flyover: TrackFlyover
 var _four_d: FourDView
 var _replay_surprise: Button
 var _rtx_button: Button
+var _replay_rtx: Button
 var _rtx_filter: RtxFilter = RtxFilter.new()
 var _rtx_intro_running: bool = false
 var _tagline_text: String
@@ -137,8 +139,9 @@ func _add_version_tag() -> void:
 
 
 ## Small buttons stacked in the bottom left corner: one that arms the release surprise
-## again, shown once it has played (the next Open Lobby press then starts it over), and
-## below it the RTX switch, which saves to the settings. They sit on their own layer.
+## again, shown once it has played (the next Open Lobby press then starts it over), one that
+## plays the RTX unlock show again, and at the bottom the RTX switch, which saves to the
+## settings. They sit on their own layer.
 func _add_corner_buttons() -> void:
 	# Above the RTX filter, so its vignette never darkens the switch that turns it off.
 	var layer: CanvasLayer = CanvasLayer.new()
@@ -156,6 +159,13 @@ func _add_corner_buttons() -> void:
 	UiStyle.style_button(_replay_surprise, 16)
 	_replay_surprise.pressed.connect(_on_replay_surprise_pressed)
 	corner.add_child(_replay_surprise)
+	_replay_rtx = Button.new()
+	_replay_rtx.name = "ReplayRtx"
+	_replay_rtx.text = REPLAY_RTX_TEXT
+	_replay_rtx.focus_mode = Control.FOCUS_NONE
+	UiStyle.style_button(_replay_rtx, 16)
+	_replay_rtx.pressed.connect(_on_replay_rtx_pressed)
+	corner.add_child(_replay_rtx)
 	_rtx_button = Button.new()
 	_rtx_button.name = "Rtx"
 	_rtx_button.focus_mode = Control.FOCUS_NONE
@@ -177,6 +187,7 @@ func _refresh_replay_button() -> void:
 		and surprise_store.has_played()
 		and not _rtx_intro_running
 	)
+	_replay_rtx.visible = _rtx_button.visible and settings.rtx_intro
 	# The unlock can happen while this screen is up (the surprise just ended).
 	_apply_rtx()
 	_replay_surprise.visible = (
@@ -201,6 +212,15 @@ func _apply_rtx() -> void:
 
 func is_rtx_on() -> bool:
 	return _rtx_filter.is_enabled()
+
+
+func _on_replay_rtx_pressed() -> void:
+	_open_lobby.disabled = true
+	await play_rtx_intro()
+	if not is_inside_tree():
+		return
+	_open_lobby.disabled = false
+	_open_lobby.grab_focus()
 
 
 func _on_replay_surprise_pressed() -> void:
@@ -299,7 +319,7 @@ func start_fourth_dimension() -> void:
 	if not is_inside_tree():
 		return
 	glitch.queue_free()
-	if not surprise_store.is_rtx_intro_seen():
+	if settings.rtx_intro and not surprise_store.is_rtx_intro_seen():
 		await play_rtx_intro()
 		if not is_inside_tree():
 			return

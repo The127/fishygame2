@@ -77,6 +77,7 @@ func test_settings_screen_shows_rtx_only_once_unlocked() -> void:
 		screen.surprise_store = store
 		add_child_autofree(screen)
 		assert_eq(screen._row_of.has(SettingsScreen.RTX_KEY), played)
+		assert_eq(screen._row_of.has(SettingsScreen.RTX_INTRO_KEY), played)
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 
 
@@ -112,3 +113,42 @@ func test_the_unlock_intro_plays_once_and_leaves_rtx_on() -> void:
 	assert_true(home.settings.rtx, "RTX stays on after the show")
 	assert_eq(rtx.text, HomeScreen.RTX_ON_TEXT)
 	assert_true(home.is_rtx_on())
+
+
+func test_replay_rtx_plays_the_show_again_and_follows_its_setting() -> void:
+	var home: HomeScreen = _make_home(true)
+	home.surprise_store.set_rtx_intro_seen()
+	home._refresh_replay_button()
+	var replay: Button = home.get_node("CornerLayer/Corner/ReplayRtx")
+	var rtx: Button = home.get_node("CornerLayer/Corner/Rtx")
+	var open_lobby: Button = home.get_node("Center/Box/OpenLobby")
+	assert_true(replay.visible)
+	assert_gt(rtx.get_index(), replay.get_index(), "the switch stays at the bottom")
+	replay.pressed.emit()
+	await wait_process_frames(2)
+	assert_not_null(home.get_node_or_null("RtxIntro"), "the show plays again")
+	assert_false(replay.visible)
+	assert_true(open_lobby.disabled, "no lobby in the middle of the show")
+	await wait_until(func() -> bool: return not open_lobby.disabled, RtxIntro.END_AT + 2.0)
+	assert_null(home.get_node_or_null("RtxIntro"))
+	assert_true(replay.visible)
+	home.settings.rtx_intro = false
+	home._refresh_replay_button()
+	assert_false(replay.visible, "hidden while the show is turned off")
+
+
+func test_replay_rtx_is_hidden_until_the_3d_sequel_played() -> void:
+	var home: HomeScreen = _make_home(false)
+	assert_false((home.get_node("CornerLayer/Corner/ReplayRtx") as Button).visible)
+
+
+func test_the_show_is_skipped_after_the_sequel_when_turned_off() -> void:
+	ReleaseSurprise.stage = ReleaseSurprise.Stage.THREE_PLAYED
+	var home: HomeScreen = _make_home(true)
+	home.settings.rtx_intro = false
+	home.surprise_store.set_seen(true)
+	await wait_process_frames(4)
+	home._on_open_lobby_pressed()
+	await wait_for_signal(home.surprise_ended, 20.0)
+	assert_false(home.surprise_store.is_rtx_intro_seen(), "the show never played")
+	assert_null(home.get_node_or_null("RtxIntro"))

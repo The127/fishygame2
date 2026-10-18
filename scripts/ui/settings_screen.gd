@@ -19,6 +19,8 @@ const MORE_TITLE: String = "More"
 const REPLAY_SURPRISE_KEY: String = "replay_surprise"
 ## Hidden until the fake 3D sequel has played once (see [method ReleaseSurpriseStore.has_played]).
 const RTX_KEY: String = "rtx"
+## The RTX unlock show, hidden together with [constant RTX_KEY].
+const RTX_INTRO_KEY: String = "rtx_intro"
 ## Page layout: each page has titled sections; each item is a setting key, or
 ## [constant PREVIEW_KEY] / [constant REPLAY_SURPRISE_KEY]. A section "hint" explains it.
 const PAGES: Array[Dictionary] = [
@@ -137,7 +139,7 @@ const PAGES: Array[Dictionary] = [
 				"items": ["pad_left", "pad_right", "pad_top", "pad_bottom", PREVIEW_KEY],
 			},
 			{"title": "Accessibility", "items": ["colorblind"]},
-			{"title": "Graphics", "items": ["rtx"]},
+			{"title": "Graphics", "items": ["rtx", RTX_INTRO_KEY]},
 		],
 	},
 	{
@@ -226,6 +228,11 @@ const ROWS: Dictionary[String, Dictionary] = {
 	"colorblind":
 	{"label": "Colorblind mode", "hint": "Alternate fish colors and a marking on each fish."},
 	"rtx": {"label": "RTX", "hint": "Ray tracing, allegedly. Bloom, lens flares, light shafts."},
+	RTX_INTRO_KEY:
+	{
+		"label": "RTX unlock show",
+		"hint": "Plays once after the fake sequel. REPLAY RTX plays it again."
+	},
 	"release_surprise":
 	{"label": "Release surprise", "hint": "A fake sequel announcement, once, on Open Lobby."},
 	REPLAY_SURPRISE_KEY: {"label": "Play it again", "hint": "On the next Open Lobby press."},
@@ -247,6 +254,7 @@ const TOGGLES: Array[String] = [
 	"welcome_hat",
 	"release_surprise",
 	"rtx",
+	"rtx_intro",
 	"impostor_duck",
 	"cardboard_fish",
 ]
@@ -474,9 +482,10 @@ func _nav_box(color: Color) -> StyleBoxFlat:
 func _build_pages(content: VBoxContainer) -> void:
 	var controls: Dictionary[String, Control] = _build_controls()
 	if not surprise_store.has_played():
-		controls[RTX_KEY].free()
-		controls.erase(RTX_KEY)
-		_toggles.erase(RTX_KEY)
+		for key: String in [RTX_KEY, RTX_INTRO_KEY]:
+			controls[key].free()
+			controls.erase(key)
+			_toggles.erase(key)
 	var placed: Dictionary[String, bool] = {}
 	for page: Dictionary in PAGES:
 		_add_page(content, String(page["title"]), page["sections"], controls, placed)
