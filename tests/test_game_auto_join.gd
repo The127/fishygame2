@@ -31,9 +31,13 @@ func test_the_cap_holds_and_rejections_stay_silent() -> void:
 		assert_false(line.contains("full"), "no lobby full reply: " + line)
 
 
-func test_an_explicit_join_still_works() -> void:
+func test_an_explicit_join_still_works_without_a_duplicate_reply() -> void:
 	_say("1", "#join")
 	assert_eq(_roster(), ["1"])
+	await wait_physics_frames(2)
+	for line: String in _source.sent:
+		if line.contains("User1"):
+			assert_string_starts_with(line, "Joined:", "only the join confirmation")
 
 
 func test_lurkers_and_ignored_accounts_are_not_joined() -> void:
