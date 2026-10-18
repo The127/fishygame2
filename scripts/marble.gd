@@ -305,6 +305,22 @@ func is_out() -> bool:
 	return snapped or stranded or dissolved or eliminated
 
 
+## Why an unfinished fish is out of the race: "dissolved", "snapped", "stranded", "cut", "eaten"
+## (still inside an anglerfish), or empty when it was simply still swimming.
+func fate() -> String:
+	if dissolved:
+		return "dissolved"
+	if snapped:
+		return "snapped"
+	if stranded:
+		return "stranded"
+	if eliminated:
+		return "cut"
+	if eaten and not has_finished:
+		return "eaten"
+	return ""
+
+
 ## A fish that finished a round race leaves the physics for good, so it does not circle the loop
 ## among the fish still racing. The map moves it from then on. Also sets [member eaten], so the
 ## race and the hazards leave it alone.

@@ -53,6 +53,7 @@ func test_snapped_fish_are_dnf_and_rank_last() -> void:
 	var results: Array = get_signal_parameters(race, "race_finished", 0)[0]
 	for i: int in results.size():
 		assert_eq(bool(results[i]["finished"]), i < survivors.size())
+		assert_eq(results[i].get("fate", "none"), "none" if i < survivors.size() else "snapped")
 
 
 func test_a_single_fish_is_never_snapped() -> void:

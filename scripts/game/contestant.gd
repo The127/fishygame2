@@ -58,6 +58,18 @@ static func color_for_slot(slot: int) -> Color:
 	return base.darkened(0.3) if slot >= PALETTE.size() else base
 
 
+## Name and fish look, as FishIcon and SushiBelt take them.
+func look() -> Dictionary:
+	return {
+		"name": display_name,
+		"color": color,
+		"species": species,
+		"pattern": pattern,
+		"accessory": accessory,
+		"skin": skin,
+	}
+
+
 ## Wears palette [param slot], in the colorblind look when [param colorblind] is set.
 func set_look(slot: int, colorblind: bool) -> void:
 	palette_slot = posmod(slot, PALETTE.size())

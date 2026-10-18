@@ -6,8 +6,6 @@ extends CanvasLayer
 ## can never overlap.
 
 const MARGIN: int = 48
-## Most DNF names listed under the podium.
-const DNF_SHOWN: int = 8
 const LOBBY_COLUMNS: int = 2
 
 var _mask: BlockedMask
@@ -27,6 +25,7 @@ var _podium_panel: PanelContainer
 var _podium_view: PodiumView
 var _dnf_panel: PanelContainer
 var _dnf_label: Label
+var _sushi_belt: SushiBelt
 var _timer_panel: PanelContainer
 var _timer_label: Label
 var _timer_shown: int = -1
@@ -212,15 +211,16 @@ func show_race_timer(seconds_left: int) -> void:
 	)
 
 
-## Lists the fish that did not finish under the podium; hidden when there are none.
-func show_dnf(names: PackedStringArray) -> void:
-	_dnf_panel.visible = not names.is_empty()
-	if names.is_empty():
+## Sends the fish that did not finish past the podium on the sushi belt over `seconds` (see
+## SushiBelt.serve for the entries); hidden when there are none.
+func show_dnf(fish: Array[Dictionary], seconds: float) -> void:
+	_dnf_panel.visible = not fish.is_empty()
+	if fish.is_empty():
 		return
-	var shown: PackedStringArray = names.slice(0, DNF_SHOWN)
-	var text: String = "DNF: " + ", ".join(shown)
-	if names.size() > DNF_SHOWN:
-		text += " +%d more" % (names.size() - DNF_SHOWN)
+	_sushi_belt.serve(fish, seconds)
+	var text: String = "DID NOT FINISH"
+	if _sushi_belt.hidden_count() > 0:
+		text += "  +%d more in the kitchen" % _sushi_belt.hidden_count()
 	_dnf_label.text = text
 
 
@@ -454,9 +454,14 @@ func _build_results() -> void:
 	_results_column.add_child(_podium_panel)
 	_dnf_panel = _make_panel(false)
 	_dnf_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_dnf_label = _make_label("", 28, 700, UiStyle.MUTED)
+	var dnf_box := VBoxContainer.new()
+	dnf_box.add_theme_constant_override("separation", 0)
+	_dnf_panel.add_child(dnf_box)
+	_dnf_label = _make_label("", 24, 800, UiStyle.MUTED, 3)
 	_dnf_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_dnf_panel.add_child(_dnf_label)
+	dnf_box.add_child(_dnf_label)
+	_sushi_belt = SushiBelt.new()
+	dnf_box.add_child(_sushi_belt)
 	_results_column.add_child(_dnf_panel)
 	_payouts_panel = _make_panel(false)
 	_payouts_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

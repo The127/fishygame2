@@ -53,8 +53,9 @@ var _armed_power: int = -1
 var _power_cursor: PowerCursor = PowerCursor.new()
 var _power_note: String = ""
 var _power_note_until_msec: int = 0
-## Names of the fish that did not finish the last race, in results order.
-var _dnf_names: PackedStringArray = []
+## The fish that did not finish the last race, in results order: name, look and fate (see
+## SushiBelt.serve).
+var _dnf_fish: Array[Dictionary] = []
 ## The treasures found this race, paid when it ends.
 var _haul: TreasureHaul = TreasureHaul.new()
 ## The treasure part of the result line, "@a +50, @b +25", or empty.
@@ -425,7 +426,7 @@ func _on_treasure_collected(id: int, kind: int, value: int) -> void:
 func _record_race_stats(results: Array[Dictionary]) -> void:
 	var points: PointsStore = _betting.points
 	var contestants: Array[Contestant] = _flow.get_contestants()
-	_dnf_names = []
+	_dnf_fish = []
 	for r: Dictionary in results:
 		var id: int = int(r["id"])
 		if id < 0 or id >= contestants.size():
@@ -434,7 +435,7 @@ func _record_race_stats(results: Array[Dictionary]) -> void:
 		points.stats.record_race(user_id)
 		if not bool(r["finished"]):
 			points.stats.record_dnf(user_id)
-			_dnf_names.append(contestants[id].display_name)
+			_dnf_fish.append(contestants[id].look().merged({"fate": str(r.get("fate", ""))}))
 		else:
 			points.stats.record_finish_time(user_id, _map_id, float(r["time"]))
 			if int(r["place"]) <= _flow.podium_size:
@@ -654,10 +655,10 @@ func _show_podium(podium: Array[Dictionary]) -> void:
 
 func _on_podium_ready(podium: Array[Dictionary]) -> void:
 	var payouts: Array[Dictionary] = _payouts
-	var dnf: PackedStringArray = _dnf_names
+	var dnf_fish: Array[Dictionary] = _dnf_fish
 	var haul: String = _haul_text
 	_payouts = []
-	_dnf_names = []
+	_dnf_fish = []
 	_haul_text = ""
 	var rewards: Array[int] = [settings.win_reward, settings.second_reward, settings.third_reward]
 	if _tournament.score_round(payouts, rewards):
@@ -667,22 +668,13 @@ func _on_podium_ready(podium: Array[Dictionary]) -> void:
 		var join: float = TournamentDirector.BREAK_SECONDS - _flow.podium_seconds
 		_flow.set_auto_mode(true, maxf(join, 1.0))
 	_tournament.refresh(_flow.state)
-	_overlay.show_dnf(dnf)
+	_overlay.show_dnf(dnf_fish, _flow.timer)
 	podium = _duck.podium_with_duck(podium, _flow.podium_size)  # A winning duck is announced too.
-	if podium.is_empty():
-		if not dnf.is_empty():
-			var over: String = "time is up, nobody finished."
-			if not haul.is_empty():
-				over += " Treasure: " + haul
-			_replies.confirm("reply_results", "results", "Race over:", over)
-		return
-	Sound.play_win()
-	_replies.confirm(
-		"reply_results",
-		"results",
-		"Race over:",
-		RaceResultText.build(str(podium[0]["name"]), payouts, dnf, haul)
-	)
+	if not podium.is_empty():
+		Sound.play_win()
+	var reply: String = RaceResultText.reply(podium, payouts, dnf_fish, haul)
+	if not reply.is_empty():
+		_replies.confirm("reply_results", "results", "Race over:", reply)
 
 
 ## Esc steps back one level: the podium returns to an empty map. Everywhere else it does
