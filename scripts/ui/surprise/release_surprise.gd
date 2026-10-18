@@ -6,6 +6,9 @@ extends RefCounted
 
 enum Stage { OFF, THREE }
 
+## Map of the fake 3D round and of the flyover behind the fake home screen.
+const MAP_ID: String = "zigzag"
+
 static var stage: Stage = Stage.OFF
 
 

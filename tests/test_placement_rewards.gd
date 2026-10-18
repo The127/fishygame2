@@ -87,10 +87,9 @@ func test_dnf_and_zero_rewards_pay_nothing() -> void:
 
 
 func test_result_line_includes_placement_and_merges_a_viewer() -> void:
-	var game: Game = (load("res://scenes/main.tscn") as PackedScene).instantiate() as Game
 	var text: String = (
-		game
-		. _result_text(
+		RaceResultText
+		. build(
 			"Alice",
 			(
 				[
@@ -102,5 +101,4 @@ func test_result_line_includes_placement_and_merges_a_viewer() -> void:
 			)
 		)
 	)
-	game.free()
 	assert_eq(text, "Alice won. Payouts: @Alice +400, @Bob +50")

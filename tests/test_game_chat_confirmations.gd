@@ -67,8 +67,8 @@ func test_turning_replies_off_before_the_flush_drops_the_line() -> void:
 
 func test_result_line_names_winner_and_top_payouts() -> void:
 	var text: String = (
-		_game
-		. _result_text(
+		RaceResultText
+		. build(
 			"Bubbles",
 			(
 				[
@@ -86,7 +86,7 @@ func test_result_line_names_winner_and_top_payouts() -> void:
 
 
 func test_result_line_without_bets_is_just_the_winner() -> void:
-	assert_eq(_game._result_text("Bubbles", [] as Array[Dictionary]), "Bubbles won.")
+	assert_eq(RaceResultText.build("Bubbles", [] as Array[Dictionary]), "Bubbles won.")
 
 
 func test_podium_queues_the_result() -> void:
