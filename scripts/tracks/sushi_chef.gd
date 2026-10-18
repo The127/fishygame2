@@ -9,9 +9,8 @@ extends Node2D
 ## before the next, one swing takes at most [constant PER_SWING] fish, and a race takes at most
 ## its chop limit, counted over every chef that shares the [ChopTally]: [constant FIELD_SHARE] of
 ## the field unless the streamer set another, and never the last fish. With no chat the chef only
-## taps his own board, so a race
-## never depends on chat. The node sits at the point of the belt the blade lands on; its parent
-## [SushiBelts] tells it how that belt moves. Time advances only in physics frames, and the knife
+## taps his own board, so a race never depends on chat. The node sits at the point of the belt the
+## blade lands on; its parent [SushiBelts] tells it how that belt moves. Time advances only in physics frames, and the knife
 ## and the nigiri are part of the finish replay.
 
 ## A swing chopped `marble`. `who` is the viewer whose "#chop" started the swing.

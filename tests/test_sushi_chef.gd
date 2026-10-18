@@ -222,5 +222,4 @@ func test_the_race_passes_the_chop_limit_to_the_chef() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 5
 	race.start(_track, 10, rng, 0)
-	_chef.set_physics_process(false)
 	assert_eq(_chef._limit(), 2)
