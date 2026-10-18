@@ -228,7 +228,8 @@ func show_bets(text: String) -> void:
 	_set_bets_text(text)
 
 
-## Lines of "name won 500 (bet on Alice)" / "name lost 100"; only the first few are shown.
+## Lines of "name won 500 points" / "name lost 100 points" / "name beat their rival +5"; only
+## the first few are shown.
 func show_payouts(results: Array[Dictionary], max_lines: int = 8) -> void:
 	for child: Node in _payouts_box.get_children():
 		_payouts_box.remove_child(child)
@@ -238,7 +239,19 @@ func show_payouts(results: Array[Dictionary], max_lines: int = 8) -> void:
 		if shown >= max_lines:
 			break
 		shown += 1
-		if int(entry["payout"]) > 0:
+		if entry.get("kind", "") == "rival":
+			_payouts_box.add_child(
+				_make_label(
+					(
+						"%s beat %s +%d"
+						% [entry["name"], entry.get("target", "their rival"), entry["payout"]]
+					),
+					28,
+					700,
+					UiStyle.GOOD
+				)
+			)
+		elif int(entry["payout"]) > 0:
 			_payouts_box.add_child(
 				_make_label(
 					"%s won %d points" % [entry["name"], entry["payout"]], 28, 700, UiStyle.GOOD

@@ -15,6 +15,7 @@ extends RefCounted
 ## Also keeps the all-time leaderboard data: race wins per viewer and the last display name
 ## seen for each viewer. Version 1 files have neither; they load with no wins and no names.
 ## Version 3 adds [member stats], the per-viewer counters for "#stats"; older files load with none.
+## [member rivals] is an optional "rivals" entry; files without one load with no rivals.
 
 const FORMAT_VERSION: int = 3
 const DEFAULT_PATH: String = "user://points.json"
@@ -26,6 +27,8 @@ const MAX_BALANCE: int = 1_000_000_000_000
 var starting_balance: int = 1000
 ## Lifetime counters per viewer, saved in the same file as the balances.
 var stats: ViewerStats = ViewerStats.new()
+## Who is whose rival, saved in the same file as the balances.
+var rivals: RivalTable = RivalTable.new()
 ## Empty means in-memory only.
 var save_path: String = ""
 
@@ -175,6 +178,7 @@ func load_from_disk() -> bool:
 	_wins.clear()
 	_names.clear()
 	stats.load_dict({})
+	rivals.load_dict({})
 	if save_path.is_empty():
 		return true
 	var ok: bool = _load_files()
@@ -221,6 +225,7 @@ func save_to_disk() -> bool:
 				"stakes": _stakes,
 				"wins": _wins,
 				"names": _names,
+				"rivals": rivals.to_dict(),
 				"stats": stats.to_dict(),
 			}
 		)
@@ -321,6 +326,7 @@ func _apply(data: Dictionary) -> void:
 	var names: Variant = data.get("names", {})
 	_names = _clean_names(names) if names is Dictionary else {}
 	stats.load_dict(data.get("stats", {}))
+	rivals.load_dict(data.get("rivals", {}))
 
 
 ## Returns the parsed save data, or an empty dictionary if the file is missing or invalid.
