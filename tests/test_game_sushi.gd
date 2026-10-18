@@ -67,4 +67,4 @@ func test_a_chopped_fish_is_announced_on_the_overlay_only() -> void:
 func test_the_help_lists_the_chop_command() -> void:
 	assert_string_contains(HelpText.CHAT_REPLY, "#chop")
 	assert_lt(HelpText.CHAT_REPLY.length(), 500)
-	assert_string_contains("\n".join(HelpText.LINES), "#chop")
+	assert_string_contains(HelpText.sheet_text("sushi"), "#chop")

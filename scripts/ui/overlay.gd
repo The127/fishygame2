@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name Overlay
 extends CanvasLayer
 ## Viewer-facing text: lobby list, countdown number, bets, notices, podium and payouts.
@@ -19,6 +20,7 @@ var _board_panel: PanelContainer
 var _board: LeaderboardPanel
 var _board_has_rows: bool = false
 var _help_panel: PanelContainer
+var _help_grid: GridContainer
 var _big: Label
 var _results_column: VBoxContainer
 var _podium_panel: PanelContainer
@@ -408,17 +410,54 @@ func _build_help() -> void:
 	_help_panel = _make_panel(false)
 	_frame.add_child(_help_panel)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 2)
+	box.add_theme_constant_override("separation", 6)
 	_help_panel.add_child(box)
 	box.add_child(_make_label(HelpText.TITLE, 24, 800, UiStyle.CYAN, 3))
-	for line: String in HelpText.LINES:
-		box.add_child(_make_label(line, 22, 600, UiStyle.MUTED))
+	_help_grid = GridContainer.new()
+	_help_grid.columns = 2
+	_help_grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_help_grid.add_theme_constant_override("h_separation", 20)
+	_help_grid.add_theme_constant_override("v_separation", 2)
+	box.add_child(_help_grid)
+	set_help_map("")
 	# Bottom-right, growing up and to the left; the bets panel owns the bottom-left.
 	_help_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	_help_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_help_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_help_panel.offset_right = -MARGIN
 	_help_panel.offset_bottom = -MARGIN
+
+
+## Lists the general commands, then the ones of the loaded map [param map_id] under its name.
+## One grid holds both so their columns line up.
+func set_help_map(map_id: String) -> void:
+	for child: Node in _help_grid.get_children():
+		_help_grid.remove_child(child)
+		child.queue_free()
+	_add_help_rows(HelpText.general_rows())
+	var rows: Array[PackedStringArray] = HelpText.map_rows(map_id)
+	if not rows.is_empty():
+		var heading: Label = _make_label(
+			TrackCatalog.get_name_of(map_id).to_upper(), 18, 800, UiStyle.CYAN, 3
+		)
+		heading.custom_minimum_size.y = 40.0
+		heading.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		_help_grid.add_child(heading)
+		var spacer := Control.new()
+		spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_help_grid.add_child(spacer)
+		_add_help_rows(rows)
+	# A container only grows on its own. Collapse it onto its bottom-right corner so it shrinks
+	# back to fit when a map's rows go away.
+	_help_panel.offset_left = _help_panel.offset_right
+	_help_panel.offset_top = _help_panel.offset_bottom
+
+
+## The command in cyan, what it does in muted text.
+func _add_help_rows(rows: Array[PackedStringArray]) -> void:
+	for row: PackedStringArray in rows:
+		_help_grid.add_child(_make_label(row[0], 22, 700, UiStyle.CYAN_LIGHT))
+		_help_grid.add_child(_make_label(row[1], 20, 500, UiStyle.MUTED))
 
 
 func _build_countdown() -> void:

@@ -157,4 +157,4 @@ func test_debug_players_button_joins_fake_viewers() -> void:
 
 func test_auto_mode_is_off_by_default() -> void:
 	assert_false(_flow.auto_mode)
-	assert_false((_panel.get_node("Panel/Box/Auto") as CheckBox).button_pressed)
+	assert_false((_panel.get_node("%Auto") as SwitchButton).button_pressed)

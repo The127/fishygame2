@@ -66,4 +66,4 @@ func test_rolling_posts_nothing_in_chat() -> void:
 func test_the_help_lists_the_roll_command() -> void:
 	assert_string_contains(HelpText.CHAT_REPLY, "#roll")
 	assert_lt(HelpText.CHAT_REPLY.length(), 500)
-	assert_string_contains("\n".join(HelpText.LINES), "#roll")
+	assert_string_contains(HelpText.sheet_text("board"), "#roll")

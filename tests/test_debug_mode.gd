@@ -20,11 +20,11 @@ func test_control_panel_hides_debug_buttons_unless_enabled() -> void:
 	DebugMode.set_enabled(false)
 	var off: ControlPanel = scene.instantiate()
 	add_child_autofree(off)
-	assert_false((off.get_node("Panel/Box/DebugButtons") as Control).visible)
+	assert_false((off.get_node("%DebugButtons") as Control).visible)
 	DebugMode.set_enabled(true)
 	var on: ControlPanel = scene.instantiate()
 	add_child_autofree(on)
-	assert_true((on.get_node("Panel/Box/DebugButtons") as Control).visible)
+	assert_true((on.get_node("%DebugButtons") as Control).visible)
 
 
 func test_control_panel_debug_buttons_emit_signals() -> void:
@@ -32,8 +32,8 @@ func test_control_panel_debug_buttons_emit_signals() -> void:
 	var panel: ControlPanel = (load(PANEL_SCENE) as PackedScene).instantiate()
 	add_child_autofree(panel)
 	watch_signals(panel)
-	(panel.get_node("Panel/Box/DebugButtons/Duck") as Button).pressed.emit()
-	(panel.get_node("Panel/Box/DebugButtons/Meow") as Button).pressed.emit()
+	(panel.get_node("%DebugButtons/Duck") as Button).pressed.emit()
+	(panel.get_node("%DebugButtons/Meow") as Button).pressed.emit()
 	assert_signal_emitted(panel, "debug_duck_pressed")
 	assert_signal_emitted(panel, "debug_meow_pressed")
 

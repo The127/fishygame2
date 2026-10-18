@@ -15,23 +15,53 @@ const CHAT_REPLY: String = (
 
 const TITLE: String = "CHAT COMMANDS"
 
-## One line per command on the lobby cheat sheet.
-const LINES: PackedStringArray = [
-	"#join  enter the race",
-	"#lurk  watch from the shadows until you #join again",
-	"#bet <fish> <amount>  bet points, winners share the pool",
-	"#boost / #curse <fish>  help or hinder",
-	"#eddy  flushed out of Riptide Rounds? haunt the race",
-	"#points  your balance",
-	"#stats  your record",
-	"#top  leaderboard",
-	"#rival <name>  beat them for bonus points",
-	"#shop  fish, colors, hats, trails and dances",
-	"#left / #right  fire the flippers (both Pinball Reefs)",
-	"#left / #right / #grab  work the claw (Claw Machine)",
-	"#up / #down / #left / #right  steer gravity (Gravity Flip)",
-	"#shake  spam it to quake the seafloor (Earthquake Fault)",
-	"#roll  spam it to roll the dice (Board Game)",
-	"#chop  swing the chefs' knives (Sushi Bar)",
-	"#help  this list",
+## Lobby cheat sheet rows that apply on every map: [command, what it does].
+const GENERAL: Array[Array] = [
+	["#join", "enter the race"],
+	["#lurk", "watch from the shadows until you #join again"],
+	["#bet <fish> <amount>", "bet points, winners share the pool"],
+	["#boost / #curse <fish>", "help or hinder"],
+	["#points", "your balance"],
+	["#stats", "your record"],
+	["#top", "leaderboard"],
+	["#rival <name>", "beat them for bonus points"],
+	["#shop", "fish, colors, hats, trails and dances"],
+	["#help", "all commands in chat"],
 ]
+
+## Rows only shown while their map is loaded, keyed by map id.
+const MAP_ROWS: Dictionary[String, Array] = {
+	"pinball": [["#left / #right", "fire the flippers"]],
+	"pinball2": [["#left / #right", "fire the flippers"]],
+	"claw": [["#left / #right / #grab", "work the claw"]],
+	"gravity": [["#up / #down / #left / #right", "pick the side that is the floor"]],
+	"fault": [["#shake", "spam it to quake the seafloor"]],
+	"board": [["#roll", "spam it to roll the dice"]],
+	"sushi": [["#chop", "swing the chefs' knives"]],
+	"riptide": [["#eddy", "cut from the race? haunt it"]],
+}
+
+
+## The rows shown on every map.
+static func general_rows() -> Array[PackedStringArray]:
+	return _as_rows(GENERAL)
+
+
+## Rows for the map [param map_id] only; empty for a map without its own commands.
+static func map_rows(map_id: String) -> Array[PackedStringArray]:
+	return _as_rows(MAP_ROWS.get(map_id, []))
+
+
+## The whole cheat sheet for [param map_id] as plain text, one row per line.
+static func sheet_text(map_id: String) -> String:
+	var lines: PackedStringArray = []
+	for row: PackedStringArray in general_rows() + map_rows(map_id):
+		lines.append("%s  %s" % [row[0], row[1]])
+	return "\n".join(lines)
+
+
+static func _as_rows(raw: Array) -> Array[PackedStringArray]:
+	var rows: Array[PackedStringArray] = []
+	for row: Array in raw:
+		rows.append(PackedStringArray(row))
+	return rows

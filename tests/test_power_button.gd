@@ -11,7 +11,7 @@ func before_each() -> void:
 
 
 func _power(index: int) -> PowerButton:
-	return _panel.get_node("Panel/Box/PowerButtons").get_child(index) as PowerButton
+	return _panel.get_node("%PowerButtons").get_child(index) as PowerButton
 
 
 func test_buttons_know_their_power() -> void:

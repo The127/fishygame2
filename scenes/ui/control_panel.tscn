@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/ui/control_panel.gd" id="1_panel"]
 [ext_resource type="Script" path="res://scripts/ui/power_button.gd" id="2_power"]
+[ext_resource type="Script" path="res://scripts/ui/switch_button.gd" id="3_switch"]
 
 [node name="ControlPanel" type="CanvasLayer"]
 layer = 10
@@ -11,7 +12,7 @@ script = ExtResource("1_panel")
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -420.0
+offset_left = -484.0
 offset_top = 64.0
 offset_right = -24.0
 offset_bottom = 460.0
@@ -39,220 +40,50 @@ mouse_filter = 2
 
 [node name="Box" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="Status" type="Label" parent="Panel/Box"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Idle"
 
-[node name="Buttons" type="HBoxContainer" parent="Panel/Box"]
+[node name="Transport" type="HBoxContainer" parent="Panel/Box"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="Open" type="Button" parent="Panel/Box/Buttons"]
+[node name="Start" type="Button" parent="Panel/Box/Transport"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "START"
+
+[node name="Open" type="Button" parent="Panel/Box/Transport"]
+unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-text = "Open lobby"
+text = "Lobby"
 
-[node name="Start" type="Button" parent="Panel/Box/Buttons"]
-layout_mode = 2
-focus_mode = 0
-text = "Start (Space)"
-
-[node name="Stop" type="Button" parent="Panel/Box/Buttons"]
+[node name="Stop" type="Button" parent="Panel/Box/Transport"]
+unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Stop"
 
-[node name="PowerButtons" type="HBoxContainer" parent="Panel/Box"]
-layout_mode = 2
-
-[node name="Rod" type="Button" parent="Panel/Box/PowerButtons"]
-layout_mode = 2
-script = ExtResource("2_power")
-size_flags_horizontal = 3
-focus_mode = 0
-toggle_mode = true
-text = "Rod (1)"
-
-[node name="Net" type="Button" parent="Panel/Box/PowerButtons"]
-layout_mode = 2
-script = ExtResource("2_power")
-kind = 1
-size_flags_horizontal = 3
-focus_mode = 0
-toggle_mode = true
-text = "Net (2)"
-
-[node name="Blast" type="Button" parent="Panel/Box/PowerButtons"]
-layout_mode = 2
-script = ExtResource("2_power")
-kind = 2
-size_flags_horizontal = 3
-focus_mode = 0
-toggle_mode = true
-text = "Blast (3)"
-
-[node name="PowerStatus" type="Label" parent="Panel/Box"]
-layout_mode = 2
-text = "Streamer powers: pick one, then click the track"
-
-[node name="DebugButtons" type="HBoxContainer" parent="Panel/Box"]
-layout_mode = 2
-
-[node name="AddOne" type="Button" parent="Panel/Box/DebugButtons"]
-layout_mode = 2
-focus_mode = 0
-text = "+1 player"
-
-[node name="AddFive" type="Button" parent="Panel/Box/DebugButtons"]
-layout_mode = 2
-focus_mode = 0
-text = "+5 players"
-
-[node name="Duck" type="Button" parent="Panel/Box/DebugButtons"]
-layout_mode = 2
-focus_mode = 0
-text = "Duck"
-
-[node name="Meow" type="Button" parent="Panel/Box/DebugButtons"]
-layout_mode = 2
-focus_mode = 0
-text = "Meow"
-
-[node name="Auto" type="CheckBox" parent="Panel/Box"]
-layout_mode = 2
-focus_mode = 0
-text = "Auto mode (rounds run on their own)"
-
-[node name="MapRow" type="HBoxContainer" parent="Panel/Box"]
-layout_mode = 2
-
-[node name="MapLabel" type="Label" parent="Panel/Box/MapRow"]
-layout_mode = 2
-text = "Map"
-
-[node name="MapPicker" type="OptionButton" parent="Panel/Box/MapRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-
-[node name="TournamentToggle" type="Button" parent="Panel/Box"]
-layout_mode = 2
-focus_mode = 0
-text = "Show tournament"
-
-[node name="TournamentRow" type="HBoxContainer" parent="Panel/Box"]
-visible = false
-layout_mode = 2
-
-[node name="TournamentLabel" type="Label" parent="Panel/Box/TournamentRow"]
-layout_mode = 2
-text = "Tournament rounds"
-
-[node name="RoundsPicker" type="OptionButton" parent="Panel/Box/TournamentRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-
-[node name="TournamentMaps" type="VBoxContainer" parent="Panel/Box"]
-visible = false
-layout_mode = 2
-
-[node name="StartTournament" type="Button" parent="Panel/Box"]
-visible = false
-layout_mode = 2
-focus_mode = 0
-text = "Start tournament"
-
-[node name="MasterRow" type="HBoxContainer" parent="Panel/Box"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Panel/Box/MasterRow"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-text = "Master"
-
-[node name="Slider" type="HSlider" parent="Panel/Box/MasterRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-focus_mode = 0
-max_value = 1.0
-step = 0.01
-value = 1.0
-
-[node name="MusicRow" type="HBoxContainer" parent="Panel/Box"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Panel/Box/MusicRow"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-text = "Music"
-
-[node name="Slider" type="HSlider" parent="Panel/Box/MusicRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-focus_mode = 0
-max_value = 1.0
-step = 0.01
-value = 1.0
-
-[node name="AmbienceRow" type="HBoxContainer" parent="Panel/Box"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Panel/Box/AmbienceRow"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-text = "Ambience"
-
-[node name="Slider" type="HSlider" parent="Panel/Box/AmbienceRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-focus_mode = 0
-max_value = 1.0
-step = 0.01
-value = 1.0
-
-[node name="SfxRow" type="HBoxContainer" parent="Panel/Box"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Panel/Box/SfxRow"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-text = "Effects"
-
-[node name="Slider" type="HSlider" parent="Panel/Box/SfxRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-focus_mode = 0
-max_value = 1.0
-step = 0.01
-value = 1.0
-
-[node name="Mute" type="CheckBox" parent="Panel/Box"]
-layout_mode = 2
-focus_mode = 0
-text = "Mute all sound"
-
-[node name="Home" type="Button" parent="Panel/Box"]
-layout_mode = 2
-focus_mode = 0
-text = "Home"
-
 [node name="SkipReplay" type="Button" parent="Panel/Box"]
+unique_name_in_owner = true
 visible = false
 layout_mode = 2
 focus_mode = 0
 text = "Skip replay (Space)"
 
 [node name="LeaveConfirm" type="VBoxContainer" parent="Panel/Box"]
+unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
 [node name="Question" type="Label" parent="Panel/Box/LeaveConfirm"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Leave now? The round is aborted and stakes are refunded."
 
@@ -260,21 +91,358 @@ text = "Leave now? The round is aborted and stakes are refunded."
 layout_mode = 2
 
 [node name="Leave" type="Button" parent="Panel/Box/LeaveConfirm/Answers"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 text = "Leave"
 
 [node name="Stay" type="Button" parent="Panel/Box/LeaveConfirm/Answers"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 text = "Stay"
 
-[node name="Hint" type="Label" parent="Panel/Box"]
+[node name="RaceCard" type="PanelContainer" parent="Panel/Box"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "F1 or the top tab hides this panel"
 
-[node name="Version" type="Label" parent="Panel/Box"]
+[node name="Rows" type="VBoxContainer" parent="Panel/Box/RaceCard"]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Heading" type="Label" parent="Panel/Box/RaceCard/Rows"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RACE"
+
+[node name="MapRow" type="HBoxContainer" parent="Panel/Box/RaceCard/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MapLabel" type="Label" parent="Panel/Box/RaceCard/Rows/MapRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Map"
+
+[node name="MapPicker" type="OptionButton" parent="Panel/Box/RaceCard/Rows/MapRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+
+[node name="AutoRow" type="HBoxContainer" parent="Panel/Box/RaceCard/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="AutoText" type="VBoxContainer" parent="Panel/Box/RaceCard/Rows/AutoRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="AutoLabel" type="Label" parent="Panel/Box/RaceCard/Rows/AutoRow/AutoText"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Auto mode"
+
+[node name="AutoHint" type="Label" parent="Panel/Box/RaceCard/Rows/AutoRow/AutoText"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Rounds run on their own."
+
+[node name="Auto" type="Button" parent="Panel/Box/RaceCard/Rows/AutoRow"]
+unique_name_in_owner = true
+script = ExtResource("3_switch")
+layout_mode = 2
+focus_mode = 0
+
+[node name="PowersCard" type="PanelContainer" parent="Panel/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Rows" type="VBoxContainer" parent="Panel/Box/PowersCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Head" type="HBoxContainer" parent="Panel/Box/PowersCard/Rows"]
+layout_mode = 2
+
+[node name="Heading" type="Label" parent="Panel/Box/PowersCard/Rows/Head"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "STREAMER POWERS"
+
+[node name="Keys" type="Label" parent="Panel/Box/PowersCard/Rows/Head"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "keys 1 2 3"
+
+[node name="PowerButtons" type="HBoxContainer" parent="Panel/Box/PowersCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Rod" type="Button" parent="Panel/Box/PowersCard/Rows/PowerButtons"]
+script = ExtResource("2_power")
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+text = "Rod"
+
+[node name="Net" type="Button" parent="Panel/Box/PowersCard/Rows/PowerButtons"]
+script = ExtResource("2_power")
+layout_mode = 2
+kind = 1
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+text = "Net"
+
+[node name="Blast" type="Button" parent="Panel/Box/PowersCard/Rows/PowerButtons"]
+script = ExtResource("2_power")
+layout_mode = 2
+kind = 2
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+text = "Blast"
+
+[node name="PowerStatus" type="Label" parent="Panel/Box/PowersCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pick one, then click the track"
+
+[node name="TournamentCard" type="PanelContainer" parent="Panel/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Rows" type="VBoxContainer" parent="Panel/Box/TournamentCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Head" type="HBoxContainer" parent="Panel/Box/TournamentCard/Rows"]
+layout_mode = 2
+
+[node name="Heading" type="Label" parent="Panel/Box/TournamentCard/Rows/Head"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "TOURNAMENT"
+
+[node name="TournamentToggle" type="Button" parent="Panel/Box/TournamentCard/Rows/Head"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Set up"
+
+[node name="TournamentRow" type="HBoxContainer" parent="Panel/Box/TournamentCard/Rows"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TournamentLabel" type="Label" parent="Panel/Box/TournamentCard/Rows/TournamentRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Rounds"
+
+[node name="RoundsPicker" type="OptionButton" parent="Panel/Box/TournamentCard/Rows/TournamentRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+
+[node name="TournamentMaps" type="VBoxContainer" parent="Panel/Box/TournamentCard/Rows"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="StartTournament" type="Button" parent="Panel/Box/TournamentCard/Rows"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+focus_mode = 0
+text = "Start tournament"
+
+[node name="SoundCard" type="PanelContainer" parent="Panel/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Rows" type="VBoxContainer" parent="Panel/Box/SoundCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Head" type="HBoxContainer" parent="Panel/Box/SoundCard/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Heading" type="Label" parent="Panel/Box/SoundCard/Rows/Head"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SOUND"
+
+[node name="MuteLabel" type="Label" parent="Panel/Box/SoundCard/Rows/Head"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Mute"
+
+[node name="Mute" type="Button" parent="Panel/Box/SoundCard/Rows/Head"]
+unique_name_in_owner = true
+script = ExtResource("3_switch")
+layout_mode = 2
+focus_mode = 0
+
+[node name="MasterRow" type="HBoxContainer" parent="Panel/Box/SoundCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="Panel/Box/SoundCard/Rows/MasterRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Master"
+
+[node name="Slider" type="HSlider" parent="Panel/Box/SoundCard/Rows/MasterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="Value" type="Label" parent="Panel/Box/SoundCard/Rows/MasterRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "100%"
 horizontal_alignment = 2
+
+[node name="MusicRow" type="HBoxContainer" parent="Panel/Box/SoundCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="Panel/Box/SoundCard/Rows/MusicRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Music"
+
+[node name="Slider" type="HSlider" parent="Panel/Box/SoundCard/Rows/MusicRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="Value" type="Label" parent="Panel/Box/SoundCard/Rows/MusicRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="AmbienceRow" type="HBoxContainer" parent="Panel/Box/SoundCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="Panel/Box/SoundCard/Rows/AmbienceRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Ambience"
+
+[node name="Slider" type="HSlider" parent="Panel/Box/SoundCard/Rows/AmbienceRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="Value" type="Label" parent="Panel/Box/SoundCard/Rows/AmbienceRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="SfxRow" type="HBoxContainer" parent="Panel/Box/SoundCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="Panel/Box/SoundCard/Rows/SfxRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Effects"
+
+[node name="Slider" type="HSlider" parent="Panel/Box/SoundCard/Rows/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="Value" type="Label" parent="Panel/Box/SoundCard/Rows/SfxRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="DebugButtons" type="HBoxContainer" parent="Panel/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AddOne" type="Button" parent="Panel/Box/DebugButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "+1"
+
+[node name="AddFive" type="Button" parent="Panel/Box/DebugButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "+5"
+
+[node name="Duck" type="Button" parent="Panel/Box/DebugButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "Duck"
+
+[node name="Meow" type="Button" parent="Panel/Box/DebugButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "Meow"
+
+[node name="Footer" type="HBoxContainer" parent="Panel/Box"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Home" type="Button" parent="Panel/Box/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Home"
+
+[node name="Hint" type="Label" parent="Panel/Box/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "F1 hides this panel"
+vertical_alignment = 1
+
+[node name="Version" type="Label" parent="Panel/Box/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 1
+horizontal_alignment = 2
+vertical_alignment = 1
