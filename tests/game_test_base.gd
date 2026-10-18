@@ -41,6 +41,8 @@ func before_each() -> void:
 	_game.settings.default_map = "zigzag"
 	_flow.podium_seconds = 5.0
 	_game.settings.finish_replay = GameSettings.REPLAY_OFF
+	# The impostor duck's own tests turn it on; elsewhere a random extra fish would shift ids.
+	_game.forced_duck = false
 	_configure(_game.settings)
 	add_child_autofree(_game)
 

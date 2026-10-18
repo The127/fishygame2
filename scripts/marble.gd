@@ -92,6 +92,13 @@ var accessory: int = 0:
 		if _fish != null:
 			_fish.accessory = value
 
+## True for the [ImpostorDuck]: a rubber duck that races as a fish. Changes only the look.
+var impostor: bool = false:
+	set(value):
+		impostor = value
+		if _fish != null:
+			_fish.impostor = value
+
 ## A [enum FishTrail.Kind]; 0 is the plain bubble trail.
 var trail: int = 0:
 	set(value):
@@ -149,6 +156,7 @@ func _ready() -> void:
 	_fish.pattern = pattern
 	_fish.accessory = accessory
 	_fish.skin = skin
+	_fish.impostor = impostor
 	_fish.glow_boost = glow_boost
 	add_child(_fish)
 	# Top level so the name stays upright and unscaled while the marble rolls.

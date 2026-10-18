@@ -95,6 +95,10 @@ const SPECIES: Array[Dictionary] = [
 const OUTLINE: Color = Color(0.01, 0.02, 0.035, 0.95)
 const MARK: Color = Color(0.96, 0.98, 1.0, 0.95)
 const BODY_STEPS: int = 20
+## Drawing scale of the [ImpostorDuck], sized like a fish.
+const DUCK_SCALE: float = 0.5
+## The duck's glow tint: its body color, as no viewer color is behind it.
+const DUCK_GLOW: Color = Color(1.0, 0.85, 0.3)
 
 var color: Color = Color.WHITE:
 	set(value):
@@ -124,6 +128,14 @@ var skin: int = FishSkin.Kind.NONE:
 var accessory: int = 0:
 	set(value):
 		accessory = value
+		_redraw_static()
+## True for the [ImpostorDuck]: a rubber duck is drawn in place of the fish (species,
+## pattern, skin and accessory are ignored).
+var impostor: bool = false:
+	set(value):
+		impostor = value
+		_refresh_palette()
+		_apply_skin()
 		_redraw_static()
 var heading: float = 0.0
 ## Scales the glow's strength and size, 1 is normal. Raised on dark maps.
@@ -200,6 +212,8 @@ func _add_layer(painter: Callable) -> Node2D:
 
 func _refresh_palette() -> void:
 	_look = color if skin == FishSkin.Kind.NONE else FishSkin.accent_of(skin)
+	if impostor:
+		_look = DUCK_GLOW
 	_fin_col = Color.from_hsv(_look.h, _look.s, _look.v * 0.7, 0.92)
 	_accent = _look.lightened(0.25)
 	_glow_dirty = true
@@ -209,7 +223,7 @@ func _refresh_palette() -> void:
 func _apply_skin() -> void:
 	if _body_layer == null:
 		return
-	var skin_material: ShaderMaterial = FishSkin.material_of(skin)
+	var skin_material: ShaderMaterial = null if impostor else FishSkin.material_of(skin)
 	material = skin_material
 	for layer: Node2D in [_body_layer, _stripe_layer, _head_layer]:
 		layer.material = skin_material
@@ -279,6 +293,8 @@ func _update_glow() -> void:
 
 
 func _draw() -> void:
+	if impostor:
+		return
 	var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
 	var swim: float = clampf(_speed / 300.0, 0.0, 1.0)
 	var wag: float = sin(_time * (7.0 + 5.0 * swim)) * (1.5 + 2.5 * swim)
@@ -297,6 +313,12 @@ func _body_top(sp: Dictionary) -> PackedVector2Array:
 
 ## Body: shaded back to belly, dark rim so it separates from the background, then the markings.
 func _draw_body(canvas: CanvasItem) -> void:
+	if impostor:
+		# A dark rim under the body and head, like a fish's outline.
+		canvas.draw_circle(Vector2(0.0, 5.0) * DUCK_SCALE, 28.5 * DUCK_SCALE, OUTLINE)
+		canvas.draw_circle(Vector2(16.0, -20.0) * DUCK_SCALE, 16.5 * DUCK_SCALE, OUTLINE)
+		RubberDuck.paint(canvas, Vector2.ONE * DUCK_SCALE)
+		return
 	var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
 	var length: float = sp["length"]
 	var height: float = sp["height"]
@@ -320,6 +342,8 @@ func _draw_body(canvas: CanvasItem) -> void:
 
 ## Glowing lateral stripe, the one part of the body that shimmers.
 func _draw_stripe(canvas: CanvasItem) -> void:
+	if impostor:
+		return
 	var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
 	var length: float = sp["length"]
 	var height: float = sp["height"]
@@ -333,6 +357,8 @@ func _draw_stripe(canvas: CanvasItem) -> void:
 
 ## Glowing back edge, eye and accessory.
 func _draw_head(canvas: CanvasItem) -> void:
+	if impostor:
+		return
 	var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
 	canvas.draw_polyline(_body_top(sp), Color(_accent.r, _accent.g, _accent.b, 0.55), 1.0)
 	for eye: Vector2 in FishFeatures.eyes(sp, sp["look"]):
@@ -343,7 +369,7 @@ func _draw_head(canvas: CanvasItem) -> void:
 
 ## The accessory, in its own layer so a premium skin does not repaint it.
 func _draw_accessory(canvas: CanvasItem) -> void:
-	if accessory != FishAccessory.Kind.NONE:
+	if accessory != FishAccessory.Kind.NONE and not impostor:
 		var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
 		var length: float = sp["length"]
 		var eye: Vector2 = FishFeatures.eyes(sp, sp["look"])[0]

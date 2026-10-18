@@ -78,19 +78,27 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	# Drawn facing right; flipped for a duck heading left.
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2(_facing * SIZE, SIZE))
-	draw_circle(Vector2(0.0, 6.0), 26.0, BODY_SHADE)
-	draw_circle(Vector2(0.0, 4.0), 25.0, BODY)
-	# The tail lifts at the back.
-	draw_colored_polygon(
-		PackedVector2Array([Vector2(-20.0, 0.0), Vector2(-38.0, -12.0), Vector2(-24.0, 12.0)]), BODY
-	)
-	draw_circle(Vector2(16.0, -20.0), 14.0, BODY)
-	draw_colored_polygon(
-		PackedVector2Array([Vector2(27.0, -22.0), Vector2(40.0, -18.0), Vector2(27.0, -13.0)]), BEAK
-	)
-	draw_circle(Vector2(20.0, -24.0), 2.6, Color(0.1, 0.06, 0.02))
-	draw_arc(Vector2(-2.0, 6.0), 13.0, PI * 0.9, PI * 1.9, 12, BODY_SHADE, 3.0, true)
+	paint(self, Vector2(_facing * SIZE, SIZE))
 	# A faint glow so it reads in the murk.
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(_facing * SIZE, SIZE))
 	draw_arc(Vector2(0.0, 4.0), 28.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.4, 0.12), 6.0, true)
 	draw_set_transform(Vector2.ZERO)
+
+
+## Draws the duck on [param canvas] at its origin, facing right, scaled by [param duck_scale].
+## About 80 by 60 pixels at scale 1. Shared with the [ImpostorDuck] that races as a fish.
+static func paint(canvas: CanvasItem, duck_scale: Vector2) -> void:
+	canvas.draw_set_transform(Vector2.ZERO, 0.0, duck_scale)
+	canvas.draw_circle(Vector2(0.0, 6.0), 26.0, BODY_SHADE)
+	canvas.draw_circle(Vector2(0.0, 4.0), 25.0, BODY)
+	# The tail lifts at the back.
+	canvas.draw_colored_polygon(
+		PackedVector2Array([Vector2(-20.0, 0.0), Vector2(-38.0, -12.0), Vector2(-24.0, 12.0)]), BODY
+	)
+	canvas.draw_circle(Vector2(16.0, -20.0), 14.0, BODY)
+	canvas.draw_colored_polygon(
+		PackedVector2Array([Vector2(27.0, -22.0), Vector2(40.0, -18.0), Vector2(27.0, -13.0)]), BEAK
+	)
+	canvas.draw_circle(Vector2(20.0, -24.0), 2.6, Color(0.1, 0.06, 0.02))
+	canvas.draw_arc(Vector2(-2.0, 6.0), 13.0, PI * 0.9, PI * 1.9, 12, BODY_SHADE, 3.0, true)
+	canvas.draw_set_transform(Vector2.ZERO)
