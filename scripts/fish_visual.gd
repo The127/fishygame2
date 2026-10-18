@@ -8,7 +8,8 @@ enum Pattern { SOLID, STRIPES, SPOTS, LINES, CHEVRONS }
 
 ## Body shapes, picked per marble so fish read by outline. `length` and `height` are
 ## half extents, `peak` shifts the deepest point (below 1 toward the head), `tail` is
-## the tail fin length, `dorsal` and `belly` the fin heights.
+## the tail fin length, `dorsal` and `belly` the fin heights. `look` is a [enum FishFeatures.Look]:
+## the extra parts (bill, hammer, spines, veil fins) that give a species its own silhouette.
 const SPECIES: Array[Dictionary] = [
 	{
 		"length": 15.0,
@@ -17,34 +18,78 @@ const SPECIES: Array[Dictionary] = [
 		"tail": 9.0,
 		"spread": 7.0,
 		"dorsal": 6.0,
-		"belly": 3.0
+		"belly": 3.0,
+		"look": FishFeatures.Look.TROUT
+	},
+	{
+		"length": 11.0,
+		"height": 10.5,
+		"peak": 1.0,
+		"tail": 5.0,
+		"spread": 5.0,
+		"dorsal": 3.0,
+		"belly": 3.0,
+		"look": FishFeatures.Look.PUFFER
+	},
+	{
+		"length": 18.0,
+		"height": 5.0,
+		"peak": 1.2,
+		"tail": 8.0,
+		"spread": 6.0,
+		"dorsal": 6.0,
+		"belly": 4.0,
+		"look": FishFeatures.Look.PIKE
 	},
 	{
 		"length": 12.0,
-		"height": 11.0,
-		"peak": 1.0,
+		"height": 10.0,
+		"peak": 0.75,
 		"tail": 6.0,
 		"spread": 6.0,
-		"dorsal": 9.0,
-		"belly": 6.0
-	},
-	{
-		"length": 17.0,
-		"height": 5.5,
-		"peak": 1.1,
-		"tail": 8.0,
-		"spread": 4.0,
-		"dorsal": 4.0,
-		"belly": 2.0
-	},
-	{
-		"length": 14.0,
-		"height": 10.0,
-		"peak": 0.7,
-		"tail": 7.0,
-		"spread": 8.0,
 		"dorsal": 10.0,
-		"belly": 8.0
+		"belly": 9.0,
+		"look": FishFeatures.Look.ANGEL
+	},
+	{
+		"length": 16.0,
+		"height": 6.5,
+		"peak": 0.75,
+		"tail": 9.0,
+		"spread": 9.0,
+		"dorsal": 11.0,
+		"belly": 2.0,
+		"look": FishFeatures.Look.SWORD
+	},
+	{
+		"length": 16.0,
+		"height": 7.0,
+		"peak": 0.6,
+		"tail": 10.0,
+		"spread": 8.0,
+		"dorsal": 9.0,
+		"belly": 4.0,
+		"look": FishFeatures.Look.HAMMER
+	},
+	{
+		"length": 12.0,
+		"height": 8.5,
+		"peak": 0.9,
+		"tail": 6.0,
+		"spread": 6.0,
+		"dorsal": 11.0,
+		"belly": 8.0,
+		"look": FishFeatures.Look.LION
+	},
+	{
+		"length": 11.0,
+		"height": 6.5,
+		"peak": 0.9,
+		"tail": 15.0,
+		"spread": 12.0,
+		"dorsal": 8.0,
+		"belly": 9.0,
+		"look": FishFeatures.Look.BETTA
 	},
 ]
 const OUTLINE: Color = Color(0.01, 0.02, 0.035, 0.95)
@@ -237,9 +282,7 @@ func _draw() -> void:
 	var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
 	var swim: float = clampf(_speed / 300.0, 0.0, 1.0)
 	var wag: float = sin(_time * (7.0 + 5.0 * swim)) * (1.5 + 2.5 * swim)
-	var flutter: float = sin(_time * 6.0 + 1.3) * 1.5
-	_draw_tail(sp, _fin_col, _accent, wag)
-	_draw_fins(sp, _fin_col, _accent, flutter)
+	FishFeatures.draw_fins(self, sp, sp["look"], _fin_col, _accent, _time, wag, swim)
 
 
 ## The body's outline points from snout over the back to the tail (top) and back along the belly.
@@ -267,8 +310,11 @@ func _draw_body(canvas: CanvasItem) -> void:
 	var colors := PackedColorArray()
 	for p: Vector2 in body:
 		colors.append(back.lerp(belly_col, clampf(p.y / height * 0.5 + 0.5, 0.0, 1.0)))
+	var look: int = sp["look"]
+	FishFeatures.draw_behind_body(canvas, sp, look, back, belly_col)
 	canvas.draw_polygon(body, colors)
 	canvas.draw_polyline(body + PackedVector2Array([body[0]]), OUTLINE, 2.5)
+	FishFeatures.draw_over_body(canvas, sp, look, back, belly_col)
 	_draw_pattern(canvas, sp)
 
 
@@ -288,13 +334,11 @@ func _draw_stripe(canvas: CanvasItem) -> void:
 ## Glowing back edge, eye and accessory.
 func _draw_head(canvas: CanvasItem) -> void:
 	var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
-	var length: float = sp["length"]
-	var height: float = sp["height"]
 	canvas.draw_polyline(_body_top(sp), Color(_accent.r, _accent.g, _accent.b, 0.55), 1.0)
-	var eye := Vector2(length * 0.5, -height * 0.25)
-	canvas.draw_circle(eye, 3.2, OUTLINE)
-	canvas.draw_circle(eye, 2.2, _accent.lightened(0.5))
-	canvas.draw_circle(eye + Vector2(0.6, 0), 1.0, OUTLINE)
+	for eye: Vector2 in FishFeatures.eyes(sp, sp["look"]):
+		canvas.draw_circle(eye, 3.2, OUTLINE)
+		canvas.draw_circle(eye, 2.2, _accent.lightened(0.5))
+		canvas.draw_circle(eye + Vector2(0.6, 0), 1.0, OUTLINE)
 
 
 ## The accessory, in its own layer so a premium skin does not repaint it.
@@ -302,8 +346,7 @@ func _draw_accessory(canvas: CanvasItem) -> void:
 	if accessory != FishAccessory.Kind.NONE:
 		var sp: Dictionary = SPECIES[posmod(species, SPECIES.size())]
 		var length: float = sp["length"]
-		var height: float = sp["height"]
-		var eye := Vector2(length * 0.5, -height * 0.25)
+		var eye: Vector2 = FishFeatures.eyes(sp, sp["look"])[0]
 		var head_x: float = length - 2.0 * length * 0.3
 		var head_top := Vector2(head_x, -_body_half_height(sp, 0.3))
 		var chin := Vector2(length - 2.0 * length * 0.22, _body_half_height(sp, 0.22) * 0.9)
@@ -312,8 +355,7 @@ func _draw_accessory(canvas: CanvasItem) -> void:
 
 ## Half the body height at [param u], 0 at the snout and 1 at the tail.
 func _body_half_height(sp: Dictionary, u: float) -> float:
-	var height: float = sp["height"]
-	return maxf(height * pow(sin(PI * pow(u, sp["peak"])), 0.8), height * 0.16)
+	return FishFeatures.half_height(sp, u)
 
 
 ## Markings on the body: a bright core over a dark edge so they read on any body color.
@@ -363,48 +405,3 @@ func _mark_line(canvas: CanvasItem, points: PackedVector2Array, width: float) ->
 func _mark_dot(canvas: CanvasItem, at: Vector2, radius: float) -> void:
 	canvas.draw_circle(at, radius + 0.9, OUTLINE)
 	canvas.draw_circle(at, radius, MARK)
-
-
-func _draw_tail(sp: Dictionary, fin_col: Color, accent: Color, wag: float) -> void:
-	var length: float = sp["length"]
-	var tail: float = sp["tail"]
-	var spread: float = sp["spread"]
-	var base := Vector2(-length * 0.85, 0.0)
-	var points := PackedVector2Array(
-		[
-			base + Vector2(0.0, -1.5),
-			Vector2(-length - tail, -spread + wag),
-			Vector2(-length - tail * 0.55, wag * 0.5),
-			Vector2(-length - tail, spread + wag),
-			base + Vector2(0.0, 1.5),
-		]
-	)
-	draw_colored_polygon(points, fin_col)
-	draw_polyline(points.slice(1, 4), Color(accent.r, accent.g, accent.b, 0.8), 1.2)
-	draw_polyline(points, OUTLINE, 1.5)
-
-
-func _draw_fins(sp: Dictionary, fin_col: Color, accent: Color, flutter: float) -> void:
-	var length: float = sp["length"]
-	var height: float = sp["height"]
-	var dorsal: float = sp["dorsal"]
-	var belly: float = sp["belly"]
-	var edge := Color(accent.r, accent.g, accent.b, 0.8)
-	var top_fin := PackedVector2Array(
-		[
-			Vector2(length * 0.2, -height * 0.8),
-			Vector2(-length * 0.15 + flutter, -height - dorsal),
-			Vector2(-length * 0.55, -height * 0.7),
-		]
-	)
-	var bottom_fin := PackedVector2Array(
-		[
-			Vector2(length * 0.05, height * 0.8),
-			Vector2(-length * 0.25 - flutter, height + belly),
-			Vector2(-length * 0.5, height * 0.65),
-		]
-	)
-	for fin: PackedVector2Array in [top_fin, bottom_fin]:
-		draw_colored_polygon(fin, fin_col)
-		draw_polyline(fin, OUTLINE, 1.5)
-		draw_line(fin[0], fin[1], edge, 1.2)

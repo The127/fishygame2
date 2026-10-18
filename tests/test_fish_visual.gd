@@ -58,3 +58,23 @@ func test_every_accessory_draws_at_every_species() -> void:
 			fish.accessory = kind
 			await wait_frames(1)
 	assert_true(is_instance_valid(fish))
+
+
+func test_every_species_has_a_shop_name_and_its_own_look() -> void:
+	assert_eq(ShopCatalog.SPECIES_NAMES.size(), FishVisual.SPECIES.size())
+	assert_eq(FishFeatures.Look.size(), FishVisual.SPECIES.size())
+	for i: int in FishVisual.SPECIES.size():
+		assert_eq(FishVisual.SPECIES[i]["look"], i)
+
+
+func test_every_species_swims_and_has_an_eye() -> void:
+	var holder: Node2D = Node2D.new()
+	add_child_autofree(holder)
+	var fish: FishVisual = FishVisual.new()
+	holder.add_child(fish)
+	for species: int in FishVisual.SPECIES.size():
+		fish.species = species
+		fish.face(Vector2(400.0, 0.0), 0.016)
+		assert_false(FishFeatures.eyes(FishVisual.SPECIES[species], species).is_empty())
+		await wait_frames(2)
+	assert_true(is_instance_valid(fish))
