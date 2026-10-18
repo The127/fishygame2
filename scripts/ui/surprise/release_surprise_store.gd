@@ -7,6 +7,8 @@ extends RefCounted
 const KEY: String = "fishygame2.fake_fishy_3_release"
 ## Set the first time the surprise plays and never cleared again, not even by a re-arm.
 const PLAYED_KEY: String = "fishygame2.fake_fishy_3_played"
+## Set once the RTX unlock intro has played (see [RtxIntro]).
+const RTX_INTRO_KEY: String = "fishygame2.rtx_intro_seen"
 const DEFAULT_PATH: String = "user://release_surprise.cfg"
 
 var _path: String
@@ -35,6 +37,16 @@ func has_played() -> bool:
 ## Returns false when the flag could not be stored.
 func set_played() -> bool:
 	return _set_flag(PLAYED_KEY, "played", true)
+
+
+## Whether the RTX unlock intro already played on this browser source.
+func is_rtx_intro_seen() -> bool:
+	return _get_flag(RTX_INTRO_KEY, "rtx_intro")
+
+
+## Returns false when the flag could not be stored.
+func set_rtx_intro_seen() -> bool:
+	return _set_flag(RTX_INTRO_KEY, "rtx_intro", true)
 
 
 func _get_flag(web_key: String, file_key: String) -> bool:
